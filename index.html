@@ -1988,6 +1988,14 @@ const TCHILO_SITE_URL = 'https://zacariasguilhermejoao-ui.github.io/tchilo-Pop/'
 const tchiloSupabase = window.supabase.createClient(TCHILO_SUPABASE_URL, TCHILO_SUPABASE_KEY);
 window.tchiloSupabase = tchiloSupabase;
 
+/* ===== TCHILO / SUPABASE STORAGE ===== */
+const TCHILO_STORAGE_BUCKETS = Object.freeze({avatars:'avatars',posts:'posts-media',stories:'stories-media'});
+async function tchiloGetAuthUser(){try{const {data:{user}}=await tchiloSupabase.auth.getUser();return user||null;}catch(e){console.warn('Supabase storage auth:',e);return null;}}
+function tchiloSafeFileName(name){const base=String(name||'file').split(/[\\/]/).pop().replace(/[^a-zA-Z0-9._-]+/g,'-');return base||'file';}
+async function tchiloUploadFile(bucket,file,folder){if(!file)return null;const user=await tchiloGetAuthUser();if(!user)throw new Error('Sessão Supabase não encontrada.');const clean=tchiloSafeFileName(file.name||'file');const ext=(clean.match(/\.[^.]+$/)||[''])[0].toLowerCase();const base=clean.replace(/\.[^.]+$/,'')||'file';const path=user.id+'/'+(folder||'media')+'/'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)+'-'+base+ext;const {error}=await tchiloSupabase.storage.from(bucket).upload(path,file,{contentType:file.type||undefined,upsert:false,cacheControl:'31536000'});if(error)throw error;const {data}=tchiloSupabase.storage.from(bucket).getPublicUrl(path);return {url:data.publicUrl,path:path,bucket:bucket,type:file.type||''};}
+async function tchiloDeleteStorageObject(bucket,path){if(!bucket||!path)return;try{await tchiloSupabase.storage.from(bucket).remove([path]);}catch(e){console.warn('Storage remove:',e);}}
+window.tchiloStorage={upload:tchiloUploadFile,remove:tchiloDeleteStorageObject,buckets:TCHILO_STORAGE_BUCKETS};
+
 async function tchiloEnsureProfile(user){
   if(!user) return null;
   const {data:existing,error:readError}=await tchiloSupabase.from('profiles').select('*').eq('id',user.id).maybeSingle();
@@ -2058,12 +2066,18 @@ async function tchiloSupabaseSignup(payload){
     return {needsEmailConfirmation:true};
   }
   if(data.user){
-    await tchiloSupabase.from('profiles').upsert({
+    const {error:profileError}=await tchiloSupabase.from('profiles').upsert({
       id:data.user.id,
       username:payload.username,
       display_name:payload.displayName,
       is_private:payload.privacy==='private'
     });
+    if(profileError) throw profileError;
+    if(payload.avatarFile){
+      const uploaded=await tchiloUploadFile(TCHILO_STORAGE_BUCKETS.avatars,payload.avatarFile,'profile');
+      const {error:avatarError}=await tchiloSupabase.from('profiles').update({avatar_url:uploaded.url}).eq('id',data.user.id);
+      if(avatarError) console.warn('Avatar de cadastro não guardado no perfil:',avatarError);
+    }
   }
   return {needsEmailConfirmation:false};
 }
@@ -2234,7 +2248,8 @@ async function createAccount(e) {
   try{
     const {data:existing}=await tchiloSupabase.from('profiles').select('id').ilike('username',username).maybeSingle();
     if(existing){signupNext(1);error.textContent='Este username já existe.';return;}
-    const result=await tchiloSupabaseSignup({username,email,password,displayName,privacy});
+    const avatarFile=document.getElementById('signupAvatar')?.files?.[0]||null;
+    const result=await tchiloSupabaseSignup({username,email,password,displayName,privacy,avatarFile});
     if(result.needsEmailConfirmation){
       error.innerHTML='Conta criada. Verifica o teu email para confirmar a conta.<br><button type="button" class="login-back" id="resendConfirmationBtn" style="margin-top:10px">Reenviar email de confirmação</button>';
       const resend=document.getElementById('resendConfirmationBtn');
@@ -2680,49 +2695,22 @@ function toggleReelPlayback(video) {
   if (video.paused) video.play().catch(function(){});
   else video.pause();
 }
-function createDuet(postId) {
-  const session = getSession();
-  if (!session) return;
-  const posts = getPosts();
-  const orig = posts.find(function(p){ return p.id === postId; });
-  if (!orig) return;
-  const media = resolveMedia(orig);
-  showToast('Escolhe um vídeo teu para o dueto');
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'video/*';
-  input.onchange = function(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    const id = 'p' + Date.now().toString(36);
-    if (!window.__tchiloMedia) window.__tchiloMedia = {};
-    window.__tchiloMedia[id] = { url: url, type: 'video' };
-    const post = {
-      id: id,
-      username: session.username,
-      initials: session.username.slice(0,2).toUpperCase(),
-      location: 'Portugal',
-      time: 'agora',
-      color: 'm1',
-      stamp: 'DUETO',
-      caption: 'Dueto com @' + orig.username,
-      tags: ['#dueto'],
-      likes: 0,
-      comments: 0,
-      media: url,
-      mediaType: 'video',
-      mediaRef: id,
-      duetOf: postId,
-      music: orig.music || ('Áudio original · @' + orig.username)
-    };
-    posts.unshift(post);
-    try { save(KEYS.posts, posts); } catch(err) {}
-    showToast('Dueto publicado!');
-    closeReels();
-    goTo('feed');
-  };
-  input.click();
+async function createDuet(postId){
+  const session=getSession();if(!session)return;
+  const posts=getPosts();const orig=posts.find(function(p){return p.id===postId;});if(!orig)return;
+  const media=resolveMedia(orig);showToast('Escolhe um vídeo teu para o dueto');
+  const input=document.createElement('input');input.type='file';input.accept='video/*';
+  input.onchange=async function(e){
+    const file=e.target.files&&e.target.files[0];if(!file)return;
+    const id='p'+Date.now().toString(36);
+    try{
+      showToast('A enviar dueto…');
+      const uploaded=await tchiloUploadFile(TCHILO_STORAGE_BUCKETS.posts,file,'duets');
+      if(!window.__tchiloMedia)window.__tchiloMedia={};window.__tchiloMedia[id]={url:uploaded.url,type:'video'};
+      const post={id:id,username:session.username,initials:session.username.slice(0,2).toUpperCase(),location:'Portugal',time:'agora',color:'m1',stamp:'DUETO',caption:'Dueto com @'+orig.username,tags:['#dueto'],likes:0,comments:0,media:uploaded.url,mediaType:'video',mediaPath:uploaded.path,mediaBucket:uploaded.bucket,mediaRef:id,duetOf:postId,music:orig.music||('Áudio original · @'+orig.username)};
+      posts.unshift(post);save(KEYS.posts,posts);showToast('Dueto publicado!');closeReels();goTo('feed');
+    }catch(err){console.error('Tchilo duet upload:',err);showToast('Não foi possível enviar o dueto.');}
+  };input.click();
 }
 function useSameMusic(postId) {
   const posts = getPosts();
@@ -3239,7 +3227,7 @@ function onMediaPicked(event){
   if(hasVideo && files.length>1){ showToast('Vídeo só pode ser publicado sozinho'); event.target.value=''; return; }
   if(files.some(function(f){return f.type.indexOf('image')!==0 && f.type.indexOf('video')!==0;})){showToast('Escolhe apenas fotos ou um vídeo');event.target.value='';return;}
   if(createMediaData&&createMediaData.items)createMediaData.items.forEach(function(m){try{URL.revokeObjectURL(m.url)}catch(e){}});
-  const items=files.map(function(file){return {type:file.type.indexOf('video')===0?'video':'image',url:URL.createObjectURL(file),name:file.name};});
+  const items=files.map(function(file){return {type:file.type.indexOf('video')===0?'video':'image',url:URL.createObjectURL(file),name:file.name,file:file};});
   createMediaData={type:items[0].type,items:items};
   const preview=document.getElementById('createPreview'); preview.classList.add('has-media'); preview.querySelectorAll('img,video,.multi-preview').forEach(function(n){n.remove();});
   if(items.length===1){
@@ -3258,33 +3246,21 @@ function clearCreateMedia(){
 }
 function removeMedia(){clearCreateMedia();showToast('Media removida — podes usar tema de texto');}
 function updateStamp(){const title=document.getElementById('createTitle').value.trim()||'NOVO POST';const parts=title.toUpperCase().split(/\s+/).slice(0,3);document.getElementById('createStamp').innerHTML=parts.join('<br>');}
-function publishPost(){
+async function publishPost(){
   const session=getSession();if(!session)return;
   const title=document.getElementById('createTitle').value.trim()||'NOVO POST',caption=document.getElementById('createCaption').value.trim()||'nova publicação',stamp=title.toUpperCase().split(/\s+/).slice(0,3).join('\n'),tags=(caption.match(/#[\wÀ-ÿ]+/g)||[]),postId='p'+Date.now().toString(36);
   const items=createMediaData&&createMediaData.items?createMediaData.items:[];
   if(items.some(function(m){return m.type==='video'})&&items.length!==1){showToast('Vídeo só pode ser publicado sozinho');return;}
   const post={id:postId,username:session.username,initials:session.username.slice(0,2).toUpperCase(),location:'Portugal',time:'agora',color:currentColor,stamp:stamp,caption:caption.replace(/#[\wÀ-ÿ]+/g,'').trim(),tags:tags,likes:0,comments:0,media:null,mediaType:null,mediaItems:null,music:window._pendingMusic||null}; window._pendingMusic=null;
-  function finish(mediaList){
-    if(mediaList&&mediaList.length){
-      if(mediaList.length===1){post.media=mediaList[0].url;post.mediaType=mediaList[0].type;}
-      else {post.mediaItems=mediaList;post.mediaType='image';}
+  showToast(items.length?'A enviar publicação…':'A publicar…');
+  try{
+    if(items.length){const uploaded=[];for(const item of items){if(!item.file)throw new Error('Ficheiro da publicação não disponível.');const result=await tchiloUploadFile(TCHILO_STORAGE_BUCKETS.posts,item.file,'posts');uploaded.push({url:result.url,type:item.type,name:item.name||item.file.name,path:result.path,bucket:result.bucket});}
+      if(uploaded.length===1){post.media=uploaded[0].url;post.mediaType=uploaded[0].type;post.mediaPath=uploaded[0].path;post.mediaBucket=uploaded[0].bucket;}else{post.mediaItems=uploaded;post.mediaType='image';}
     }
-    const posts=getPosts();posts.unshift(post);
-    try{save(KEYS.posts,posts);}catch(e){
-      const light=posts.map(function(p){
-        if(Array.isArray(p.mediaItems)){const copy=Object.assign({},p);if(!window.__tchiloMedia)window.__tchiloMedia={};window.__tchiloMedia[p.id]={items:p.mediaItems};copy.mediaItems=null;copy.mediaRef=p.id;return copy;}
-        if(p.media&&String(p.media).length>50000){const copy=Object.assign({},p);if(!window.__tchiloMedia)window.__tchiloMedia={};window.__tchiloMedia[p.id]={url:p.media,type:p.mediaType};copy.media=null;copy.mediaRef=p.id;return copy;} return p;
-      }); try{save(KEYS.posts,light)}catch(e2){showToast('Armazenamento cheio, post só nesta sessão');}
-    }
-    if(mediaList&&mediaList.length){if(!window.__tchiloMedia)window.__tchiloMedia={}; if(mediaList.length===1&&mediaList[0].type==='video')window.__tchiloMedia[postId]=mediaList[0]; else if(mediaList.length>1)window.__tchiloMedia[postId]={items:mediaList};}
+    const posts=getPosts();posts.unshift(post);save(KEYS.posts,posts);
+    if(items.length){if(!window.__tchiloMedia)window.__tchiloMedia={};if(items.length===1&&items[0].type==='video')window.__tchiloMedia[postId]={url:post.media,type:'video'};else if(items.length>1)window.__tchiloMedia[postId]={items:post.mediaItems};}
     createMediaData=null;const input=document.getElementById('mediaInput');if(input)input.value='';const preview=document.getElementById('createPreview');if(preview){preview.querySelectorAll('img,video,.multi-preview').forEach(function(n){n.remove()});preview.classList.remove('has-media');}setThemeSectionVisible(true);document.getElementById('createTitle').value='';document.getElementById('createCaption').value='';showToast('Publicado!');goTo('feed');
-  }
-  if(!items.length){finish([]);return;}
-  if(items.length===1&&items[0].type==='image'){
-    fetch(items[0].url).then(function(r){return r.blob()}).then(function(blob){const reader=new FileReader();reader.onloadend=function(){finish([{url:reader.result,type:'image'}])};reader.onerror=function(){finish([items[0]])};reader.readAsDataURL(blob)}).catch(function(){finish([items[0]])});
-  }else if(items.length>1){
-    Promise.all(items.map(function(m){return fetch(m.url).then(function(r){return r.blob()}).then(function(blob){return new Promise(function(resolve){const reader=new FileReader();reader.onloadend=function(){resolve({url:reader.result,type:'image'})};reader.readAsDataURL(blob)})})})).then(finish).catch(function(){finish(items)});
-  }else finish(items);
+  }catch(err){console.error('Tchilo post upload:',err);showToast('Não foi possível enviar a mídia. Tenta novamente.');}
 }
 
 function getChats() { return load(KEYS.chats, {}); }
@@ -3930,6 +3906,7 @@ function pickAvatarColor(el) {
 function onAvatarPicked(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
+  window.__tchiloPendingAvatarFile=file;
   const reader = new FileReader();
   reader.onloadend = function() {
     editAvatarData = reader.result;
@@ -3939,37 +3916,26 @@ function onAvatarPicked(event) {
   reader.readAsDataURL(file);
 }
 function removeAvatar() {
-  editAvatarData = null;
+  editAvatarData = null; window.__tchiloPendingAvatarFile=null;
   const input = document.getElementById('editAvatarInput');
   if (input) input.value = '';
   refreshEditAvatarPreview();
 }
-function saveProfile() {
-  const session = getSession();
-  if (!session) return;
-  const email = document.getElementById('editEmail').value.trim().toLowerCase();
-  const displayName = document.getElementById('editDisplayName').value.trim() || session.username;
-  const bio = document.getElementById('editBio').value.trim();
-  const location = document.getElementById('editLocation').value.trim();
-  if (!isValidEmail(email)) { showToast('Email inválido'); return; }
-  const users = getUsers();
-  const u = users.find(function(x){ return x.username === session.username; });
-  if (!u) return;
-  if (users.some(function(x){ return x.email === email && x.username !== session.username; })) {
-    showToast('Email já em uso'); return;
-  }
-  u.email = email;
-  save(KEYS.users, users);
-  setSession(u);
-  saveProfileExtra(session.username, {
-    displayName: displayName,
-    bio: bio,
-    location: location,
-    avatarColor: editAvatarColor,
-    avatar: editAvatarData
-  });
-  showToast('Perfil atualizado!');
-  goTo('profile');
+async function saveProfile(){
+  const session=getSession();if(!session)return;
+  const email=document.getElementById('editEmail').value.trim().toLowerCase();
+  const displayName=document.getElementById('editDisplayName').value.trim()||session.username;
+  const bio=document.getElementById('editBio').value.trim();
+  const location=document.getElementById('editLocation').value.trim();
+  if(!isValidEmail(email)){showToast('Email inválido');return;}
+  const pendingAvatar=window.__tchiloPendingAvatarFile||null;
+  try{
+    let avatarUrl=editAvatarData||null;let avatarPath=null;
+    if(pendingAvatar){showToast('A enviar foto de perfil…');const uploaded=await tchiloUploadFile(TCHILO_STORAGE_BUCKETS.avatars,pendingAvatar,'profile');avatarUrl=uploaded.url;avatarPath=uploaded.path;const {error}=await tchiloSupabase.from('profiles').update({display_name:displayName,avatar_url:avatarUrl}).eq('id',session.id);if(error)throw error;window.__tchiloPendingAvatarFile=null;}
+    else if(!editAvatarData){const {error}=await tchiloSupabase.from('profiles').update({display_name:displayName,avatar_url:null}).eq('id',session.id);if(error)throw error;}
+    const extra=getProfileExtra(session.username)||{};saveProfileExtra(session.username,{displayName:displayName,bio:bio,location:location,avatarColor:editAvatarColor,avatar:avatarUrl,avatarPath:avatarPath||extra.avatarPath||null});
+    setSession(Object.assign({},session,{displayName:displayName,avatar:avatarUrl,email:email}));showToast('Perfil atualizado!');goTo('profile');
+  }catch(err){console.error('Tchilo avatar upload:',err);showToast('Não foi possível guardar a foto de perfil.');}
 }
 function openEditProfile() { goTo('editprofile'); }
 
@@ -4305,7 +4271,7 @@ function onStoryMediaPicked(event){
   const isVideo=file.type.indexOf('video')===0;
   if(isVideo){
     const url=URL.createObjectURL(file);
-    publishStory({media:url,mediaType:'video',text:''});
+    publishStory({media:url,mediaType:'video',text:'',file:file});
     input.value='';
     return;
   }
@@ -4328,22 +4294,27 @@ function onStoryMediaPicked(event){
         ctx.imageSmoothingQuality='high';
         ctx.drawImage(img,0,0,w,h);
         const data=canvas.toDataURL('image/jpeg',0.88);
-        publishStory({media:data,mediaType:'image',text:''});
+        publishStory({media:data,mediaType:'image',text:'',file:file});
       }catch(e){
-        publishStory({media:src,mediaType:'image',text:''});
+        publishStory({media:src,mediaType:'image',text:'',file:file});
       }
       input.value='';
     };
     img.onerror=function(){
       // Mantém compatibilidade com formatos que o navegador não consegue descodificar.
-      publishStory({media:src,mediaType:'image',text:''});
+      publishStory({media:src,mediaType:'image',text:'',file:file});
       input.value='';
     };
     img.src=src;
   };
   reader.readAsDataURL(file);
 }
-function publishStory(data){ const session=getSession();if(!session)return;const all=getStoriesStore();let arr=Array.isArray(all[session.username])?all[session.username]:(all[session.username]?[all[session.username]]:[]);arr.push({text:data.text||'',media:data.media||null,mediaType:data.mediaType||null,color:data.media?null:(data.color||'m1'),createdAt:Date.now()});arr=arr.filter(function(x){return Date.now()-(x.createdAt||0)<=24*60*60*1000;});all[session.username]=arr;saveStoriesStore(all);renderStories();showToast('Status publicado (24h)');}
+async function publishStory(data){
+  const session=getSession();if(!session)return;let media=data.media||null,mediaType=data.mediaType||null,mediaPath=null,mediaBucket=null;
+  try{if(data.file){showToast('A enviar Story…');const uploaded=await tchiloUploadFile(TCHILO_STORAGE_BUCKETS.stories,data.file,'stories');media=uploaded.url;mediaType=mediaType||(data.file.type.indexOf('video')===0?'video':'image');mediaPath=uploaded.path;mediaBucket=uploaded.bucket;}
+    const all=getStoriesStore();let arr=Array.isArray(all[session.username])?all[session.username]:(all[session.username]?[all[session.username]]:[]);arr.push({text:data.text||'',media:media,mediaType:mediaType,color:media?null:(data.color||'m1'),mediaPath:mediaPath,mediaBucket:mediaBucket,createdAt:Date.now()});arr=arr.filter(function(x){return Date.now()-(x.createdAt||0)<=24*60*60*1000;});all[session.username]=arr;saveStoriesStore(all);renderStories();showToast('Status publicado (24h)');
+  }catch(err){console.error('Tchilo story upload:',err);showToast('Não foi possível enviar o Story.');}
+}
 function getThemeColor(c){ const map={m1:'var(--mint)',m2:'var(--yellow)',m3:'var(--violet)',m4:'var(--pink)',m5:'var(--paper)',m6:'#9ED7FF',m7:'#FFB36B',m8:'#FF6F7D',m9:'#69D6C2',m10:'#B9A7FF',m11:'#17171A',m12:'#D8C3A5'}; return map[c]||'var(--mint)'; }
 function setupStoriesTouchGuard(){ const bar=document.getElementById('storiesBar'); if(!bar||bar.dataset.touchReady==='1')return;bar.dataset.touchReady='1';bar.style.touchAction='pan-x'; }
 let storyShareCurrent=null;

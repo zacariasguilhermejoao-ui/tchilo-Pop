@@ -33,6 +33,26 @@ jobs:
           cp firebase/google-services.json android/app/google-services.json
           echo "google-services.json copied to android/app/"
 
+      - name: Apply Google Services Gradle plugin
+        run: |
+          # Project-level build.gradle
+          PROJECT_GRADLE="android/build.gradle"
+          if [ -f "$PROJECT_GRADLE" ]; then
+            if ! grep -q "com.google.gms:google-services" "$PROJECT_GRADLE"; then
+              sed -i '/dependencies {/a\        classpath \'com.google.gms:google-services:4.4.2\'' "$PROJECT_GRADLE" || true
+            fi
+          fi
+
+          # App-level build.gradle
+          APP_GRADLE="android/app/build.gradle"
+          if [ -f "$APP_GRADLE" ]; then
+            if ! grep -q "com.google.gms.google-services" "$APP_GRADLE"; then
+              echo "" >> "$APP_GRADLE"
+              echo "apply plugin: 'com.google.gms.google-services'" >> "$APP_GRADLE"
+            fi
+          fi
+          echo "Google Services plugin applied"
+
       - name: Configure Android native permissions
         run: |
           python - <<'PY'

@@ -1,0 +1,19 @@
+{
+  "name": "tchilo-pop",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "echo Static web app - ready for Capacitor sync",
+    "cap:sync": "npx cap sync",
+    "cap:android": "npx cap add android && npx cap sync android",
+    "cap:ios": "npx cap add ios && npx cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "latest"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "latest",
+    "@capacitor/android": "latest",
+    "@capacitor/ios": "latest"
+  }
+}

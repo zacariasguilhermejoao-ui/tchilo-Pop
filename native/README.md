@@ -1,25 +1,17 @@
-# Native configuration
+# tchilo-Pop — Native app setup
 
-This directory documents the native capabilities required by tchilo-Pop when the Capacitor Android and iOS projects are generated.
+This folder contains only the generic Android/iOS packaging setup for tchilo-Pop.
 
-## Required permissions
+The existing web application remains in the repository root as `index.html` and is not replaced by the native setup.
 
-### Android
-- Camera: document photos, vehicle photos and face/video capture
-- Location: GPS and ride tracking
-- Notifications: ride and message notifications
-- Microphone: video/voice features when requested
-- Internet/network access
-- Phone/dialer: opening the system dialer from the call button
+## Android
 
-### iOS
-- Camera usage description
-- Photo library usage description
-- Microphone usage description
-- Location usage description
-- Notifications authorization
-- Network access
+The repository is prepared to generate an Android project with Capacitor and build an APK/AAB through GitHub Actions.
+
+## iOS
+
+The repository is prepared to generate an iOS Xcode project with Capacitor. App Store signing and publishing still require an Apple Developer account and signing configuration.
 
 ## Important
 
-The web application remains in the repository root as `index.html`. Native projects should be generated with Capacitor from this repository rather than replacing the existing web application.
+No Dunta Taxi functionality is part of tchilo-Pop. App-specific native permissions and plugins should only be added when a tchilo-Pop feature actually requires them.

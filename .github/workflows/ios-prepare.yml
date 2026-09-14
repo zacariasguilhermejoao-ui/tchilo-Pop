@@ -54,7 +54,7 @@ jobs:
 
           if [ -f "$SPLASH" ]; then
             mkdir -p ios/App/App/Assets.xcassets/Splash.imageset 2>/dev/null || true
-            cp "$SPLASH" ios/App/App/Assets.xcassets/Splash.imageset/splash.png" 2>/dev/null || true
+            cp "$SPLASH" ios/App/App/Assets.xcassets/Splash.imageset/splash.png 2>/dev/null || true
             echo "iOS splash copied"
           fi
 

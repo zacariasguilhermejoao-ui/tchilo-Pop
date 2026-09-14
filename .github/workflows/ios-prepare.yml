@@ -1,0 +1,37 @@
+name: iOS Capacitor preparation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  prepare-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Add iOS platform
+        run: npx cap add ios
+
+      - name: Sync Capacitor
+        run: npx cap sync ios
+
+      - name: Verify iOS project
+        run: test -d ios/App && test -f ios/App/App.xcodeproj/project.pbxproj
+
+      - name: Upload generated iOS project
+        uses: actions/upload-artifact@v4
+        with:
+          name: tchilo-pop-ios-project
+          path: ios

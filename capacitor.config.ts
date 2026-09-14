@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.tchilopop.app',
+  appId: 'com.tchilo.isabstudio',
   appName: 'tchilo-Pop',
   webDir: '.',
   bundledWebRuntime: false,

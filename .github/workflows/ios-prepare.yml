@@ -27,8 +27,14 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync ios
 
+      - name: Configure iOS native privacy permissions
+        run: |
+          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'tchilo-Pop precisa de acesso à câmera quando um recurso do aplicativo solicitar uma foto.'" ios/App/App/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'tchilo-Pop precisa da sua localização quando um recurso do aplicativo utilizar localização.'" ios/App/App/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Add :NSUserNotificationUsageDescription string 'tchilo-Pop pode enviar notificações para informar sobre eventos do aplicativo.'" ios/App/App/Info.plist || true
+
       - name: Verify iOS project
-        run: test -d ios/App && test -f ios/App/App.xcodeproj/project.pbxproj
+        run: test -d ios/App && test -f ios/App/App.xcodeproj/project.pbxproj && test -f ios/App/App/Info.plist
 
       - name: Upload generated iOS project
         uses: actions/upload-artifact@v4

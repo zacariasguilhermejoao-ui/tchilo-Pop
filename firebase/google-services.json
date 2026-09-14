@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "397415802235",
+    "project_id": "tchilo-f981f",
+    "storage_bucket": "tchilo-f981f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397415802235:android:a583b8291e6ba63a63c9de",
+        "android_client_info": {
+          "package_name": "com.tchilo.isabstudio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrc2-ub5smInnlmAd1fM7AGoKFN_5_ESo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

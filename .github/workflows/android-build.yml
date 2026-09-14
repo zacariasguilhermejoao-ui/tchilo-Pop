@@ -27,6 +27,30 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
+      - name: Configure Android native permissions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          text = p.read_text()
+          permissions = [
+              'android.permission.CAMERA',
+              'android.permission.ACCESS_COARSE_LOCATION',
+              'android.permission.ACCESS_FINE_LOCATION',
+              'android.permission.POST_NOTIFICATIONS',
+          ]
+          marker = '<application'
+          additions = ''.join(f'    <uses-permission android:name="{x}" />\\n' for x in permissions)
+          if marker in text:
+              before, after = text.split(marker, 1)
+              for x in permissions:
+                  line = f'    <uses-permission android:name="{x}" />'
+                  if line not in text:
+                      before += line + '\\n'
+              text = before + marker + after
+          p.write_text(text)
+          PY
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:

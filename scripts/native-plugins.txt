@@ -1,0 +1,10 @@
+Capacitor native plugins planned for tchilo-Pop
+
+@capacitor/camera
+@capacitor/geolocation
+@capacitor/push-notifications
+@capacitor/splash-screen
+@capacitor/app
+@capacitor/device
+
+These plugins provide the native bridge for camera/document/video capture, GPS, push notifications, startup/splash handling, app lifecycle, and device information.

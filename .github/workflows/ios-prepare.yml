@@ -32,6 +32,36 @@ jobs:
           cp firebase/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
           echo "GoogleService-Info.plist copied to ios/App/App/"
 
+      - name: Set app icon and splash
+        run: |
+          ICON=resources/icon.png
+          SPLASH=resources/splash.png
+
+          if [ -f "$ICON" ]; then
+            # AppIcon.appiconset
+            ICONSET="ios/App/App/Assets.xcassets/AppIcon.appiconset"
+            if [ -d "$ICONSET" ]; then
+              # Generate common sizes
+              sips -z 40 40   "$ICON" --out "$ICONSET/icon-20@2x.png" 2>/dev/null || true
+              sips -z 60 60   "$ICON" --out "$ICONSET/icon-20@3x.png" 2>/dev/null || true
+              sips -z 58 58   "$ICON" --out "$ICONSET/icon-29@2x.png" 2>/dev/null || true
+              sips -z 87 87   "$ICON" --out "$ICONSET/icon-29@3x.png" 2>/dev/null || true
+              sips -z 80 80   "$ICON" --out "$ICONSET/icon-40@2x.png" 2>/dev/null || true
+              sips -z 120 120 "$ICON" --out "$ICONSET/icon-40@3x.png" 2>/dev/null || true
+              sips -z 120 120 "$ICON" --out "$ICONSET/icon-60@2x.png" 2>/dev/null || true
+              sips -z 180 180 "$ICON" --out "$ICONSET/icon-60@3x.png" 2>/dev/null || true
+              sips -z 1024 1024 "$ICON" --out "$ICONSET/icon-1024.png" 2>/dev/null || true
+              echo "iOS app icons generated"
+            fi
+          fi
+
+          if [ -f "$SPLASH" ]; then
+            # Splash screen (Splash.imageset or similar)
+            mkdir -p ios/App/App/Assets.xcassets/Splash.imageset 2>/dev/null || true
+            cp "$SPLASH" ios/App/App/Assets.xcassets/Splash.imageset/splash.png 2>/dev/null || true
+            echo "iOS splash copied"
+          fi
+
       - name: Configure iOS native privacy permissions
         run: |
           /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'tchilo-Pop precisa de acesso à câmera quando um recurso do aplicativo solicitar uma foto.'" ios/App/App/Info.plist || true

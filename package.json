@@ -9,7 +9,11 @@
     "cap:ios": "npx cap add ios && npx cap sync ios"
   },
   "dependencies": {
-    "@capacitor/core": "latest"
+    "@capacitor/core": "latest",
+    "@capacitor/camera": "latest",
+    "@capacitor/geolocation": "latest",
+    "@capacitor/push-notifications": "latest",
+    "@capacitor/splash-screen": "latest"
   },
   "devDependencies": {
     "@capacitor/cli": "latest",

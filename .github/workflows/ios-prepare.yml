@@ -27,6 +27,11 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync ios
 
+      - name: Copy Firebase GoogleService-Info.plist
+        run: |
+          cp firebase/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
+          echo "GoogleService-Info.plist copied to ios/App/App/"
+
       - name: Configure iOS native privacy permissions
         run: |
           /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'tchilo-Pop precisa de acesso à câmera quando um recurso do aplicativo solicitar uma foto.'" ios/App/App/Info.plist || true

@@ -27,6 +27,12 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
+      - name: Copy Firebase google-services.json
+        run: |
+          mkdir -p android/app
+          cp firebase/google-services.json android/app/google-services.json
+          echo "google-services.json copied to android/app/"
+
       - name: Configure Android native permissions
         run: |
           python - <<'PY'
@@ -40,13 +46,12 @@ jobs:
               'android.permission.POST_NOTIFICATIONS',
           ]
           marker = '<application'
-          additions = ''.join(f'    <uses-permission android:name="{x}" />\\n' for x in permissions)
           if marker in text:
               before, after = text.split(marker, 1)
               for x in permissions:
                   line = f'    <uses-permission android:name="{x}" />'
                   if line not in text:
-                      before += line + '\\n'
+                      before += line + '\n'
               text = before + marker + after
           p.write_text(text)
           PY

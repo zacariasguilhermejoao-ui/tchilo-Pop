@@ -4078,6 +4078,7 @@ async function loadPublicFeedFromSupabase(force) {
   if (__publicFeedLoading || (__publicFeedLoaded && !force) || !window.tchiloSupabase) return;
   __publicFeedLoading = true;
   /* Se já há posts em cache, o ecrã já os mostra — não limpar */
+  /* Se já há posts em cache, o ecrã já os mostra — não limpar */
   try {
     const SB = window.tchiloSupabase;
     let rows = null;

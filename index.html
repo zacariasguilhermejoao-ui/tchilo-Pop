@@ -4077,6 +4077,7 @@ function formatRelativeTime(isoDate) {
 async function loadPublicFeedFromSupabase(force) {
   if (__publicFeedLoading || (__publicFeedLoaded && !force) || !window.tchiloSupabase) return;
   __publicFeedLoading = true;
+  /* Se já há posts em cache, o ecrã já os mostra — não limpar */
   try {
     const SB = window.tchiloSupabase;
     let rows = null;
@@ -6124,7 +6125,11 @@ function renderFeed() {
   const saves = getSaves();
   renderSuggestions();
   if (!posts.length) {
-    feed.innerHTML = '<div class="empty"><b>O teu feed está vazio</b>Quando existirem publicações públicas, elas aparecerão aqui.</div>';
+    if (window.__publicFeedLoading) {
+      feed.innerHTML = '<div class="empty" style="opacity:.85"><b>A atualizar…</b>A carregar publicações.</div>';
+    } else {
+      feed.innerHTML = '<div class="empty"><b>O teu feed está vazio</b>Quando existirem publicações públicas, elas aparecerão aqui.</div>';
+    }
     return;
   }
   let htmlOut = '';
@@ -9668,7 +9673,8 @@ function bootApp() {
   renderStories();
   renderSuggestions();
   updateAnonBanner();
-  renderFeed();
+  /* Cache local primeiro — posts aparecem já, sem esperar pela rede */
+  try { renderFeed(); } catch (eR) {}
   setupFeedChromeAutoHide();
   var lastScreen = 'feed';
   try {
@@ -9681,6 +9687,14 @@ function bootApp() {
   };
   if (!allowedScreens[lastScreen]) lastScreen = 'feed';
   goTo(lastScreen);
+  /* Rede em segundo plano — não apaga o que já está no ecrã */
+  setTimeout(function(){
+    try {
+      if (typeof loadPublicFeedFromSupabase === 'function') {
+        loadPublicFeedFromSupabase(true);
+      }
+    } catch (eL) {}
+  }, 50);
 }
 
 function playLoginVideo() {
@@ -9787,6 +9801,17 @@ function init() {
   playLoginVideo();
   const session = getSession();
   if (session && session.username) {
+    /* Pintar cache do feed o mais cedo possível */
+    try {
+      var early = (typeof getPosts === 'function') ? getPosts() : [];
+      if (early && early.length && typeof renderFeed === 'function') {
+        var fl = document.getElementById('feedList');
+        if (fl && !fl.dataset.earlyPaint) {
+          fl.dataset.earlyPaint = '1';
+          renderFeed();
+        }
+      }
+    } catch (eEarly) {}
     hideLoginGate();
   } else {
     document.body.style.overflow = 'hidden';

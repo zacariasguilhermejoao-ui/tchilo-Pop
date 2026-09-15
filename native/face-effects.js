@@ -1,17 +1,20 @@
 /**
- * tchilo-Pop — Efeitos de câmara estilo Snapchat
- * MediaPipe Face Landmarker (CDN, sem API key)
- * Acessórios em canvas + filtro de melhoria ao capturar
+ * tchilo-Pop — Efeitos de câmara (rápido)
+ * Câmara abre já; MediaPipe carrega em paralelo / em pré-carga.
  */
 (function () {
   'use strict';
 
   var faceLandmarker = null;
+  var landmarkerPromise = null;
   var stream = null;
   var rafId = 0;
   var running = false;
   var effectIndex = 0;
   var lastVideoTime = -1;
+  var detectEvery = 2;
+  var frameCount = 0;
+  var lastLandmarks = null;
   var videoEl = null;
   var canvasEl = null;
   var overlayEl = null;
@@ -27,26 +30,53 @@
     { id: 'dog', label: 'Cãozinho' }
   ];
 
-  async function ensureLandmarker() {
-    if (faceLandmarker) return faceLandmarker;
-    if (statusEl) statusEl.textContent = 'A carregar modelo facial…';
-    var vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm');
-    var fileset = await vision.FilesetResolver.forVisionTasks(
-      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
-    );
-    faceLandmarker = await vision.FaceLandmarker.createFromOptions(fileset, {
-      baseOptions: {
-        modelAssetPath:
-          'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
-        delegate: 'GPU'
-      },
-      runningMode: 'VIDEO',
-      numFaces: 1,
-      outputFaceBlendshapes: false,
-      outputFacialTransformationMatrixes: false
-    });
-    if (statusEl) statusEl.textContent = '';
-    return faceLandmarker;
+  function setStatus(msg) {
+    if (statusEl) statusEl.textContent = msg || '';
+  }
+
+  function ensureLandmarker() {
+    if (faceLandmarker) return Promise.resolve(faceLandmarker);
+    if (landmarkerPromise) return landmarkerPromise;
+    landmarkerPromise = (async function () {
+      try {
+        var vision = await import(
+          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm'
+        );
+        var fileset = await vision.FilesetResolver.forVisionTasks(
+          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+        );
+        var opts = {
+          baseOptions: {
+            modelAssetPath:
+              'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+            delegate: 'GPU'
+          },
+          runningMode: 'VIDEO',
+          numFaces: 1,
+          outputFaceBlendshapes: false,
+          outputFacialTransformationMatrixes: false
+        };
+        try {
+          faceLandmarker = await vision.FaceLandmarker.createFromOptions(fileset, opts);
+        } catch (gpuErr) {
+          opts.baseOptions.delegate = 'CPU';
+          faceLandmarker = await vision.FaceLandmarker.createFromOptions(fileset, opts);
+        }
+        setStatus('');
+        return faceLandmarker;
+      } catch (e) {
+        landmarkerPromise = null;
+        console.warn('Tchilo FaceLandmarker', e);
+        throw e;
+      }
+    })();
+    return landmarkerPromise;
+  }
+
+  function preloadModel() {
+    try {
+      ensureLandmarker().catch(function () {});
+    } catch (e) {}
   }
 
   function ensureUI() {
@@ -60,7 +90,9 @@
       '#tchiloFaceFx.open{display:flex;}' +
       '#tchiloFaceFx .fx-stage{position:relative;flex:1;min-height:0;background:#111;overflow:hidden;}' +
       '#tchiloFaceFx video,#tchiloFaceFx canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}' +
-      '#tchiloFaceFx canvas{pointer-events:none;}' +
+      '#tchiloFaceFx video{z-index:0;transform:scaleX(-1);}' +
+      '#tchiloFaceFx.fx-env video{transform:none;}' +
+      '#tchiloFaceFx canvas{z-index:1;pointer-events:none;}' +
       '#tchiloFaceFx .fx-top{position:absolute;top:0;left:0;right:0;padding:calc(12px + env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;justify-content:space-between;z-index:2;background:linear-gradient(180deg,rgba(0,0,0,.55),transparent);}' +
       '#tchiloFaceFx .fx-top b{color:#fff;font-size:16px;}' +
       '#tchiloFaceFx .fx-btn{border:0;border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer;background:rgba(255,255,255,.92);color:#111;}' +
@@ -72,7 +104,7 @@
       '#tchiloFaceFx .fx-chip.active{border-color:#c8f560;background:rgba(200,245,96,.25);}' +
       '#tchiloFaceFx .fx-actions{display:flex;gap:10px;align-items:center;justify-content:center;}' +
       '#tchiloFaceFx .fx-shutter{width:72px;height:72px;border-radius:50%;border:4px solid #fff;background:#c8f560;cursor:pointer;}' +
-      '#tchiloFaceFx .fx-status{color:rgba(255,255,255,.85);font-size:13px;text-align:center;min-height:18px;}' +
+      '#tchiloFaceFx .fx-status{color:rgba(255,255,255,.9);font-size:13px;text-align:center;min-height:18px;}' +
       '</style>' +
       '<div class="fx-stage">' +
       '<video id="tchiloFxVideo" playsinline muted autoplay></video>' +
@@ -127,29 +159,40 @@
 
   async function flipCamera() {
     facingMode = facingMode === 'user' ? 'environment' : 'user';
+    if (overlayEl) overlayEl.classList.toggle('fx-env', facingMode === 'environment');
     await startCamera();
   }
 
   async function startCamera() {
     stopStreamOnly();
-    if (statusEl) statusEl.textContent = 'A abrir câmara…';
+    setStatus('A abrir câmara…');
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } }
+        video: {
+          facingMode: { ideal: facingMode },
+          width: { ideal: 640, max: 960 },
+          height: { ideal: 480, max: 720 },
+          frameRate: { ideal: 24, max: 30 }
+        }
       });
       videoEl.srcObject = stream;
-      await videoEl.play();
-      if (statusEl) statusEl.textContent = '';
+      videoEl.setAttribute('playsinline', '');
+      videoEl.muted = true;
+      var p = videoEl.play();
+      if (p && p.catch) p.catch(function () {});
+      setStatus(faceLandmarker ? '' : 'Câmara pronta · a carregar efeitos…');
     } catch (err) {
-      if (statusEl) statusEl.textContent = 'Sem acesso à câmara.';
+      setStatus('Sem acesso à câmara.');
       console.warn('Tchilo face fx camera', err);
     }
   }
 
   function stopStreamOnly() {
     if (stream) {
-      stream.getTracks().forEach(function (t) { try { t.stop(); } catch (e) {} });
+      stream.getTracks().forEach(function (t) {
+        try { t.stop(); } catch (e) {}
+      });
       stream = null;
     }
   }
@@ -260,124 +303,189 @@
     if (!running) return;
     rafId = requestAnimationFrame(loop);
     if (!videoEl || videoEl.readyState < 2) return;
-    var w = videoEl.videoWidth || 640, h = videoEl.videoHeight || 480;
-    if (canvasEl.width !== w || canvasEl.height !== h) { canvasEl.width = w; canvasEl.height = h; }
-    var ctx = canvasEl.getContext('2d');
+
+    var w = videoEl.videoWidth || 640;
+    var h = videoEl.videoHeight || 480;
+    if (canvasEl.width !== w || canvasEl.height !== h) {
+      canvasEl.width = w;
+      canvasEl.height = h;
+    }
+
+    var ctx = canvasEl.getContext('2d', { alpha: true });
     ctx.clearRect(0, 0, w, h);
-    ctx.save();
-    if (facingMode === 'user') { ctx.translate(w, 0); ctx.scale(-1, 1); }
-    ctx.drawImage(videoEl, 0, 0, w, h);
+
+    // Só desenha efeitos no canvas (vídeo nativo fica por baixo → câmara imediata)
+    var hasEffect = EFFECTS[effectIndex].id !== 'none';
+    if (!hasEffect) return;
+
+    frameCount++;
     try {
-      if (faceLandmarker && videoEl.currentTime !== lastVideoTime) {
+      if (faceLandmarker && videoEl.currentTime !== lastVideoTime && frameCount % detectEvery === 0) {
         lastVideoTime = videoEl.currentTime;
         var res = faceLandmarker.detectForVideo(videoEl, performance.now());
-        if (res && res.faceLandmarks) drawEffect(ctx, res.faceLandmarks, w, h);
+        if (res && res.faceLandmarks && res.faceLandmarks.length) {
+          lastLandmarks = res.faceLandmarks;
+        }
       }
     } catch (e) {}
+
+    if (!lastLandmarks) return;
+
+    ctx.save();
+    if (facingMode === 'user') {
+      ctx.translate(w, 0);
+      ctx.scale(-1, 1);
+    }
+    drawEffect(ctx, lastLandmarks, w, h);
     ctx.restore();
   }
 
-  function enhanceImageData(imageData) {
-    var d = imageData.data;
-    var brightness = 12, contrast = 1.12;
-    var factor = (259 * (contrast * 255 + 255)) / (255 * (259 - contrast * 255));
-    for (var i = 0; i < d.length; i += 4) {
-      for (var c = 0; c < 3; c++) {
-        var v = d[i + c];
-        v = factor * (v - 128) + 128 + brightness;
-        d[i + c] = v < 0 ? 0 : v > 255 ? 255 : v;
-      }
-    }
-    var copy = new Uint8ClampedArray(d);
-    var w = imageData.width, h = imageData.height, amount = 0.35;
-    for (var y = 1; y < h - 1; y++) {
-      for (var x = 1; x < w - 1; x++) {
-        var idx = (y * w + x) * 4;
-        for (var k = 0; k < 3; k++) {
-          var center = copy[idx + k];
-          var blur = (copy[((y - 1) * w + x) * 4 + k] + copy[((y + 1) * w + x) * 4 + k] +
-            copy[(y * w + (x - 1)) * 4 + k] + copy[(y * w + (x + 1)) * 4 + k]) / 4;
-          var sharp = center + amount * (center - blur);
-          d[idx + k] = sharp < 0 ? 0 : sharp > 255 ? 255 : sharp;
+  function enhanceFast(ctx, w, h) {
+    try {
+      var img = ctx.getImageData(0, 0, w, h);
+      var d = img.data;
+      var brightness = 10;
+      var contrast = 1.1;
+      var factor = (259 * (contrast * 255 + 255)) / (255 * (259 - contrast * 255));
+      for (var i = 0; i < d.length; i += 4) {
+        for (var c = 0; c < 3; c++) {
+          var v = factor * (d[i + c] - 128) + 128 + brightness;
+          d[i + c] = v < 0 ? 0 : v > 255 ? 255 : v;
         }
       }
-    }
-    return imageData;
+      ctx.putImageData(img, 0, 0);
+    } catch (e) {}
   }
 
   function capturePhoto() {
-    if (!canvasEl || !canvasEl.width) {
-      if (statusEl) statusEl.textContent = 'Aguarda a câmara…';
+    if (!videoEl || videoEl.readyState < 2) {
+      setStatus('Aguarda a câmara…');
       return;
     }
-    var w = canvasEl.width, h = canvasEl.height;
+    var w = videoEl.videoWidth || 640;
+    var h = videoEl.videoHeight || 480;
     var out = document.createElement('canvas');
-    out.width = w; out.height = h;
+    out.width = w;
+    out.height = h;
     var ctx = out.getContext('2d');
-    ctx.drawImage(canvasEl, 0, 0);
-    try {
-      var img = ctx.getImageData(0, 0, w, h);
-      enhanceImageData(img);
-      ctx.putImageData(img, 0, 0);
-    } catch (e) {}
-    out.toBlob(function (blob) {
-      if (!blob) { if (statusEl) statusEl.textContent = 'Erro ao guardar'; return; }
-      var url = URL.createObjectURL(blob);
-      try {
-        window.createMediaData = { type: 'image', items: [{ type: 'image', url: url, name: 'face-fx.jpg', file: blob }] };
-        var preview = document.getElementById('createPreview');
-        if (preview) {
-          preview.classList.add('has-media');
-          preview.querySelectorAll('img,video,.multi-preview').forEach(function (n) { n.remove(); });
-          var imgEl = document.createElement('img');
-          imgEl.src = url; imgEl.alt = 'Foto com efeito';
-          imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-          preview.appendChild(imgEl);
+    ctx.save();
+    if (facingMode === 'user') {
+      ctx.translate(w, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(videoEl, 0, 0, w, h);
+    if (lastLandmarks) drawEffect(ctx, lastLandmarks, w, h);
+    ctx.restore();
+    enhanceFast(ctx, w, h);
+
+    out.toBlob(
+      function (blob) {
+        if (!blob) {
+          setStatus('Erro ao guardar');
+          return;
         }
-        var rm = document.getElementById('removeMediaBtn');
-        if (rm) rm.style.display = '';
-        if (typeof setThemeSectionVisible === 'function') setThemeSectionVisible(false);
-      } catch (e2) {}
-      if (typeof showToast === 'function') showToast('Foto capturada com efeito!');
-      closeFaceEffects();
-      if (typeof goTo === 'function') goTo('create');
-    }, 'image/jpeg', 0.92);
+        var url = URL.createObjectURL(blob);
+        try {
+          window.createMediaData = {
+            type: 'image',
+            items: [{ type: 'image', url: url, name: 'face-fx.jpg', file: blob }]
+          };
+          var preview = document.getElementById('createPreview');
+          if (preview) {
+            preview.classList.add('has-media');
+            preview.querySelectorAll('img,video,.multi-preview').forEach(function (n) {
+              n.remove();
+            });
+            var imgEl = document.createElement('img');
+            imgEl.src = url;
+            imgEl.alt = 'Foto com efeito';
+            imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+            preview.appendChild(imgEl);
+          }
+          var rm = document.getElementById('removeMediaBtn');
+          if (rm) rm.style.display = '';
+          if (typeof setThemeSectionVisible === 'function') setThemeSectionVisible(false);
+        } catch (e2) {}
+        if (typeof showToast === 'function') showToast('Foto capturada!');
+        closeFaceEffects();
+        if (typeof goTo === 'function') goTo('create');
+      },
+      'image/jpeg',
+      0.9
+    );
   }
 
-  async function openFaceEffects() {
+  function openFaceEffects() {
     ensureUI();
     overlayEl.classList.add('open');
     overlayEl.setAttribute('aria-hidden', 'false');
+    if (facingMode === 'environment') overlayEl.classList.add('fx-env');
+    else overlayEl.classList.remove('fx-env');
     document.body.style.overflow = 'hidden';
-    try { await ensureLandmarker(); } catch (e) {
-      if (statusEl) statusEl.textContent = 'Modelo facial indisponível (rede).';
-      console.warn('Tchilo FaceLandmarker', e);
-    }
-    await startCamera();
-    running = true; lastVideoTime = -1; loop();
+
+    // Câmara já — não espera pelo modelo
+    startCamera();
+    running = true;
+    lastVideoTime = -1;
+    frameCount = 0;
+    lastLandmarks = null;
+    loop();
+
+    // Modelo em paralelo
+    if (!faceLandmarker) setStatus('Câmara a abrir · a carregar efeitos…');
+    ensureLandmarker()
+      .then(function () {
+        if (running) setStatus('');
+      })
+      .catch(function () {
+        if (running) setStatus('Efeitos offline — podes tirar foto sem filtro facial.');
+      });
   }
 
   function closeFaceEffects() {
-    stopLoop(); stopStreamOnly();
-    if (overlayEl) { overlayEl.classList.remove('open'); overlayEl.setAttribute('aria-hidden', 'true'); }
+    stopLoop();
+    stopStreamOnly();
+    if (overlayEl) {
+      overlayEl.classList.remove('open');
+      overlayEl.setAttribute('aria-hidden', 'true');
+    }
     document.body.style.overflow = '';
   }
 
   window.openFaceEffects = openFaceEffects;
   window.closeFaceEffects = closeFaceEffects;
+  window.tchiloPreloadFaceFx = preloadModel;
 
   function injectCreateButton() {
     if (document.getElementById('faceFxOpenBtn')) return;
     var gallery = document.getElementById('galleryBtn');
     if (!gallery || !gallery.parentNode) return;
     var btn = document.createElement('button');
-    btn.type = 'button'; btn.id = 'faceFxOpenBtn'; btn.className = 'gallery-btn';
-    btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-2h6l2 2h3v12H4V8z"/><circle cx="12" cy="13" r="4"/></svg> <span>Câmara com efeitos</span>';
-    btn.onclick = function () { openFaceEffects(); };
+    btn.type = 'button';
+    btn.id = 'faceFxOpenBtn';
+    btn.className = 'gallery-btn';
+    btn.innerHTML =
+      '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-2h6l2 2h3v12H4V8z"/><circle cx="12" cy="13" r="4"/></svg> <span>Câmara com efeitos</span>';
+    btn.onclick = function () {
+      openFaceEffects();
+    };
+    // Pré-carga ao tocar no ecrã create (hover/focus)
+    btn.addEventListener('pointerdown', preloadModel, { once: true });
     gallery.parentNode.insertBefore(btn, gallery.nextSibling);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectCreateButton);
-  else injectCreateButton();
+  function boot() {
+    injectCreateButton();
+    // Pré-carga em idle (depois de 2s no app)
+    var schedule = window.requestIdleCallback || function (cb) {
+      setTimeout(cb, 2000);
+    };
+    schedule(function () {
+      setTimeout(preloadModel, 1500);
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
   setTimeout(injectCreateButton, 800);
 })();

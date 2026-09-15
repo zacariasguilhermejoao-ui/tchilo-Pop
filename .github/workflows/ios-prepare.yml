@@ -7,7 +7,9 @@ on:
 
 jobs:
   build-ios:
-    runs-on: macos-latest
+    # Pin the runner instead of macos-latest so Xcode/SDK changes do not
+    # unexpectedly break an otherwise working Capacitor build.
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,7 +61,7 @@ jobs:
           if 'native/capacitor-bridge.js' not in html:
               snippet = '\n<script src="native/capacitor-bridge.js"></script>\n'
               if '</body>' in html:
-                  html = html.replace('</body>', snippet + '</body>', 1)
+                  html = html.replace('</body>', snippet + '</body>')
 
           p.write_text(html, encoding='utf-8')
           print('index.html patched for offline UI (iOS)')
@@ -96,7 +98,6 @@ jobs:
           mkdir -p ios/App/App/Assets.xcassets/Splash.imageset
 
           if [ -f "$SPLASH" ]; then
-            # Use EXACT splash design — no icon overlay
             sips -s format png "$SPLASH" --out ios/App/App/Assets.xcassets/Splash.imageset/splash.png >/dev/null
             sips -z 2732 2732 ios/App/App/Assets.xcassets/Splash.imageset/splash.png --out ios/App/App/Assets.xcassets/Splash.imageset/splash-2732.png 2>/dev/null || true
 
@@ -110,12 +111,10 @@ jobs:
             "info" : { "author" : "xcode", "version" : 1 }
           }
           JSON
-            echo "iOS splash set from resources/splash.png (exact design)"
           else
             echo "WARNING: resources/splash.png not found"
           fi
 
-          # App icons if present
           if [ -f "$ICON" ]; then
             ICONSET="ios/App/App/Assets.xcassets/AppIcon.appiconset"
             if [ -d "$ICONSET" ]; then
@@ -128,18 +127,14 @@ jobs:
               sips -z 120 120 "$ICON" --out "$ICONSET/icon-60@2x.png" 2>/dev/null || true
               sips -z 180 180 "$ICON" --out "$ICONSET/icon-60@3x.png" 2>/dev/null || true
               sips -z 1024 1024 "$ICON" --out "$ICONSET/icon-1024.png" 2>/dev/null || true
-              echo "iOS app icons generated"
             fi
           fi
 
       - name: Prepare iOS dependencies
         run: |
           if [ -f ios/App/Podfile ]; then
-            echo "Podfile encontrado — instalando CocoaPods."
             cd ios/App
             pod install --repo-update
-          else
-            echo "Nenhum Podfile encontrado — usando o projeto iOS sem CocoaPods."
           fi
 
       - name: Select Xcode build container
@@ -149,7 +144,6 @@ jobs:
           elif [ -f ios/App/App.xcodeproj/project.pbxproj ]; then
             echo "IOS_CONTAINER=-project App.xcodeproj" >> "$GITHUB_ENV"
           else
-            echo "Projeto Xcode não encontrado."
             exit 1
           fi
 

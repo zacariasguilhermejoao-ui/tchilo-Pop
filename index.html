@@ -6119,7 +6119,7 @@ function renderFeed() {
     if (session && p.username === session.username) return true;
     if (isAnonymousUser(p.username)) return false;
     if (isUserPrivate(p.username) && !isFriend(p.username)) return false;
-    return p.cloud === true || following.indexOf(p.username) >= 0;
+    return p.cloud === true || following.indexOf(p.username) >= 0 || !!(p.media || p.mediaItems || p.caption);
   });
   posts = rankFeedPosts(posts);
   const likes = getLikes();

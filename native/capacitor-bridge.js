@@ -6,6 +6,77 @@
 (function () {
   'use strict';
 
+  var lastPushToken = null;
+  var tokenSaveAttempts = 0;
+
+  async function saveTokenToSupabase(token) {
+    if (!token) return;
+    lastPushToken = token;
+
+    // Wait for Supabase client (SB) and a logged-in user
+    var SB = window.SB || window.supabase || null;
+    if (!SB || !SB.auth) {
+      if (tokenSaveAttempts < 15) {
+        tokenSaveAttempts++;
+        setTimeout(function () { saveTokenToSupabase(token); }, 2000);
+      }
+      return;
+    }
+
+    try {
+      var sessionRes = await SB.auth.getSession();
+      var session = sessionRes && sessionRes.data && sessionRes.data.session;
+      var user = session && session.user;
+      if (!user || !user.id) {
+        // User not logged in yet — retry a few times
+        if (tokenSaveAttempts < 20) {
+          tokenSaveAttempts++;
+          setTimeout(function () { saveTokenToSupabase(token); }, 3000);
+        }
+        return;
+      }
+
+      var platform = 'web';
+      try {
+        if (window.Capacitor && window.Capacitor.getPlatform) {
+          platform = window.Capacitor.getPlatform() || 'web';
+        }
+      } catch (e) {}
+
+      var row = {
+        user_id: user.id,
+        token: token,
+        platform: platform,
+        updated_at: new Date().toISOString()
+      };
+
+      var result = await SB.from('device_tokens').upsert(row, {
+        onConflict: 'user_id,token'
+      });
+
+      if (result && result.error) {
+        console.warn('Tchilo: failed to save push token', result.error.message || result.error);
+      } else {
+        console.log('Tchilo: push token saved for user', user.id);
+        tokenSaveAttempts = 0;
+      }
+    } catch (err) {
+      console.warn('Tchilo: saveTokenToSupabase error', err && err.message ? err.message : err);
+      if (tokenSaveAttempts < 10) {
+        tokenSaveAttempts++;
+        setTimeout(function () { saveTokenToSupabase(token); }, 4000);
+      }
+    }
+  }
+
+  // Re-save token after login (if the app dispatches this)
+  window.addEventListener('tchilo-user-logged-in', function () {
+    if (lastPushToken) {
+      tokenSaveAttempts = 0;
+      saveTokenToSupabase(lastPushToken);
+    }
+  });
+
   const NativeBridge = {
     isNative() {
       return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
@@ -52,27 +123,37 @@
       handlers = handlers || {};
 
       // Registration success → we get the FCM/APNs token
-      PushNotifications.addListener('registration', (token) => {
+      PushNotifications.addListener('registration', function (token) {
         console.log('Tchilo push token:', token.value);
+        saveTokenToSupabase(token.value);
         if (typeof handlers.onToken === 'function') handlers.onToken(token.value);
+        try {
+          window.dispatchEvent(new CustomEvent('tchilo-push-token', { detail: token.value }));
+        } catch (e) {}
       });
 
       // Registration error
-      PushNotifications.addListener('registrationError', (err) => {
+      PushNotifications.addListener('registrationError', function (err) {
         console.warn('Tchilo push registration error:', err);
         if (typeof handlers.onError === 'function') handlers.onError(err);
       });
 
       // Notification received while app is in foreground
-      PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      PushNotifications.addListener('pushNotificationReceived', function (notification) {
         console.log('Tchilo push received:', notification);
         if (typeof handlers.onReceived === 'function') handlers.onReceived(notification);
+        try {
+          window.dispatchEvent(new CustomEvent('tchilo-push-received', { detail: notification }));
+        } catch (e) {}
       });
 
       // User tapped the notification
-      PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+      PushNotifications.addListener('pushNotificationActionPerformed', function (action) {
         console.log('Tchilo push action:', action);
         if (typeof handlers.onAction === 'function') handlers.onAction(action);
+        try {
+          window.dispatchEvent(new CustomEvent('tchilo-push-action', { detail: action }));
+        } catch (e) {}
       });
     },
 
@@ -88,6 +169,14 @@
         const { SplashScreen } = window.Capacitor.Plugins;
         if (SplashScreen) await SplashScreen.hide();
       } catch (e) {}
+    },
+
+    /** Call this after successful login so the token is saved if it arrived early */
+    refreshPushToken() {
+      if (lastPushToken) {
+        tokenSaveAttempts = 0;
+        saveTokenToSupabase(lastPushToken);
+      }
     }
   };
 
@@ -96,24 +185,14 @@
   // Auto-setup when running inside Capacitor
   if (NativeBridge.isNative()) {
     document.addEventListener('DOMContentLoaded', function () {
-      NativeBridge.setupPushListeners({
-        onToken: function (token) {
-          // Optional: send token to your backend / Supabase
-          try {
-            window.dispatchEvent(new CustomEvent('tchilo-push-token', { detail: token }));
-          } catch (e) {}
-        },
-        onReceived: function (notification) {
-          try {
-            window.dispatchEvent(new CustomEvent('tchilo-push-received', { detail: notification }));
-          } catch (e) {}
-        },
-        onAction: function (action) {
-          try {
-            window.dispatchEvent(new CustomEvent('tchilo-push-action', { detail: action }));
-          } catch (e) {}
-        }
-      });
+      NativeBridge.setupPushListeners({});
+
+      // Request notification permission shortly after launch
+      setTimeout(function () {
+        NativeBridge.requestNotifications().catch(function (e) {
+          console.warn('Tchilo: requestNotifications', e && e.message ? e.message : e);
+        });
+      }, 1500);
 
       // Hide splash after a short delay so the web UI is ready
       setTimeout(function () {

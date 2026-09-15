@@ -1,4 +1,4 @@
-name: iOS Capacitor preparation
+name: iOS Capacitor build
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 jobs:
-  prepare-ios:
+  build-ios:
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -16,6 +16,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: false
 
       - name: Install dependencies
         run: npm install
@@ -27,16 +33,11 @@ jobs:
           from pathlib import Path
           p = Path('index.html')
           html = p.read_text(encoding='utf-8', errors='replace')
-          snippet = '''\n<script src="native/capacitor-bridge.js"></script>\n'''
+          snippet = '\n<script src="native/capacitor-bridge.js"></script>\n'
           if '</body>' in html:
               html = html.replace('</body>', snippet + '</body>', 1)
               p.write_text(html, encoding='utf-8')
-              print('capacitor-bridge.js injected into index.html')
-          else:
-              print('WARNING: </body> not found')
           PY
-          else
-            echo 'bridge already present'
           fi
 
       - name: Prepare Capacitor web assets
@@ -45,7 +46,6 @@ jobs:
           mkdir -p www/native
           cp index.html www/index.html
           cp native/capacitor-bridge.js www/native/capacitor-bridge.js
-          echo "Prepared www/index.html and native bridge"
 
       - name: Add iOS platform
         run: npx cap add ios
@@ -56,44 +56,52 @@ jobs:
       - name: Copy Firebase GoogleService-Info.plist
         run: |
           cp firebase/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
-          echo "GoogleService-Info.plist copied to ios/App/App/"
 
-      - name: Set app icon and splash
+      - name: Configure iOS privacy permissions
         run: |
-          ICON=resources/icon.png
-          SPLASH=resources/splash.png
-          if [ -f "$ICON" ]; then
-            ICONSET="ios/App/App/Assets.xcassets/AppIcon.appiconset"
-            if [ -d "$ICONSET" ]; then
-              sips -z 40 40 "$ICON" --out "$ICONSET/icon-20@2x.png" 2>/dev/null || true
-              sips -z 60 60 "$ICON" --out "$ICONSET/icon-20@3x.png" 2>/dev/null || true
-              sips -z 58 58 "$ICON" --out "$ICONSET/icon-29@2x.png" 2>/dev/null || true
-              sips -z 87 87 "$ICON" --out "$ICONSET/icon-29@3x.png" 2>/dev/null || true
-              sips -z 80 80 "$ICON" --out "$ICONSET/icon-40@2x.png" 2>/dev/null || true
-              sips -z 120 120 "$ICON" --out "$ICONSET/icon-40@3x.png" 2>/dev/null || true
-              sips -z 120 120 "$ICON" --out "$ICONSET/icon-60@2x.png" 2>/dev/null || true
-              sips -z 180 180 "$ICON" --out "$ICONSET/icon-60@3x.png" 2>/dev/null || true
-              sips -z 1024 1024 "$ICON" --out "$ICONSET/icon-1024.png" 2>/dev/null || true
-              echo "iOS app icons generated"
-            fi
-          fi
-          if [ -f "$SPLASH" ]; then
-            mkdir -p ios/App/App/Assets.xcassets/Splash.imageset 2>/dev/null || true
-            cp "$SPLASH" ios/App/App/Assets.xcassets/Splash.imageset/splash.png 2>/dev/null || true
-            echo "iOS splash copied"
-          fi
-
-      - name: Configure iOS native privacy permissions
-        run: |
-          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'tchilo-Pop precisa de acesso à câmera quando um recurso do aplicativo solicitar uma foto.'" ios/App/App/Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'tchilo-Pop precisa da sua localização quando um recurso do aplicativo utilizar localização.'" ios/App/App/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'tchilo-Pop precisa de acesso à câmera quando solicitado.'" ios/App/App/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'tchilo-Pop usa sua localização quando um recurso solicitar localização.'" ios/App/App/Info.plist || true
           /usr/libexec/PlistBuddy -c "Add :NSUserNotificationUsageDescription string 'tchilo-Pop pode enviar notificações para informar sobre eventos do aplicativo.'" ios/App/App/Info.plist || true
 
-      - name: Verify iOS project
-        run: test -d ios/App && test -f ios/App/App.xcodeproj/project.pbxproj && test -f ios/App/App/Info.plist
+      - name: Install CocoaPods
+        run: |
+          cd ios/App
+          pod install --repo-update
 
-      - name: Upload generated iOS project
+      - name: Verify Xcode
+        run: xcodebuild -version
+
+      - name: Build unsigned iOS archive
+        run: |
+          cd ios/App
+          xcodebuild archive \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath "$RUNNER_TEMP/tchilo-pop.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Create unsigned IPA
+        run: |
+          mkdir -p "$RUNNER_TEMP/Payload"
+          APP_PATH="$RUNNER_TEMP/tchilo-pop.xcarchive/Products/Applications/App.app"
+          test -d "$APP_PATH"
+          cp -R "$APP_PATH" "$RUNNER_TEMP/Payload/App.app"
+          cd "$RUNNER_TEMP"
+          zip -qry tchilo-pop-unsigned.ipa Payload
+
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: tchilo-pop-ios-project
-          path: ios
+          name: tchilo-pop-ios-unsigned-ipa
+          path: ${{ runner.temp }}/tchilo-pop-unsigned.ipa
+          if-no-files-found: error
+
+      - name: Upload iOS archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: tchilo-pop-ios-xcarchive
+          path: ${{ runner.temp }}/tchilo-pop.xcarchive
+          if-no-files-found: error

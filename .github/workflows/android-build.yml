@@ -20,24 +20,51 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Inject native bridge into index.html
+      - name: Inject native bridge + offline UI into index.html
         run: |
-          if ! grep -q 'native/capacitor-bridge.js' index.html; then
-            python3 - <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
           p = Path('index.html')
           html = p.read_text(encoding='utf-8', errors='replace')
-          snippet = '''\n<script src="native/capacitor-bridge.js"></script>\n'''
-          if '</body>' in html:
-              html = html.replace('</body>', snippet + '</body>', 1)
-              p.write_text(html, encoding='utf-8')
-              print('capacitor-bridge.js injected into index.html')
-          else:
-              print('WARNING: </body> not found')
+
+          # 1) Offline CSS link in <head>
+          if 'native/offline-ui.css' not in html:
+              offline_css = '<link rel="stylesheet" href="native/offline-ui.css">\n'
+              if '</head>' in html:
+                  html = html.replace('</head>', offline_css + '</head>', 1)
+                  print('offline-ui.css linked')
+              elif '<style>' in html:
+                  html = html.replace('<style>', offline_css + '<style>', 1)
+                  print('offline-ui.css linked before style')
+
+          # 2) Make Google Fonts non-blocking (media print trick)
+          html = html.replace(
+              'href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"',
+              'href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media=\'all\'"'
+          )
+
+          # 3) Stronger system font fallbacks inline (works even before CSS file loads)
+          fallback = """<style id="tchilo-offline-fonts">
+  html,body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important}
+  .nav-post,.login-gate h2,.logo-text{font-family:'Anton',Impact,'Arial Black',Arial,sans-serif!important}
+  .nav-item svg,.icon-btn svg,.act svg{display:block!important;opacity:1!important}
+  </style>\n"""
+          if 'tchilo-offline-fonts' not in html:
+              if '</head>' in html:
+                  html = html.replace('</head>', fallback + '</head>', 1)
+              else:
+                  html = fallback + html
+
+          # 4) Native bridge script
+          if 'native/capacitor-bridge.js' not in html:
+              snippet = '\n<script src="native/capacitor-bridge.js"></script>\n'
+              if '</body>' in html:
+                  html = html.replace('</body>', snippet + '</body>', 1)
+                  print('capacitor-bridge.js injected')
+
+          p.write_text(html, encoding='utf-8')
+          print('index.html patched for offline UI')
           PY
-          else
-            echo 'bridge already present'
-          fi
 
       - name: Prepare Capacitor web assets
         run: |
@@ -45,7 +72,8 @@ jobs:
           mkdir -p www/native
           cp index.html www/index.html
           cp native/capacitor-bridge.js www/native/capacitor-bridge.js
-          echo "Prepared www/index.html and native bridge"
+          cp native/offline-ui.css www/native/offline-ui.css
+          echo "Prepared www/ with offline CSS and bridge"
 
       - name: Add Android platform
         run: npx cap add android

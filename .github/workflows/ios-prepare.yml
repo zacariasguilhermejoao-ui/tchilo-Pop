@@ -68,37 +68,25 @@ jobs:
           ICON=resources/icon.png
           SPLASH=resources/splash.png
           mkdir -p ios/App/App/Assets.xcassets/Splash.imageset
-          if [ -f "$SPLASH" ]; then
+          if [ -f "$SPLASH" ] && [ -f "$ICON" ]; then
             sips -s format png "$SPLASH" --out /tmp/tchilo-splash-base.png >/dev/null
-          fi
-          if [ -f "$ICON" ] && [ -f "$SPLASH" ]; then
             sips -Z 360 "$ICON" --out /tmp/tchilo-splash-icon.png >/dev/null
-            /usr/bin/python3 - <<'PY'
-          import subprocess
-          from pathlib import Path
-
-          base = Path('/tmp/tchilo-splash-base.png')
-          icon = Path('/tmp/tchilo-splash-icon.png')
-          out = Path('ios/App/App/Assets.xcassets/Splash.imageset/splash.png')
-
-          # Use macOS sips + Core Image via Swift, avoiding external Python Pillow.
-          swift = r'''
+            cat > /tmp/tchilo-compose.swift <<'SWIFT'
           import Foundation
-          import CoreImage
           import CoreGraphics
           import ImageIO
           import UniformTypeIdentifiers
 
-          let baseURL = URL(fileURLWithPath: CommandLine.arguments[1])
-          let iconURL = URL(fileURLWithPath: CommandLine.arguments[2])
-          let outURL = URL(fileURLWithPath: CommandLine.arguments[3])
+          let args = CommandLine.arguments
+          guard args.count == 4 else { exit(2) }
+          let baseURL = URL(fileURLWithPath: args[1])
+          let iconURL = URL(fileURLWithPath: args[2])
+          let outURL = URL(fileURLWithPath: args[3])
 
           guard let baseSource = CGImageSourceCreateWithURL(baseURL as CFURL, nil),
                 let iconSource = CGImageSourceCreateWithURL(iconURL as CFURL, nil),
                 let baseImage = CGImageSourceCreateImageAtIndex(baseSource, 0, nil),
-                let iconImage = CGImageSourceCreateImageAtIndex(iconSource, 0, nil) else {
-              exit(1)
-          }
+                let iconImage = CGImageSourceCreateImageAtIndex(iconSource, 0, nil) else { exit(1) }
 
           let width = 1080
           let height = 1920
@@ -107,6 +95,7 @@ jobs:
                                     bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { exit(1) }
 
           ctx.clear(CGRect(x: 0, y: 0, width: width, height: height))
+
           let bw = CGFloat(baseImage.width)
           let bh = CGFloat(baseImage.height)
           let scale = min(CGFloat(width) / bw, CGFloat(height) / bh)
@@ -121,21 +110,18 @@ jobs:
           let iconH = ih * iconScale
           ctx.draw(iconImage, in: CGRect(x: (CGFloat(width)-iconW)/2, y: (CGFloat(height)-iconH)/2, width: iconW, height: iconH))
 
-          guard let result = ctx.makeImage(), let dest = CGImageDestinationCreateWithURL(outURL as CFURL, UTType.png.identifier as CFString, 1, nil) else { exit(1) }
+          guard let result = ctx.makeImage(),
+                let dest = CGImageDestinationCreateWithURL(outURL as CFURL, UTType.png.identifier as CFString, 1, nil) else { exit(1) }
           CGImageDestinationAddImage(dest, result, nil)
           guard CGImageDestinationFinalize(dest) else { exit(1) }
-          '''
-          let scriptURL = URL(fileURLWithPath: "/tmp/tchilo-compose.swift")
-          try! swift.write(to: scriptURL, atomically: true, encoding: .utf8)
-          let process = Process()
-          process.executableURL = URL(fileURLWithPath: "/usr/bin/swift")
-          process.arguments = [scriptURL.path, base.path, icon.path, out.path]
-          try! process.run()
-          process.waitUntilExit()
-          if process.terminationStatus != 0 { exit(Int32(process.terminationStatus)) }
-          PY
+          SWIFT
+            swift /tmp/tchilo-compose.swift /tmp/tchilo-splash-base.png /tmp/tchilo-splash-icon.png ios/App/App/Assets.xcassets/Splash.imageset/splash.png
+            echo "Splash iOS gerado com ícone centralizado."
+          elif [ -f "$SPLASH" ]; then
+            sips -s format png "$SPLASH" --out ios/App/App/Assets.xcassets/Splash.imageset/splash.png >/dev/null
+            echo "Splash iOS gerado sem ícone porque o ícone não foi encontrado."
           else
-            echo "Splash ou icon não encontrado; mantendo splash original."
+            echo "Splash não encontrado; mantendo splash original."
           fi
 
       - name: Prepare iOS dependencies

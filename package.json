@@ -2,6 +2,7 @@
   "name": "tchilo-pop",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "echo Static web app - ready for Capacitor sync",
     "cap:sync": "npx cap sync",

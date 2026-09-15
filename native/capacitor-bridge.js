@@ -28,7 +28,6 @@
       var session = sessionRes && sessionRes.data && sessionRes.data.session;
       var user = session && session.user;
       if (!user || !user.id) {
-        // User not logged in yet — retry a few times
         if (tokenSaveAttempts < 20) {
           tokenSaveAttempts++;
           setTimeout(function () { saveTokenToSupabase(token); }, 3000);
@@ -69,13 +68,105 @@
     }
   }
 
-  // Re-save token after login (if the app dispatches this)
   window.addEventListener('tchilo-user-logged-in', function () {
     if (lastPushToken) {
       tokenSaveAttempts = 0;
       saveTokenToSupabase(lastPushToken);
     }
   });
+
+  /*
+   * Android physical back button.
+   * Priority:
+   * 1. Click the app's own visible back control when one exists.
+   * 2. Use browser history when the app has history entries.
+   * 3. Otherwise allow Capacitor/Android to perform the default back action.
+   *
+   * This is deliberately generic so it does not change the existing Tchilo UI.
+   */
+  function findVisibleBackControl() {
+    var selectors = [
+      '[data-back]',
+      '[data-action="back"]',
+      '[aria-label*="Voltar" i]',
+      '[aria-label*="Back" i]',
+      '[title*="Voltar" i]',
+      '[title*="Back" i]'
+    ];
+
+    for (var i = 0; i < selectors.length; i++) {
+      var nodes = document.querySelectorAll(selectors[i]);
+      for (var j = 0; j < nodes.length; j++) {
+        var el = nodes[j];
+        if (!el || el.disabled) continue;
+        var style = window.getComputedStyle(el);
+        var rect = el.getBoundingClientRect();
+        if (style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0) {
+          return el;
+        }
+      }
+    }
+
+    // Fallback for common text-based back buttons.
+    var candidates = document.querySelectorAll('button, [role="button"], a');
+    for (var k = 0; k < candidates.length; k++) {
+      var candidate = candidates[k];
+      var text = (candidate.textContent || '').trim().toLowerCase();
+      if (text !== 'voltar' && text !== 'back') continue;
+      var cs = window.getComputedStyle(candidate);
+      var cr = candidate.getBoundingClientRect();
+      if (cs.display !== 'none' && cs.visibility !== 'hidden' && cr.width > 0 && cr.height > 0) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  function handleNativeBack() {
+    try {
+      var backControl = findVisibleBackControl();
+      if (backControl) {
+        backControl.click();
+        return true;
+      }
+
+      if (window.history && window.history.length > 1) {
+        window.history.back();
+        return true;
+      }
+    } catch (e) {
+      console.warn('Tchilo: back navigation error', e);
+    }
+    return false;
+  }
+
+  function setupNativeBackButton() {
+    if (!window.Capacitor || !window.Capacitor.isNativePlatform || !window.Capacitor.isNativePlatform()) return;
+
+    try {
+      var App = window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+      if (!App || typeof App.addListener !== 'function') {
+        console.warn('Tchilo: Capacitor App plugin not available');
+        return;
+      }
+
+      App.addListener('backButton', function () {
+        var handled = handleNativeBack();
+        if (!handled) {
+          try {
+            App.exitApp();
+          } catch (e) {
+            console.warn('Tchilo: unable to exit app', e);
+          }
+        }
+      });
+
+      window.TchiloNativeBack = handleNativeBack;
+    } catch (e) {
+      console.warn('Tchilo: failed to setup native back button', e);
+    }
+  }
 
   const NativeBridge = {
     isNative() {
@@ -114,7 +205,6 @@
       return permission;
     },
 
-    /** Call once after the app is ready (native only) to wire push listeners */
     setupPushListeners(handlers) {
       if (!this.isNative()) return;
       const { PushNotifications } = window.Capacitor.Plugins;
@@ -122,7 +212,6 @@
 
       handlers = handlers || {};
 
-      // Registration success → we get the FCM/APNs token
       PushNotifications.addListener('registration', function (token) {
         console.log('Tchilo push token:', token.value);
         saveTokenToSupabase(token.value);
@@ -132,13 +221,11 @@
         } catch (e) {}
       });
 
-      // Registration error
       PushNotifications.addListener('registrationError', function (err) {
         console.warn('Tchilo push registration error:', err);
         if (typeof handlers.onError === 'function') handlers.onError(err);
       });
 
-      // Notification received while app is in foreground
       PushNotifications.addListener('pushNotificationReceived', function (notification) {
         console.log('Tchilo push received:', notification);
         if (typeof handlers.onReceived === 'function') handlers.onReceived(notification);
@@ -147,7 +234,6 @@
         } catch (e) {}
       });
 
-      // User tapped the notification
       PushNotifications.addListener('pushNotificationActionPerformed', function (action) {
         console.log('Tchilo push action:', action);
         if (typeof handlers.onAction === 'function') handlers.onAction(action);
@@ -171,7 +257,6 @@
       } catch (e) {}
     },
 
-    /** Call this after successful login so the token is saved if it arrived early */
     refreshPushToken() {
       if (lastPushToken) {
         tokenSaveAttempts = 0;
@@ -182,19 +267,17 @@
 
   window.TchiloNative = NativeBridge;
 
-  // Auto-setup when running inside Capacitor
   if (NativeBridge.isNative()) {
     document.addEventListener('DOMContentLoaded', function () {
+      setupNativeBackButton();
       NativeBridge.setupPushListeners({});
 
-      // Request notification permission shortly after launch
       setTimeout(function () {
         NativeBridge.requestNotifications().catch(function (e) {
           console.warn('Tchilo: requestNotifications', e && e.message ? e.message : e);
         });
       }, 1500);
 
-      // Hide splash after a short delay so the web UI is ready
       setTimeout(function () {
         NativeBridge.hideSplash();
       }, 600);

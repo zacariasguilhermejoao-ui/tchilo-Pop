@@ -55,3 +55,37 @@ body {
 .login-button {
   font-family: var(--font-ui) !important;
 }
+
+/* ============================================================
+   NUNCA mostrar barra de baixo em Termos / Privacidade / Legal
+   ============================================================ */
+body.legal-screen-open .navbar,
+body.legal-from-login .navbar,
+body.legal-screen-open .topbar,
+body.legal-from-login .topbar,
+body.legal-screen-open .stories,
+body.legal-from-login .stories,
+#appFrame:has(#screen-terms.active) .navbar,
+#appFrame:has(#screen-privacy.active) .navbar,
+#appFrame:has(#screen-child.active) .navbar,
+#appFrame:has(#screen-community.active) .navbar,
+#appFrame:has(#screen-about.active) .navbar,
+#appFrame:has(#screen-terms.active) .topbar,
+#appFrame:has(#screen-privacy.active) .topbar,
+#appFrame:has(#screen-child.active) .topbar,
+#appFrame:has(#screen-community.active) .topbar,
+#appFrame:has(#screen-about.active) .topbar,
+#appFrame:has(#screen-terms.active) .stories,
+#appFrame:has(#screen-privacy.active) .stories,
+#appFrame:has(#screen-child.active) .stories,
+#appFrame:has(#screen-community.active) .stories,
+#appFrame:has(#screen-about.active) .stories {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  transform: translateY(120%) !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+}

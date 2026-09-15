@@ -3,12 +3,11 @@ name: iOS Capacitor build
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build-ios:
-    # Pin the runner instead of macos-latest so Xcode/SDK changes do not
-    # unexpectedly break an otherwise working Capacitor build.
     runs-on: macos-15
     steps:
       - name: Checkout
@@ -28,52 +27,26 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Inject native bridge + offline UI into index.html
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('index.html')
-          html = p.read_text(encoding='utf-8', errors='replace')
-
-          if 'native/offline-ui.css' not in html:
-              offline_css = '<link rel="stylesheet" href="native/offline-ui.css">\n'
-              if '</head>' in html:
-                  html = html.replace('</head>', offline_css + '</head>', 1)
-              elif '<style>' in html:
-                  html = html.replace('<style>', offline_css + '<style>', 1)
-
-          html = html.replace(
-              'href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"',
-              'href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media=\'all\'"'
-          )
-
-          fallback = """<style id="tchilo-offline-fonts">
-  html,body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important}
-  .nav-post,.login-gate h2,.logo-text{font-family:'Anton',Impact,'Arial Black',Arial,sans-serif!important}
-  .nav-item svg,.icon-btn svg,.act svg{display:block!important;opacity:1!important}
-  </style>\n"""
-          if 'tchilo-offline-fonts' not in html:
-              if '</head>' in html:
-                  html = html.replace('</head>', fallback + '</head>', 1)
-              else:
-                  html = fallback + html
-
-          if 'native/capacitor-bridge.js' not in html:
-              snippet = '\n<script src="native/capacitor-bridge.js"></script>\n'
-              if '</body>' in html:
-                  html = html.replace('</body>', snippet + '</body>')
-
-          p.write_text(html, encoding='utf-8')
-          print('index.html patched for offline UI (iOS)')
-          PY
-
-      - name: Prepare Capacitor web assets
+      - name: Prepare web assets
+        shell: bash
         run: |
           rm -rf www
           mkdir -p www/native
           cp index.html www/index.html
           cp native/capacitor-bridge.js www/native/capacitor-bridge.js
           cp native/offline-ui.css www/native/offline-ui.css
+
+          if grep -q 'native/offline-ui.css' www/index.html; then
+            true
+          else
+            sed -i '' 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
+          fi
+
+          if grep -q 'native/capacitor-bridge.js' www/index.html; then
+            true
+          else
+            sed -i '' 's#</body>#<script src="native/capacitor-bridge.js"></script></body>#' www/index.html
+          fi
 
       - name: Add iOS platform
         run: npx cap add ios
@@ -82,16 +55,17 @@ jobs:
         run: npx cap sync ios
 
       - name: Copy Firebase GoogleService-Info.plist
-        run: |
-          cp firebase/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
+        run: cp firebase/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
 
       - name: Configure iOS privacy permissions
+        shell: bash
         run: |
           /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'tchilo-Pop precisa de acesso à câmera quando solicitado.'" ios/App/App/Info.plist || true
           /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'tchilo-Pop usa sua localização quando um recurso solicitar localização.'" ios/App/App/Info.plist || true
           /usr/libexec/PlistBuddy -c "Add :NSUserNotificationUsageDescription string 'tchilo-Pop pode enviar notificações para informar sobre eventos do aplicativo.'" ios/App/App/Info.plist || true
 
-      - name: Set exact splash image (online+offline)
+      - name: Set splash image and app icon
+        shell: bash
         run: |
           SPLASH=resources/splash.png
           ICON=resources/icon.png
@@ -99,8 +73,6 @@ jobs:
 
           if [ -f "$SPLASH" ]; then
             sips -s format png "$SPLASH" --out ios/App/App/Assets.xcassets/Splash.imageset/splash.png >/dev/null
-            sips -z 2732 2732 ios/App/App/Assets.xcassets/Splash.imageset/splash.png --out ios/App/App/Assets.xcassets/Splash.imageset/splash-2732.png 2>/dev/null || true
-
             cat > ios/App/App/Assets.xcassets/Splash.imageset/Contents.json <<'JSON'
           {
             "images" : [
@@ -111,8 +83,6 @@ jobs:
             "info" : { "author" : "xcode", "version" : 1 }
           }
           JSON
-          else
-            echo "WARNING: resources/splash.png not found"
           fi
 
           if [ -f "$ICON" ]; then
@@ -131,6 +101,7 @@ jobs:
           fi
 
       - name: Prepare iOS dependencies
+        shell: bash
         run: |
           if [ -f ios/App/Podfile ]; then
             cd ios/App
@@ -138,12 +109,14 @@ jobs:
           fi
 
       - name: Select Xcode build container
+        shell: bash
         run: |
           if [ -f ios/App/App.xcworkspace ]; then
             echo "IOS_CONTAINER=-workspace App.xcworkspace" >> "$GITHUB_ENV"
           elif [ -f ios/App/App.xcodeproj/project.pbxproj ]; then
             echo "IOS_CONTAINER=-project App.xcodeproj" >> "$GITHUB_ENV"
           else
+            echo "iOS Xcode project not found"
             exit 1
           fi
 
@@ -151,6 +124,7 @@ jobs:
         run: xcodebuild -version
 
       - name: Build unsigned iOS archive
+        shell: bash
         run: |
           cd ios/App
           xcodebuild archive \
@@ -163,6 +137,7 @@ jobs:
             CODE_SIGNING_REQUIRED=NO
 
       - name: Create unsigned IPA
+        shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/Payload"
           APP_PATH="$RUNNER_TEMP/tchilo-pop.xcarchive/Products/Applications/App.app"

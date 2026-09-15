@@ -2310,6 +2310,7 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
         <div class="stamp" id="createStamp">NOVO<br>POST</div>
       </div>
       <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display:none" onchange="onMediaPicked(event)">
+      <button type="button" class="gallery-btn" id="faceFxOpenBtn" onclick="if(window.openFaceEffects)openFaceEffects()">Câmara com efeitos</button>
       <button type="button" class="gallery-btn" id="galleryBtn" onclick="document.getElementById('mediaInput').click()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-2h6l2 2h3v12H4V8z"/><circle cx="12" cy="13" r="4"/></svg> <span>Abrir galeria (fotos ou vídeo)</span></button>
       <button type="button" class="gallery-btn" id="removeMediaBtn" style="display:none;border-style:solid;background:var(--pink);color:#fff" onclick="removeMedia()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6l12 12M18 6L6 18"/></svg> <span>Remover foto/vídeo</span></button>
       <div id="videoCoverBox" class="video-cover-box" style="display:none">
@@ -10725,5 +10726,6 @@ document.addEventListener('DOMContentLoaded',function(){
 
 <script src="native/legal-navbar-fix.js"></script>
 <script src="native/feed-names-fix.js"></script>
+<script src="native/face-effects.js"></script>
 </body>
 </html>

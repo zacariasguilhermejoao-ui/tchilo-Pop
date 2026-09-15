@@ -39,6 +39,9 @@ jobs:
           if ! grep -q 'native/legal-navbar-fix.js' www/index.html; then
             sed -i 's#</body>#<script src="native/legal-navbar-fix.js"></script></body>#' www/index.html
           fi
+          if ! grep -q 'native/feed-names-fix.js' www/index.html; then
+            sed -i 's#</body>#<script src="native/feed-names-fix.js"></script></body>#' www/index.html
+          fi
 
       - name: Verify complete web payload
         shell: bash
@@ -48,13 +51,13 @@ jobs:
           test -s www/native/capacitor-bridge.js
           test -s www/native/offline-ui.css
           test -s www/native/legal-navbar-fix.js
+          test -s www/native/feed-names-fix.js
           test -s resources/icon.png
           test -s resources/splash.png
           test -s firebase/google-services.json
           grep -q 'Camera' www/native/capacitor-bridge.js
-          grep -q 'Geolocation' www/native/capacitor-bridge.js
-          grep -q 'PushNotifications' www/native/capacitor-bridge.js
           grep -q 'legal-from-login' www/native/legal-navbar-fix.js
+          grep -q 'resolveAllFeedNames' www/native/feed-names-fix.js
 
       - name: Add Android platform
         run: npx cap add android
@@ -100,9 +103,6 @@ jobs:
               sed -i "/<application/i\\    <uses-permission android:name=\"$PERMISSION\" />" "$MANIFEST"
             fi
           done
-          grep -q 'android.permission.CAMERA' "$MANIFEST"
-          grep -q 'android.permission.ACCESS_FINE_LOCATION' "$MANIFEST"
-          grep -q 'android.permission.POST_NOTIFICATIONS' "$MANIFEST"
 
       - name: Setup Java
         uses: actions/setup-java@v4

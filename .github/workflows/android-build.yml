@@ -16,7 +16,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Install dependencies
         run: npm install
@@ -75,9 +74,9 @@ jobs:
           ICON=resources/icon.png
           SPLASH=resources/splash.png
           if [ -f "$ICON" ]; then
-            for size dens in 48:mdpi 72:hdpi 96:xhdpi 144:xxhdpi 192:xxxhdpi; do
-              s=${size%:*}
-              d=${size#*:}
+            for size_dens in 48:mdpi 72:hdpi 96:xhdpi 144:xxhdpi 192:xxxhdpi; do
+              s=${size_dens%:*}
+              d=${size_dens#*:}
               dir="android/app/src/main/res/mipmap-${d}"
               mkdir -p "$dir"
               convert "$ICON" -resize ${s}x${s} "$dir/ic_launcher.png"

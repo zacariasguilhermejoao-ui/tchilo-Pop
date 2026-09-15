@@ -21,6 +21,7 @@
     "@capacitor/cli": "latest",
     "@capacitor/android": "latest",
     "@capacitor/ios": "latest",
+    "@capacitor/assets": "latest",
     "typescript": "latest"
   }
 }

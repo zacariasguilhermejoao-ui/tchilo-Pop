@@ -47,6 +47,10 @@ jobs:
             sed -i '' 's#</body>#<script src="native/legal-navbar-fix.js"></script></body>#' www/index.html
           fi
 
+          if ! grep -q 'native/feed-names-fix.js' www/index.html; then
+            sed -i '' 's#</body>#<script src="native/feed-names-fix.js"></script></body>#' www/index.html
+          fi
+
       - name: Add iOS platform
         run: npx cap add ios
 

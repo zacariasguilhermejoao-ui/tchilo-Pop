@@ -27,23 +27,18 @@ jobs:
           p = Path('index.html')
           html = p.read_text(encoding='utf-8', errors='replace')
 
-          # 1) Offline CSS link in <head>
           if 'native/offline-ui.css' not in html:
               offline_css = '<link rel="stylesheet" href="native/offline-ui.css">\n'
               if '</head>' in html:
                   html = html.replace('</head>', offline_css + '</head>', 1)
-                  print('offline-ui.css linked')
               elif '<style>' in html:
                   html = html.replace('<style>', offline_css + '<style>', 1)
-                  print('offline-ui.css linked before style')
 
-          # 2) Make Google Fonts non-blocking (media print trick)
           html = html.replace(
               'href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"',
               'href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media=\'all\'"'
           )
 
-          # 3) Stronger system font fallbacks inline (works even before CSS file loads)
           fallback = """<style id="tchilo-offline-fonts">
   html,body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important}
   .nav-post,.login-gate h2,.logo-text{font-family:'Anton',Impact,'Arial Black',Arial,sans-serif!important}
@@ -55,12 +50,10 @@ jobs:
               else:
                   html = fallback + html
 
-          # 4) Native bridge script
           if 'native/capacitor-bridge.js' not in html:
               snippet = '\n<script src="native/capacitor-bridge.js"></script>\n'
               if '</body>' in html:
                   html = html.replace('</body>', snippet + '</body>', 1)
-                  print('capacitor-bridge.js injected')
 
           p.write_text(html, encoding='utf-8')
           print('index.html patched for offline UI')
@@ -104,11 +97,13 @@ jobs:
           fi
           echo "Google Services plugin applied"
 
-      - name: Set app icon and splash
+      - name: Set app icon and splash (exact image, online+offline)
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick > /dev/null
           ICON=resources/icon.png
           SPLASH=resources/splash.png
+
+          # --- App icons ---
           if [ -f "$ICON" ]; then
             for size_dens in 48:mdpi 72:hdpi 96:xhdpi 144:xxhdpi 192:xxxhdpi; do
               s=${size_dens%:*}
@@ -121,16 +116,56 @@ jobs:
             done
             echo "App icons generated"
           fi
+
+          # --- Splash: use EXACT image (black bg + logo + ISAB GROUP) ---
+          # Do NOT composite icon on top — the splash already has the full design
           if [ -f "$SPLASH" ]; then
             mkdir -p android/app/src/main/res/drawable
-            convert "$SPLASH" -resize 1080x1920\> /tmp/splash-base.png
-            if [ -f "$ICON" ]; then
-              convert "$ICON" -resize 360x360 /tmp/splash-icon.png
-              convert /tmp/splash-base.png /tmp/splash-icon.png -gravity center -composite android/app/src/main/res/drawable/splash.png
-            else
-              cp /tmp/splash-base.png android/app/src/main/res/drawable/splash.png
-            fi
-            echo "Splash generated with app icon centered"
+            mkdir -p android/app/src/main/res/drawable-port-mdpi
+            mkdir -p android/app/src/main/res/drawable-port-hdpi
+            mkdir -p android/app/src/main/res/drawable-port-xhdpi
+            mkdir -p android/app/src/main/res/drawable-port-xxhdpi
+            mkdir -p android/app/src/main/res/drawable-port-xxxhdpi
+
+            # Main splash resource used by Capacitor SplashScreen plugin
+            convert "$SPLASH" -resize 1080x1920^ -gravity center -extent 1080x1920 android/app/src/main/res/drawable/splash.png
+
+            # Density variants (portrait)
+            convert "$SPLASH" -resize 320x480^  -gravity center -extent 320x480  android/app/src/main/res/drawable-port-mdpi/splash.png
+            convert "$SPLASH" -resize 480x800^  -gravity center -extent 480x800  android/app/src/main/res/drawable-port-hdpi/splash.png
+            convert "$SPLASH" -resize 720x1280^ -gravity center -extent 720x1280 android/app/src/main/res/drawable-port-xhdpi/splash.png
+            convert "$SPLASH" -resize 1080x1920^ -gravity center -extent 1080x1920 android/app/src/main/res/drawable-port-xxhdpi/splash.png
+            convert "$SPLASH" -resize 1440x2560^ -gravity center -extent 1440x2560 android/app/src/main/res/drawable-port-xxxhdpi/splash.png
+
+            # Splash theme (black window background so no white flash)
+            mkdir -p android/app/src/main/res/values
+            cat > android/app/src/main/res/values/styles.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+                  <item name="android:background">@null</item>
+                  <item name="android:windowBackground">@drawable/splash</item>
+                  <item name="android:windowNoTitle">true</item>
+                  <item name="android:windowFullscreen">true</item>
+                  <item name="android:statusBarColor">#000000</item>
+                  <item name="android:navigationBarColor">#000000</item>
+              </style>
+              <style name="AppTheme.NoActionBar" parent="AppTheme">
+                  <item name="windowActionBar">false</item>
+                  <item name="windowNoTitle">true</item>
+                  <item name="android:background">@null</item>
+              </style>
+              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
+                  <item name="android:windowBackground">@drawable/splash</item>
+                  <item name="android:windowFullscreen">true</item>
+                  <item name="android:statusBarColor">#000000</item>
+                  <item name="android:navigationBarColor">#000000</item>
+              </style>
+          </resources>
+          XML
+            echo "Splash set from resources/splash.png (exact design, offline-ready)"
+          else
+            echo "WARNING: resources/splash.png not found"
           fi
 
       - name: Configure Android native permissions

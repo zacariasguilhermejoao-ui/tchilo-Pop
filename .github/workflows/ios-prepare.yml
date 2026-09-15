@@ -63,10 +63,26 @@ jobs:
           /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'tchilo-Pop usa sua localização quando um recurso solicitar localização.'" ios/App/App/Info.plist || true
           /usr/libexec/PlistBuddy -c "Add :NSUserNotificationUsageDescription string 'tchilo-Pop pode enviar notificações para informar sobre eventos do aplicativo.'" ios/App/App/Info.plist || true
 
-      - name: Install CocoaPods
+      - name: Prepare iOS dependencies
         run: |
-          cd ios/App
-          pod install --repo-update
+          if [ -f ios/App/Podfile ]; then
+            echo "Podfile encontrado — instalando CocoaPods."
+            cd ios/App
+            pod install --repo-update
+          else
+            echo "Nenhum Podfile encontrado — usando o projeto iOS sem CocoaPods."
+          fi
+
+      - name: Select Xcode build container
+        run: |
+          if [ -f ios/App/App.xcworkspace ]; then
+            echo "IOS_CONTAINER=-workspace App.xcworkspace" >> "$GITHUB_ENV"
+          elif [ -f ios/App/App.xcodeproj/project.pbxproj ]; then
+            echo "IOS_CONTAINER=-project App.xcodeproj" >> "$GITHUB_ENV"
+          else
+            echo "Projeto Xcode não encontrado."
+            exit 1
+          fi
 
       - name: Verify Xcode
         run: xcodebuild -version
@@ -75,7 +91,7 @@ jobs:
         run: |
           cd ios/App
           xcodebuild archive \
-            -workspace App.xcworkspace \
+            $IOS_CONTAINER \
             -scheme App \
             -configuration Release \
             -sdk iphoneos \

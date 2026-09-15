@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'scripts/patch_*.py'
+      - 'scripts/**'
       - '.github/workflows/patch-index.yml'
 
 jobs:
@@ -31,6 +31,6 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add index.html
-            git commit -m "fix: apply index.html patches (logout, legal nav, etc.)"
+            git commit -m "fix: instant feed + logout + legal nav patches"
             git push
           fi

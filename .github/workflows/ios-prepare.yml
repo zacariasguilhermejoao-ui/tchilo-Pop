@@ -33,19 +33,18 @@ jobs:
           rm -rf www
           mkdir -p www/native
           cp index.html www/index.html
-          cp native/capacitor-bridge.js www/native/capacitor-bridge.js
-          cp native/offline-ui.css www/native/offline-ui.css
+          cp -a native/. www/native/
 
-          if grep -q 'native/offline-ui.css' www/index.html; then
-            true
-          else
+          if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i '' 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
 
-          if grep -q 'native/capacitor-bridge.js' www/index.html; then
-            true
-          else
+          if ! grep -q 'native/capacitor-bridge.js' www/index.html; then
             sed -i '' 's#</body>#<script src="native/capacitor-bridge.js"></script></body>#' www/index.html
+          fi
+
+          if ! grep -q 'native/legal-navbar-fix.js' www/index.html; then
+            sed -i '' 's#</body>#<script src="native/legal-navbar-fix.js"></script></body>#' www/index.html
           fi
 
       - name: Add iOS platform

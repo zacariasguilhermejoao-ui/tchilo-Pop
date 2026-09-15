@@ -22,20 +22,35 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Prepare Capacitor web assets
+      - name: Prepare complete Capacitor web assets
         shell: bash
         run: |
+          set -e
           rm -rf www
           mkdir -p www/native
           cp index.html www/index.html
-          cp native/capacitor-bridge.js www/native/capacitor-bridge.js
-          cp native/offline-ui.css www/native/offline-ui.css
+          cp -a native/. www/native/
           if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
           if ! grep -q 'native/capacitor-bridge.js' www/index.html; then
             sed -i 's#</body>#<script src="native/capacitor-bridge.js"></script></body>#' www/index.html
           fi
+
+      - name: Verify complete web payload
+        shell: bash
+        run: |
+          set -e
+          test -s www/index.html
+          test -s www/native/capacitor-bridge.js
+          test -s www/native/offline-ui.css
+          test -s resources/icon.png
+          test -s resources/splash.png
+          test -s firebase/google-services.json
+          grep -q 'Camera' www/native/capacitor-bridge.js
+          grep -q 'Geolocation' www/native/capacitor-bridge.js
+          grep -q 'PushNotifications' www/native/capacitor-bridge.js
+          grep -q 'backButton' www/native/capacitor-bridge.js
 
       - name: Add Android platform
         run: npx cap add android
@@ -49,12 +64,15 @@ jobs:
       - name: Copy Firebase configuration
         shell: bash
         run: |
+          set -e
           mkdir -p android/app
           cp firebase/google-services.json android/app/google-services.json
+          test -s android/app/google-services.json
 
       - name: Configure Google Services
         shell: bash
         run: |
+          set -e
           PROJECT_GRADLE="android/build.gradle"
           APP_GRADLE="android/app/build.gradle"
           if [ -f "$PROJECT_GRADLE" ] && ! grep -q 'com.google.gms:google-services' "$PROJECT_GRADLE"; then
@@ -67,6 +85,7 @@ jobs:
       - name: Configure Android permissions
         shell: bash
         run: |
+          set -e
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           for PERMISSION in \
             android.permission.CAMERA \
@@ -77,6 +96,9 @@ jobs:
               sed -i "/<application/i\\    <uses-permission android:name=\"$PERMISSION\" />" "$MANIFEST"
             fi
           done
+          grep -q 'android.permission.CAMERA' "$MANIFEST"
+          grep -q 'android.permission.ACCESS_FINE_LOCATION' "$MANIFEST"
+          grep -q 'android.permission.POST_NOTIFICATIONS' "$MANIFEST"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -91,6 +113,13 @@ jobs:
       - name: Build release AAB
         working-directory: android
         run: ./gradlew bundleRelease
+
+      - name: Verify Android outputs
+        shell: bash
+        run: |
+          set -e
+          test -s android/app/build/outputs/apk/debug/app-debug.apk
+          test -s android/app/build/outputs/bundle/release/app-release.aab
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

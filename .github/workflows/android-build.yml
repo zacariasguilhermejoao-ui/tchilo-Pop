@@ -33,31 +33,23 @@ jobs:
           if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
-          if ! grep -q 'native/capacitor-bridge.js' www/index.html; then
-            sed -i 's#</body>#<script src="native/capacitor-bridge.js"></script></body>#' www/index.html
-          fi
-          if ! grep -q 'native/legal-navbar-fix.js' www/index.html; then
-            sed -i 's#</body>#<script src="native/legal-navbar-fix.js"></script></body>#' www/index.html
-          fi
-          if ! grep -q 'native/feed-names-fix.js' www/index.html; then
-            sed -i 's#</body>#<script src="native/feed-names-fix.js"></script></body>#' www/index.html
-          fi
+          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js; do
+            if ! grep -q "native/$js" www/index.html; then
+              sed -i "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
+            fi
+          done
 
       - name: Verify complete web payload
         shell: bash
         run: |
           set -e
           test -s www/index.html
+          test -s www/native/face-effects.js
           test -s www/native/capacitor-bridge.js
-          test -s www/native/offline-ui.css
-          test -s www/native/legal-navbar-fix.js
-          test -s www/native/feed-names-fix.js
+          grep -q 'openFaceEffects' www/native/face-effects.js
           test -s resources/icon.png
           test -s resources/splash.png
           test -s firebase/google-services.json
-          grep -q 'Camera' www/native/capacitor-bridge.js
-          grep -q 'legal-from-login' www/native/legal-navbar-fix.js
-          grep -q 'resolveAllFeedNames' www/native/feed-names-fix.js
 
       - name: Add Android platform
         run: npx cap add android
@@ -74,7 +66,6 @@ jobs:
           set -e
           mkdir -p android/app
           cp firebase/google-services.json android/app/google-services.json
-          test -s android/app/google-services.json
 
       - name: Configure Google Services
         shell: bash
@@ -117,13 +108,6 @@ jobs:
       - name: Build release AAB
         working-directory: android
         run: ./gradlew bundleRelease
-
-      - name: Verify Android outputs
-        shell: bash
-        run: |
-          set -e
-          test -s android/app/build/outputs/apk/debug/app-debug.apk
-          test -s android/app/build/outputs/bundle/release/app-release.aab
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

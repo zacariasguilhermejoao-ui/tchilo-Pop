@@ -95,8 +95,14 @@ jobs:
           fi
           if [ -f "$SPLASH" ]; then
             mkdir -p android/app/src/main/res/drawable
-            convert "$SPLASH" -resize 1080x1920\> android/app/src/main/res/drawable/splash.png
-            echo "Splash generated"
+            convert "$SPLASH" -resize 1080x1920\> /tmp/splash-base.png
+            if [ -f "$ICON" ]; then
+              convert "$ICON" -resize 360x360 /tmp/splash-icon.png
+              convert /tmp/splash-base.png /tmp/splash-icon.png -gravity center -composite android/app/src/main/res/drawable/splash.png
+            else
+              cp /tmp/splash-base.png android/app/src/main/res/drawable/splash.png
+            fi
+            echo "Splash generated with app icon centered"
           fi
 
       - name: Configure Android native permissions

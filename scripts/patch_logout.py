@@ -29,7 +29,6 @@ new = """async function logout() {
   } catch (e3) {
     console.warn('Tchilo signOut:', e3 && e3.message ? e3.message : e3);
   }
-  /* Limpar chaves Supabase no storage (evita reentrar sozinho) */
   try {
     var keys = [];
     for (var i = 0; i < localStorage.length; i++) {
@@ -61,7 +60,6 @@ elif "__tchiloLoggingOut" in html:
 else:
     print("WARNING: original logout block not found")
 
-# Guard tchiloSyncAuthSession / onAuthStateChange from re-login during logout
 old_auth = "tchiloSupabase.auth.onAuthStateChange((event,session)=>{\n  if(event==='SIGNED_OUT'){ clearSession(); showLoginGate(); return; }\n  if((event==='SIGNED_IN' || event==='INITIAL_SESSION') && session?.user){\n    setTimeout(()=>tchiloSyncAuthSession(),0);\n  }"
 
 new_auth = "tchiloSupabase.auth.onAuthStateChange((event,session)=>{\n  if(event==='SIGNED_OUT'){ clearSession(); showLoginGate(); return; }\n  if(window.__tchiloLoggingOut){ return; }\n  if((event==='SIGNED_IN' || event==='INITIAL_SESSION') && session?.user){\n    setTimeout(()=>tchiloSyncAuthSession(),0);\n  }"

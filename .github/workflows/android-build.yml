@@ -3,11 +3,13 @@ name: Android app build
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,53 +22,22 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Inject native bridge + offline UI into index.html
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('index.html')
-          html = p.read_text(encoding='utf-8', errors='replace')
-
-          if 'native/offline-ui.css' not in html:
-              offline_css = '<link rel="stylesheet" href="native/offline-ui.css">\n'
-              if '</head>' in html:
-                  html = html.replace('</head>', offline_css + '</head>', 1)
-              elif '<style>' in html:
-                  html = html.replace('<style>', offline_css + '<style>', 1)
-
-          html = html.replace(
-              'href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"',
-              'href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media=\'all\'"'
-          )
-
-          fallback = """<style id="tchilo-offline-fonts">
-  html,body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important}
-  .nav-post,.login-gate h2,.logo-text{font-family:'Anton',Impact,'Arial Black',Arial,sans-serif!important}
-  .nav-item svg,.icon-btn svg,.act svg{display:block!important;opacity:1!important}
-  </style>\n"""
-          if 'tchilo-offline-fonts' not in html:
-              if '</head>' in html:
-                  html = html.replace('</head>', fallback + '</head>', 1)
-              else:
-                  html = fallback + html
-
-          if 'native/capacitor-bridge.js' not in html:
-              snippet = '\n<script src="native/capacitor-bridge.js"></script>\n'
-              if '</body>' in html:
-                  html = html.replace('</body>', snippet + '</body>', 1)
-
-          p.write_text(html, encoding='utf-8')
-          print('index.html patched for offline UI')
-          PY
-
       - name: Prepare Capacitor web assets
+        shell: bash
         run: |
           rm -rf www
           mkdir -p www/native
           cp index.html www/index.html
           cp native/capacitor-bridge.js www/native/capacitor-bridge.js
           cp native/offline-ui.css www/native/offline-ui.css
-          echo "Prepared www/ with offline CSS and bridge"
+
+          if ! grep -q 'native/offline-ui.css' www/index.html; then
+            sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
+          fi
+
+          if ! grep -q 'native/capacitor-bridge.js' www/index.html; then
+            sed -i 's#</body>#<script src="native/capacitor-bridge.js"></script></body>#' www/index.html
+          fi
 
       - name: Add Android platform
         run: npx cap add android
@@ -74,122 +45,50 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Copy Firebase google-services.json
+      - name: Copy Firebase configuration
+        shell: bash
         run: |
           mkdir -p android/app
           cp firebase/google-services.json android/app/google-services.json
-          echo "google-services.json copied to android/app/"
 
-      - name: Apply Google Services Gradle plugin
+      - name: Configure Google Services
+        shell: bash
         run: |
           PROJECT_GRADLE="android/build.gradle"
-          if [ -f "$PROJECT_GRADLE" ]; then
-            if ! grep -q "com.google.gms:google-services" "$PROJECT_GRADLE"; then
-              sed -i "/dependencies {/a\        classpath 'com.google.gms:google-services:4.4.2'" "$PROJECT_GRADLE" || true
-            fi
-          fi
           APP_GRADLE="android/app/build.gradle"
-          if [ -f "$APP_GRADLE" ]; then
-            if ! grep -q "com.google.gms.google-services" "$APP_GRADLE"; then
-              echo "" >> "$APP_GRADLE"
-              echo "apply plugin: 'com.google.gms.google-services'" >> "$APP_GRADLE"
-            fi
-          fi
-          echo "Google Services plugin applied"
 
-      - name: Set app icon and splash (exact image, online+offline)
+          if [ -f "$PROJECT_GRADLE" ] && ! grep -q 'com.google.gms:google-services' "$PROJECT_GRADLE"; then
+            sed -i "/dependencies {/a\\        classpath 'com.google.gms:google-services:4.4.2'" "$PROJECT_GRADLE"
+          fi
+
+          if [ -f "$APP_GRADLE" ] && ! grep -q 'com.google.gms.google-services' "$APP_GRADLE"; then
+            printf '\napply plugin: "com.google.gms.google-services"\n' >> "$APP_GRADLE"
+          fi
+
+      - name: Configure Android permissions
+        shell: bash
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick > /dev/null
-          ICON=resources/icon.png
-          SPLASH=resources/splash.png
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          python3 - "$MANIFEST" <<'PY'
+from pathlib import Path
+import sys
 
-          # --- App icons ---
-          if [ -f "$ICON" ]; then
-            for size_dens in 48:mdpi 72:hdpi 96:xhdpi 144:xxhdpi 192:xxxhdpi; do
-              s=${size_dens%:*}
-              d=${size_dens#*:}
-              dir="android/app/src/main/res/mipmap-${d}"
-              mkdir -p "$dir"
-              convert "$ICON" -resize ${s}x${s} "$dir/ic_launcher.png"
-              convert "$ICON" -resize ${s}x${s} "$dir/ic_launcher_round.png"
-              convert "$ICON" -resize ${s}x${s} "$dir/ic_launcher_foreground.png"
-            done
-            echo "App icons generated"
-          fi
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+permissions = [
+    "android.permission.CAMERA",
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.POST_NOTIFICATIONS",
+]
 
-          # --- Splash: use EXACT image (black bg + logo + ISAB GROUP) ---
-          # Do NOT composite icon on top — the splash already has the full design
-          if [ -f "$SPLASH" ]; then
-            mkdir -p android/app/src/main/res/drawable
-            mkdir -p android/app/src/main/res/drawable-port-mdpi
-            mkdir -p android/app/src/main/res/drawable-port-hdpi
-            mkdir -p android/app/src/main/res/drawable-port-xhdpi
-            mkdir -p android/app/src/main/res/drawable-port-xxhdpi
-            mkdir -p android/app/src/main/res/drawable-port-xxxhdpi
+for permission in permissions:
+    line = f'    <uses-permission android:name="{permission}" />'
+    if line not in text:
+        text = text.replace("<application", line + "\n    <application", 1)
 
-            # Main splash resource used by Capacitor SplashScreen plugin
-            convert "$SPLASH" -resize 1080x1920^ -gravity center -extent 1080x1920 android/app/src/main/res/drawable/splash.png
-
-            # Density variants (portrait)
-            convert "$SPLASH" -resize 320x480^  -gravity center -extent 320x480  android/app/src/main/res/drawable-port-mdpi/splash.png
-            convert "$SPLASH" -resize 480x800^  -gravity center -extent 480x800  android/app/src/main/res/drawable-port-hdpi/splash.png
-            convert "$SPLASH" -resize 720x1280^ -gravity center -extent 720x1280 android/app/src/main/res/drawable-port-xhdpi/splash.png
-            convert "$SPLASH" -resize 1080x1920^ -gravity center -extent 1080x1920 android/app/src/main/res/drawable-port-xxhdpi/splash.png
-            convert "$SPLASH" -resize 1440x2560^ -gravity center -extent 1440x2560 android/app/src/main/res/drawable-port-xxxhdpi/splash.png
-
-            # Splash theme (black window background so no white flash)
-            mkdir -p android/app/src/main/res/values
-            cat > android/app/src/main/res/values/styles.xml <<'XML'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
-                  <item name="android:background">@null</item>
-                  <item name="android:windowBackground">@drawable/splash</item>
-                  <item name="android:windowNoTitle">true</item>
-                  <item name="android:windowFullscreen">true</item>
-                  <item name="android:statusBarColor">#000000</item>
-                  <item name="android:navigationBarColor">#000000</item>
-              </style>
-              <style name="AppTheme.NoActionBar" parent="AppTheme">
-                  <item name="windowActionBar">false</item>
-                  <item name="windowNoTitle">true</item>
-                  <item name="android:background">@null</item>
-              </style>
-              <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar">
-                  <item name="android:windowBackground">@drawable/splash</item>
-                  <item name="android:windowFullscreen">true</item>
-                  <item name="android:statusBarColor">#000000</item>
-                  <item name="android:navigationBarColor">#000000</item>
-              </style>
-          </resources>
-          XML
-            echo "Splash set from resources/splash.png (exact design, offline-ready)"
-          else
-            echo "WARNING: resources/splash.png not found"
-          fi
-
-      - name: Configure Android native permissions
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('android/app/src/main/AndroidManifest.xml')
-          text = p.read_text()
-          permissions = [
-              'android.permission.CAMERA',
-              'android.permission.ACCESS_COARSE_LOCATION',
-              'android.permission.ACCESS_FINE_LOCATION',
-              'android.permission.POST_NOTIFICATIONS',
-          ]
-          marker = '<application'
-          if marker in text:
-              before, after = text.split(marker, 1)
-              for x in permissions:
-                  line = f'    <uses-permission android:name="{x}" />'
-                  if line not in text:
-                      before += line + '\n'
-              text = before + marker + after
-          p.write_text(text)
-          PY
+path.write_text(text, encoding="utf-8")
+PY
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -210,9 +109,11 @@ jobs:
         with:
           name: tchilo-pop-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: tchilo-pop-release-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error

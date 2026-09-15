@@ -21,6 +21,25 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Inject native bridge into index.html
+        run: |
+          if ! grep -q 'native/capacitor-bridge.js' index.html; then
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          html = p.read_text(encoding='utf-8', errors='replace')
+          snippet = '''\n<script src="native/capacitor-bridge.js"></script>\n'''
+          if '</body>' in html:
+              html = html.replace('</body>', snippet + '</body>', 1)
+              p.write_text(html, encoding='utf-8')
+              print('capacitor-bridge.js injected into index.html')
+          else:
+              print('WARNING: </body> not found')
+          PY
+          else
+            echo 'bridge already present'
+          fi
+
       - name: Add Android platform
         run: npx cap add android
 
@@ -52,14 +71,10 @@ jobs:
 
       - name: Set app icon and splash
         run: |
-          # Install tools for resizing
           sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick > /dev/null
-
           ICON=resources/icon.png
           SPLASH=resources/splash.png
-
           if [ -f "$ICON" ]; then
-            # Adaptive icon / launcher icons
             for size dens in 48:mdpi 72:hdpi 96:xhdpi 144:xxhdpi 192:xxxhdpi; do
               s=${size%:*}
               d=${size#*:}
@@ -71,9 +86,7 @@ jobs:
             done
             echo "App icons generated"
           fi
-
           if [ -f "$SPLASH" ]; then
-            # Splash drawable
             mkdir -p android/app/src/main/res/drawable
             convert "$SPLASH" -resize 1080x1920\> android/app/src/main/res/drawable/splash.png
             echo "Splash generated"

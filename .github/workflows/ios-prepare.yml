@@ -20,6 +20,25 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Inject native bridge into index.html
+        run: |
+          if ! grep -q 'native/capacitor-bridge.js' index.html; then
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          html = p.read_text(encoding='utf-8', errors='replace')
+          snippet = '''\n<script src="native/capacitor-bridge.js"></script>\n'''
+          if '</body>' in html:
+              html = html.replace('</body>', snippet + '</body>', 1)
+              p.write_text(html, encoding='utf-8')
+              print('capacitor-bridge.js injected into index.html')
+          else:
+              print('WARNING: </body> not found')
+          PY
+          else
+            echo 'bridge already present'
+          fi
+
       - name: Add iOS platform
         run: npx cap add ios
 
@@ -35,7 +54,6 @@ jobs:
         run: |
           ICON=resources/icon.png
           SPLASH=resources/splash.png
-
           if [ -f "$ICON" ]; then
             ICONSET="ios/App/App/Assets.xcassets/AppIcon.appiconset"
             if [ -d "$ICONSET" ]; then
@@ -51,7 +69,6 @@ jobs:
               echo "iOS app icons generated"
             fi
           fi
-
           if [ -f "$SPLASH" ]; then
             mkdir -p ios/App/App/Assets.xcassets/Splash.imageset 2>/dev/null || true
             cp "$SPLASH" ios/App/App/Assets.xcassets/Splash.imageset/splash.png 2>/dev/null || true
@@ -62,6 +79,7 @@ jobs:
         run: |
           /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'tchilo-Pop precisa de acesso à câmera quando um recurso do aplicativo solicitar uma foto.'" ios/App/App/Info.plist || true
           /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'tchilo-Pop precisa da sua localização quando um recurso do aplicativo utilizar localização.'" ios/App/App/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Add :NSUserNotificationUsageDescription string 'tchilo-Pop pode enviar notificações para informar sobre eventos do aplicativo.'" ios/App/App/Info.plist || true
 
       - name: Verify iOS project
         run: test -d ios/App && test -f ios/App/App.xcodeproj/project.pbxproj && test -f ios/App/App/Info.plist

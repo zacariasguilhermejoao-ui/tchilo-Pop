@@ -39,17 +39,11 @@ jobs:
             sed -i '' 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
 
-          if ! grep -q 'native/capacitor-bridge.js' www/index.html; then
-            sed -i '' 's#</body>#<script src="native/capacitor-bridge.js"></script></body>#' www/index.html
-          fi
-
-          if ! grep -q 'native/legal-navbar-fix.js' www/index.html; then
-            sed -i '' 's#</body>#<script src="native/legal-navbar-fix.js"></script></body>#' www/index.html
-          fi
-
-          if ! grep -q 'native/feed-names-fix.js' www/index.html; then
-            sed -i '' 's#</body>#<script src="native/feed-names-fix.js"></script></body>#' www/index.html
-          fi
+          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js; do
+            if ! grep -q "native/$js" www/index.html; then
+              sed -i '' "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
+            fi
+          done
 
       - name: Add iOS platform
         run: npx cap add ios
@@ -63,7 +57,7 @@ jobs:
       - name: Configure iOS privacy permissions
         shell: bash
         run: |
-          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'tchilo-Pop precisa de acesso à câmera quando solicitado.'" ios/App/App/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'tchilo-Pop precisa de acesso à câmera para efeitos e fotos.'" ios/App/App/Info.plist || true
           /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'tchilo-Pop usa sua localização quando um recurso solicitar localização.'" ios/App/App/Info.plist || true
           /usr/libexec/PlistBuddy -c "Add :NSUserNotificationUsageDescription string 'tchilo-Pop pode enviar notificações para informar sobre eventos do aplicativo.'" ios/App/App/Info.plist || true
 
@@ -73,7 +67,6 @@ jobs:
           SPLASH=resources/splash.png
           ICON=resources/icon.png
           mkdir -p ios/App/App/Assets.xcassets/Splash.imageset
-
           if [ -f "$SPLASH" ]; then
             sips -s format png "$SPLASH" --out ios/App/App/Assets.xcassets/Splash.imageset/splash.png >/dev/null
             cat > ios/App/App/Assets.xcassets/Splash.imageset/Contents.json <<'JSON'
@@ -87,7 +80,6 @@ jobs:
           }
           JSON
           fi
-
           if [ -f "$ICON" ]; then
             ICONSET="ios/App/App/Assets.xcassets/AppIcon.appiconset"
             if [ -d "$ICONSET" ]; then
@@ -123,9 +115,6 @@ jobs:
             exit 1
           fi
 
-      - name: Verify Xcode
-        run: xcodebuild -version
-
       - name: Build unsigned iOS archive
         shell: bash
         run: |
@@ -154,11 +143,4 @@ jobs:
         with:
           name: tchilo-pop-ios-unsigned-ipa
           path: ${{ runner.temp }}/tchilo-pop-unsigned.ipa
-          if-no-files-found: error
-
-      - name: Upload iOS archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: tchilo-pop-ios-xcarchive
-          path: ${{ runner.temp }}/tchilo-pop.xcarchive
           if-no-files-found: error

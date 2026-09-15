@@ -30,11 +30,9 @@ jobs:
           cp index.html www/index.html
           cp native/capacitor-bridge.js www/native/capacitor-bridge.js
           cp native/offline-ui.css www/native/offline-ui.css
-
           if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
-
           if ! grep -q 'native/capacitor-bridge.js' www/index.html; then
             sed -i 's#</body>#<script src="native/capacitor-bridge.js"></script></body>#' www/index.html
           fi
@@ -56,11 +54,9 @@ jobs:
         run: |
           PROJECT_GRADLE="android/build.gradle"
           APP_GRADLE="android/app/build.gradle"
-
           if [ -f "$PROJECT_GRADLE" ] && ! grep -q 'com.google.gms:google-services' "$PROJECT_GRADLE"; then
             sed -i "/dependencies {/a\\        classpath 'com.google.gms:google-services:4.4.2'" "$PROJECT_GRADLE"
           fi
-
           if [ -f "$APP_GRADLE" ] && ! grep -q 'com.google.gms.google-services' "$APP_GRADLE"; then
             printf '\napply plugin: "com.google.gms.google-services"\n' >> "$APP_GRADLE"
           fi
@@ -69,26 +65,15 @@ jobs:
         shell: bash
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-          python3 - "$MANIFEST" <<'PY'
-from pathlib import Path
-import sys
-
-path = Path(sys.argv[1])
-text = path.read_text(encoding="utf-8")
-permissions = [
-    "android.permission.CAMERA",
-    "android.permission.ACCESS_COARSE_LOCATION",
-    "android.permission.ACCESS_FINE_LOCATION",
-    "android.permission.POST_NOTIFICATIONS",
-]
-
-for permission in permissions:
-    line = f'    <uses-permission android:name="{permission}" />'
-    if line not in text:
-        text = text.replace("<application", line + "\n    <application", 1)
-
-path.write_text(text, encoding="utf-8")
-PY
+          for PERMISSION in \
+            android.permission.CAMERA \
+            android.permission.ACCESS_COARSE_LOCATION \
+            android.permission.ACCESS_FINE_LOCATION \
+            android.permission.POST_NOTIFICATIONS; do
+            if ! grep -q "$PERMISSION" "$MANIFEST"; then
+              sed -i "/<application/i\\    <uses-permission android:name=\"$PERMISSION\" />" "$MANIFEST"
+            fi
+          done
 
       - name: Setup Java
         uses: actions/setup-java@v4

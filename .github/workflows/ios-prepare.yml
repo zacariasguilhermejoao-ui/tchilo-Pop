@@ -63,6 +63,32 @@ jobs:
           /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'tchilo-Pop usa sua localização quando um recurso solicitar localização.'" ios/App/App/Info.plist || true
           /usr/libexec/PlistBuddy -c "Add :NSUserNotificationUsageDescription string 'tchilo-Pop pode enviar notificações para informar sobre eventos do aplicativo.'" ios/App/App/Info.plist || true
 
+      - name: Prepare iOS splash with app icon
+        run: |
+          ICON=resources/icon.png
+          SPLASH=resources/splash.png
+          mkdir -p ios/App/App/Assets.xcassets/Splash.imageset
+          if [ -f "$SPLASH" ]; then
+            cp "$SPLASH" ios/App/App/Assets.xcassets/Splash.imageset/splash.png
+          fi
+          if [ -f "$ICON" ] && [ -f "$SPLASH" ]; then
+            sips -Z 360 "$ICON" --out /tmp/tchilo-splash-icon.png >/dev/null
+            python3 - <<'PY'
+          from PIL import Image
+          base = Image.open('resources/splash.png').convert('RGBA')
+          icon = Image.open('/tmp/tchilo-splash-icon.png').convert('RGBA')
+          base.thumbnail((1080, 1920), Image.Resampling.LANCZOS)
+          canvas = Image.new('RGBA', (1080, 1920), (0, 0, 0, 0))
+          x = (1080 - base.width) // 2
+          y = (1920 - base.height) // 2
+          canvas.alpha_composite(base, (x, y))
+          ix = (1080 - icon.width) // 2
+          iy = (1920 - icon.height) // 2
+          canvas.alpha_composite(icon, (ix, iy))
+          canvas.convert('RGB').save('ios/App/App/Assets.xcassets/Splash.imageset/splash.png')
+          PY
+          fi
+
       - name: Prepare iOS dependencies
         run: |
           if [ -f ios/App/Podfile ]; then

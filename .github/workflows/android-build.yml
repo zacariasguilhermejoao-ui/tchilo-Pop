@@ -39,6 +39,14 @@ jobs:
             echo 'bridge already present'
           fi
 
+      - name: Prepare Capacitor web assets
+        run: |
+          rm -rf www
+          mkdir -p www/native
+          cp index.html www/index.html
+          cp native/capacitor-bridge.js www/native/capacitor-bridge.js
+          echo "Prepared www/index.html and native bridge"
+
       - name: Add Android platform
         run: npx cap add android
 

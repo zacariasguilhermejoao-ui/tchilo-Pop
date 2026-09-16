@@ -1,24 +1,49 @@
 /**
  * tchilo-Pop — layout de navegação
- * - Ícone de mensagens no topo, ao lado da lupa
- * - No sítio das mensagens na barra de baixo → Reels
+ * - Mensagens no topo (ao lado da lupa)
+ * - Reels na barra de baixo com ícone de vídeo real
+ * - No viewer de Reels: Seguir à direita (longe do X)
  */
 (function () {
   'use strict';
 
   var SVG_MSG =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">' +
     '<path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.4A8.4 8.4 0 1 1 21 11.5z"/>' +
     '</svg>';
 
-  // Ícone estilo reels / claquete
+  // Ícone de vídeo / reels (câmara de filme + play)
   var SVG_REELS =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">' +
-    '<rect x="3" y="4" width="18" height="16" rx="3"/>' +
-    '<path d="M3 9h18"/>' +
-    '<path d="M8 4l2 5M14 4l2 5"/>' +
-    '<path d="M10 13l5 3-5 3v-6z" fill="currentColor" stroke="none"/>' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="2" y="5" width="20" height="14" rx="2.5"/>' +
+    '<path d="M7 5V3M12 5V3M17 5V3"/>' +
+    '<path d="M10 10.5v5l4.5-2.5L10 10.5z" fill="currentColor" stroke="none"/>' +
     '</svg>';
+
+  function injectReelsCSS() {
+    if (document.getElementById('tchiloReelsLayoutCSS')) return;
+    var st = document.createElement('style');
+    st.id = 'tchiloReelsLayoutCSS';
+    st.textContent =
+      /* Seguir no canto superior direito — longe do X (esquerda) */
+      '.reels-viewer .reel-follow{' +
+      'position:absolute!important;' +
+      'top:max(14px, env(safe-area-inset-top, 0px) + 10px)!important;' +
+      'right:14px!important;' +
+      'left:auto!important;' +
+      'z-index:6!important;' +
+      'min-width:72px;padding:8px 14px;' +
+      'border:2px solid #fff;border-radius:10px;' +
+      'background:rgba(0,0,0,.4);color:#fff;' +
+      'font:800 12px Inter,system-ui,sans-serif;cursor:pointer;' +
+      'backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}' +
+      '.reels-viewer .reels-close{' +
+      'top:max(12px, env(safe-area-inset-top, 0px) + 8px)!important;' +
+      'left:14px!important;right:auto!important;z-index:7!important;}' +
+      /* evita sobreposição com duet-label se existir */
+      '.reels-viewer .duet-label{top:58px!important;right:14px!important;}';
+    document.head.appendChild(st);
+  }
 
   function ensureTopbarMessages() {
     var icons = document.querySelector('#screen-feed .topbar-icons');
@@ -35,7 +60,6 @@
       e.stopPropagation();
       if (typeof goTo === 'function') goTo('messages');
     };
-    // ao lado da lupa (depois do search)
     icons.appendChild(btn);
   }
 
@@ -54,48 +78,41 @@
       e.preventDefault();
       e.stopPropagation();
       try {
-        if (typeof openReels === 'function') {
-          openReels();
-        } else if (typeof goTo === 'function') {
-          // fallback: tenta abrir reels a partir de posts de vídeo
-          var posts = typeof getPosts === 'function' ? getPosts() : [];
-          var vid = posts.find(function (p) {
-            return p && (p.mediaType === 'video' || (p.mediaItems && p.mediaItems[0] && p.mediaItems[0].type === 'video'));
-          });
-          if (vid && typeof openReels === 'function') openReels(vid.id);
-          else if (typeof showToast === 'function') {
-            /* silenciado */
-          }
-        }
+        if (typeof openReels === 'function') openReels();
       } catch (err) {
         console.warn('Tchilo reels nav', err);
       }
     };
 
-    // troca o SVG interno (mantém o .dot)
     var svg = msgBtn.querySelector('svg');
-    if (svg) {
-      var wrap = document.createElement('div');
-      wrap.innerHTML = SVG_REELS;
-      var next = wrap.firstChild;
-      if (next) svg.replaceWith(next);
-    } else {
+    var wrap = document.createElement('div');
+    wrap.innerHTML = SVG_REELS;
+    var next = wrap.firstChild;
+    if (svg && next) {
+      svg.replaceWith(next);
+    } else if (next) {
       var dot = msgBtn.querySelector('.dot');
-      msgBtn.innerHTML = SVG_REELS + (dot ? dot.outerHTML : '<div class="dot"></div>');
+      msgBtn.innerHTML = '';
+      msgBtn.appendChild(next);
+      if (dot) msgBtn.appendChild(dot);
+      else {
+        var d = document.createElement('div');
+        d.className = 'dot';
+        msgBtn.appendChild(d);
+      }
     }
   }
 
   function boot() {
+    injectReelsCSS();
     ensureTopbarMessages();
     replaceNavMessagesWithReels();
     setTimeout(function () {
+      injectReelsCSS();
       ensureTopbarMessages();
       replaceNavMessagesWithReels();
     }, 400);
-    setTimeout(function () {
-      ensureTopbarMessages();
-      replaceNavMessagesWithReels();
-    }, 1200);
+    setTimeout(replaceNavMessagesWithReels, 1200);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

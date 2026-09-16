@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — anti-piscar + loaders (nav, music, reels, offline-cache)
+ * tchilo-Pop — loaders: nav, music, reels, offline, face-fx-pro
  */
 (function () {
   'use strict';
@@ -35,69 +35,26 @@
       '#tchiloBusy.tchilo-busy,#tchiloBusy.tchilo-busy.show,.tchilo-busy.show{display:none!important;opacity:0!important;visibility:hidden!important;}';
   }
 
-  function killToastEl() {
+  function silenceToasts() {
+    try {
+      window.showToast = function () {};
+      window.tchiloShowBusy = function () {};
+      window.tchiloHideBusy = function () {};
+    } catch (e) {}
     var t = document.getElementById('toast');
     if (t) {
       t.classList.remove('show');
-      t.style.cssText = 'display:none!important;opacity:0!important;visibility:hidden!important;height:0!important;';
-      t.textContent = '';
-    }
-    var busy = document.getElementById('tchiloBusy');
-    if (busy) {
-      busy.classList.remove('show');
-      busy.style.display = 'none';
+      t.style.display = 'none';
     }
   }
 
-  function silenceToasts() {
-    var noop = function () {
-      killToastEl();
-    };
-    try {
-      window.showToast = noop;
-    } catch (e) {}
-    try {
-      window.tchiloShowBusy = function () {};
-      window.tchiloHideBusy = killToastEl;
-    } catch (e2) {}
-    killToastEl();
-  }
-
-  setInterval(function () {
-    silenceToasts();
-  }, 1500);
-
-  function portuguesePlaceholders() {
-    var title = document.getElementById('createTitle');
-    if (title) title.setAttribute('placeholder', 'Texto grande (ex: NOITE ÉPICA)');
-  }
-
-  function feedSignature() {
-    try {
-      var posts = typeof getPosts === 'function' ? getPosts() : [];
-      if (!Array.isArray(posts)) return '';
-      var parts = [];
-      for (var i = 0; i < Math.min(posts.length, 80); i++) {
-        var p = posts[i];
-        if (!p) continue;
-        parts.push(String(p.id) + ':' + String(p.username || '') + ':' + String(p.likes || 0));
-      }
-      return parts.join('|') + '#' + posts.length;
-    } catch (e) {
-      return String(Date.now());
-    }
-  }
+  setInterval(silenceToasts, 1500);
 
   function wrapRenderFeed() {
     if (typeof window.renderFeed !== 'function' || window.renderFeed.__noflicker) return;
     var orig = window.renderFeed;
     window.renderFeed = function (force) {
       var now = Date.now();
-      var sig = feedSignature();
-      if (!force && sig && sig === lastSig) {
-        var feed = document.getElementById('feedList');
-        if (feed && feed.querySelector('.post[data-id]')) return;
-      }
       if (!force && now - lastRenderAt < MIN_MS) {
         if (pending) clearTimeout(pending);
         pending = setTimeout(function () {
@@ -107,7 +64,6 @@
         return;
       }
       lastRenderAt = now;
-      lastSig = sig;
       return orig.apply(this, arguments);
     };
     window.renderFeed.__noflicker = true;
@@ -116,21 +72,16 @@
   function boot() {
     injectCSS();
     silenceToasts();
-    portuguesePlaceholders();
     wrapRenderFeed();
     loadExtra('native/nav-layout.js', 'data-tchilo-nav-layout');
     loadExtra('native/feed-music-fix.js', 'data-tchilo-feed-music-fix');
     loadExtra('native/reels-fast.js', 'data-tchilo-reels-fast');
     loadExtra('native/offline-cache.js', 'data-tchilo-offline-cache');
+    loadExtra('native/face-fx-pro.js', 'data-tchilo-face-fx-pro');
     setTimeout(function () {
-      silenceToasts();
       wrapRenderFeed();
-      injectCSS();
-      loadExtra('native/nav-layout.js', 'data-tchilo-nav-layout');
-      loadExtra('native/feed-music-fix.js', 'data-tchilo-feed-music-fix');
-      loadExtra('native/reels-fast.js', 'data-tchilo-reels-fast');
-      loadExtra('native/offline-cache.js', 'data-tchilo-offline-cache');
-    }, 400);
+      loadExtra('native/face-fx-pro.js', 'data-tchilo-face-fx-pro');
+    }, 500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

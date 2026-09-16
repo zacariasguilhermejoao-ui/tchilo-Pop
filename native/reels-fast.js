@@ -1,8 +1,5 @@
 /**
- * tchilo-Pop — Reels a abrir e tocar de imediato
- * 1) Só monta os primeiros vídeos (resto sob demanda)
- * 2) play() no primeiro frame sem esperar loadedmetadata
- * 3) preload=auto só no ativo; resto metadata
+ * tchilo-Pop — Reels rápidos + Seguir à direita
  */
 (function () {
   'use strict';
@@ -25,7 +22,6 @@
       var p = video.play();
       if (p && p.catch) {
         p.catch(function () {
-          // fallback: muted autoplay (política do browser)
           try {
             video.muted = true;
             video.play().catch(function () {});
@@ -33,6 +29,22 @@
         });
       }
     } catch (e) {}
+  }
+
+  function placeFollowRight() {
+    document.querySelectorAll('#reelsViewer .reel-follow, .reel-slide .reel-follow').forEach(function (btn) {
+      btn.style.cssText =
+        'position:absolute!important;top:max(14px,calc(env(safe-area-inset-top,0px)+10px))!important;' +
+        'right:12px!important;left:auto!important;z-index:19!important;margin:0!important;' +
+        'min-width:72px;padding:8px 14px;border:2px solid #fff;border-radius:10px;' +
+        'background:rgba(0,0,0,.45);color:#fff;font:800 12px Inter,system-ui,sans-serif;';
+    });
+    var close = document.querySelector('#reelsViewer .reels-close');
+    if (close) {
+      close.style.setProperty('left', '12px', 'important');
+      close.style.setProperty('right', 'auto', 'important');
+      close.style.setProperty('z-index', '20', 'important');
+    }
   }
 
   function limitVideoPosts(startId) {
@@ -56,21 +68,18 @@
           all.unshift(one);
         }
       }
-      // primeiros N para abrir rápido
       return all.slice(0, MAX_INITIAL);
     };
     window.getVideoPosts.__reelsFast = true;
-    window.getVideoPosts.__orig = orig;
     return orig;
   }
 
   function restoreGetVideoPosts(orig) {
-    if (orig) {
-      window.getVideoPosts = orig;
-    }
+    if (orig) window.getVideoPosts = orig;
   }
 
   function afterOpen(resumeAt) {
+    placeFollowRight();
     var track = document.getElementById('reelsTrack');
     if (!track) return;
     var videos = track.querySelectorAll('video');
@@ -78,32 +87,15 @@
       v.loop = true;
       v.playsInline = true;
       v.setAttribute('playsinline', '');
-      // só o primeiro com preload auto
       v.preload = i === 0 ? 'auto' : 'metadata';
-      // remove poster pesado se houver
     });
     var first = videos[0];
     if (first) {
-      // play imediato — não espera metadata
       forcePlay(first, resumeAt);
-      // reforço nos eventos rápidos
-      first.addEventListener(
-        'loadeddata',
-        function () {
-          forcePlay(first, resumeAt);
-        },
-        { once: true }
-      );
-      first.addEventListener(
-        'canplay',
-        function () {
-          forcePlay(first, resumeAt);
-        },
-        { once: true }
-      );
+      first.addEventListener('loadeddata', function () { forcePlay(first, resumeAt); }, { once: true });
+      first.addEventListener('canplay', function () { forcePlay(first, resumeAt); }, { once: true });
     }
 
-    // observer: ao entrar no ecrã, play sem atraso
     if (window._reelsObs) {
       try {
         window._reelsObs.disconnect();
@@ -116,10 +108,9 @@
             var vid = en.target.querySelector('video');
             if (!vid) return;
             if (en.isIntersecting && en.intersectionRatio > 0.5) {
-              // ativa preload no visível
               vid.preload = 'auto';
               forcePlay(vid, 0);
-              // preload vizinho seguinte
+              placeFollowRight();
               var next = en.target.nextElementSibling;
               if (next) {
                 var nv = next.querySelector('video');
@@ -165,11 +156,9 @@
         restoreGetVideoPosts(origGet);
       }
 
-      // play no próximo tick (DOM já montado)
       setTimeout(function () {
         afterOpen(resumeAt);
       }, 0);
-      // reforço curto
       setTimeout(function () {
         afterOpen(resumeAt);
       }, 80);

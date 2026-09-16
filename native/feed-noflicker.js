@@ -71,13 +71,11 @@
       ['native/reels-fast.js', 'data-tchilo-reels-fast'],
       ['native/reels-follow-fix.js', 'data-tchilo-reels-follow'],
       ['native/offline-cache.js', 'data-tchilo-offline-cache'],
-      ['native/face-fx-pro.js', 'data-tchilo-face-fx-pro']
+      ['native/face-fx-pro.js', 'data-tchilo-face-fx-pro'],
+      ['native/password-toggle.js', 'data-tchilo-pw-toggle']
     ].forEach(function (x) {
       loadExtra(x[0], x[1]);
     });
-    setTimeout(function () {
-      loadExtra('native/reels-follow-fix.js', 'data-tchilo-reels-follow');
-    }, 500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

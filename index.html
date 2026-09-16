@@ -9195,6 +9195,8 @@ async function publishStory(data){
     media:data.media||null,
     mediaType:data.mediaType||null,
     color:data.media?null:(data.color||'m1'),
+    music:data.music||data.musicMeta||null,
+    musicMeta:(data.musicMeta||data.music||null),
     createdAt:Date.now()
   };
   try{
@@ -10730,5 +10732,6 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/media-editor.js"></script>
 <script src="native/post-music-feed.js"></script>
 <script src="native/feed-music-play.js"></script>
+<script src="native/story-music.js"></script>
 </body>
 </html>

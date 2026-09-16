@@ -6467,7 +6467,7 @@ async function publishPostCore(){
   const title=document.getElementById('createTitle').value.trim()||'NOVO POST',caption=document.getElementById('createCaption').value.trim()||'nova publicação',stamp=title.toUpperCase().split(/\s+/).slice(0,3).join('\n'),tags=(caption.match(/#[\wÀ-ÿ]+/g)||[]),postId=(window.crypto&&typeof window.crypto.randomUUID==='function'?window.crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==='x'?r:(r&0x3|0x8);return v.toString(16);}));
   const items=createMediaData&&createMediaData.items?createMediaData.items:[];
   if(items.some(function(m){return m.type==='video'})&&items.length!==1){showToast('Vídeo só pode ser publicado sozinho');return;}
-  const post={id:postId,username:session.username,initials:session.username.slice(0,2).toUpperCase(),avatar:(session.avatar||(getProfileExtra(session.username)||{}).avatar||null),location:null,time:'agora',color:currentColor,stamp:stamp,caption:caption.replace(/#[\wÀ-ÿ]+/g,'').trim(),tags:tags,likes:0,comments:0,media:null,mediaType:null,mediaItems:null,music:window._pendingMusic||null}; window._pendingMusic=null;
+  const post={id:postId,username:session.username,initials:session.username.slice(0,2).toUpperCase(),avatar:(session.avatar||(getProfileExtra(session.username)||{}).avatar||null),location:null,time:'agora',color:currentColor,stamp:stamp,caption:caption.replace(/#[\wÀ-ÿ]+/g,'').trim(),tags:tags,likes:0,comments:0,media:null,mediaType:null,mediaItems:null,music:window._pendingMusic||null,musicMeta:(window._pendingMusicMeta||null)};window._pendingMusic=null;window._pendingMusicMeta=null;
 
   const finishLocal=function(mediaList){
     if(mediaList&&mediaList.length){

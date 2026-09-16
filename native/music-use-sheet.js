@@ -1,11 +1,162 @@
 /**
  * tchilo-Pop — Ao tocar na música (feed ou story):
  * opções "Criar story" e "Fazer post" com essa música
+ * + silencia pré-visualizações ao selecionar/fechar/publicar
  */
 (function () {
   'use strict';
 
   var pending = null;
+
+  /* ---- Silêncio global de pré-views ---- */
+  if (!window.__tchiloAudioHooked) {
+    window.__tchiloAudioHooked = true;
+    window.__tchiloAudios = window.__tchiloAudios || [];
+    var OrigAudio = window.Audio;
+    window.Audio = function (src) {
+      var a = src !== undefined ? new OrigAudio(src) : new OrigAudio();
+      try {
+        window.__tchiloAudios.push(a);
+        if (window.__tchiloAudios.length > 40) {
+          window.__tchiloAudios = window.__tchiloAudios.filter(function (x) {
+            return x && !x.ended;
+          });
+        }
+      } catch (e) {}
+      return a;
+    };
+    window.Audio.prototype = OrigAudio.prototype;
+  }
+
+  function stopEl(a) {
+    if (!a) return;
+    try {
+      a.pause();
+      a.muted = true;
+      a.currentTime = 0;
+      a.removeAttribute('src');
+      a.src = '';
+      a.load();
+    } catch (e) {}
+  }
+
+  function stopAllMusic() {
+    try {
+      if (typeof window.tchiloStopStoryAudio === 'function') window.tchiloStopStoryAudio();
+    } catch (e) {}
+    try {
+      (window.__tchiloAudios || []).forEach(stopEl);
+      window.__tchiloAudios = [];
+    } catch (e) {}
+    try {
+      document.querySelectorAll('audio').forEach(stopEl);
+    } catch (e) {}
+    try {
+      document
+        .querySelectorAll('.playbtn.playing, .me-play.playing, #storyMusicChip.playing, .post-music.playing')
+        .forEach(function (el) {
+          el.classList.remove('playing');
+        });
+      document.querySelectorAll('#pmList .dots, #meMusicList .dots').forEach(function (d) {
+        d.style.display = 'none';
+      });
+    } catch (e) {}
+  }
+  window.tchiloStopAllMusic = stopAllMusic;
+
+  // Selecionar faixa (não o play) → parar
+  document.addEventListener(
+    'click',
+    function (e) {
+      var row = e.target.closest && e.target.closest('.me-track, #pmList .track');
+      if (!row) return;
+      if (e.target.closest('.playbtn, .me-play, .favbtn')) return;
+      setTimeout(stopAllMusic, 0);
+      setTimeout(stopAllMusic, 80);
+      setTimeout(stopAllMusic, 250);
+    },
+    true
+  );
+
+  document.addEventListener(
+    'click',
+    function (e) {
+      if (
+        e.target.closest &&
+        (e.target.closest('#meMusicClose') ||
+          e.target.closest('#pmClose') ||
+          e.target.closest('#meClose') ||
+          e.target.closest('#mePublish'))
+      ) {
+        stopAllMusic();
+      }
+    },
+    true
+  );
+
+  function watchSheets() {
+    ['meMusicSheet', 'tchiloPostMusicSheet'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el || el.__silenceObs) return;
+      el.__silenceObs = true;
+      try {
+        new MutationObserver(function () {
+          if (!el.classList.contains('open')) stopAllMusic();
+        }).observe(el, { attributes: true, attributeFilter: ['class'] });
+      } catch (e) {}
+    });
+  }
+
+  function hookPublish() {
+    if (typeof window.publishStory === 'function' && !window.publishStory.__silence) {
+      var ps = window.publishStory;
+      window.publishStory = async function (data) {
+        stopAllMusic();
+        data = data || {};
+        if (data.text) {
+          data.text = String(data.text)
+            .split('\n')
+            .filter(function (line) {
+              return !/^♪\s*/.test(String(line).trim());
+            })
+            .join('\n')
+            .trim();
+        }
+        var r = await ps.call(this, data);
+        stopAllMusic();
+        return r;
+      };
+      window.publishStory.__silence = true;
+    }
+  }
+
+  function hookGoTo() {
+    if (typeof window.goTo !== 'function' || window.goTo.__silence) return;
+    var g = window.goTo;
+    window.goTo = function () {
+      stopAllMusic();
+      return g.apply(this, arguments);
+    };
+    window.goTo.__silence = true;
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stopAllMusic();
+  });
+  window.addEventListener('pagehide', stopAllMusic);
+
+  setTimeout(function () {
+    watchSheets();
+    hookPublish();
+    hookGoTo();
+  }, 400);
+  setTimeout(function () {
+    watchSheets();
+    hookPublish();
+    hookGoTo();
+  }, 1200);
+
+  /* ---- Sheet usar música ---- */
 
   function normalize(m) {
     if (!m) return null;
@@ -61,6 +212,7 @@
     document.getElementById('musUseStory').onclick = function () {
       var m = pending;
       closeSheet();
+      stopAllMusic();
       if (!m) return;
       applyMusic(m);
       if (typeof closeStory === 'function') {
@@ -76,6 +228,7 @@
     document.getElementById('musUsePost').onclick = function () {
       var m = pending;
       closeSheet();
+      stopAllMusic();
       if (!m) return;
       applyMusic(m);
       if (typeof closeStory === 'function') {
@@ -169,9 +322,7 @@
     var t = e.target;
     if (!t || !t.closest) return;
 
-    // Não roubar botão de som
     if (t.closest('.feed-sound-btn')) return;
-    // Não roubar play no picker
     if (t.closest('.playbtn, .me-play, .favbtn')) return;
 
     var row = t.closest('.post-music');
@@ -200,12 +351,10 @@
     }
   }
 
-  // capture phase — ganha a outros handlers
   document.addEventListener('click', onTap, true);
   document.addEventListener(
     'touchend',
     function (e) {
-      // só se for alvo de música
       var t = e.target;
       if (!t || !t.closest) return;
       if (t.closest('.post-music') || t.closest('#storyMusicChip')) onTap(e);

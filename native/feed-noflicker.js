@@ -1,7 +1,5 @@
 /**
- * tchilo-Pop — para o piscar do feed e o flash verde (mint)
- * + desativa barras pretas de toast
- * + placeholders em português
+ * tchilo-Pop — anti-piscar + sem barras pretas de toast + PT placeholders
  */
 (function () {
   'use strict';
@@ -12,9 +10,12 @@
   var MIN_MS = 600;
 
   function injectCSS() {
-    if (document.getElementById('tchiloNoFlickerCSS')) return;
-    var st = document.createElement('style');
-    st.id = 'tchiloNoFlickerCSS';
+    var st = document.getElementById('tchiloNoFlickerCSS');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'tchiloNoFlickerCSS';
+      document.head.appendChild(st);
+    }
     st.textContent =
       '#feedList .post-media{background:#e8e6de!important;}' +
       '#feedList .post-media img,#feedList .post-media video{' +
@@ -22,41 +23,94 @@
       '#feedList .post{animation:none!important;}' +
       '#screen-feed .topbar{background:var(--paper,#F3F1E9)!important;}' +
       '#screen-feed,#feedList{background:var(--paper,#F3F1E9)!important;}' +
-      /* barras pretas de notificação / toast — escondidas */
-      '.toast,#toast,.toast.show,.snackbar{display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;height:0!important;padding:0!important;margin:0!important;}';
-    document.head.appendChild(st);
+      /* Barras pretas de notificação — forçadas a desaparecer */
+      '.toast,#toast,.toast.show{' +
+      'display:none!important;opacity:0!important;visibility:hidden!important;' +
+      'pointer-events:none!important;height:0!important;max-height:0!important;' +
+      'padding:0!important;margin:0!important;border:none!important;' +
+      'transform:none!important;font-size:0!important;line-height:0!important;}' +
+      /* overlay busy full-screen escuro também some (só pontos no botão) */
+      '#tchiloBusy.tchilo-busy,#tchiloBusy.tchilo-busy.show,.tchilo-busy.show{' +
+      'display:none!important;opacity:0!important;visibility:hidden!important;}';
+  }
+
+  function killToastEl() {
+    var t = document.getElementById('toast');
+    if (t) {
+      t.classList.remove('show');
+      t.style.cssText =
+        'display:none!important;opacity:0!important;visibility:hidden!important;height:0!important;padding:0!important;';
+      t.textContent = '';
+    }
+    var busy = document.getElementById('tchiloBusy');
+    if (busy) {
+      busy.classList.remove('show');
+      busy.style.display = 'none';
+    }
   }
 
   function silenceToasts() {
-    // showToast deixa de mostrar barras pretas (mantém a função para não quebrar o código)
-    window.showToast = function (msg) {
-      try {
-        if (typeof console !== 'undefined' && console.log) {
-          console.log('[Tchilo]', msg);
-        }
-      } catch (e) {}
+    var noop = function () {
+      killToastEl();
     };
-    var el = document.getElementById('toast');
-    if (el) {
-      el.classList.remove('show');
-      el.style.display = 'none';
-      el.textContent = '';
+    try {
+      window.showToast = noop;
+    } catch (e) {}
+    try {
+      Object.defineProperty(window, 'showToast', {
+        configurable: true,
+        enumerable: true,
+        writable: true,
+        value: noop
+      });
+    } catch (e2) {
+      window.showToast = noop;
     }
+    try {
+      window.tchiloShowBusy = function () {};
+      window.tchiloHideBusy = function () {
+        killToastEl();
+      };
+    } catch (e3) {}
+    killToastEl();
+  }
+
+  // Re-aplica periodicamente — o index.html redefine showToast mais tarde
+  var silenceTimer = setInterval(silenceToasts, 400);
+  setTimeout(function () {
+    clearInterval(silenceTimer);
+    silenceToasts();
+    // ainda protege se alguém redefinir de novo
+    setInterval(function () {
+      if (typeof window.showToast === 'function') {
+        var src = '';
+        try {
+          src = Function.prototype.toString.call(window.showToast);
+        } catch (e) {}
+        if (src.indexOf('getElementById(\'toast\')') >= 0 || src.indexOf('classList.add(\'show\')') >= 0) {
+          silenceToasts();
+        }
+      }
+    }, 2000);
+  }, 8000);
+
+  // MutationObserver: se a barra aparecer, esconde de imediato
+  function watchToastDom() {
+    var t = document.getElementById('toast');
+    if (!t || t.__watched) return;
+    t.__watched = true;
+    try {
+      new MutationObserver(function () {
+        if (t.classList.contains('show') || (t.textContent && t.textContent.trim())) {
+          killToastEl();
+        }
+      }).observe(t, { attributes: true, childList: true, characterData: true, subtree: true });
+    } catch (e) {}
   }
 
   function portuguesePlaceholders() {
     var title = document.getElementById('createTitle');
-    if (title) {
-      title.setAttribute('placeholder', 'Texto grande (ex: NOITE ÉPICA)');
-    }
-    var cap = document.getElementById('createCaption');
-    if (cap) {
-      var ph = cap.getAttribute('placeholder') || '';
-      if (/hashtag/i.test(ph) && !/legenda/i.test(ph)) {
-        cap.setAttribute('placeholder', 'Escreve a legenda… usa #hashtags');
-      }
-    }
-    // corrige exemplos em inglês noutros inputs visíveis
+    if (title) title.setAttribute('placeholder', 'Texto grande (ex: NOITE ÉPICA)');
     document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(function (el) {
       var p = el.getAttribute('placeholder') || '';
       if (/EPIC\s*NIGHT/i.test(p)) {
@@ -102,9 +156,7 @@
 
       if (!force && sig && sig === lastSig) {
         var feed = document.getElementById('feedList');
-        if (feed && feed.querySelector('.post[data-id]')) {
-          return;
-        }
+        if (feed && feed.querySelector('.post[data-id]')) return;
       }
 
       if (!force && now - lastRenderAt < MIN_MS) {
@@ -142,18 +194,12 @@
       if (b && b.textContent !== name) b.textContent = name;
       var capB = el.querySelector('.post-caption > b');
       if (capB && capB.textContent !== name) capB.textContent = name;
-      var span = el.querySelector('.post-user .who span');
-      if (span && p.username) {
-        var rest = span.textContent.replace(/^@[^·]*/, '@' + p.username);
-        if (span.textContent !== rest) span.textContent = rest;
-      }
     });
   }
 
   function softenFeedNames() {
     if (window.__tchiloNamesSoftened) return;
     window.__tchiloNamesSoftened = true;
-
     if (typeof window.save === 'function' && !window.save.__nfHook) {
       var origSave = window.save;
       window.save = function (key, val) {
@@ -170,33 +216,22 @@
     }
   }
 
-  function disableStoriesScrollFight() {
-    var st = document.getElementById('tchiloFeedStoriesScrollCSS');
-    if (st) {
-      st.textContent +=
-        '#screen-feed.active,#screen-feed .topbar,#feedList.feed{background:var(--paper,#F3F1E9)!important;}';
-    }
-  }
-
   function boot() {
     injectCSS();
     silenceToasts();
+    watchToastDom();
     portuguesePlaceholders();
     wrapRenderFeed();
     softenFeedNames();
-    disableStoriesScrollFight();
     setTimeout(function () {
       silenceToasts();
+      watchToastDom();
       portuguesePlaceholders();
       wrapRenderFeed();
-      softenFeedNames();
       injectCSS();
-    }, 400);
-    setTimeout(function () {
-      silenceToasts();
-      portuguesePlaceholders();
-      wrapRenderFeed();
-    }, 1500);
+    }, 300);
+    setTimeout(silenceToasts, 1000);
+    setTimeout(silenceToasts, 2500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

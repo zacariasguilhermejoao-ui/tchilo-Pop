@@ -1,7 +1,6 @@
 /**
  * tchilo-Pop — Editor de Story/Post + biblioteca de músicas
- * (fonte de catálogo externa via API pública; nome do provedor NÃO aparece na UI)
- * Folhas de música usam var(--paper)/var(--ink) do tema atual.
+ * Folhas de música usam var(--paper)/var(--ink). Sem edição de trecho.
  */
 (function () {
   'use strict';
@@ -45,15 +44,12 @@
   }
   var ICO = {
     close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
-    check: svg('<path d="M5 12l5 5L20 7"/>'),
     music: svg('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'),
     crop: svg('<path d="M6 3v15h15"/><path d="M3 6h15v15"/>'),
     filter: svg('<circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
     mention: svg('<circle cx="12" cy="8" r="3.5"/><path d="M5 19c1.2-3.2 3.5-5 7-5s5.8 1.8 7 5"/>'),
     trim: svg('<path d="M5 5v14M19 5v14M5 12h14"/>'),
-    search: svg('<circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/>'),
-    play: svg('<path d="M8 5v14l11-7z"/>'),
-    pause: svg('<path d="M7 5h3v14H7zM14 5h3v14h-3z"/>')
+    search: svg('<circle cx="11" cy="11" r="6"/><path d="M20 20l-3.5-3.5"/>')
   };
 
   function catalogFetch(pathQuery) {
@@ -90,15 +86,13 @@
       title: t.title || t.title_short || 'Música',
       artist: (t.artist && t.artist.name) || 'Artista',
       preview: t.preview || '',
-      cover: (t.album && (t.album.cover_medium || t.album.cover)) || '',
-      duration: Number(t.duration) || 30
+      cover: (t.album && (t.album.cover_medium || t.album.cover)) || ''
     };
   }
 
   function loadTopTracks() {
     return catalogFetch('chart/0/tracks?limit=40').then(function (data) {
-      var list = (data && data.data) || [];
-      return list.map(mapTrack).filter(Boolean);
+      return ((data && data.data) || []).map(mapTrack).filter(Boolean);
     });
   }
 
@@ -106,8 +100,7 @@
     q = String(q || '').trim();
     if (!q) return loadTopTracks();
     return catalogFetch('search?q=' + encodeURIComponent(q) + '&limit=40').then(function (data) {
-      var list = (data && data.data) || [];
-      return list.map(mapTrack).filter(Boolean);
+      return ((data && data.data) || []).map(mapTrack).filter(Boolean);
     });
   }
 
@@ -133,14 +126,17 @@
       '#tchiloMediaEd .me-stage.f-soft img,#tchiloMediaEd .me-stage.f-soft video{filter:brightness(1.08) contrast(.92) saturate(.95);}' +
       '#tchiloMediaEd .me-stage.f-mono img,#tchiloMediaEd .me-stage.f-mono video{filter:grayscale(1) contrast(1.1);}' +
       '#tchiloMediaEd .me-stage.f-film img,#tchiloMediaEd .me-stage.f-film video{filter:sepia(.25) contrast(1.05) saturate(.9);}' +
-      '#tchiloMediaEd .me-tools{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;}' +
+      '#tchiloMediaEd .me-tools{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}' +
+      '#tchiloMediaEd .me-tools::-webkit-scrollbar{display:none;height:0;}' +
       '#tchiloMediaEd .me-tool{flex:0 0 auto;border:0;border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.08);color:#fff;font-weight:700;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;min-width:64px;}' +
       '#tchiloMediaEd .me-tool.active{background:rgba(200,245,96,.25);outline:2px solid #c8f560;}' +
-      '#tchiloMediaEd .me-panel{padding:0 12px 12px;max-height:42vh;overflow:auto;}' +
-      '#tchiloMediaEd .me-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;}' +
+      '#tchiloMediaEd .me-panel{padding:0 12px 12px;max-height:42vh;overflow:auto;scrollbar-width:none;}' +
+      '#tchiloMediaEd .me-panel::-webkit-scrollbar{display:none;}' +
+      '#tchiloMediaEd .me-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;}' +
+      '#tchiloMediaEd .me-chips::-webkit-scrollbar{display:none;}' +
       '#tchiloMediaEd .me-chip{flex:0 0 auto;border:2px solid transparent;border-radius:999px;padding:8px 12px;background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:12px;cursor:pointer;}' +
       '#tchiloMediaEd .me-chip.active{border-color:#c8f560;background:rgba(200,245,96,.22);}' +
-      '#tchiloMediaEd .me-range{width:100%;margin:8px 0;}' +
+      '#tchiloMediaEd .me-range{width:100%;margin:8px 0;accent-color:var(--mint,#c8f560);}' +
       '#tchiloMediaEd .me-musicbar{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.08);border-radius:14px;margin:0 12px 8px;}' +
       '#tchiloMediaEd .me-musicbar img{width:40px;height:40px;border-radius:8px;object-fit:cover;background:#333;}' +
       '#tchiloMediaEd .me-musicbar .meta{flex:1;min-width:0;}' +
@@ -152,7 +148,8 @@
       '#tchiloMediaEd .me-sheet-panel h3{margin:0;font-size:17px;color:var(--ink,#0B0B0C);}' +
       '#tchiloMediaEd .me-search{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.85);border:2px solid var(--ink,#0B0B0C);border-radius:12px;padding:8px 10px;}' +
       '#tchiloMediaEd .me-search input{flex:1;border:0;background:transparent;color:var(--ink,#0B0B0C);font-size:15px;outline:none;font-weight:600;}' +
-      '#tchiloMediaEd .me-list{overflow:auto;flex:1;min-height:120px;}' +
+      '#tchiloMediaEd .me-list{overflow:auto;flex:1;min-height:120px;scrollbar-width:none;}' +
+      '#tchiloMediaEd .me-list::-webkit-scrollbar{display:none;}' +
       '#tchiloMediaEd .me-track{display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid rgba(11,11,12,.08);cursor:pointer;color:var(--ink,#0B0B0C);}' +
       '#tchiloMediaEd .me-track img{width:48px;height:48px;border-radius:10px;object-fit:cover;background:#ddd;}' +
       '#tchiloMediaEd .me-track .t{flex:1;min-width:0;}' +
@@ -160,13 +157,12 @@
       '#tchiloMediaEd .me-track .t span{font-size:12px;opacity:.65;}' +
       '#tchiloMediaEd .me-empty{padding:24px;text-align:center;opacity:.75;font-size:14px;color:var(--ink,#0B0B0C);}' +
       '[data-theme="dark"] #tchiloMediaEd .me-search{background:rgba(255,255,255,.08);}' +
-      '[data-theme="dark"] #tchiloMediaEd .me-track{border-bottom-color:rgba(255,255,255,.08);}' +
       '#tchiloMediaEd .me-mention-input{width:100%;border:2px solid var(--ink,#0B0B0C);border-radius:12px;padding:12px;background:#fff;color:var(--ink,#0B0B0C);font-size:15px;outline:none;box-sizing:border-box;}' +
       '#tchiloMediaEd .me-mention-list{max-height:200px;overflow:auto;}' +
       '#tchiloMediaEd .me-mention-item{display:flex;align-items:center;gap:10px;padding:10px 4px;cursor:pointer;color:var(--ink,#0B0B0C);}' +
       '</style>' +
       '<div class="me-top">' +
-      '<button type="button" class="me-iconbtn" id="meClose" aria-label="Fechar">' + ICO.close + '</button>' +
+      '<button type="button" class="me-iconbtn" id="meClose">' + ICO.close + '</button>' +
       '<b id="meTitle">Editar</b>' +
       '<button type="button" class="me-publish" id="mePublish">Publicar</button>' +
       '</div>' +
@@ -212,6 +208,13 @@
     document.getElementById('meMentionSearch').oninput = function () {
       renderMentionList(this.value);
     };
+
+    document.addEventListener('tchilo-story-music', function (ev) {
+      if (ev.detail) {
+        state.music = ev.detail;
+        renderMusicBar();
+      }
+    });
   }
 
   function stopPreviewAudio() {
@@ -301,15 +304,7 @@
 
     tools.innerHTML = items
       .map(function (t) {
-        return (
-          '<button type="button" class="me-tool" data-tool="' +
-          t.id +
-          '">' +
-          t.icon +
-          '<span>' +
-          t.label +
-          '</span></button>'
-        );
+        return '<button type="button" class="me-tool" data-tool="' + t.id + '">' + t.icon + '<span>' + t.label + '</span></button>';
       })
       .join('');
 
@@ -340,15 +335,7 @@
       panel.innerHTML =
         '<div class="me-chips">' +
         FILTERS.map(function (f) {
-          return (
-            '<button type="button" class="me-chip' +
-            (state.filter === f.id ? ' active' : '') +
-            '" data-f="' +
-            f.id +
-            '">' +
-            f.label +
-            '</button>'
-          );
+          return '<button type="button" class="me-chip' + (state.filter === f.id ? ' active' : '') + '" data-f="' + f.id + '">' + f.label + '</button>';
         }).join('') +
         '</div>';
       panel.querySelectorAll('.me-chip').forEach(function (c) {
@@ -362,15 +349,7 @@
       panel.innerHTML =
         '<div class="me-chips">' +
         CROPS.map(function (c) {
-          return (
-            '<button type="button" class="me-chip' +
-            (state.crop === c.id ? ' active' : '') +
-            '" data-c="' +
-            c.id +
-            '">' +
-            c.label +
-            '</button>'
-          );
+          return '<button type="button" class="me-chip' + (state.crop === c.id ? ' active' : '') + '" data-c="' + c.id + '">' + c.label + '</button>';
         }).join('') +
         '</div>';
       panel.querySelectorAll('.me-chip').forEach(function (c) {
@@ -384,30 +363,17 @@
       var dur = state.videoDuration || 0;
       panel.innerHTML =
         '<label style="font-size:12px;opacity:.7">Início do vídeo</label>' +
-        '<input type="range" class="me-range" id="meVidStart" min="0" max="' +
-        dur +
-        '" step="0.1" value="' +
-        state.videoStart +
-        '">' +
+        '<input type="range" class="me-range" id="meVidStart" min="0" max="' + dur + '" step="0.1" value="' + state.videoStart + '">' +
         '<label style="font-size:12px;opacity:.7">Fim do vídeo</label>' +
-        '<input type="range" class="me-range" id="meVidEnd" min="0" max="' +
-        dur +
-        '" step="0.1" value="' +
-        state.videoEnd +
-        '">' +
-        '<div id="meVidLabel" style="font-size:13px;font-weight:700">' +
-        state.videoStart.toFixed(1) +
-        's – ' +
-        state.videoEnd.toFixed(1) +
-        's</div>';
+        '<input type="range" class="me-range" id="meVidEnd" min="0" max="' + dur + '" step="0.1" value="' + state.videoEnd + '">' +
+        '<div id="meVidLabel" style="font-size:13px;font-weight:700">' + state.videoStart.toFixed(1) + 's – ' + state.videoEnd.toFixed(1) + 's</div>';
       var vs = document.getElementById('meVidStart');
       var ve = document.getElementById('meVidEnd');
       function syncVid() {
         state.videoStart = Number(vs.value) || 0;
         state.videoEnd = Number(ve.value) || dur;
         if (state.videoEnd < state.videoStart + 0.5) state.videoEnd = state.videoStart + 0.5;
-        document.getElementById('meVidLabel').textContent =
-          state.videoStart.toFixed(1) + 's – ' + state.videoEnd.toFixed(1) + 's';
+        document.getElementById('meVidLabel').textContent = state.videoStart.toFixed(1) + 's – ' + state.videoEnd.toFixed(1) + 's';
         var v = document.getElementById('meVideo');
         if (v) {
           try { v.currentTime = state.videoStart; } catch (e) {}
@@ -459,12 +425,11 @@
     bar.style.display = 'flex';
     var m = state.music;
     bar.innerHTML =
-      (m.cover ? '<img src="' + m.cover.replace(/"/g, '') + '" alt="">' : '<div style="width:40px;height:40px;border-radius:8px;background:#333"></div>') +
+      (m.cover ? '<img src="' + String(m.cover).replace(/"/g, '') + '" alt="">' : '') +
       '<div class="meta"><b>' +
       String(m.title).replace(/</g, '<') +
       '</b><span>' +
       String(m.artist).replace(/</g, '<') +
-      (state.mentions.length ? ' · @' + state.mentions.join(' @') : '') +
       '</span></div>' +
       '<button type="button" class="me-iconbtn" id="meRemoveMusic">' +
       ICO.close +
@@ -480,6 +445,9 @@
     document.getElementById('meMusicSheet').classList.add('open');
     document.getElementById('meMusicSearch').value = '';
     renderMusicList('');
+    setTimeout(function () {
+      if (typeof window.tchiloEnrichStoryMusic === 'function') window.tchiloEnrichStoryMusic();
+    }, 200);
   }
 
   function renderMusicList(q) {
@@ -493,10 +461,14 @@
           return;
         }
         list.innerHTML = tracks
-          .map(function (t) {
+          .map(function (t, idx) {
             return (
-              '<div class="me-track" data-id="' +
+              '<div class="me-track" data-i="' +
+              idx +
+              '" data-id="' +
               t.id +
+              '" data-preview="' +
+              String(t.preview || '').replace(/"/g, '') +
               '">' +
               (t.cover
                 ? '<img src="' + String(t.cover).replace(/"/g, '') + '" alt="">'
@@ -526,9 +498,10 @@
             if (typeof showToast === 'function') showToast('Música adicionada');
           };
         });
+        if (typeof window.tchiloEnrichStoryMusic === 'function') window.tchiloEnrichStoryMusic();
       })
       .catch(function () {
-        list.innerHTML = '<div class="me-empty">Não foi possível carregar músicas. Tenta outra vez.</div>';
+        list.innerHTML = '<div class="me-empty">Não foi possível carregar músicas.</div>';
       });
   }
 
@@ -551,8 +524,7 @@
       });
     } catch (e) {}
     try {
-      var posts = typeof getPosts === 'function' ? getPosts() : [];
-      posts.forEach(function (p) {
+      (typeof getPosts === 'function' ? getPosts() : []).forEach(function (p) {
         if (p && p.username) names[p.username] = 1;
       });
     } catch (e) {}
@@ -578,8 +550,7 @@
           '">' +
           '<div style="width:36px;height:36px;border-radius:50%;background:#c8f560;color:#111;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px">' +
           String(u).slice(0, 2).toUpperCase() +
-          '</div>' +
-          '<b style="flex:1">@' +
+          '</div><b style="flex:1">@' +
           String(u).replace(/</g, '<') +
           '</b>' +
           (on ? '<span style="color:#2EE6A6;font-weight:800">Sim</span>' : '') +
@@ -612,6 +583,20 @@
       var ctx = canvas.getContext('2d');
       var ratios = { 0: null, 1: 1, 2: 9 / 16, 3: 4 / 5 };
       var r = ratios[state.crop];
+      function cssFilterFor(id) {
+        var map = {
+          original: 'none',
+          hd: 'contrast(1.08) saturate(1.1)',
+          '4k': 'contrast(1.15) saturate(1.2) brightness(1.05)',
+          warm: 'sepia(0.18) saturate(1.15) brightness(1.05)',
+          cool: 'hue-rotate(15deg) saturate(1.05)',
+          vivid: 'saturate(1.45) contrast(1.1)',
+          soft: 'brightness(1.08) contrast(0.92)',
+          mono: 'grayscale(1) contrast(1.1)',
+          film: 'sepia(0.25) contrast(1.05) saturate(0.9)'
+        };
+        return map[id] || 'none';
+      }
       if (r) {
         var srcR = w / h;
         var sw, sh, sx, sy;
@@ -638,21 +623,6 @@
     });
   }
 
-  function cssFilterFor(id) {
-    var map = {
-      original: 'none',
-      hd: 'contrast(1.08) saturate(1.1)',
-      '4k': 'contrast(1.15) saturate(1.2) brightness(1.05)',
-      warm: 'sepia(0.18) saturate(1.15) brightness(1.05)',
-      cool: 'hue-rotate(15deg) saturate(1.05)',
-      vivid: 'saturate(1.45) contrast(1.1)',
-      soft: 'brightness(1.08) contrast(0.92)',
-      mono: 'grayscale(1) contrast(1.1)',
-      film: 'sepia(0.25) contrast(1.05) saturate(0.9)'
-    };
-    return map[id] || 'none';
-  }
-
   function musicPayload() {
     if (!state.music) return null;
     return {
@@ -665,6 +635,10 @@
   }
 
   async function publishFromEditor() {
+    if (window._storyMusicPick && !state.music) {
+      state.music = window._storyMusicPick;
+      window._storyMusicPick = null;
+    }
     var music = canUseMusic() ? musicPayload() : null;
     var mentions = state.mentions.slice();
     var mentionText = mentions.length
@@ -790,9 +764,7 @@
   function boot() {
     hookStoryPicker();
     hookPublishStory();
-    setTimeout(function () {
-      hookStoryPicker();
-    }, 1000);
+    setTimeout(hookStoryPicker, 1000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

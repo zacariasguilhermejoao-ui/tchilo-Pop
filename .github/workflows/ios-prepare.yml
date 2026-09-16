@@ -39,7 +39,7 @@ jobs:
             sed -i '' 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
 
-          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js; do
+          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js media-editor.js; do
             if ! grep -q "native/$js" www/index.html; then
               sed -i '' "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
@@ -89,7 +89,6 @@ jobs:
               sips -z 87 87 "$ICON" --out "$ICONSET/icon-29@3x.png" 2>/dev/null || true
               sips -z 80 80 "$ICON" --out "$ICONSET/icon-40@2x.png" 2>/dev/null || true
               sips -z 120 120 "$ICON" --out "$ICONSET/icon-40@3x.png" 2>/dev/null || true
-              sips -z 120 120 "$ICON" --out "$ICONSET/icon-60@2x.png" 2>/dev/null || true
               sips -z 180 180 "$ICON" --out "$ICONSET/icon-60@3x.png" 2>/dev/null || true
               sips -z 1024 1024 "$ICON" --out "$ICONSET/icon-1024.png" 2>/dev/null || true
             fi

@@ -453,9 +453,9 @@
     max-height:0; height:0; padding-top:0; padding-bottom:0; border-bottom-width:0;
     opacity:0; pointer-events:none; overflow:hidden;
   }
+  /* stories scroll with feed — do not collapse on chrome-hidden */
   #appFrame.chrome-hidden .stories{
-    max-height:0; height:0; padding-top:0; padding-bottom:0; border-bottom-width:0;
-    opacity:0; pointer-events:none; overflow:hidden;
+    /* kept visible; unified scroll handles position */
   }
   /* story cards respect chrome hide via parent .stories */
   #appFrame.chrome-hidden .navbar{transform:translateY(110%);opacity:0;pointer-events:none;}
@@ -10733,5 +10733,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/post-music-feed.js"></script>
 <script src="native/feed-music-play.js"></script>
 <script src="native/story-music.js"></script>
+<script src="native/feed-stories-scroll.js"></script>
+<script src="native/music-use-sheet.js"></script>
 </body>
 </html>

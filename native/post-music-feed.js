@@ -1,6 +1,6 @@
 /**
- * tchilo-Pop — Música em posts (fotos) + feed com autoplay/pause no toque
- * Sem edição de trechos. Sem nome de provedor na UI.
+ * tchilo-Pop — Música em posts + feed
+ * Tema claro Tchilo · populares em cache · play/pause visível · sem trechos
  */
 (function () {
   'use strict';
@@ -8,16 +8,25 @@
   var feedAudio = null;
   var feedAudioPostId = null;
   var feedObserver = null;
+  var sheetAudio = null;
+  var sheetPlayingId = null;
+  var topCache = null;
+  var topCacheAt = 0;
+  var TOP_TTL = 10 * 60 * 1000;
 
   function svgMusic() {
     return '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
   }
+  function svgPlay() {
+    return '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+  }
+  function svgPause() {
+    return '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg>';
+  }
 
   function getCreateItems() {
     try {
-      if (typeof createMediaData !== 'undefined' && createMediaData && createMediaData.items) {
-        return createMediaData.items;
-      }
+      if (typeof createMediaData !== 'undefined' && createMediaData && createMediaData.items) return createMediaData.items;
     } catch (e) {}
     try {
       if (window.createMediaData && window.createMediaData.items) return window.createMediaData.items;
@@ -32,12 +41,8 @@
   function isPhotoOnlyCreate() {
     var items = getCreateItems();
     if (!items.length) return false;
-    var hasVideo = items.some(function (m) {
-      return m && m.type === 'video';
-    });
-    var hasImage = items.some(function (m) {
-      return m && m.type === 'image';
-    });
+    var hasVideo = items.some(function (m) { return m && m.type === 'video'; });
+    var hasImage = items.some(function (m) { return m && m.type === 'image'; });
     return hasImage && !hasVideo;
   }
 
@@ -63,14 +68,10 @@
       var timeout = setTimeout(function () {
         cleanup();
         reject(new Error('timeout'));
-      }, 12000);
+      }, 10000);
       function cleanup() {
         clearTimeout(timeout);
-        try {
-          delete window[cb];
-        } catch (e) {
-          window[cb] = undefined;
-        }
+        try { delete window[cb]; } catch (e) { window[cb] = undefined; }
         if (script && script.parentNode) script.parentNode.removeChild(script);
       }
       window[cb] = function (data) {
@@ -99,28 +100,77 @@
     };
   }
 
+  function loadTopTracks(force) {
+    if (!force && topCache && Date.now() - topCacheAt < TOP_TTL) {
+      return Promise.resolve(topCache);
+    }
+    return catalogFetch('chart/0/tracks?limit=40').then(function (data) {
+      var list = ((data && data.data) || []).map(mapTrack).filter(Boolean);
+      topCache = list;
+      topCacheAt = Date.now();
+      try {
+        sessionStorage.setItem('tchilo_top_tracks', JSON.stringify({ at: topCacheAt, list: list }));
+      } catch (e) {}
+      return list;
+    });
+  }
+
+  function restoreTopFromSession() {
+    try {
+      var raw = sessionStorage.getItem('tchilo_top_tracks');
+      if (!raw) return;
+      var o = JSON.parse(raw);
+      if (o && o.list && o.list.length && Date.now() - (o.at || 0) < TOP_TTL) {
+        topCache = o.list;
+        topCacheAt = o.at;
+      }
+    } catch (e) {}
+  }
+
+  function searchTracks(q) {
+    q = String(q || '').trim();
+    if (!q) return loadTopTracks(false);
+    return catalogFetch('search?q=' + encodeURIComponent(q) + '&limit=40').then(function (data) {
+      return ((data && data.data) || []).map(mapTrack).filter(Boolean);
+    });
+  }
+
   function ensureMusicSheet() {
     if (document.getElementById('tchiloPostMusicSheet')) return;
     var root = document.createElement('div');
     root.id = 'tchiloPostMusicSheet';
     root.innerHTML =
       '<style>' +
-      '#tchiloPostMusicSheet{display:none;position:fixed;inset:0;z-index:290;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center;}' +
+      '#tchiloPostMusicSheet{display:none;position:fixed;inset:0;z-index:290;background:rgba(0,0,0,.35);align-items:flex-end;justify-content:center;}' +
       '#tchiloPostMusicSheet.open{display:flex;}' +
-      '#tchiloPostMusicSheet .panel{width:min(100%,520px);max-height:78vh;background:#17171a;color:#fff;border-radius:20px 20px 0 0;padding:14px 14px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;border:2px solid #2a2a2e;border-bottom:0;}' +
-      '#tchiloPostMusicSheet .search{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;}' +
-      '#tchiloPostMusicSheet .search input{flex:1;border:0;background:transparent;color:#fff;font-size:15px;outline:none;}' +
-      '#tchiloPostMusicSheet .list{overflow:auto;flex:1;min-height:160px;}' +
-      '#tchiloPostMusicSheet .track{display:flex;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;}' +
-      '#tchiloPostMusicSheet .track img{width:48px;height:48px;border-radius:10px;object-fit:cover;background:#333;}' +
-      '#tchiloPostMusicSheet .track b{display:block;font-size:14px;}' +
-      '#tchiloPostMusicSheet .track span{font-size:12px;opacity:.65;}' +
-      '#tchiloPostMusicSheet .close{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:12px;width:40px;height:40px;font-size:20px;cursor:pointer;}' +
-      '#tchiloPostMusicSheet .empty{padding:28px;text-align:center;opacity:.7;}' +
+      '#tchiloPostMusicSheet .panel{width:min(100%,520px);max-height:82vh;background:var(--paper,#f6f1e7);color:var(--ink,#17171a);border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;border:3px solid var(--ink,#17171a);border-bottom:0;box-shadow:0 -12px 40px rgba(0,0,0,.18);}' +
+      '#tchiloPostMusicSheet .head{display:flex;justify-content:space-between;align-items:center;}' +
+      '#tchiloPostMusicSheet .head b{font-size:18px;font-weight:800;}' +
+      '#tchiloPostMusicSheet .sub{font-size:12px;font-weight:700;color:var(--muted,#6b6b70);text-transform:uppercase;letter-spacing:.04em;}' +
+      '#tchiloPostMusicSheet .close{border:2px solid var(--ink,#17171a);background:var(--mint,#c8f560);color:var(--ink,#17171a);border-radius:12px;width:40px;height:40px;font-size:20px;font-weight:800;cursor:pointer;line-height:1;}' +
+      '#tchiloPostMusicSheet .search{display:flex;gap:8px;align-items:center;background:#fff;border:2px solid var(--ink,#17171a);border-radius:14px;padding:10px 12px;}' +
+      '#tchiloPostMusicSheet .search input{flex:1;border:0;background:transparent;color:var(--ink,#17171a);font-size:15px;font-weight:600;outline:none;}' +
+      '#tchiloPostMusicSheet .list{overflow:auto;flex:1;min-height:180px;-webkit-overflow-scrolling:touch;}' +
+      '#tchiloPostMusicSheet .track{display:flex;gap:12px;align-items:center;padding:12px 4px;border-bottom:1px solid rgba(23,23,26,.08);cursor:pointer;}' +
+      '#tchiloPostMusicSheet .track:active{background:rgba(200,245,96,.25);}' +
+      '#tchiloPostMusicSheet .track img{width:52px;height:52px;border-radius:12px;object-fit:cover;border:2px solid var(--ink,#17171a);background:#ddd;}' +
+      '#tchiloPostMusicSheet .track .t{flex:1;min-width:0;}' +
+      '#tchiloPostMusicSheet .track .t b{display:block;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+      '#tchiloPostMusicSheet .track .t span{font-size:12px;font-weight:600;color:var(--muted,#6b6b70);}' +
+      '#tchiloPostMusicSheet .playbtn{width:42px;height:42px;border-radius:50%;border:2px solid var(--ink,#17171a);background:var(--mint,#c8f560);color:var(--ink,#17171a);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}' +
+      '#tchiloPostMusicSheet .playbtn.playing{background:var(--pink,#ff6f7d);color:#fff;}' +
+      '#tchiloPostMusicSheet .dots{display:inline-flex;gap:3px;align-items:center;margin-left:6px;vertical-align:middle;}' +
+      '#tchiloPostMusicSheet .dots i{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;animation:tchiloDots 1s infinite ease-in-out;}' +
+      '#tchiloPostMusicSheet .dots i:nth-child(2){animation-delay:.15s;}' +
+      '#tchiloPostMusicSheet .dots i:nth-child(3){animation-delay:.3s;}' +
+      '@keyframes tchiloDots{0%,80%,100%{opacity:.25;transform:scale(.85)}40%{opacity:1;transform:scale(1)}}' +
+      '#tchiloPostMusicSheet .empty{padding:28px;text-align:center;font-weight:700;color:var(--muted,#6b6b70);}' +
+      '#tchiloPostMusicSheet .badge{display:inline-block;font-size:10px;font-weight:800;background:var(--yellow,#ffe66d);border:1.5px solid var(--ink,#17171a);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;}' +
       '</style>' +
       '<div class="panel">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px">Música</b><button type="button" class="close" id="pmClose">×</button></div>' +
+      '<div class="head"><b>Música</b><button type="button" class="close" id="pmClose" aria-label="Fechar">×</button></div>' +
       '<div class="search"><input id="pmSearch" type="search" placeholder="Pesquisar músicas e artistas" autocomplete="off"></div>' +
+      '<div class="sub" id="pmSection">Em destaque</div>' +
       '<div class="list" id="pmList"><div class="empty">A carregar…</div></div>' +
       '</div>';
     document.body.appendChild(root);
@@ -134,71 +184,134 @@
       clearTimeout(timer);
       timer = setTimeout(function () {
         loadList(q);
-      }, 300);
+      }, 280);
     };
   }
 
-  var sheetAudio = null;
   function stopSheetPreview() {
     if (sheetAudio) {
-      try {
-        sheetAudio.pause();
-      } catch (e) {}
+      try { sheetAudio.pause(); } catch (e) {}
       sheetAudio = null;
     }
+    sheetPlayingId = null;
+    document.querySelectorAll('#pmList .playbtn.playing').forEach(function (b) {
+      b.classList.remove('playing');
+      b.innerHTML = svgPlay();
+    });
+    document.querySelectorAll('#pmList .dots').forEach(function (d) {
+      d.style.display = 'none';
+    });
+  }
+
+  function togglePreview(track, btn) {
+    if (!track || !track.preview) {
+      if (typeof showToast === 'function') showToast('Pré-visualização indisponível');
+      return;
+    }
+    if (sheetPlayingId === track.id && sheetAudio && !sheetAudio.paused) {
+      stopSheetPreview();
+      return;
+    }
+    stopSheetPreview();
+    sheetAudio = new Audio(track.preview);
+    sheetPlayingId = track.id;
+    btn.classList.add('playing');
+    btn.innerHTML = svgPause();
+    var row = btn.closest('.track');
+    if (row) {
+      var dots = row.querySelector('.dots');
+      if (dots) dots.style.display = 'inline-flex';
+    }
+    sheetAudio.play().catch(function () {
+      stopSheetPreview();
+      if (typeof showToast === 'function') showToast('Não foi possível reproduzir');
+    });
+    sheetAudio.onended = function () {
+      stopSheetPreview();
+    };
+  }
+
+  function renderTracks(tracks, isSearch) {
+    var list = document.getElementById('pmList');
+    var section = document.getElementById('pmSection');
+    if (section) section.textContent = isSearch ? 'Resultados' : 'Em destaque';
+    if (!tracks.length) {
+      list.innerHTML = '<div class="empty">Sem resultados</div>';
+      return;
+    }
+    list.innerHTML = tracks
+      .map(function (t, i) {
+        var badge = !isSearch && i < 3 ? '<span class="badge">TOP</span>' : '';
+        return (
+          '<div class="track" data-i="' +
+          i +
+          '">' +
+          (t.cover
+            ? '<img src="' + String(t.cover).replace(/"/g, '') + '" alt="">'
+            : '<div style="width:52px;height:52px;border-radius:12px;background:#ddd;border:2px solid #17171a"></div>') +
+          '<div class="t"><b>' +
+          String(t.title).replace(/</g, '<') +
+          badge +
+          '<span class="dots" style="display:none"><i></i><i></i><i></i></span></b><span>' +
+          String(t.artist).replace(/</g, '<') +
+          '</span></div>' +
+          '<button type="button" class="playbtn" data-play="' +
+          i +
+          '" aria-label="Pré-ouvir">' +
+          svgPlay() +
+          '</button></div>'
+        );
+      })
+      .join('');
+
+    list.querySelectorAll('.track').forEach(function (row) {
+      row.onclick = function (e) {
+        if (e.target.closest('.playbtn')) return;
+        var t = tracks[Number(row.getAttribute('data-i'))];
+        if (!t) return;
+        window._pendingMusic = t.title + ' · ' + t.artist;
+        window._pendingMusicMeta = {
+          id: t.id,
+          title: t.title,
+          artist: t.artist,
+          preview: t.preview,
+          cover: t.cover
+        };
+        document.getElementById('tchiloPostMusicSheet').classList.remove('open');
+        stopSheetPreview();
+        updatePostMusicBtn();
+        if (typeof showToast === 'function') showToast('Música adicionada');
+      };
+    });
+    list.querySelectorAll('.playbtn').forEach(function (btn) {
+      btn.onclick = function (e) {
+        e.stopPropagation();
+        var t = tracks[Number(btn.getAttribute('data-play'))];
+        togglePreview(t, btn);
+      };
+    });
   }
 
   function loadList(q) {
     var list = document.getElementById('pmList');
-    list.innerHTML = '<div class="empty">A carregar…</div>';
-    var path = q && String(q).trim()
-      ? 'search?q=' + encodeURIComponent(q) + '&limit=40'
-      : 'chart/0/tracks?limit=40';
-    catalogFetch(path)
-      .then(function (data) {
-        var tracks = ((data && data.data) || []).map(mapTrack).filter(Boolean);
-        if (!tracks.length) {
-          list.innerHTML = '<div class="empty">Sem resultados</div>';
-          return;
-        }
-        list.innerHTML = tracks
-          .map(function (t, i) {
-            return (
-              '<div class="track" data-i="' +
-              i +
-              '">' +
-              (t.cover
-                ? '<img src="' + String(t.cover).replace(/"/g, '') + '" alt="">'
-                : '<div style="width:48px;height:48px;border-radius:10px;background:#333"></div>') +
-              '<div style="flex:1;min-width:0"><b>' +
-              String(t.title).replace(/</g, '<') +
-              '</b><span>' +
-              String(t.artist).replace(/</g, '<') +
-              '</span></div></div>'
-            );
-          })
-          .join('');
-        list.querySelectorAll('.track').forEach(function (row) {
-          row.onclick = function () {
-            var t = tracks[Number(row.getAttribute('data-i'))];
-            if (!t) return;
-            window._pendingMusic = t.title + ' · ' + t.artist;
-            window._pendingMusicMeta = {
-              id: t.id,
-              title: t.title,
-              artist: t.artist,
-              preview: t.preview,
-              cover: t.cover
-            };
-            document.getElementById('tchiloPostMusicSheet').classList.remove('open');
-            stopSheetPreview();
-            updatePostMusicBtn();
-            if (typeof showToast === 'function') showToast('Música adicionada');
-          };
-        });
+    var isSearch = !!(q && String(q).trim());
+    // Instant: show cache for popular
+    if (!isSearch && topCache && topCache.length) {
+      renderTracks(topCache, false);
+    } else if (!isSearch) {
+      list.innerHTML = '<div class="empty">A carregar em destaque…</div>';
+    } else {
+      list.innerHTML = '<div class="empty">A pesquisar…</div>';
+    }
+    var fn = isSearch ? searchTracks(q) : loadTopTracks(false);
+    fn
+      .then(function (tracks) {
+        renderTracks(tracks, isSearch);
       })
       .catch(function () {
-        list.innerHTML = '<div class="empty">Não foi possível carregar. Tenta outra vez.</div>';
+        if (!topCache || !topCache.length) {
+          list.innerHTML = '<div class="empty">Não foi possível carregar. Tenta outra vez.</div>';
+        }
       });
   }
 
@@ -210,6 +323,7 @@
     ensureMusicSheet();
     document.getElementById('tchiloPostMusicSheet').classList.add('open');
     document.getElementById('pmSearch').value = '';
+    // Show cache immediately, refresh in background
     loadList('');
   }
 
@@ -252,7 +366,6 @@
         setTimeout(updatePostMusicBtn, 150);
       });
     }
-    // Observe preview class changes
     var preview = document.getElementById('createPreview');
     if (preview && !preview.__pmObs) {
       preview.__pmObs = true;
@@ -264,22 +377,6 @@
     }
   }
 
-  function hookPublish() {
-    if (typeof window.publishPostCore !== 'function' || window.publishPostCore.__pmHook) {
-      // try publishPost
-      if (typeof window.publishPost === 'function' && !window.publishPost.__pmHook) {
-        var op = window.publishPost;
-        window.publishPost = function () {
-          // ensure musicMeta is available for the post object built inside
-          return op.apply(this, arguments);
-        };
-        window.publishPost.__pmHook = true;
-      }
-      return;
-    }
-  }
-
-  // Patch: after post is built, attach musicMeta — intercept save of posts via wrapping publishPostCore if exists later
   function attachMusicToLastPost() {
     try {
       if (!window._pendingMusicMeta && !window._pendingMusic) return;
@@ -289,33 +386,16 @@
       if (!p) return;
       if (window._pendingMusicMeta) {
         p.musicMeta = window._pendingMusicMeta;
-        p.music =
-          window._pendingMusicMeta.title + ' · ' + window._pendingMusicMeta.artist;
+        p.music = window._pendingMusicMeta.title + ' · ' + window._pendingMusicMeta.artist;
       } else if (window._pendingMusic) {
         p.music = window._pendingMusic;
       }
       if (typeof save === 'function' && typeof KEYS !== 'undefined') save(KEYS.posts, posts);
       window._pendingMusic = null;
-      // keep meta cleared after attach
       window._pendingMusicMeta = null;
     } catch (e) {}
   }
 
-  // Wrap finish: listen for successful publish via mutation of create form clear
-  function hookCreateClear() {
-    var origClear = window.clearCreateMedia;
-    if (typeof origClear === 'function' && !origClear.__pmHook) {
-      window.clearCreateMedia = function () {
-        // before clear, if we just published, music already on post
-        var r = origClear.apply(this, arguments);
-        setTimeout(updatePostMusicBtn, 100);
-        return r;
-      };
-      window.clearCreateMedia.__pmHook = true;
-    }
-  }
-
-  // Better: wrap the assignment in publish by monkey-patching after posts unshift
   var lastPostsLen = 0;
   function watchPostsForMusic() {
     try {
@@ -328,12 +408,9 @@
   }
   setInterval(watchPostsForMusic, 800);
 
-  /* ---- Feed: show music + play/pause on media tap ---- */
   function stopFeedAudio() {
     if (feedAudio) {
-      try {
-        feedAudio.pause();
-      } catch (e) {}
+      try { feedAudio.pause(); } catch (e) {}
       feedAudio = null;
     }
     feedAudioPostId = null;
@@ -380,7 +457,6 @@
         label = label.title + ' · ' + (label.artist || '');
       }
       if (!label) return;
-
       if (postEl.querySelector('.post-music')) return;
 
       var row = document.createElement('div');
@@ -396,11 +472,8 @@
         'display:flex;align-items:center;gap:8px;padding:6px 14px 2px;font-size:13px;font-weight:700;color:var(--ink);opacity:.92;';
 
       var actions = postEl.querySelector('.post-actions');
-      if (actions && actions.parentNode) {
-        actions.parentNode.insertBefore(row, actions.nextSibling);
-      } else {
-        postEl.appendChild(row);
-      }
+      if (actions && actions.parentNode) actions.parentNode.insertBefore(row, actions.nextSibling);
+      else postEl.appendChild(row);
 
       var media = postEl.querySelector('.post-media');
       if (media && meta && meta.preview) {
@@ -411,11 +484,9 @@
           media.addEventListener(
             'click',
             function (ev) {
-              // leave video handler; for images with music, toggle
               var prev = media.getAttribute('data-music-preview');
               var pid = media.getAttribute('data-music-post');
               if (!prev) return;
-              // if it's a video, existing video logic may apply — still allow music toggle for photo posts
               if (media.querySelector('video') && !media.querySelector('img')) return;
               ev.stopPropagation();
               playPostMusic(pid, prev, row);
@@ -425,19 +496,15 @@
         }
       }
     });
-
     setupFeedMusicAutoplay();
   }
 
   function setupFeedMusicAutoplay() {
     var feed = document.getElementById('feedList');
-    if (!feed) return;
+    if (!feed || !('IntersectionObserver' in window)) return;
     if (feedObserver) {
-      try {
-        feedObserver.disconnect();
-      } catch (e) {}
+      try { feedObserver.disconnect(); } catch (e) {}
     }
-    if (!('IntersectionObserver' in window)) return;
     feedObserver = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
@@ -445,7 +512,6 @@
           var prev = media.getAttribute('data-music-preview');
           var pid = media.getAttribute('data-music-post');
           if (!prev || !pid) return;
-          // only autoplay photo posts with music when mostly visible
           if (entry.isIntersecting && entry.intersectionRatio >= 0.55) {
             if (feedAudioPostId !== pid) {
               var row = document.querySelector('.post-music[data-post-music="' + pid + '"]');
@@ -475,30 +541,47 @@
     window.renderFeed.__pmHook = true;
   }
 
-  // Hide clip editor controls if media-editor injected them
-  function hideClipEditorUI() {
-    var clip = document.getElementById('meClipSheet');
-    if (clip) clip.remove();
-    var editBtn = document.getElementById('meEditClip');
-    if (editBtn) editBtn.style.display = 'none';
+  function killClipEditorEverywhere() {
+    ['meClipSheet', 'meEditClip', 'meClipStart', 'meClipEnd', 'meClipSave', 'meClipClose', 'meClipLabel'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.remove();
+    });
+    // Hide any button titled Editar near music bar
+    document.querySelectorAll('#meMusicBar button, .me-musicbar button').forEach(function (b) {
+      var t = (b.getAttribute('title') || b.textContent || '').toLowerCase();
+      if (t.indexOf('editar') >= 0 || t.indexOf('trecho') >= 0) b.remove();
+    });
+  }
+
+  function restyleMediaEditorMusic() {
+    var sheet = document.getElementById('meMusicSheet');
+    if (!sheet) return;
+    var panel = sheet.querySelector('.me-sheet-panel');
+    if (panel) {
+      panel.style.background = 'var(--paper,#f6f1e7)';
+      panel.style.color = 'var(--ink,#17171a)';
+      panel.style.border = '3px solid var(--ink,#17171a)';
+    }
   }
 
   function boot() {
+    restoreTopFromSession();
+    // Pré-carregar populares já ao arrancar
+    loadTopTracks(false).catch(function () {});
     injectPostMusicButton();
     hookMediaInput();
     hookRenderFeed();
-    hideClipEditorUI();
+    killClipEditorEverywhere();
     setTimeout(function () {
       injectPostMusicButton();
       hookMediaInput();
       hookRenderFeed();
       injectMusicIntoFeed();
-      hideClipEditorUI();
-    }, 800);
-    setTimeout(function () {
-      injectPostMusicButton();
-      updatePostMusicBtn();
-    }, 2000);
+      killClipEditorEverywhere();
+      restyleMediaEditorMusic();
+    }, 600);
+    setTimeout(killClipEditorEverywhere, 1500);
+    setTimeout(killClipEditorEverywhere, 3500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

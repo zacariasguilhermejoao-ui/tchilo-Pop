@@ -1,9 +1,10 @@
 /**
  * tchilo-Pop — Música nos Stories
  * - Guarda musicMeta no story
- * - Mostra título · artista por cima
+ * - Em cima: só ícone + título + artista (sem círculo/pill)
+ * - Sem título da música em baixo
  * - Reproduz o áudio ao ver o story
- * - Toque na música (feed ou story): criar story / criar post com a música
+ * - Toque na música: criar story / post com a música
  */
 (function () {
   'use strict';
@@ -12,7 +13,7 @@
   var storyAudioKey = null;
 
   function svgMusic() {
-    return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+    return '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
   }
 
   function stopStoryAudio() {
@@ -41,15 +42,12 @@
     storyAudio.src = url;
     storyAudio.muted = !unmuted;
     storyAudioKey = key;
-    storyAudio.play().catch(function () {
-      // browser bloqueou — user pode tocar no chip
-    });
+    storyAudio.play().catch(function () {});
   }
 
   function normalizeMusic(m) {
     if (!m) return null;
     if (typeof m === 'string') {
-      // "Title · Artist" or text with ♪
       var s = m.replace(/^♪\s*/, '').trim();
       var parts = s.split(' · ');
       return { title: parts[0] || s, artist: parts[1] || '', preview: '', cover: '' };
@@ -71,6 +69,55 @@
     return normalizeMusic(s.musicMeta || s.music || null);
   }
 
+  function looksLikeMusicOnlyText(txt) {
+    if (!txt) return false;
+    var t = String(txt).replace(/^♪\s*/, '').trim();
+    if (!t) return true;
+    // "Title · Artist" or short music labels
+    if (/^[^\n]{1,80}\s·\s[^\n]{1,60}$/.test(t)) return true;
+    if (/^[A-Za-z0-9'\s\-\.\!]{2,60}$/.test(t) && t.indexOf(' ') > 0 && t.length < 50) {
+      // heuristic: only hide if we also have musicMeta on the story
+      return false;
+    }
+    return false;
+  }
+
+  function hideBottomMusicDuplicates(s) {
+    try {
+      var body = document.getElementById('storyViewerBody');
+      if (!body) return;
+      var music = getStoryMusic(s);
+      var musicLabel = music
+        ? (music.title || '') + (music.artist ? ' · ' + music.artist : '')
+        : '';
+
+      body.querySelectorAll('.story-text-extra, #storyText, .story-bottom-music, [data-story-music-bottom]').forEach(function (el) {
+        var t = (el.textContent || '').replace(/^♪\s*/, '').trim();
+        if (!t) return;
+        if (musicLabel && t.indexOf(music.title) >= 0) {
+          el.style.display = 'none';
+          return;
+        }
+        if (looksLikeMusicOnlyText(t) && music) {
+          el.style.display = 'none';
+        }
+      });
+
+      // CSS blanket: never show a second music line at the bottom of the viewer
+      var st = document.getElementById('storyMusicHideBottom');
+      if (!st) {
+        st = document.createElement('style');
+        st.id = 'storyMusicHideBottom';
+        st.textContent =
+          '#storyViewer .story-bottom-music,' +
+          '#storyViewer [data-story-music-bottom],' +
+          '#storyViewerBody > .post-music,' +
+          '#storyViewerBody > .pm-row{display:none!important;}';
+        document.head.appendChild(st);
+      }
+    } catch (e) {}
+  }
+
   /* ---- Persist music on publishStory ---- */
   function hookPublishStory() {
     if (typeof window.publishStory !== 'function' || window.publishStory.__smHook) return;
@@ -81,8 +128,11 @@
       if (music && typeof music === 'object') {
         data.music = music;
         data.musicMeta = music;
+        // Não gravar o título da música como texto do story
+        if (data.text && looksLikeMusicOnlyText(data.text)) {
+          data.text = '';
+        }
       }
-      // Wrap by intercepting the item after local save is hard; patch via monkey on getStoriesStore after
       var result = await orig.call(this, data);
       try {
         if (music) {
@@ -96,6 +146,7 @@
               if (nm) {
                 last.music = nm.title + (nm.artist ? ' · ' + nm.artist : '');
                 last.musicMeta = nm;
+                if (last.text && looksLikeMusicOnlyText(last.text)) last.text = '';
                 all[session.username] = arr;
                 saveStoriesStore(all);
               }
@@ -109,7 +160,6 @@
     window.publishStory.__smHook = true;
   }
 
-  /* ---- Enrich stories when opening viewer (from store) ---- */
   function enrichOpenStoryPayload(items) {
     try {
       var store = typeof getStoriesStore === 'function' ? getStoriesStore() : {};
@@ -120,9 +170,10 @@
         var raw = store[uname];
         if (!raw) return it;
         var arr = Array.isArray(raw) ? raw : [raw];
-        var match = arr.find(function (st) {
-          return st && Number(st.createdAt || 0) === Number(it.createdAt || 0);
-        }) || arr[arr.length - 1];
+        var match =
+          arr.find(function (st) {
+            return st && Number(st.createdAt || 0) === Number(it.createdAt || 0);
+          }) || arr[arr.length - 1];
         if (match && (match.musicMeta || match.music)) {
           it.musicMeta = match.musicMeta || normalizeMusic(match.music);
           it.music = match.music || it.music;
@@ -162,19 +213,25 @@
   }
 
   function ensureStoryMusicStyles() {
-    if (document.getElementById('storyMusicStyles')) return;
-    var st = document.createElement('style');
-    st.id = 'storyMusicStyles';
+    var st = document.getElementById('storyMusicStyles');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'storyMusicStyles';
+      document.head.appendChild(st);
+    }
+    // Sem círculo/pill: só ícone + texto com sombra legível
     st.textContent =
-      '#storyMusicChip{position:absolute;left:14px;right:70px;top:calc(58px + env(safe-area-inset-top));z-index:8;' +
-      'display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;' +
-      'background:rgba(0,0,0,.55);color:#fff;border:1.5px solid rgba(255,255,255,.35);' +
-      'font-weight:800;font-size:13px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);cursor:pointer;max-width:calc(100% - 88px);}' +
-      '#storyMusicChip .sm-ico{flex-shrink:0;display:flex;}' +
+      '#storyMusicChip{position:absolute;left:16px;right:72px;top:calc(58px + env(safe-area-inset-top));z-index:8;' +
+      'display:flex;align-items:center;gap:8px;padding:0;margin:0;' +
+      'background:transparent!important;border:none!important;border-radius:0!important;' +
+      'box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;' +
+      'color:#fff;font-weight:800;font-size:13px;cursor:pointer;max-width:calc(100% - 88px);' +
+      'text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 12px rgba(0,0,0,.45);}' +
+      '#storyMusicChip .sm-ico{flex-shrink:0;display:flex;filter:drop-shadow(0 1px 2px rgba(0,0,0,.8));}' +
       '#storyMusicChip .sm-txt{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-      '#storyMusicChip .sm-txt b{display:block;font-size:13px;}' +
-      '#storyMusicChip .sm-txt span{display:block;font-size:11px;font-weight:600;opacity:.85;}' +
-      '#storyMusicChip.playing{border-color:#c8f560;}' +
+      '#storyMusicChip .sm-txt b{display:block;font-size:13px;font-weight:800;}' +
+      '#storyMusicChip .sm-txt span{display:block;font-size:11px;font-weight:600;opacity:.9;}' +
+      '#storyMusicChip.playing .sm-ico{opacity:1;}' +
       '#tchiloMusicUseSheet{display:none;position:fixed;inset:0;z-index:320;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center;}' +
       '#tchiloMusicUseSheet.open{display:flex;}' +
       '#tchiloMusicUseSheet .panel{width:min(100%,520px);background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);' +
@@ -185,12 +242,12 @@
       'background:#fff;font-weight:800;font-size:15px;margin-bottom:10px;cursor:pointer;text-align:left;color:var(--ink,#0B0B0C);}' +
       '#tchiloMusicUseSheet .opt:active{background:var(--mint,#c8f560);}' +
       '#tchiloMusicUseSheet .cancel{width:100%;border:0;background:transparent;font-weight:800;padding:12px;cursor:pointer;color:var(--ink,#0B0B0C);}';
-    document.head.appendChild(st);
   }
 
   function showStoryMusicChip(s) {
     ensureStoryMusicStyles();
     removeStoryMusicChip();
+    hideBottomMusicDuplicates(s);
     var music = getStoryMusic(s);
     if (!music || (!music.title && !music.preview)) return;
 
@@ -222,6 +279,11 @@
       if (typeof pauseStoryTimer === 'function') pauseStoryTimer();
       openMusicUseSheet(music);
     });
+
+    // segunda passagem: texto em baixo pode ser injetado depois do render
+    setTimeout(function () {
+      hideBottomMusicDuplicates(s);
+    }, 80);
   }
 
   function hookRenderActiveStory() {
@@ -236,7 +298,6 @@
           typeof getActiveStory === 'function'
             ? getActiveStory()
             : window.activeStoryItems && window.activeStoryItems[window.activeStoryIndex];
-        // activeStoryItems is let in index - try global path
         if (!s) {
           try {
             s = activeStoryItems[activeStoryIndex];
@@ -251,7 +312,6 @@
     window.renderActiveStory.__smHook = true;
   }
 
-  /* ---- Use music sheet (story + feed) ---- */
   var pendingUseMusic = null;
 
   function ensureUseSheet() {
@@ -323,14 +383,12 @@
     }
   }
 
-  /* Feed: tapping music row opens use sheet */
   function hookFeedMusicTap() {
     document.addEventListener(
       'click',
       function (e) {
         var row = e.target.closest && e.target.closest('.post-music');
         if (!row) return;
-        // don't steal sound button
         if (e.target.closest('.feed-sound-btn')) return;
         e.preventDefault();
         e.stopPropagation();
@@ -362,11 +420,13 @@
     hookCloseStory();
     hookRenderActiveStory();
     hookFeedMusicTap();
+    ensureStoryMusicStyles();
     setTimeout(function () {
       hookPublishStory();
       hookOpenStory();
       hookCloseStory();
       hookRenderActiveStory();
+      ensureStoryMusicStyles();
     }, 800);
   }
 

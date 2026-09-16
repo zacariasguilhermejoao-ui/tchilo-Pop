@@ -1,5 +1,6 @@
 /**
  * tchilo-Pop — anti-piscar + sem barras pretas de toast + PT placeholders
+ * + carrega nav-layout (mensagens no topo, reels em baixo)
  */
 (function () {
   'use strict';
@@ -8,6 +9,15 @@
   var lastRenderAt = 0;
   var pending = null;
   var MIN_MS = 600;
+
+  function loadNavLayout() {
+    if (document.querySelector('script[data-tchilo-nav-layout]')) return;
+    var s = document.createElement('script');
+    s.src = 'native/nav-layout.js';
+    s.async = true;
+    s.setAttribute('data-tchilo-nav-layout', '1');
+    document.head.appendChild(s);
+  }
 
   function injectCSS() {
     var st = document.getElementById('tchiloNoFlickerCSS');
@@ -23,13 +33,11 @@
       '#feedList .post{animation:none!important;}' +
       '#screen-feed .topbar{background:var(--paper,#F3F1E9)!important;}' +
       '#screen-feed,#feedList{background:var(--paper,#F3F1E9)!important;}' +
-      /* Barras pretas de notificação — forçadas a desaparecer */
       '.toast,#toast,.toast.show{' +
       'display:none!important;opacity:0!important;visibility:hidden!important;' +
       'pointer-events:none!important;height:0!important;max-height:0!important;' +
       'padding:0!important;margin:0!important;border:none!important;' +
       'transform:none!important;font-size:0!important;line-height:0!important;}' +
-      /* overlay busy full-screen escuro também some (só pontos no botão) */
       '#tchiloBusy.tchilo-busy,#tchiloBusy.tchilo-busy.show,.tchilo-busy.show{' +
       'display:none!important;opacity:0!important;visibility:hidden!important;}';
   }
@@ -75,26 +83,23 @@
     killToastEl();
   }
 
-  // Re-aplica periodicamente — o index.html redefine showToast mais tarde
   var silenceTimer = setInterval(silenceToasts, 400);
   setTimeout(function () {
     clearInterval(silenceTimer);
     silenceToasts();
-    // ainda protege se alguém redefinir de novo
     setInterval(function () {
       if (typeof window.showToast === 'function') {
         var src = '';
         try {
           src = Function.prototype.toString.call(window.showToast);
         } catch (e) {}
-        if (src.indexOf('getElementById(\'toast\')') >= 0 || src.indexOf('classList.add(\'show\')') >= 0) {
+        if (src.indexOf("getElementById('toast')") >= 0 || src.indexOf('classList.add') >= 0) {
           silenceToasts();
         }
       }
     }, 2000);
   }, 8000);
 
-  // MutationObserver: se a barra aparecer, esconde de imediato
   function watchToastDom() {
     var t = document.getElementById('toast');
     if (!t || t.__watched) return;
@@ -223,12 +228,14 @@
     portuguesePlaceholders();
     wrapRenderFeed();
     softenFeedNames();
+    loadNavLayout();
     setTimeout(function () {
       silenceToasts();
       watchToastDom();
       portuguesePlaceholders();
       wrapRenderFeed();
       injectCSS();
+      loadNavLayout();
     }, 300);
     setTimeout(silenceToasts, 1000);
     setTimeout(silenceToasts, 2500);

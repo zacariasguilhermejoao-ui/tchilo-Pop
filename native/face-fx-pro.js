@@ -1,6 +1,6 @@
 /**
- * tchilo-Pop — efeitos pro (Snap/TikTok) + animação do inverter câmara
- * Overlay sobre o face-effects base: lábios, corações, cabelo, chapéu, flip 3D
+ * tchilo-Pop — lentes pro + animação inverter câmara
+ * Detecção própria MediaPipe para lábios/corações/cabelo/chapéu
  */
 (function () {
   'use strict';
@@ -9,6 +9,9 @@
   var INNER_LIP = [78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308, 415, 310, 311, 312, 13, 82, 81, 80, 191];
   var proIndex = 0;
   var t0 = Date.now();
+  var landmarker = null;
+  var lastFace = null;
+  var lastDetect = 0;
 
   var PRO_FX = [
     { id: 'none', label: 'Base' },
@@ -29,12 +32,12 @@
     var st = document.createElement('style');
     st.id = 'tchiloFxProCSS';
     st.textContent =
-      '#tchiloFxFlip,#tchiloFaceFx .fx-icon{transition:transform .35s cubic-bezier(.4,0,.2,1)!important;}' +
-      '#tchiloFxFlip.spin,#tchiloFaceFx .fx-icon.spin{transform:rotate(180deg)!important;}' +
+      '#tchiloFxFlip{transition:transform .35s cubic-bezier(.4,0,.2,1)!important;}' +
+      '#tchiloFxFlip.spin{transform:rotate(180deg)!important;}' +
       '#tchiloFxStage.fx-flip-anim{transition:transform .32s ease;transform:rotateY(90deg) scale(.96);}' +
-      '#tchiloFxProBar{display:flex;gap:8px;overflow-x:auto;padding:6px 0;}' +
-      '#tchiloFxProBar .fx-chip{flex-shrink:0;border:2px solid rgba(255,255,255,.4);background:rgba(0,0,0,.4);color:#fff;border-radius:999px;padding:8px 14px;font:800 12px Inter,system-ui,sans-serif;cursor:pointer;}' +
-      '#tchiloFxProBar .fx-chip.active{border-color:#ff6bb5;background:rgba(255,107,181,.3);}';
+      '#tchiloFxProBar{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:6px 0;}' +
+      '#tchiloFxProBar .fx-chip{flex-shrink:0;border:2px solid rgba(255,255,255,.4);background:rgba(0,0,0,.45);color:#fff;border-radius:999px;padding:8px 14px;font:800 12px Inter,system-ui,sans-serif;cursor:pointer;}' +
+      '#tchiloFxProBar .fx-chip.active{border-color:#ff6bb5;background:rgba(255,107,181,.32);}';
     document.head.appendChild(st);
   }
 
@@ -56,7 +59,7 @@
     });
     ctx.closePath();
     ctx.fillStyle = color;
-    ctx.globalAlpha = 0.75;
+    ctx.globalAlpha = 0.78;
     ctx.fill();
     ctx.globalAlpha = 1;
     ctx.beginPath();
@@ -131,18 +134,16 @@
       heart(ctx, lc.x - 4, lc.y + 6, s, '#ff3d7a');
       heart(ctx, rc.x + 4, rc.y + 6, s, '#ff3d7a');
     } else if (id === 'blushpro') {
-      var lc2 = lm(L, 50, w, h);
-      var rc2 = lm(L, 280, w, h);
-      var r = faceW * 0.17;
+      var r2 = faceW * 0.17;
       ctx.save();
       ctx.globalAlpha = 0.38;
-      [lc2, rc2].forEach(function (c) {
-        var g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, r);
+      [lm(L, 50, w, h), lm(L, 280, w, h)].forEach(function (c) {
+        var g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, r2);
         g.addColorStop(0, '#ff6b9d');
         g.addColorStop(1, 'rgba(255,107,157,0)');
         ctx.fillStyle = g;
         ctx.beginPath();
-        ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+        ctx.arc(c.x, c.y, r2, 0, Math.PI * 2);
         ctx.fill();
       });
       ctx.restore();
@@ -210,11 +211,32 @@
     }
   }
 
+  async function ensureLandmarker() {
+    if (landmarker) return landmarker;
+    try {
+      var vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm');
+      var fileset = await vision.FilesetResolver.forVisionTasks(
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+      );
+      landmarker = await vision.FaceLandmarker.createFromOptions(fileset, {
+        baseOptions: {
+          modelAssetPath:
+            'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+          delegate: 'GPU'
+        },
+        runningMode: 'VIDEO',
+        numFaces: 1
+      });
+    } catch (e) {
+      console.warn('fx-pro landmarker', e);
+    }
+    return landmarker;
+  }
+
   function ensureProBar() {
     var bottom = document.querySelector('#tchiloFaceFx .fx-bottom');
     if (!bottom || document.getElementById('tchiloFxProBar')) return;
     var label = document.createElement('div');
-    label.className = 'fx-label';
     label.textContent = 'Lentes pro';
     label.style.cssText = 'color:#fff;font:800 11px Inter,system-ui,sans-serif;margin:6px 0 4px;';
     var bar = document.createElement('div');
@@ -232,7 +254,6 @@
       };
       bar.appendChild(b);
     });
-    // inserir no topo do bottom (antes dos efeitos base)
     bottom.insertBefore(bar, bottom.firstChild);
     bottom.insertBefore(label, bar);
   }
@@ -260,66 +281,63 @@
     );
   }
 
-  /** Desenha por cima do canvas a cada frame */
-  function startOverlayLoop() {
-    if (window.__tchiloFxProLoop) return;
-    window.__tchiloFxProLoop = true;
-    function tick() {
-      requestAnimationFrame(tick);
-      var root = document.getElementById('tchiloFaceFx');
-      if (!root || !root.classList.contains('open')) return;
-      var canvas = document.getElementById('tchiloFxCanvas');
-      if (!canvas) return;
-      // landmarks expostos se o base gravar — senão skip
-      var marks = window.__tchiloLastFaceLandmarks;
-      if (!marks || !marks.length) return;
-      var ctx = canvas.getContext('2d');
-      var w = canvas.width;
-      var h = canvas.height;
-      if (!w || !h) return;
-      drawPro(ctx, marks[0], w, h);
+  function loop() {
+    requestAnimationFrame(loop);
+    var root = document.getElementById('tchiloFaceFx');
+    if (!root || !root.classList.contains('open')) return;
+    if (PRO_FX[proIndex].id === 'none') return;
+    var video = document.getElementById('tchiloFxVideo');
+    var canvas = document.getElementById('tchiloFxCanvas');
+    if (!video || !canvas || video.readyState < 2) return;
+    var w = canvas.width;
+    var h = canvas.height;
+    if (!w || !h) return;
+
+    var now = performance.now();
+    if (landmarker && now - lastDetect > 66) {
+      lastDetect = now;
+      try {
+        var res = landmarker.detectForVideo(video, now);
+        if (res && res.faceLandmarks && res.faceLandmarks.length) {
+          lastFace = res.faceLandmarks[0];
+        }
+      } catch (e) {}
     }
-    requestAnimationFrame(tick);
+    if (!lastFace) return;
+    var ctx = canvas.getContext('2d');
+    // selfie mirror
+    var face = lastFace;
+    var mirrored = face.map(function (p) {
+      return { x: 1 - p.x, y: p.y, z: p.z };
+    });
+    drawPro(ctx, mirrored, w, h);
   }
 
-  /** Hook: grava landmarks se o base usar FaceLandmarker no window */
-  function exposeLandmarksHook() {
-    // o base não expõe; tentamos ler via performance — fallback: re-detect leve
-    // Observa o canvas e usa MediaPipe se disponível no window
+  function onOpen() {
+    injectCSS();
+    ensureProBar();
+    patchFlip();
+    ensureLandmarker();
   }
 
   function watchOpen() {
     var root = document.getElementById('tchiloFaceFx');
-    if (!root) return;
-    if (root.__proWatch) return;
+    if (!root || root.__proWatch) return;
     root.__proWatch = true;
     new MutationObserver(function () {
-      if (root.classList.contains('open')) {
-        injectCSS();
-        ensureProBar();
-        patchFlip();
-        startOverlayLoop();
-      }
+      if (root.classList.contains('open')) onOpen();
     }).observe(root, { attributes: true, attributeFilter: ['class'] });
   }
 
   function boot() {
     injectCSS();
     watchOpen();
-    // se a UI já existir
+    requestAnimationFrame(loop);
     setTimeout(function () {
-      injectCSS();
-      ensureProBar();
-      patchFlip();
       watchOpen();
-      startOverlayLoop();
-    }, 800);
+      onOpen();
+    }, 1000);
   }
-
-  // Expõe API para o face-effects base gravar landmarks
-  window.tchiloSetFaceLandmarks = function (marks) {
-    window.__tchiloLastFaceLandmarks = marks;
-  };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

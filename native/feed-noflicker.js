@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — anti-piscar + sem toasts pretos + PT + carrega nav e música feed
+ * tchilo-Pop — anti-piscar + sem toasts pretos + PT + carrega nav, música feed, reels-fast
  */
 (function () {
   'use strict';
@@ -124,12 +124,14 @@
     wrapRenderFeed();
     loadExtra('native/nav-layout.js', 'data-tchilo-nav-layout');
     loadExtra('native/feed-music-fix.js', 'data-tchilo-feed-music-fix');
+    loadExtra('native/reels-fast.js', 'data-tchilo-reels-fast');
     setTimeout(function () {
       silenceToasts();
       wrapRenderFeed();
       injectCSS();
       loadExtra('native/nav-layout.js', 'data-tchilo-nav-layout');
       loadExtra('native/feed-music-fix.js', 'data-tchilo-feed-music-fix');
+      loadExtra('native/reels-fast.js', 'data-tchilo-reels-fast');
     }, 400);
   }
 

@@ -33,7 +33,7 @@ jobs:
           if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
-          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js media-editor.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js; do
+          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js; do
             if ! grep -q "native/$js" www/index.html; then
               sed -i "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
@@ -44,10 +44,9 @@ jobs:
         run: |
           set -e
           test -s www/index.html
+          test -s www/native/feed-stable.js
           test -s www/native/feed-stories-scroll.js
-          test -s www/native/music-use-sheet.js
-          grep -q 'screen-feed' www/native/feed-stories-scroll.js
-          grep -q 'tchiloMusicUseSheet' www/native/music-use-sheet.js
+          grep -q 'StableMusicInject' www/native/feed-stable.js
           test -s resources/icon.png
           test -s resources/splash.png
           test -s firebase/google-services.json

@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — anti-piscar + sem toasts pretos + PT + carrega nav, música feed, reels-fast
+ * tchilo-Pop — anti-piscar + loaders (nav, music, reels, offline-cache)
  */
 (function () {
   'use strict';
@@ -70,10 +70,6 @@
   function portuguesePlaceholders() {
     var title = document.getElementById('createTitle');
     if (title) title.setAttribute('placeholder', 'Texto grande (ex: NOITE ÉPICA)');
-    document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(function (el) {
-      var p = el.getAttribute('placeholder') || '';
-      if (/EPIC\s*NIGHT/i.test(p)) el.setAttribute('placeholder', p.replace(/EPIC\s*NIGHT/gi, 'NOITE ÉPICA'));
-    });
   }
 
   function feedSignature() {
@@ -125,6 +121,7 @@
     loadExtra('native/nav-layout.js', 'data-tchilo-nav-layout');
     loadExtra('native/feed-music-fix.js', 'data-tchilo-feed-music-fix');
     loadExtra('native/reels-fast.js', 'data-tchilo-reels-fast');
+    loadExtra('native/offline-cache.js', 'data-tchilo-offline-cache');
     setTimeout(function () {
       silenceToasts();
       wrapRenderFeed();
@@ -132,6 +129,7 @@
       loadExtra('native/nav-layout.js', 'data-tchilo-nav-layout');
       loadExtra('native/feed-music-fix.js', 'data-tchilo-feed-music-fix');
       loadExtra('native/reels-fast.js', 'data-tchilo-reels-fast');
+      loadExtra('native/offline-cache.js', 'data-tchilo-offline-cache');
     }, 400);
   }
 

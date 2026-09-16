@@ -1,10 +1,9 @@
 /**
- * tchilo-Pop — loaders: nav, music, reels, offline, face-fx-pro
+ * tchilo-Pop — loaders
  */
 (function () {
   'use strict';
 
-  var lastSig = '';
   var lastRenderAt = 0;
   var pending = null;
   var MIN_MS = 600;
@@ -29,23 +28,16 @@
       '#feedList .post-media{background:#e8e6de!important;}' +
       '#feedList .post-media img,#feedList .post-media video{background:#e8e6de!important;transition:none!important;}' +
       '#feedList .post{animation:none!important;}' +
-      '#screen-feed .topbar{background:var(--paper,#F3F1E9)!important;}' +
-      '#screen-feed,#feedList{background:var(--paper,#F3F1E9)!important;}' +
-      '.toast,#toast,.toast.show{display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;height:0!important;padding:0!important;margin:0!important;}' +
-      '#tchiloBusy.tchilo-busy,#tchiloBusy.tchilo-busy.show,.tchilo-busy.show{display:none!important;opacity:0!important;visibility:hidden!important;}';
+      '#screen-feed .topbar,#screen-feed,#feedList{background:var(--paper,#F3F1E9)!important;}' +
+      '.toast,#toast,.toast.show{display:none!important;opacity:0!important;visibility:hidden!important;height:0!important;}' +
+      '#tchiloBusy.tchilo-busy,.tchilo-busy.show{display:none!important;}';
   }
 
   function silenceToasts() {
     try {
       window.showToast = function () {};
       window.tchiloShowBusy = function () {};
-      window.tchiloHideBusy = function () {};
     } catch (e) {}
-    var t = document.getElementById('toast');
-    if (t) {
-      t.classList.remove('show');
-      t.style.display = 'none';
-    }
   }
 
   setInterval(silenceToasts, 1500);
@@ -73,14 +65,18 @@
     injectCSS();
     silenceToasts();
     wrapRenderFeed();
-    loadExtra('native/nav-layout.js', 'data-tchilo-nav-layout');
-    loadExtra('native/feed-music-fix.js', 'data-tchilo-feed-music-fix');
-    loadExtra('native/reels-fast.js', 'data-tchilo-reels-fast');
-    loadExtra('native/offline-cache.js', 'data-tchilo-offline-cache');
-    loadExtra('native/face-fx-pro.js', 'data-tchilo-face-fx-pro');
+    [
+      ['native/nav-layout.js', 'data-tchilo-nav-layout'],
+      ['native/feed-music-fix.js', 'data-tchilo-feed-music-fix'],
+      ['native/reels-fast.js', 'data-tchilo-reels-fast'],
+      ['native/reels-follow-fix.js', 'data-tchilo-reels-follow'],
+      ['native/offline-cache.js', 'data-tchilo-offline-cache'],
+      ['native/face-fx-pro.js', 'data-tchilo-face-fx-pro']
+    ].forEach(function (x) {
+      loadExtra(x[0], x[1]);
+    });
     setTimeout(function () {
-      wrapRenderFeed();
-      loadExtra('native/face-fx-pro.js', 'data-tchilo-face-fx-pro');
+      loadExtra('native/reels-follow-fix.js', 'data-tchilo-reels-follow');
     }, 500);
   }
 

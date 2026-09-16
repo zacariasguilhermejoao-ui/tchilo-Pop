@@ -1,8 +1,8 @@
 /**
  * tchilo-Pop — layout de navegação
  * - Mensagens no topo (ao lado da lupa)
- * - Reels na barra de baixo com ícone de vídeo real
- * - No viewer de Reels: Seguir à direita (longe do X)
+ * - Reels na barra de baixo com ícone de vídeo
+ * - Seguir no canto superior DIREITO (longe do X)
  */
 (function () {
   'use strict';
@@ -12,7 +12,6 @@
     '<path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.4A8.4 8.4 0 1 1 21 11.5z"/>' +
     '</svg>';
 
-  // Ícone de vídeo / reels (câmara de filme + play)
   var SVG_REELS =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
     '<rect x="2" y="5" width="20" height="14" rx="2.5"/>' +
@@ -21,28 +20,69 @@
     '</svg>';
 
   function injectReelsCSS() {
-    if (document.getElementById('tchiloReelsLayoutCSS')) return;
-    var st = document.createElement('style');
-    st.id = 'tchiloReelsLayoutCSS';
+    var st = document.getElementById('tchiloReelsLayoutCSS');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'tchiloReelsLayoutCSS';
+      document.head.appendChild(st);
+    }
     st.textContent =
-      /* Seguir no canto superior direito — longe do X (esquerda) */
-      '.reels-viewer .reel-follow{' +
+      '#reelsViewer .reels-close,' +
+      '.reels-viewer .reels-close{' +
+      'position:absolute!important;' +
+      'top:max(12px, env(safe-area-inset-top, 0px) + 8px)!important;' +
+      'left:12px!important;' +
+      'right:auto!important;' +
+      'z-index:20!important;}' +
+      '#reelsViewer .reel-follow,' +
+      '.reels-viewer .reel-follow,' +
+      '.reel-slide > .reel-follow,' +
+      'button.reel-follow{' +
       'position:absolute!important;' +
       'top:max(14px, env(safe-area-inset-top, 0px) + 10px)!important;' +
-      'right:14px!important;' +
+      'right:12px!important;' +
       'left:auto!important;' +
-      'z-index:6!important;' +
-      'min-width:72px;padding:8px 14px;' +
-      'border:2px solid #fff;border-radius:10px;' +
-      'background:rgba(0,0,0,.4);color:#fff;' +
-      'font:800 12px Inter,system-ui,sans-serif;cursor:pointer;' +
+      'transform:none!important;' +
+      'z-index:19!important;' +
+      'margin:0!important;' +
+      'min-width:72px!important;' +
+      'padding:8px 14px!important;' +
+      'border:2px solid #fff!important;' +
+      'border-radius:10px!important;' +
+      'background:rgba(0,0,0,.45)!important;' +
+      'color:#fff!important;' +
+      'font:800 12px Inter,system-ui,sans-serif!important;' +
       'backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}' +
-      '.reels-viewer .reels-close{' +
-      'top:max(12px, env(safe-area-inset-top, 0px) + 8px)!important;' +
-      'left:14px!important;right:auto!important;z-index:7!important;}' +
-      /* evita sobreposição com duet-label se existir */
-      '.reels-viewer .duet-label{top:58px!important;right:14px!important;}';
-    document.head.appendChild(st);
+      '#reelsViewer .duet-label,.reels-viewer .duet-label{' +
+      'top:58px!important;right:12px!important;left:auto!important;}';
+  }
+
+  function placeFollowButtons() {
+    document.querySelectorAll('#reelsViewer .reel-follow, .reels-viewer .reel-follow, button.reel-follow').forEach(function (btn) {
+      btn.style.setProperty('position', 'absolute', 'important');
+      btn.style.setProperty('top', 'max(14px, calc(env(safe-area-inset-top, 0px) + 10px))', 'important');
+      btn.style.setProperty('right', '12px', 'important');
+      btn.style.setProperty('left', 'auto', 'important');
+      btn.style.setProperty('z-index', '19', 'important');
+      btn.style.setProperty('margin', '0', 'important');
+    });
+    var close = document.querySelector('#reelsViewer .reels-close, .reels-viewer .reels-close');
+    if (close) {
+      close.style.setProperty('left', '12px', 'important');
+      close.style.setProperty('right', 'auto', 'important');
+      close.style.setProperty('z-index', '20', 'important');
+    }
+  }
+
+  function watchReelsDom() {
+    var viewer = document.getElementById('reelsViewer');
+    if (!viewer || viewer.__followWatch) return;
+    viewer.__followWatch = true;
+    try {
+      new MutationObserver(function () {
+        placeFollowButtons();
+      }).observe(viewer, { childList: true, subtree: true });
+    } catch (e) {}
   }
 
   function ensureTopbarMessages() {
@@ -88,9 +128,8 @@
     var wrap = document.createElement('div');
     wrap.innerHTML = SVG_REELS;
     var next = wrap.firstChild;
-    if (svg && next) {
-      svg.replaceWith(next);
-    } else if (next) {
+    if (svg && next) svg.replaceWith(next);
+    else if (next) {
       var dot = msgBtn.querySelector('.dot');
       msgBtn.innerHTML = '';
       msgBtn.appendChild(next);
@@ -103,16 +142,39 @@
     }
   }
 
+  function patchOpenReels() {
+    if (typeof window.openReels !== 'function' || window.openReels.__followRight) return;
+    var orig = window.openReels;
+    // se já tem __fast do reels-fast, empilha
+    window.openReels = function () {
+      var r = orig.apply(this, arguments);
+      setTimeout(placeFollowButtons, 0);
+      setTimeout(placeFollowButtons, 50);
+      setTimeout(placeFollowButtons, 200);
+      return r;
+    };
+    window.openReels.__followRight = true;
+    if (orig.__fast) window.openReels.__fast = true;
+  }
+
   function boot() {
     injectReelsCSS();
+    placeFollowButtons();
+    watchReelsDom();
     ensureTopbarMessages();
     replaceNavMessagesWithReels();
+    patchOpenReels();
     setTimeout(function () {
       injectReelsCSS();
+      placeFollowButtons();
       ensureTopbarMessages();
       replaceNavMessagesWithReels();
+      patchOpenReels();
     }, 400);
-    setTimeout(replaceNavMessagesWithReels, 1200);
+    setTimeout(function () {
+      replaceNavMessagesWithReels();
+      patchOpenReels();
+    }, 1200);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

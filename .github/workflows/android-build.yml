@@ -82,12 +82,7 @@ jobs:
         run: |
           set -e
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-          for PERMISSION in \
-            android.permission.CAMERA \
-            android.permission.ACCESS_COARSE_LOCATION \
-            android.permission.ACCESS_FINE_LOCATION \
-            android.permission.POST_NOTIFICATIONS \
-            android.permission.RECORD_AUDIO; do
+          for PERMISSION in android.permission.CAMERA android.permission.ACCESS_COARSE_LOCATION android.permission.ACCESS_FINE_LOCATION android.permission.POST_NOTIFICATIONS android.permission.RECORD_AUDIO; do
             if ! grep -q "$PERMISSION" "$MANIFEST"; then
               sed -i "/<application/i\\    <uses-permission android:name=\"$PERMISSION\" />" "$MANIFEST"
             fi
@@ -98,15 +93,15 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         shell: bash
         run: |
-          set -euo pipefail
-          if [ -z "${KEYSTORE_BASE64:-}" ]; then
+          set -e
+          if [ -z "$KEYSTORE_BASE64" ]; then
             echo "::error::Falta o secret ANDROID_KEYSTORE_BASE64"
             exit 1
           fi
           mkdir -p android/app
           echo "$KEYSTORE_BASE64" | base64 -d > android/app/tchilo-release.keystore
           test -s android/app/tchilo-release.keystore
-          echo "Keystore OK ($(wc -c < android/app/tchilo-release.keystore) bytes)"
+          echo "Keystore OK"
 
       - name: Write keystore.properties
         env:
@@ -115,80 +110,16 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         shell: bash
         run: |
-          set -euo pipefail
-          if [ -z "${STORE_PASSWORD:-}" ] || [ -z "${KEY_ALIAS:-}" ] || [ -z "${KEY_PASSWORD:-}" ]; then
+          set -e
+          if [ -z "$STORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
             echo "::error::Faltam secrets ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS ou ANDROID_KEY_PASSWORD"
             exit 1
           fi
-          cat > android/app/keystore.properties <<EOF
-          storeFile=tchilo-release.keystore
-          storePassword=${STORE_PASSWORD}
-          keyAlias=${KEY_ALIAS}
-          keyPassword=${KEY_PASSWORD}
-          EOF
-          # remove leading spaces that heredoc may add
-          sed -i 's/^[[:space:]]*//' android/app/keystore.properties
-          echo "keystore.properties escrito"
+          printf '%s\n' "storeFile=tchilo-release.keystore" "storePassword=${STORE_PASSWORD}" "keyAlias=${KEY_ALIAS}" "keyPassword=${KEY_PASSWORD}" > android/app/keystore.properties
+          echo "keystore.properties OK"
 
       - name: Inject signing config into Gradle
-        shell: bash
-        run: |
-          set -euo pipefail
-          APP_GRADLE="android/app/build.gradle"
-          test -f "$APP_GRADLE"
-
-          if grep -q "signingConfigs" "$APP_GRADLE"; then
-            echo "signingConfigs ja presente"
-            exit 0
-          fi
-
-          # Create a small patch script as a file to avoid YAML heredoc issues
-          cat > /tmp/patch_signing.py << 'ENDPY'
-          from pathlib import Path
-          import re
-
-          p = Path("android/app/build.gradle")
-          t = p.read_text()
-
-          block = """
-      def keystorePropertiesFile = file("keystore.properties")
-      def keystoreProperties = new Properties()
-      if (keystorePropertiesFile.exists()) {
-          keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-      }
-      signingConfigs {
-          release {
-              if (keystorePropertiesFile.exists()) {
-                  storeFile file(keystoreProperties["storeFile"])
-                  storePassword keystoreProperties["storePassword"]
-                  keyAlias keystoreProperties["keyAlias"]
-                  keyPassword keystoreProperties["keyPassword"]
-              }
-          }
-      }
-          """
-
-          marker = "android {"
-          idx = t.find(marker)
-          if idx < 0:
-              raise SystemExit("android { not found")
-          t = t[: idx + len(marker)] + "\n" + block + t[idx + len(marker) :]
-
-          if "signingConfig signingConfigs.release" not in t:
-              t2, n = re.subn(
-                  r"(release\s*\{)",
-                  r"\1\n            signingConfig signingConfigs.release",
-                  t,
-                  count=1,
-              )
-              if n:
-                  t = t2
-
-          p.write_text(t)
-          print("signing injected")
-          ENDPY
-
-          python3 /tmp/patch_signing.py
+        run: python3 scripts/patch_android_signing.py
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -208,7 +139,7 @@ jobs:
         id: arts
         shell: bash
         run: |
-          set -euo pipefail
+          set -e
           APK=$(find android/app/build/outputs/apk -name '*.apk' | head -n 1)
           AAB=$(find android/app/build/outputs/bundle -name '*.aab' | head -n 1)
           echo "APK=$APK"

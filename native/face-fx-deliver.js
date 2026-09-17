@@ -1,20 +1,21 @@
 /**
- * tchilo-Pop — entrega a foto da câmara com efeitos para o ecrã Criar post
- * Cobre createMediaData, File, input file e pré-visualização.
+ * tchilo-Pop — foto da câmara com efeitos → editor / criar post
  */
 (function () {
   'use strict';
 
   function blobToFile(blob, name) {
+    name = name || 'tchilo-face-fx.jpg';
     try {
-      return new File([blob], name || 'tchilo-face-fx.jpg', {
+      return new File([blob], name, {
         type: blob.type || 'image/jpeg',
         lastModified: Date.now()
       });
     } catch (e) {
-      // Safari antigo: File pode falhar
-      blob.name = name || 'tchilo-face-fx.jpg';
-      blob.lastModified = Date.now();
+      try {
+        blob.name = name;
+        blob.lastModified = Date.now();
+      } catch (e2) {}
       return blob;
     }
   }
@@ -24,8 +25,8 @@
       '#createFileInput',
       '#createMediaInput',
       '#galleryInput',
-      'input[type="file"][accept*="image"]',
-      '#screen-create input[type="file"]'
+      '#screen-create input[type="file"]',
+      'input[type="file"][accept*="image"]'
     ];
     for (var i = 0; i < selectors.length; i++) {
       var input = document.querySelector(selectors[i]);
@@ -35,18 +36,16 @@
         dt.items.add(file);
         input.files = dt.files;
         input.dispatchEvent(new Event('change', { bubbles: true }));
-        input.dispatchEvent(new Event('input', { bubbles: true }));
         return true;
       } catch (e) {}
     }
     return false;
   }
 
-  function showPreview(url) {
+  function showCreatePreview(url) {
     var preview =
       document.getElementById('createPreview') ||
-      document.querySelector('#screen-create .create-preview') ||
-      document.querySelector('#screen-create .media-preview');
+      document.querySelector('#screen-create .create-preview');
     if (!preview) return;
     preview.classList.add('has-media');
     preview.querySelectorAll('img,video,.multi-preview').forEach(function (n) {
@@ -59,182 +58,165 @@
     img.alt = 'Foto com efeito';
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
     preview.appendChild(img);
-    var rm =
-      document.getElementById('removeMediaBtn') ||
-      document.querySelector('#screen-create .remove-media');
+    var rm = document.getElementById('removeMediaBtn');
     if (rm) rm.style.display = '';
   }
 
   function deliverFaceFxPhoto(blob, url) {
     if (!blob) return false;
-    var file = blobToFile(blob, 'tchilo-face-fx.jpg');
+    var file = blobToFile(blob);
     var objectUrl = url || URL.createObjectURL(blob);
 
+    // Estado global do criar post
     var item = {
       type: 'image',
       url: objectUrl,
-      name: file.name || 'tchilo-face-fx.jpg',
+      name: 'tchilo-face-fx.jpg',
       file: file,
       blob: blob
     };
-
-    // Vários formatos que o index.html pode ler
-    try {
-      window.createMediaData = {
-        type: 'image',
-        items: [item],
-        files: [file]
-      };
-    } catch (e) {}
-    try {
-      window.createMediaFiles = [file];
-    } catch (e2) {}
-    try {
-      window.__tchiloCreateMedia = { type: 'image', file: file, url: objectUrl, blob: blob };
-    } catch (e3) {}
-    try {
-      window.selectedCreateFile = file;
-    } catch (e4) {}
+    window.createMediaData = { type: 'image', items: [item], files: [file] };
+    window.createMediaFiles = [file];
+    window.__tchiloCreateMedia = { type: 'image', file: file, url: objectUrl, blob: blob };
+    window.selectedCreateFile = file;
 
     setFileInput(file);
-    showPreview(objectUrl);
+    showCreatePreview(objectUrl);
 
     try {
-      if (typeof window.setThemeSectionVisible === 'function') {
-        window.setThemeSectionVisible(false);
-      }
-    } catch (e5) {}
+      if (typeof window.setThemeSectionVisible === 'function') window.setThemeSectionVisible(false);
+    } catch (e) {}
 
-    // Hooks oficiais se existirem
+    // Preferir o editor de media (mesmo fluxo da galeria)
+    try {
+      if (typeof window.tchiloOpenMediaEditor === 'function') {
+        window.tchiloOpenMediaEditor({
+          mode: 'post',
+          mediaType: 'image',
+          src: objectUrl,
+          file: file
+        });
+        return true;
+      }
+    } catch (e) {
+      console.warn('tchiloOpenMediaEditor', e);
+    }
+
+    // Fallbacks
     try {
       if (typeof window.setCreateMediaFromCapture === 'function') {
         window.setCreateMediaFromCapture(objectUrl, blob, file);
       }
-    } catch (e6) {}
+    } catch (e2) {}
     try {
-      if (typeof window.tchiloSetCreateMedia === 'function') {
-        window.tchiloSetCreateMedia([file]);
-      }
-    } catch (e7) {}
+      if (typeof window.handleCreateFiles === 'function') window.handleCreateFiles([file]);
+    } catch (e3) {}
     try {
-      if (typeof window.handleCreateFiles === 'function') {
-        window.handleCreateFiles([file]);
-      }
-    } catch (e8) {}
-    try {
-      if (typeof window.onCreateMediaSelected === 'function') {
-        window.onCreateMediaSelected([file]);
-      }
-    } catch (e9) {}
-
-    // Evento custom para o resto da app
-    try {
-      window.dispatchEvent(
-        new CustomEvent('tchilo-face-fx-captured', {
-          detail: { file: file, blob: blob, url: objectUrl }
-        })
-      );
-    } catch (e10) {}
+      if (typeof goTo === 'function') goTo('create');
+    } catch (e4) {}
 
     return true;
   }
 
   window.tchiloDeliverFaceFxPhoto = deliverFaceFxPhoto;
 
-  /** Patch capturePhoto do face-effects.js */
-  function patchCapture() {
-    // Re-bind no botão Capturar
+  /** Reescreve o capturePhoto do botão para garantir entrega */
+  function interceptCaptureButton() {
     var btn = document.getElementById('tchiloFxCapture');
-    if (!btn || btn.__deliverPatched) return;
-    btn.__deliverPatched = true;
+    if (!btn || btn.__fxDeliver) return;
+    btn.__fxDeliver = true;
 
     btn.addEventListener(
       'click',
-      function () {
-        // Depois do handler original (mesmo tick + próximo)
-        setTimeout(function () {
-          // Se createMediaData já tem blob, reforça entrega
-          try {
-            var d = window.createMediaData;
-            if (d && d.items && d.items[0] && d.items[0].file) {
-              var f = d.items[0].file;
-              var blob = f instanceof Blob ? f : d.items[0].blob;
-              var url = d.items[0].url;
-              if (blob) deliverFaceFxPhoto(blob, url);
-            }
-          } catch (e) {}
-        }, 50);
+      function (ev) {
+        // Captura própria a partir do canvas/video se o original falhar
         setTimeout(function () {
           try {
             var d = window.createMediaData;
-            if (d && d.items && d.items[0] && d.items[0].file) {
-              deliverFaceFxPhoto(d.items[0].file || d.items[0].blob, d.items[0].url);
+            if (d && d.items && d.items[0] && (d.items[0].file || d.items[0].blob)) {
+              var it = d.items[0];
+              deliverFaceFxPhoto(it.file || it.blob, it.url);
+              return;
             }
           } catch (e) {}
-        }, 300);
+          // Captura manual do vídeo/canvas da face-fx
+          try {
+            var video = document.getElementById('tchiloFxVideo');
+            var canvas = document.getElementById('tchiloFxCanvas');
+            var srcCanvas = canvas && canvas.width ? canvas : null;
+            if (!srcCanvas && video && video.readyState >= 2) {
+              srcCanvas = document.createElement('canvas');
+              srcCanvas.width = video.videoWidth || 640;
+              srcCanvas.height = video.videoHeight || 480;
+              var ctx = srcCanvas.getContext('2d');
+              ctx.drawImage(video, 0, 0);
+            }
+            if (srcCanvas) {
+              srcCanvas.toBlob(
+                function (blob) {
+                  if (!blob) return;
+                  deliverFaceFxPhoto(blob, URL.createObjectURL(blob));
+                  try {
+                    if (typeof window.closeFaceEffects === 'function') window.closeFaceEffects();
+                  } catch (e2) {}
+                },
+                'image/jpeg',
+                0.92
+              );
+            }
+          } catch (e3) {
+            console.warn('face-fx manual capture', e3);
+          }
+        }, 80);
       },
-      true
+      false
     );
   }
 
-  /** Override global capture se exposto */
-  function wrapGlobals() {
-    // Monkey-patch: quando face-effects define capture via DOM only
-    // Observa abertura da UI
+  function watchUi() {
+    interceptCaptureButton();
     var root = document.getElementById('tchiloFaceFx');
-    if (root && !root.__deliverObs) {
-      root.__deliverObs = true;
+    if (root && !root.__fxDeliverObs) {
+      root.__fxDeliverObs = true;
       new MutationObserver(function () {
-        if (root.classList.contains('open')) patchCapture();
+        if (root.classList.contains('open')) interceptCaptureButton();
       }).observe(root, { attributes: true, attributeFilter: ['class'] });
     }
-    patchCapture();
   }
 
-  /**
-   * Substitui toBlob path: intercepta URL.createObjectURL usado após captura
-   * Mais fiável: reescreve window.openFaceEffects close path via patching createMediaData setter
-   */
-  function installCreateMediaGuard() {
-    var last = null;
+  // Guard em createMediaData (quando face-effects atribui)
+  function installSetter() {
+    var stored = window.createMediaData;
     try {
       Object.defineProperty(window, 'createMediaData', {
         configurable: true,
         enumerable: true,
         get: function () {
-          return last;
+          return stored;
         },
         set: function (v) {
-          last = v;
+          stored = v;
           try {
             if (v && v.items && v.items[0]) {
               var it = v.items[0];
               var blob = it.file || it.blob;
-              if (blob && (it.name === 'face-fx.jpg' || (it.url && String(it.url).indexOf('blob:') === 0))) {
-                // Normalizar para File
-                var file = blobToFile(blob, it.name || 'tchilo-face-fx.jpg');
-                it.file = file;
-                it.blob = blob;
-                v.files = [file];
-                last = v;
+              if (blob && (it.name === 'face-fx.jpg' || it.name === 'tchilo-face-fx.jpg')) {
                 setTimeout(function () {
                   deliverFaceFxPhoto(blob, it.url);
-                }, 0);
+                }, 30);
               }
             }
           } catch (e) {}
         }
       });
-    } catch (e) {
-      // defineProperty pode falhar se já for non-configurable
-    }
+    } catch (e) {}
   }
 
   function boot() {
-    installCreateMediaGuard();
-    wrapGlobals();
-    setTimeout(wrapGlobals, 500);
-    setTimeout(wrapGlobals, 1500);
+    installSetter();
+    watchUi();
+    setTimeout(watchUi, 600);
+    setTimeout(watchUi, 2000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

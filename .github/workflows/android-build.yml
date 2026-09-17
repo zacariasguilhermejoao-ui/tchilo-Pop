@@ -33,7 +33,7 @@ jobs:
           if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
-          for js in capacitor-bridge.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js; do
+          for js in capacitor-bridge.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js; do
             if [ -f "www/native/$js" ] && ! grep -q "native/$js" www/index.html; then
               sed -i "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
@@ -103,7 +103,14 @@ jobs:
           test -s android/app/tchilo-release.keystore
           echo "Keystore OK"
 
-      - name: Write keystore.properties
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build signed release APK
+        working-directory: android
         env:
           STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -115,71 +122,29 @@ jobs:
             echo "::error::Faltam secrets ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS ou ANDROID_KEY_PASSWORD"
             exit 1
           fi
-          printf '%s\n' "storeFile=tchilo-release.keystore" "storePassword=${STORE_PASSWORD}" "keyAlias=${KEY_ALIAS}" "keyPassword=${KEY_PASSWORD}" > android/app/keystore.properties
-          echo "keystore.properties OK"
-
-      - name: Inject signing config into Gradle
-        shell: bash
-        run: |
-          set -e
-          APP_GRADLE="android/app/build.gradle"
-          test -f "$APP_GRADLE"
-          if grep -q "signingConfigs" "$APP_GRADLE"; then
-            echo "signingConfigs already present"
-            exit 0
-          fi
-          SIGN_SNIPPET_FILE="android/app/signing-snippet.gradle"
-          cat > "$SIGN_SNIPPET_FILE" <<'SNIP'
-              def keystorePropertiesFile = file("keystore.properties")
-              def keystoreProperties = new Properties()
-              if (keystorePropertiesFile.exists()) {
-                  keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-              }
-              signingConfigs {
-                  release {
-                      if (keystorePropertiesFile.exists()) {
-                          storeFile file(keystoreProperties["storeFile"])
-                          storePassword keystoreProperties["storePassword"]
-                          keyAlias keystoreProperties["keyAlias"]
-                          keyPassword keystoreProperties["keyPassword"]
-                      }
-                  }
-              }
-          SNIP
-          # Insert snippet right after the first "android {" line
-          awk '
-            BEGIN { done=0 }
-            {
-              print
-              if (!done && $0 ~ /^[[:space:]]*android[[:space:]]*\{/) {
-                while ((getline line < snip) > 0) print line
-                close(snip)
-                done=1
-              }
-            }
-          ' snip="$SIGN_SNIPPET_FILE" "$APP_GRADLE" > "$APP_GRADLE.tmp"
-          mv "$APP_GRADLE.tmp" "$APP_GRADLE"
-          rm -f "$SIGN_SNIPPET_FILE"
-          # Attach signingConfig to release buildType (first occurrence of "release {")
-          if ! grep -q "signingConfig signingConfigs.release" "$APP_GRADLE"; then
-            sed -i '0,/release {/s//release {\n            signingConfig signingConfigs.release/' "$APP_GRADLE"
-          fi
-          echo "signingConfigs injected"
-          grep -n "signingConfigs\|signingConfig" "$APP_GRADLE" | head -20
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Build signed release APK
-        working-directory: android
-        run: ./gradlew assembleRelease --stacktrace
+          KS="$PWD/app/tchilo-release.keystore"
+          test -s "$KS"
+          ./gradlew assembleRelease --stacktrace \
+            -Pandroid.injected.signing.store.file="$KS" \
+            -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
       - name: Build signed release AAB
         working-directory: android
-        run: ./gradlew bundleRelease --stacktrace
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -e
+          KS="$PWD/app/tchilo-release.keystore"
+          ./gradlew bundleRelease --stacktrace \
+            -Pandroid.injected.signing.store.file="$KS" \
+            -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
       - name: Locate signed artifacts
         id: arts

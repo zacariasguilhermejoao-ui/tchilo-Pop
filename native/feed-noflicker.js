@@ -1,18 +1,18 @@
 /**
- * tchilo-Pop — loaders
+ * tchilo-Pop — loaders (Android-ready)
  */
 (function () {
   'use strict';
 
   var lastRenderAt = 0;
   var pending = null;
-  var MIN_MS = 600;
+  var MIN_MS = 400;
 
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
     s.src = src;
-    s.async = true;
+    s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
   }
@@ -40,7 +40,7 @@
     } catch (e) {}
   }
 
-  setInterval(silenceToasts, 1500);
+  setInterval(silenceToasts, 2000);
 
   function wrapRenderFeed() {
     if (typeof window.renderFeed !== 'function' || window.renderFeed.__noflicker) return;
@@ -65,7 +65,12 @@
     injectCSS();
     silenceToasts();
     wrapRenderFeed();
+    // ordem importa: deezer e boot-fast cedo
     [
+      ['native/deezer-fetch.js', 'data-tchilo-deezer'],
+      ['native/music-android-patch.js', 'data-tchilo-music-patch'],
+      ['native/boot-fast.js', 'data-tchilo-boot-fast'],
+      ['native/android-media-fix.js', 'data-tchilo-android-media'],
       ['native/nav-layout.js', 'data-tchilo-nav-layout'],
       ['native/feed-music-fix.js', 'data-tchilo-feed-music-fix'],
       ['native/reels-fast.js', 'data-tchilo-reels-fast'],

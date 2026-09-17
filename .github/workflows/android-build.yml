@@ -33,7 +33,7 @@ jobs:
           if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
-          for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js; do
+          for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js camera-tiktok.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js; do
             if [ -f "www/native/$js" ] && ! grep -q "native/$js" www/index.html; then
               sed -i "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
@@ -44,8 +44,8 @@ jobs:
         run: |
           set -e
           test -s www/index.html
+          test -s www/native/camera-tiktok.js
           test -s www/native/boot-fast.js
-          test -s www/native/deezer-fetch.js
           test -s resources/icon.png
           test -s resources/splash.png
           test -s firebase/google-services.json

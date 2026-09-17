@@ -33,8 +33,8 @@ jobs:
           if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
-          for js in capacitor-bridge.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js; do
-            if ! grep -q "native/$js" www/index.html; then
+          for js in capacitor-bridge.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js; do
+            if [ -f "www/native/$js" ] && ! grep -q "native/$js" www/index.html; then
               sed -i "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
           done
@@ -44,7 +44,6 @@ jobs:
         run: |
           set -e
           test -s www/index.html
-          test -s www/native/nav-layout.js
           test -s resources/icon.png
           test -s resources/splash.png
           test -s firebase/google-services.json
@@ -87,11 +86,131 @@ jobs:
             android.permission.CAMERA \
             android.permission.ACCESS_COARSE_LOCATION \
             android.permission.ACCESS_FINE_LOCATION \
-            android.permission.POST_NOTIFICATIONS; do
+            android.permission.POST_NOTIFICATIONS \
+            android.permission.RECORD_AUDIO; do
             if ! grep -q "$PERMISSION" "$MANIFEST"; then
               sed -i "/<application/i\\    <uses-permission android:name=\"$PERMISSION\" />" "$MANIFEST"
             fi
           done
+
+      - name: Decode release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 || secrets.KEYSTORE_BASE64 }}
+        shell: bash
+        run: |
+          set -e
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::Falta o secret ANDROID_KEYSTORE_BASE64 (keystore em base64)"
+            exit 1
+          fi
+          mkdir -p android/app
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/tchilo-release.keystore
+          test -s android/app/tchilo-release.keystore
+          echo "Keystore OK ($(wc -c < android/app/tchilo-release.keystore) bytes)"
+
+      - name: Configure release signing
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || secrets.KEYSTORE_PASSWORD || secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS || secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD || secrets.KEY_PASSWORD || secrets.ANDROID_KEYSTORE_PASSWORD || secrets.KEYSTORE_PASSWORD }}
+        shell: bash
+        run: |
+          set -e
+          if [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "::error::Faltam secrets de assinatura. Precisas de:"
+            echo "  ANDROID_KEYSTORE_PASSWORD (ou KEYSTORE_PASSWORD)"
+            echo "  ANDROID_KEY_ALIAS (ou KEY_ALIAS)"
+            echo "  ANDROID_KEY_PASSWORD (ou KEY_PASSWORD)"
+            exit 1
+          fi
+
+          APP_GRADLE="android/app/build.gradle"
+          test -f "$APP_GRADLE"
+
+          # properties para o Gradle (não partilhar no log)
+          cat > android/keystore.properties <<EOF
+          storeFile=tchilo-release.keystore
+          storePassword=${KEYSTORE_PASSWORD}
+          keyAlias=${KEY_ALIAS}
+          keyPassword=${KEY_PASSWORD}
+          EOF
+
+          # Injeta signingConfigs + release signing se ainda não existir
+          if ! grep -q 'signingConfigs' "$APP_GRADLE"; then
+            python3 <<'PY'
+          from pathlib import Path
+          p = Path("android/app/build.gradle")
+          t = p.read_text()
+
+          signing_block = r'''
+      def keystorePropertiesFile = rootProject.file("keystore.properties")
+      def keystoreProperties = new Properties()
+      if (keystorePropertiesFile.exists()) {
+          keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+      }
+
+      signingConfigs {
+          release {
+              if (keystorePropertiesFile.exists()) {
+                  storeFile file(keystoreProperties["storeFile"])
+                  storePassword keystoreProperties["storePassword"]
+                  keyAlias keystoreProperties["keyAlias"]
+                  keyPassword keystoreProperties["keyPassword"]
+              }
+          }
+      }
+  '''
+
+          # Inserir dentro de android { ... } após a abertura
+          marker = "android {"
+          idx = t.find(marker)
+          if idx < 0:
+              raise SystemExit("android { não encontrado em app/build.gradle")
+          insert_at = idx + len(marker)
+          t = t[:insert_at] + "\n" + signing_block + t[insert_at:]
+
+          # Garantir buildTypes.release.signingConfig
+          if "signingConfig signingConfigs.release" not in t:
+              import re
+              def add_signing(m):
+                  body = m.group(0)
+                  if "signingConfig" in body:
+                      return body
+                  return body.replace("release {", "release {\n            signingConfig signingConfigs.release", 1)
+              t2, n = re.subn(r"buildTypes\s*\{[^}]*release\s*\{[^}]*\}", add_signing, t, count=1, flags=re.S)
+              if n:
+                  t = t2
+              else:
+                  # fallback: acrescentar no fim do bloco android se possível
+                  t = t.replace(
+                      "buildTypes {",
+                      "buildTypes {\n        release {\n            signingConfig signingConfigs.release\n        }\n        /* patched */\n", 
+                      1
+                  )
+
+          p.write_text(t)
+          print("signingConfigs injetado em app/build.gradle")
+          PY
+          else
+            echo "signingConfigs já existe — a reforçar release signing"
+            if ! grep -q 'signingConfig signingConfigs.release' "$APP_GRADLE"; then
+              sed -i 's/release {/release {\n            signingConfig signingConfigs.release/' "$APP_GRADLE" || true
+            fi
+          fi
+
+          # storeFile relativo a android/app
+          # keystore está em android/app/tchilo-release.keystore
+          # keystore.properties está em android/ → path do storeFile para o app module
+          # Ajustar: storeFile no properties deve ser caminho a partir de android/app
+          # Usamos file() relativo ao módulo app:
+          sed -i 's|storeFile=.*|storeFile=tchilo-release.keystore|' android/keystore.properties
+
+          # Mover properties para app/ também (mais simples para Capacitor)
+          cp android/keystore.properties android/app/keystore.properties
+          # Atualizar gradle para ler de app/
+          sed -i 's|rootProject.file("keystore.properties")|file("keystore.properties")|g' "$APP_GRADLE" || true
+
+          echo "Assinatura configurada (alias oculto nos logs)."
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -99,24 +218,47 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Build debug APK
+      - name: Build signed release APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleRelease --stacktrace
 
-      - name: Build release AAB
+      - name: Build signed release AAB
         working-directory: android
-        run: ./gradlew bundleRelease
+        run: ./gradlew bundleRelease --stacktrace
 
-      - name: Upload APK
+      - name: Locate signed artifacts
+        id: arts
+        shell: bash
+        run: |
+          set -e
+          APK=$(find android/app/build/outputs/apk -name '*.apk' | head -n 1)
+          AAB=$(find android/app/build/outputs/bundle -name '*.aab' | head -n 1)
+          echo "APK=$APK"
+          echo "AAB=$AAB"
+          test -n "$APK" && test -s "$APK"
+          test -n "$AAB" && test -s "$AAB"
+          echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
+          echo "aab_path=$AAB" >> "$GITHUB_OUTPUT"
+
+      - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: tchilo-pop-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: tchilo-pop-release-apk
+          path: ${{ steps.arts.outputs.apk_path }}
           if-no-files-found: error
 
-      - name: Upload AAB
+      - name: Upload signed AAB
         uses: actions/upload-artifact@v4
         with:
           name: tchilo-pop-release-aab
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          path: ${{ steps.arts.outputs.aab_path }}
           if-no-files-found: error
+
+      - name: Upload debug APK (opcional)
+        if: success()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: tchilo-pop-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: ignore

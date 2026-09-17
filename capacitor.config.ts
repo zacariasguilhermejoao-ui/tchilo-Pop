@@ -6,11 +6,19 @@ const config: CapacitorConfig = {
   webDir: 'www',
   bundledWebRuntime: false,
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    cleartext: false,
+    allowNavigation: [
+      'api.deezer.com',
+      '*.supabase.co',
+      '*.supabase.in',
+      'api.allorigins.win',
+      'corsproxy.io'
+    ]
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2500,
+      launchShowDuration: 900,
       launchAutoHide: true,
       backgroundColor: '#000000',
       androidSplashResourceName: 'splash',

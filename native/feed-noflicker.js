@@ -71,6 +71,7 @@
       ['native/boot-fast.js', 'data-tchilo-boot-fast'],
       ['native/android-media-fix.js', 'data-tchilo-android-media'],
       ['native/camera-tiktok.js', 'data-tchilo-camera-tiktok'],
+      ['native/camera-no-autoopen.js', 'data-tchilo-camera-no-auto'],
       ['native/nav-layout.js', 'data-tchilo-nav-layout'],
       ['native/feed-music-fix.js', 'data-tchilo-feed-music-fix'],
       ['native/reels-fast.js', 'data-tchilo-reels-fast'],

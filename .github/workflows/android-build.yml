@@ -119,7 +119,53 @@ jobs:
           echo "keystore.properties OK"
 
       - name: Inject signing config into Gradle
-        run: python3 scripts/patch_android_signing.py
+        shell: bash
+        run: |
+          set -e
+          APP_GRADLE="android/app/build.gradle"
+          test -f "$APP_GRADLE"
+          if grep -q "signingConfigs" "$APP_GRADLE"; then
+            echo "signingConfigs already present"
+            exit 0
+          fi
+          SIGN_SNIPPET_FILE="android/app/signing-snippet.gradle"
+          cat > "$SIGN_SNIPPET_FILE" <<'SNIP'
+              def keystorePropertiesFile = file("keystore.properties")
+              def keystoreProperties = new Properties()
+              if (keystorePropertiesFile.exists()) {
+                  keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+              }
+              signingConfigs {
+                  release {
+                      if (keystorePropertiesFile.exists()) {
+                          storeFile file(keystoreProperties["storeFile"])
+                          storePassword keystoreProperties["storePassword"]
+                          keyAlias keystoreProperties["keyAlias"]
+                          keyPassword keystoreProperties["keyPassword"]
+                      }
+                  }
+              }
+          SNIP
+          # Insert snippet right after the first "android {" line
+          awk '
+            BEGIN { done=0 }
+            {
+              print
+              if (!done && $0 ~ /^[[:space:]]*android[[:space:]]*\{/) {
+                while ((getline line < snip) > 0) print line
+                close(snip)
+                done=1
+              }
+            }
+          ' snip="$SIGN_SNIPPET_FILE" "$APP_GRADLE" > "$APP_GRADLE.tmp"
+          mv "$APP_GRADLE.tmp" "$APP_GRADLE"
+          rm -f "$SIGN_SNIPPET_FILE"
+          # Attach signingConfig to release buildType (first occurrence of "release {")
+          if ! grep -q "signingConfig signingConfigs.release" "$APP_GRADLE"; then
+            sed -i '0,/release {/s//release {\n            signingConfig signingConfigs.release/' "$APP_GRADLE"
+          fi
+          echo "signingConfigs injected"
+          grep -n "signingConfigs\|signingConfig" "$APP_GRADLE" | head -20
 
       - name: Setup Java
         uses: actions/setup-java@v4

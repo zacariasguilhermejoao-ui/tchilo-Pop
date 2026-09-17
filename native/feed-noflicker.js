@@ -72,7 +72,8 @@
       ['native/reels-follow-fix.js', 'data-tchilo-reels-follow'],
       ['native/offline-cache.js', 'data-tchilo-offline-cache'],
       ['native/face-fx-pro.js', 'data-tchilo-face-fx-pro'],
-      ['native/password-toggle.js', 'data-tchilo-pw-toggle']
+      ['native/password-toggle.js', 'data-tchilo-pw-toggle'],
+      ['native/video-preview.js', 'data-tchilo-video-preview']
     ].forEach(function (x) {
       loadExtra(x[0], x[1]);
     });

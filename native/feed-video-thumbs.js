@@ -1,35 +1,41 @@
 /**
- * tchilo-Pop — vídeos no feed: miniatura rápida + autoplay mudo ao aparecer
+ * tchilo-Pop — vídeos no feed estáveis (sem piscar)
+ * Miniatura + autoplay mudo suave quando visível
  */
 (function () {
   'use strict';
 
   var PLAY =
-    '<svg viewBox="0 0 24 24" width="28" height="28" fill="#fff"><path d="M8 5v14l11-7z"/></svg>';
+    '<svg viewBox="0 0 24 24" width="26" height="26" fill="#fff"><path d="M8 5v14l11-7z"/></svg>';
   var obs = null;
-  var PREVIEW_SEC = 15;
+  var playingId = null;
 
   function injectCSS() {
-    if (document.getElementById('tchiloVidThumbCSS')) return;
-    var st = document.createElement('style');
-    st.id = 'tchiloVidThumbCSS';
+    var st = document.getElementById('tchiloVidThumbCSS');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'tchiloVidThumbCSS';
+      document.head.appendChild(st);
+    }
     st.textContent =
-      '#feedList .feed-video-wrap{position:relative;min-height:180px;background:#1a1a1a;}' +
+      '#feedList .feed-video-wrap{position:relative;min-height:200px;background:#111;overflow:hidden;}' +
       '#feedList .feed-video-wrap video.feed-video{' +
-      'display:block!important;width:100%!important;height:auto!important;min-height:180px;' +
-      'object-fit:cover!important;background:#1a1a1a!important;opacity:1!important;visibility:visible!important;}' +
+      'display:block!important;width:100%!important;min-height:200px;' +
+      'object-fit:cover!important;background:#111!important;' +
+      'opacity:1!important;visibility:visible!important;}' +
       '#feedList .feed-video-wrap .tchilo-vthumb{' +
-      'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#1a1a1a;pointer-events:none;}' +
-      '#feedList .feed-video-wrap.playing .tchilo-vthumb{opacity:0;pointer-events:none;}' +
+      'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;' +
+      'z-index:1;background:#111;pointer-events:none;transition:opacity .25s;}' +
+      '#feedList .feed-video-wrap.is-playing .tchilo-vthumb{opacity:0;}' +
       '#feedList .feed-video-wrap .tchilo-play-badge{' +
       'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);' +
       'width:52px;height:52px;border-radius:50%;z-index:3;' +
       'background:rgba(0,0,0,.45);border:2.5px solid #fff;' +
       'display:flex;align-items:center;justify-content:center;pointer-events:none;' +
       'transition:opacity .2s;}' +
-      '#feedList .feed-video-wrap.playing .tchilo-play-badge{opacity:0;}' +
-      '#feedList .feed-video-wrap .tchilo-play-badge svg{margin-left:3px;}';
-    document.head.appendChild(st);
+      '#feedList .feed-video-wrap.is-playing .tchilo-play-badge{opacity:0;}' +
+      '#feedList .post{animation:none!important;}' +
+      '#feedList video.feed-video{animation:none!important;}';
   }
 
   function ensureBadge(wrap) {
@@ -40,104 +46,87 @@
     wrap.appendChild(b);
   }
 
-  function setThumb(wrap, dataUrl) {
-    if (!wrap || !dataUrl) return;
-    var img = wrap.querySelector('.tchilo-vthumb');
-    if (!img) {
+  function setPoster(wrap, video, url) {
+    if (!url) return;
+    try {
+      if (video && !video.getAttribute('poster')) video.setAttribute('poster', url);
+    } catch (e) {}
+    var img = wrap && wrap.querySelector('.tchilo-vthumb');
+    if (wrap && !img) {
       img = document.createElement('img');
       img.className = 'tchilo-vthumb';
       img.alt = '';
       wrap.insertBefore(img, wrap.firstChild);
     }
-    img.src = dataUrl;
-    var v = wrap.querySelector('video');
-    if (v && !v.getAttribute('poster')) v.setAttribute('poster', dataUrl);
+    if (img && img.src !== url) img.src = url;
   }
 
-  function captureFrame(video, wrap) {
+  function captureOnce(video, wrap) {
     if (!video || video.dataset.thumbDone === '1') return;
-    function tryCap() {
-      try {
-        if (video.videoWidth < 2 || video.videoHeight < 2) return false;
-        var c = document.createElement('canvas');
-        var w = Math.min(video.videoWidth, 480);
-        var h = Math.round((video.videoHeight / video.videoWidth) * w);
-        c.width = w;
-        c.height = h;
-        c.getContext('2d').drawImage(video, 0, 0, w, h);
-        var url = c.toDataURL('image/jpeg', 0.65);
-        video.dataset.thumbDone = '1';
-        setThumb(wrap, url);
-        return true;
-      } catch (e) {
-        return false;
-      }
+    if (video.readyState < 2 || video.videoWidth < 2) return;
+    try {
+      var c = document.createElement('canvas');
+      var w = Math.min(video.videoWidth, 480);
+      var h = Math.round((video.videoHeight / Math.max(1, video.videoWidth)) * w);
+      c.width = w;
+      c.height = h;
+      c.getContext('2d').drawImage(video, 0, 0, w, h);
+      var url = c.toDataURL('image/jpeg', 0.6);
+      video.dataset.thumbDone = '1';
+      setPoster(wrap, video, url);
+    } catch (e) {
+      /* CORS pode bloquear — ignora */
+      video.dataset.thumbDone = '1';
     }
-    if (tryCap()) return;
-    var onMeta = function () {
-      try {
-        if (video.currentTime < 0.05) video.currentTime = 0.08;
-      } catch (e) {}
-    };
-    var onSeek = function () {
-      tryCap();
-      video.removeEventListener('seeked', onSeek);
-    };
-    video.addEventListener('loadeddata', function once() {
-      video.removeEventListener('loadeddata', once);
-      if (!tryCap()) {
-        video.addEventListener('seeked', onSeek);
-        onMeta();
-      }
-    });
-    video.addEventListener('loadedmetadata', onMeta);
   }
 
-  function playMuted(video, wrap) {
+  function pauseAllExcept(keep) {
+    document.querySelectorAll('#feedList video.feed-video').forEach(function (v) {
+      if (v === keep) return;
+      try {
+        if (!v.paused) v.pause();
+      } catch (e) {}
+      var w = v.closest('.feed-video-wrap');
+      if (w) w.classList.remove('is-playing');
+    });
+  }
+
+  function playSoft(video, wrap) {
     if (!video) return;
+    // evita restart contínuo
+    if (!video.paused && video.dataset.playing === '1') {
+      if (wrap) wrap.classList.add('is-playing');
+      return;
+    }
+    pauseAllExcept(video);
     try {
       video.muted = true;
       video.defaultMuted = true;
       video.setAttribute('muted', '');
       video.playsInline = true;
       video.setAttribute('playsinline', '');
-      video.setAttribute('webkit-playsinline', '');
       video.loop = true;
-      if (video.preload !== 'auto') {
-        video.preload = 'auto';
-        try {
-          video.load();
-        } catch (e0) {}
-      }
       var p = video.play();
-      if (wrap) wrap.classList.add('playing');
+      video.dataset.playing = '1';
+      if (wrap) wrap.classList.add('is-playing');
       if (p && p.catch) {
         p.catch(function () {
-          video.muted = true;
-          video.play().catch(function () {});
+          video.dataset.playing = '0';
+          if (wrap) wrap.classList.remove('is-playing');
         });
       }
-    } catch (e) {}
+    } catch (e) {
+      video.dataset.playing = '0';
+    }
   }
 
-  function pauseVid(video, wrap) {
+  function pauseSoft(video, wrap) {
     if (!video) return;
     try {
-      video.pause();
+      if (!video.paused) video.pause();
     } catch (e) {}
-    if (wrap) wrap.classList.remove('playing');
-  }
-
-  function onTimeLimit(video) {
-    if (!video || video.dataset.timeBound === '1') return;
-    video.dataset.timeBound = '1';
-    video.addEventListener('timeupdate', function () {
-      try {
-        if (video.currentTime >= PREVIEW_SEC) {
-          video.currentTime = 0;
-        }
-      } catch (e) {}
-    });
+    video.dataset.playing = '0';
+    if (wrap) wrap.classList.remove('is-playing');
   }
 
   function ensureObs() {
@@ -147,25 +136,39 @@
       function (entries) {
         entries.forEach(function (en) {
           var video = en.target;
-          var wrap = video.closest('.feed-video-wrap') || video.parentElement;
-          if (en.isIntersecting && en.intersectionRatio >= 0.35) {
-            playMuted(video, wrap);
-            onTimeLimit(video);
+          var wrap = video.closest('.feed-video-wrap');
+          if (en.isIntersecting && en.intersectionRatio >= 0.4) {
+            if (video.preload === 'none') {
+              video.preload = 'metadata';
+            }
+            // carregar dados uma vez
+            if (video.dataset.loadedMeta !== '1' && video.readyState < 1) {
+              video.dataset.loadedMeta = '1';
+              try {
+                /* não chamar load() em loop — só se ainda não começou */
+                if (video.networkState === 0) video.load();
+              } catch (e) {}
+            }
+            playSoft(video, wrap);
           } else {
-            pauseVid(video, wrap);
+            pauseSoft(video, wrap);
           }
         });
       },
-      { root: feed || null, threshold: [0.2, 0.35, 0.5], rootMargin: '80px 0px' }
+      { root: feed || null, threshold: [0.4, 0.6], rootMargin: '40px 0px' }
     );
     return obs;
   }
 
-  function processWrap(wrap) {
-    if (!wrap) return;
+  function processVideo(video) {
+    if (!video || video.dataset.stableVid === '1') return;
+    video.dataset.stableVid = '1';
+
+    var wrap = video.closest('.feed-video-wrap') || video.parentElement;
+    if (wrap && !wrap.classList.contains('feed-video-wrap')) {
+      wrap.classList.add('feed-video-wrap');
+    }
     ensureBadge(wrap);
-    var video = wrap.querySelector('video.feed-video, video');
-    if (!video) return;
 
     video.muted = true;
     video.defaultMuted = true;
@@ -175,89 +178,75 @@
     video.playsInline = true;
     video.loop = true;
 
-    // carregar mais depressa que preload=none do index
-    if (video.preload === 'none' || !video.preload) {
+    // metadata é suficiente para poster; auto só quando visível
+    if (!video.preload || video.preload === 'none') {
       video.preload = 'metadata';
     }
 
     var poster = video.getAttribute('poster');
-    if (poster) {
-      setThumb(wrap, poster);
-      video.dataset.thumbDone = '1';
-    } else {
-      captureFrame(video, wrap);
-    }
+    if (poster) setPoster(wrap, video, poster);
+
+    video.addEventListener(
+      'loadeddata',
+      function () {
+        captureOnce(video, wrap);
+        video.classList.add('media-ready');
+      },
+      { once: true }
+    );
+    video.addEventListener(
+      'error',
+      function () {
+        video.classList.add('media-ready');
+        video.classList.add('media-error');
+      },
+      { once: true }
+    );
 
     ensureObs().observe(video);
-
-    // se já está no ecrã, começa já
-    try {
-      var r = video.getBoundingClientRect();
-      var vh = window.innerHeight || 600;
-      if (r.top < vh * 0.85 && r.bottom > vh * 0.15) {
-        playMuted(video, wrap);
-        onTimeLimit(video);
-      }
-    } catch (e) {}
   }
 
   function scan() {
     injectCSS();
-    var feed = document.getElementById('feedList');
-    if (!feed) return;
-
-    document.querySelectorAll('#feedList .feed-video-wrap').forEach(processWrap);
-    document.querySelectorAll('#feedList .post-media > video, #feedList video.feed-video').forEach(function (v) {
-      var host = v.closest('.feed-video-wrap') || v.parentElement;
-      if (host && !host.classList.contains('feed-video-wrap')) host.classList.add('feed-video-wrap');
-      processWrap(host);
-    });
+    document.querySelectorAll('#feedList video.feed-video, #feedList .feed-video-wrap video').forEach(processVideo);
   }
 
-  // Sobrescrever setup do index que bloqueia autoplay
-  function patchIndexAutoplay() {
+  // Não deixar o index forçar preload=none / pausar tudo de forma agressiva
+  function patchIndex() {
     window.setupFeedVideoAutoplay = function () {
       scan();
     };
   }
 
+  var scanTimer = null;
+  function scheduleScan() {
+    if (scanTimer) return;
+    scanTimer = setTimeout(function () {
+      scanTimer = null;
+      scan();
+    }, 120);
+  }
+
   function boot() {
     injectCSS();
-    patchIndexAutoplay();
+    patchIndex();
     scan();
-    [200, 600, 1500, 3000].forEach(function (ms) {
-      setTimeout(scan, ms);
-    });
+    setTimeout(scan, 400);
+    setTimeout(scan, 1200);
 
-    if (typeof window.renderFeed === 'function' && !window.renderFeed.__vidAuto) {
+    if (typeof window.renderFeed === 'function' && !window.renderFeed.__stableVid) {
       var rf = window.renderFeed;
       window.renderFeed = function () {
         var r = rf.apply(this, arguments);
-        setTimeout(scan, 50);
-        setTimeout(scan, 300);
-        setTimeout(scan, 900);
+        // limpar flags só em elementos novos — processVideo usa dataset.stableVid
+        // após re-render o DOM é novo, flags somem sozinhas
+        scheduleScan();
+        setTimeout(scan, 350);
         return r;
       };
-      window.renderFeed.__vidAuto = true;
+      window.renderFeed.__stableVid = true;
       window.renderFeed.__vidThumbs = true;
-    }
-
-    // re-scan ao scroll (fallback se observer falhar)
-    var feed = document.getElementById('feedList');
-    if (feed && !feed.__vidScroll) {
-      feed.__vidScroll = true;
-      var t = null;
-      feed.addEventListener(
-        'scroll',
-        function () {
-          if (t) return;
-          t = setTimeout(function () {
-            t = null;
-            scan();
-          }, 180);
-        },
-        { passive: true }
-      );
+      window.renderFeed.__vidAuto = true;
     }
   }
 

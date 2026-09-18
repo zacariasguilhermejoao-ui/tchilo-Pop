@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — STABLE: câmara com efeitos PNG + feed sem piscar
+ * tchilo-Pop — Câmara estável: efeitos + botão de foto SEMPRE visíveis
  */
 (function () {
   'use strict';
@@ -7,9 +7,9 @@
   var FX = [
     { label: 'Normal', file: null },
     { label: 'Thug Life', file: 'oculos_pixel_thug_life.png', anchor: 'eyes', scale: 2.55, oy: 0.02 },
-    { label: 'Óculos estrela', file: 'oculos_estrela_rosa.png', anchor: 'eyes', scale: 2.45, oy: 0 },
-    { label: 'Nerd laço', file: 'oculos_nerd_laco_rosa.png', anchor: 'eyes', scale: 2.5, oy: -0.02 },
-    { label: 'Óculos prata', file: 'oculos_prata_esportivo.png', anchor: 'eyes', scale: 2.5, oy: 0 },
+    { label: 'Estrela', file: 'oculos_estrela_rosa.png', anchor: 'eyes', scale: 2.45, oy: 0 },
+    { label: 'Nerd', file: 'oculos_nerd_laco_rosa.png', anchor: 'eyes', scale: 2.5, oy: -0.02 },
+    { label: 'Prata', file: 'oculos_prata_esportivo.png', anchor: 'eyes', scale: 2.5, oy: 0 },
     { label: 'Gato', file: 'orelha_gato_laco_bigodes.png', anchor: 'face', scale: 1.95, oy: -0.08 },
     { label: 'Coroa', file: 'coroa_dourada.png', anchor: 'forehead', scale: 1.35, oy: -0.22 },
     { label: 'Chifres', file: 'chifres_demonio.png', anchor: 'forehead', scale: 1.45, oy: -0.35 },
@@ -21,7 +21,7 @@
     { label: 'Beijo', file: 'labios_beijo_rosa.png', anchor: 'mouth', scale: 1.35, oy: 0.02 },
     { label: 'Gloss', file: 'labios_gloss_vermelho.png', anchor: 'mouth', scale: 1.3, oy: 0.02 },
     { label: 'Dentes', file: 'mascara_boca_dentes.png', anchor: 'mouth', scale: 1.55, oy: 0.05 },
-    { label: 'Spiderman', file: 'mascara_spiderman.png', anchor: 'face', scale: 1.85, oy: -0.02 },
+    { label: 'Spider', file: 'mascara_spiderman.png', anchor: 'face', scale: 1.85, oy: -0.02 },
     { label: 'Robô', file: 'cabeca_robo_metal.png', anchor: 'face', scale: 1.9, oy: -0.04 }
   ];
 
@@ -47,41 +47,69 @@
       var im = new Image();
       im.onload = function () {
         imgs[fx.file] = im;
+        // atualizar ícone no chip se já existir
+        var chip = document.querySelector('#tscTrack .chip[data-file="' + fx.file + '"]');
+        if (chip && !chip.querySelector('img')) {
+          chip.innerHTML = '';
+          var img = document.createElement('img');
+          img.src = src;
+          img.alt = fx.label;
+          chip.appendChild(img);
+          chip.classList.remove('none');
+        }
       };
       im.src = src;
     });
   }
 
   function injectCSS() {
-    if (document.getElementById('tchiloStableCSS')) return;
-    var st = document.createElement('style');
-    st.id = 'tchiloStableCSS';
+    var st = document.getElementById('tchiloStableCSS');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'tchiloStableCSS';
+      document.head.appendChild(st);
+    }
     st.textContent =
       '#galleryBtn,#faceFxOpenBtn{display:none!important;}' +
       '#screen-create .gallery-btn:not(#tchiloOpenCamBtn):not(.tchilo-keep):not(#removeMediaBtn){display:none!important;}' +
       '#tchiloOpenCamBtn{display:inline-flex!important;z-index:60!important;}' +
-      '#tchiloStableCam{display:none;position:fixed;inset:0;z-index:2147483646;background:#000;flex-direction:column;}' +
+      /* câmara: layout em coluna — vídeo em cima, controlos FIXOS em baixo */
+      '#tchiloStableCam{display:none;position:fixed;inset:0;z-index:2147483646;background:#000;' +
+      'flex-direction:column;box-sizing:border-box;}' +
       '#tchiloStableCam.on{display:flex!important;}' +
-      '#tchiloStableCam .stage{position:relative;flex:1;min-height:0;}' +
-      '#tchiloStableCam video,#tchiloStableCam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}' +
-      '#tchiloStableCam video{background:#000;}' +
+      '#tchiloStableCam .stage{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;background:#111;}' +
+      '#tchiloStableCam video,#tchiloStableCam canvas{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;}' +
       '#tchiloStableCam.mir video{transform:scaleX(-1);}' +
       '#tchiloStableCam canvas{z-index:2;pointer-events:none;}' +
-      '#tchiloStableCam .tb{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 14px 8px;}' +
-      '#tchiloStableCam .tb button{width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.25);color:#fff;font-size:22px;font-weight:800;}' +
-      '#tchiloStableCam .bot{position:absolute;bottom:0;left:0;right:0;z-index:5;padding:8px 0 calc(16px + env(safe-area-inset-bottom));background:linear-gradient(0deg,rgba(0,0,0,.75),transparent);display:flex;flex-direction:column;align-items:center;gap:8px;}' +
-      '#tchiloStableCam .msg{color:#c8f560;font-size:12px;font-weight:600;}' +
-      '#tchiloStableCam .track{display:flex;gap:10px;width:100%;padding:0 32%;overflow-x:auto;scroll-snap-type:x mandatory;height:76px;align-items:center;scrollbar-width:none;}' +
+      '#tchiloStableCam .tb{position:absolute;top:0;left:0;right:0;z-index:10;' +
+      'display:flex;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 12px 8px;}' +
+      '#tchiloStableCam .tb button{width:44px;height:44px;border:0;border-radius:50%;' +
+      'background:rgba(0,0,0,.45);color:#fff;font-size:22px;font-weight:800;}' +
+      /* barra de baixo NÃO dentro do vídeo — flex item fixo */
+      '#tchiloStableCam .bot{' +
+      'flex:0 0 auto;position:relative;z-index:20;' +
+      'background:#0a0a0a;padding:10px 0 calc(12px + env(safe-area-inset-bottom));' +
+      'display:flex;flex-direction:column;align-items:center;gap:10px;' +
+      'border-top:1px solid rgba(255,255,255,.12);}' +
+      '#tchiloStableCam .msg{color:#c8f560;font-size:12px;font-weight:600;min-height:16px;}' +
+      '#tchiloStableCam .track{display:flex;gap:12px;width:100%;max-width:100vw;' +
+      'padding:4px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;' +
+      'height:72px;align-items:center;scrollbar-width:none;box-sizing:border-box;}' +
       '#tchiloStableCam .track::-webkit-scrollbar{display:none;}' +
-      '#tchiloStableCam .chip{flex:0 0 64px;width:64px;height:64px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);background:rgba(0,0,0,.5);overflow:hidden;padding:0;scroll-snap-align:center;opacity:.75;}' +
-      '#tchiloStableCam .chip.active{opacity:1;border-color:#c8f560;transform:scale(1.1);box-shadow:0 0 0 3px rgba(200,245,96,.35);}' +
-      '#tchiloStableCam .chip img{width:100%;height:100%;object-fit:cover;}' +
-      '#tchiloStableCam .chip.none{color:#fff;font-size:11px;font-weight:800;}' +
-      '#tchiloStableCam .bb{display:flex;justify-content:center;align-items:center;gap:24px;}' +
-      '#tchiloStableCam .sh{width:72px;height:72px;border-radius:50%;border:4px solid #fff;background:#fff;}' +
-      '#tchiloStableCam .flipb{width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;font-size:20px;}' +
+      '#tchiloStableCam .chip{flex:0 0 60px;width:60px;height:60px;border-radius:50%;' +
+      'border:2.5px solid rgba(255,255,255,.45);background:#222;overflow:hidden;' +
+      'padding:0;opacity:.85;color:#fff;font-size:10px;font-weight:800;' +
+      'display:flex;align-items:center;justify-content:center;}' +
+      '#tchiloStableCam .chip.active{opacity:1;border-color:#c8f560;' +
+      'box-shadow:0 0 0 3px rgba(200,245,96,.4);transform:scale(1.08);}' +
+      '#tchiloStableCam .chip img{width:100%;height:100%;object-fit:cover;pointer-events:none;}' +
+      '#tchiloStableCam .bb{display:flex;justify-content:center;align-items:center;gap:28px;width:100%;padding:4px 0;}' +
+      '#tchiloStableCam .sh{width:74px;height:74px;border-radius:50%;border:4px solid #fff;' +
+      'background:#fff;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.4);}' +
+      '#tchiloStableCam .flipb{width:48px;height:48px;border-radius:50%;border:0;' +
+      'background:rgba(255,255,255,.2);color:#fff;font-size:20px;flex-shrink:0;}' +
+      '#tchiloStableCam .spacer{width:48px;flex-shrink:0;}' +
       '#feedList .post{animation:none!important;}';
-    document.head.appendChild(st);
   }
 
   function hardenFeed() {
@@ -128,6 +156,7 @@
       b.type = 'button';
       b.className = 'chip' + (i === fxIndex ? ' active' : '') + (!fx.file ? ' none' : '');
       b.title = fx.label;
+      if (fx.file) b.setAttribute('data-file', fx.file);
       if (fx.file) {
         var src = asset(fx.file);
         if (src) {
@@ -136,13 +165,15 @@
           img.alt = fx.label;
           b.appendChild(img);
         } else {
-          b.textContent = fx.label.slice(0, 4);
+          b.textContent = fx.label;
           b.classList.add('none');
         }
       } else {
         b.textContent = 'Normal';
       }
-      b.onclick = function () {
+      b.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
         fxIndex = i;
         track.querySelectorAll('.chip').forEach(function (c, j) {
           c.classList.toggle('active', j === i);
@@ -168,18 +199,20 @@
       '<div class="tb">' +
       '<button type="button" id="tscClose">×</button>' +
       '<button type="button" id="tscFlipTop">↺</button>' +
-      '</div>' +
+      '</div></div>' +
       '<div class="bot">' +
       '<div class="msg" id="tscMsg">A abrir câmara…</div>' +
       '<div class="track" id="tscTrack"></div>' +
       '<div class="bb">' +
-      '<div style="width:48px"></div>' +
-      '<button type="button" class="sh" id="tscSnap"></button>' +
+      '<div class="spacer"></div>' +
+      '<button type="button" class="sh" id="tscSnap" aria-label="Tirar foto"></button>' +
       '<button type="button" class="flipb" id="tscFlip">↺</button>' +
-      '</div></div></div>';
+      '</div></div>';
     document.body.appendChild(el);
+
     document.getElementById('tscClose').onclick = function (e) {
       e.preventDefault();
+      e.stopPropagation();
       closeCam();
     };
     function doFlip(e) {
@@ -192,6 +225,7 @@
     document.getElementById('tscFlipTop').onclick = doFlip;
     document.getElementById('tscSnap').onclick = function (e) {
       e.preventDefault();
+      e.stopPropagation();
       snap();
     };
     buildChips();
@@ -203,8 +237,7 @@
     if (m) m.textContent = t || '';
   }
 
-  function stopCam() {
-    loopOn = false;
+  function stopStreamOnly() {
     if (camStream) {
       camStream.getTracks().forEach(function (t) {
         try {
@@ -216,7 +249,8 @@
   }
 
   function closeCam() {
-    stopCam();
+    loopOn = false;
+    stopStreamOnly();
     var el = document.getElementById('tchiloStableCam');
     if (el) {
       el.classList.remove('on');
@@ -247,9 +281,7 @@
         opts.baseOptions.delegate = 'CPU';
         landmarker = await vision.FaceLandmarker.createFromOptions(fileset, opts);
       }
-    } catch (e2) {
-      console.warn('lm', e2);
-    }
+    } catch (e2) {}
     return landmarker;
   }
 
@@ -357,7 +389,7 @@
   }
 
   function startCam() {
-    stopCam();
+    stopStreamOnly();
     loopOn = true;
     var video = document.getElementById('tscVideo');
     if (!video) return;
@@ -377,9 +409,10 @@
         video.muted = true;
         video.setAttribute('playsinline', 'true');
         video.play().catch(function () {});
-        setMsg('Escolhe efeito · Toque no círculo para foto');
+        setMsg('Desliza efeitos · Toque no círculo branco');
         ensureLm();
         loadImgs();
+        buildChips();
         paintLoop();
       })
       .catch(function (err) {
@@ -456,11 +489,20 @@
     buildChips();
     el.classList.add('on');
     el.style.display = 'flex';
+    el.style.flexDirection = 'column';
     el.style.zIndex = '2147483646';
     document.body.style.overflow = 'hidden';
+    // fechar outras câmaras sobrepostas
+    ['tchiloCam', 'tchiloCamLive', 'tchiloFaceFx'].forEach(function (id) {
+      var x = document.getElementById(id);
+      if (x) {
+        x.style.display = 'none';
+        x.classList.remove('open', 'on');
+      }
+    });
     startCam();
-    setTimeout(buildChips, 400);
-    setTimeout(buildChips, 1200);
+    setTimeout(buildChips, 300);
+    setTimeout(buildChips, 1000);
     setTimeout(buildChips, 2500);
   }
 
@@ -515,6 +557,8 @@
         }
       }
       if (!btn) return;
+      // não capturar cliques DENTRO da câmara
+      if (t.closest && t.closest('#tchiloStableCam')) return;
       ev.preventDefault();
       ev.stopPropagation();
       openCam();
@@ -527,10 +571,9 @@
     hardenFeed();
     loadImgs();
     ensureBtn();
-    [100, 500, 1500, 3000].forEach(function (ms) {
+    [100, 600, 2000].forEach(function (ms) {
       setTimeout(function () {
         injectCSS();
-        hardenFeed();
         ensureBtn();
         loadImgs();
       }, ms);
@@ -540,7 +583,7 @@
       window.goTo = function (s) {
         var r = orig.apply(this, arguments);
         if (s === 'create' || s === 'screen-create') {
-          setTimeout(ensureBtn, 20);
+          setTimeout(ensureBtn, 30);
           setTimeout(ensureBtn, 150);
         }
         return r;

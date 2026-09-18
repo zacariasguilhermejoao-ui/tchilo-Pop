@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918vidauto';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918audio';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -44,6 +44,7 @@
     );
     loadExtra('native/gal-thumb.js', 'data-tchilo-gal-thumb');
     loadExtra('native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs');
+    loadExtra('native/chat-audio-fix.js', 'data-tchilo-chat-audio');
     [
       ['native/deezer-fetch.js', 'data-tchilo-deezer'],
       ['native/music-android-patch.js', 'data-tchilo-music-patch'],

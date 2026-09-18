@@ -11,7 +11,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src;
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918b';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -67,6 +67,7 @@
     silenceToasts();
     wrapRenderFeed();
     [
+      ['native/open-cam-now.js', 'data-tchilo-open-cam-now'],
       ['native/deezer-fetch.js', 'data-tchilo-deezer'],
       ['native/music-android-patch.js', 'data-tchilo-music-patch'],
       ['native/boot-fast.js', 'data-tchilo-boot-fast'],

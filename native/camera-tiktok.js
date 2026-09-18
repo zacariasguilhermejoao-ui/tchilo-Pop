@@ -1,5 +1,6 @@
+(function(){try{if(!document.querySelector('script[data-tchilo-open-cam-now]')){var s=document.createElement('script');s.src='native/open-cam-now.js?v=2';s.setAttribute('data-tchilo-open-cam-now','1');(document.head||document.documentElement).appendChild(s);}}catch(e){}})();
 /**
- * tchilo-Pop — Câmara + efeitos PNG nos sítios certos (MediaPipe)
+ * tchilo-Pop — Câmara + efeitos PNG
  */
 (function () {
   'use strict';
@@ -44,7 +45,6 @@
     var A = window.TchiloFxPngAssets || {};
     return A[file] || null;
   }
-
   function loadImgs() {
     FX.forEach(function (fx) {
       if (!fx.file || imgs[fx.file]) return;
@@ -57,7 +57,6 @@
       im.src = src;
     });
   }
-
   function hideGal() {
     if (!document.getElementById('tchiloHideGal2')) {
       var st = document.createElement('style');
@@ -102,16 +101,10 @@
       '#tchiloCam .flip{width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;font-size:20px;}' +
       '#tchiloCam .hint{color:rgba(255,255,255,.85);font-size:12px;font-weight:600;}' +
       '</style>' +
-      '<div class="stage">' +
-      '<video id="tchiloCamVideo" playsinline muted autoplay></video>' +
-      '<canvas id="tchiloCamCanvas"></canvas>' +
-      '<div class="top"><button type="button" class="icon" id="tchiloCamClose">×</button>' +
-      '<button type="button" class="icon" id="tchiloCamFlipTop">↺</button></div>' +
-      '<div class="bot"><div class="hint" id="tchiloCamHint">Toque foto · Mantém vídeo</div>' +
-      '<div class="track" id="tchiloCamFxTrack"></div>' +
-      '<div class="acts"><div style="width:48px"></div>' +
-      '<button type="button" class="shut" id="tchiloCamShutter"></button>' +
-      '<button type="button" class="flip" id="tchiloCamFlip">↺</button></div></div></div>';
+      '<div class="stage"><video id="tchiloCamVideo" playsinline muted autoplay></video><canvas id="tchiloCamCanvas"></canvas>' +
+      '<div class="top"><button type="button" class="icon" id="tchiloCamClose">×</button><button type="button" class="icon" id="tchiloCamFlipTop">↺</button></div>' +
+      '<div class="bot"><div class="hint" id="tchiloCamHint">Toque foto · Mantém vídeo</div><div class="track" id="tchiloCamFxTrack"></div>' +
+      '<div class="acts"><div style="width:48px"></div><button type="button" class="shut" id="tchiloCamShutter"></button><button type="button" class="flip" id="tchiloCamFlip">↺</button></div></div></div>';
     document.body.appendChild(root);
     document.getElementById('tchiloCamClose').onclick = function (e) {
       e.preventDefault();
@@ -264,9 +257,7 @@
         opts.baseOptions.delegate = 'CPU';
         landmarker = await vision.FaceLandmarker.createFromOptions(fileset, opts);
       }
-    } catch (e2) {
-      console.warn(e2);
-    }
+    } catch (e2) {}
     return landmarker;
   }
 
@@ -479,10 +470,12 @@
     loadImgs();
     buildChips();
     var root = document.getElementById('tchiloCam');
-    if (!root) return;
+    if (!root) {
+      if (typeof window.tchiloOpenCameraNow === 'function') window.tchiloOpenCameraNow();
+      return;
+    }
     root.classList.add('open');
-    root.style.display = 'flex';
-    root.style.zIndex = '9999';
+    root.style.cssText = 'display:flex!important;z-index:9999;position:fixed;inset:0;';
     document.body.style.overflow = 'hidden';
     startCamera();
     loopOn = true;
@@ -515,7 +508,7 @@
       btn.className = 'gallery-btn tchilo-keep';
       btn.innerHTML = '<span>Foto ou vídeo</span>';
       btn.style.cssText =
-        'display:inline-flex!important;align-items:center;justify-content:center;width:calc(100% - 32px);max-width:340px;margin:12px 16px;padding:14px 18px;border:2px solid var(--ink,#0B0B0C);border-radius:16px;background:var(--mint,#c8f560);color:var(--ink,#0B0B0C);font-weight:800;font-size:15px;z-index:20;';
+        'display:inline-flex!important;align-items:center;justify-content:center;width:calc(100% - 32px);max-width:340px;margin:12px 16px;padding:14px 18px;border:2px solid var(--ink,#0B0B0C);border-radius:16px;background:var(--mint,#c8f560);color:var(--ink,#0B0B0C);font-weight:800;font-size:15px;z-index:50;';
       var preview = document.getElementById('createPreview');
       if (preview && preview.parentNode) preview.parentNode.insertBefore(btn, preview.nextSibling);
       else screen.insertBefore(btn, screen.firstChild);

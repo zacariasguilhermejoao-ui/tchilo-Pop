@@ -81,6 +81,7 @@
       ['native/face-fx-pro.js', 'data-tchilo-face-fx-pro'],
       ['native/face-fx-icons.js', 'data-tchilo-face-fx-icons'],
       ['native/fx-chip-icons.js', 'data-tchilo-fx-chip-icons'],
+      ['native/fx-cat-neon.js', 'data-tchilo-fx-cat-neon'],
       ['native/face-fx-deliver.js', 'data-tchilo-face-fx-deliver'],
       ['native/password-toggle.js', 'data-tchilo-pw-toggle'],
       ['native/video-preview.js', 'data-tchilo-video-preview']

@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — câmara: efeitos menores, nítidos, galeria
+ * tchilo-Pop — câmara: efeitos, galeria, flash nativo
  */
 (function () {
   "use strict";
@@ -23,7 +23,7 @@
     { label: "Spider", file: "mascara_spiderman.png", anchor: "face", scale: 1.25, oy: -0.02 },
     { label: "Robô", file: "cabeca_robo_metal.png", anchor: "face", scale: 1.3, oy: -0.02 }
   ];
-  var imgs = {}, fxIndex = 0, stream = null, facing = "user", lm = null, lastLm = null, lastT = 0, loopOn = false;
+  var imgs = {}, fxIndex = 0, stream = null, facing = "user", lm = null, lastLm = null, lastT = 0, loopOn = false, torchOn = false;
 
   function asset(f) { return (window.TchiloFxPngAssets || {})[f] || null; }
   function loadImgs() {
@@ -50,7 +50,10 @@
       "#tchiloStableCam.mir video{transform:scaleX(-1)}" +
       "#tchiloStableCam canvas{z-index:2;pointer-events:none}" +
       "#tchiloStableCam .tb{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 12px 8px}" +
-      "#tchiloStableCam .tb button{width:44px;height:44px;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:22px;font-weight:800}" +
+      "#tchiloStableCam .tb button{width:44px;height:44px;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:20px;font-weight:800}" +
+      "#tchiloStableCam .tb .tb-right{display:flex;gap:8px;align-items:center}" +
+      "#tchiloStableCam .tb #tscFlash.on{background:#c8f560;color:#111}" +
+      "#tchiloStableCam .tb #tscFlash:disabled{opacity:.35}" +
       "#tchiloStableCam .bot{flex:0 0 auto;z-index:20;background:#0a0a0a;padding:10px 0 calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,.12)}" +
       "#tchiloStableCam .msg{color:#c8f560;font-size:12px;font-weight:600}" +
       "#tchiloStableCam .track{display:flex;gap:10px;width:100%;padding:4px 12px;overflow-x:auto;height:68px;align-items:center;-webkit-overflow-scrolling:touch;scrollbar-width:none}" +
@@ -99,7 +102,12 @@
     el.className = "mir";
     el.innerHTML =
       '<div class="stage"><video id="tscVideo" playsinline muted autoplay></video><canvas id="tscCanvas"></canvas>' +
-      '<div class="tb"><button type="button" id="tscClose">×</button><button type="button" id="tscFlipTop">↺</button></div></div>' +
+      '<div class="tb">' +
+      '<button type="button" id="tscClose">×</button>' +
+      '<div class="tb-right">' +
+      '<button type="button" id="tscFlash" title="Flash">⚡</button>' +
+      '<button type="button" id="tscFlipTop">↺</button>' +
+      '</div></div></div>' +
       '<div class="bot"><div class="msg" id="tscMsg">A abrir câmara…</div><div class="track" id="tscTrack"></div>' +
       '<div class="bb"><button type="button" class="galb" id="tscGal">▦</button>' +
       '<button type="button" class="sh" id="tscSnap"></button>' +
@@ -109,12 +117,16 @@
     document.getElementById("tscClose").onclick = function (e) { e.preventDefault(); closeCam(); };
     function flip(e) {
       e.preventDefault();
+      if (torchOn) { try { setTorch(false); } catch (e0) {} }
+      torchOn = false;
       facing = facing === "user" ? "environment" : "user";
       el.classList.toggle("mir", facing === "user");
       startCam();
     }
     document.getElementById("tscFlip").onclick = flip;
     document.getElementById("tscFlipTop").onclick = flip;
+    var flashBtn = document.getElementById("tscFlash");
+    if (flashBtn) flashBtn.onclick = toggleFlash;
     document.getElementById("tscSnap").onclick = function (e) { e.preventDefault(); snap(); };
     document.getElementById("tscGal").onclick = function (e) {
       e.preventDefault();
@@ -146,6 +158,8 @@
     if (stream) { stream.getTracks().forEach(function (t) { try { t.stop(); } catch (e) {} }); stream = null; }
   }
   function closeCam() {
+    if (torchOn) { try { setTorch(false); } catch (e0) {} }
+    torchOn = false;
     loopOn = false; stopStream();
     var el = document.getElementById("tchiloStableCam");
     if (el) { el.classList.remove("on"); el.style.display = "none"; }
@@ -228,6 +242,70 @@
     ctx.restore();
   }
 
+  function getVideoTrack() {
+    if (!stream) return null;
+    var tracks = stream.getVideoTracks();
+    return tracks && tracks[0] ? tracks[0] : null;
+  }
+
+  function torchSupported() {
+    var track = getVideoTrack();
+    if (!track || typeof track.getCapabilities !== "function") return false;
+    try {
+      var caps = track.getCapabilities();
+      return !!(caps && (caps.torch === true || (caps.torch && caps.torch.length)));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function updateFlashBtn() {
+    var btn = document.getElementById("tscFlash");
+    if (!btn) return;
+    var back = facing === "environment";
+    var ok = back && torchSupported();
+    btn.disabled = !ok;
+    btn.classList.toggle("on", !!torchOn && ok);
+    btn.title = !back ? "Flash só na câmara traseira" : ok ? (torchOn ? "Desligar flash" : "Ligar flash") : "Flash não disponível";
+    btn.setAttribute("aria-label", btn.title);
+  }
+
+  function setTorch(on) {
+    var track = getVideoTrack();
+    if (!track) return Promise.resolve(false);
+    torchOn = !!on;
+    return track.applyConstraints({ advanced: [{ torch: torchOn }] }).then(function () {
+      updateFlashBtn();
+      setMsg(torchOn ? "Flash ligado" : "Flash desligado");
+      return true;
+    }).catch(function () {
+      return track.applyConstraints({ torch: torchOn }).then(function () {
+        updateFlashBtn();
+        setMsg(torchOn ? "Flash ligado" : "Flash desligado");
+        return true;
+      }).catch(function (err2) {
+        console.warn("torch", err2);
+        torchOn = false;
+        updateFlashBtn();
+        setMsg("Flash não suportado neste dispositivo");
+        return false;
+      });
+    });
+  }
+
+  function toggleFlash(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (facing !== "environment") {
+      setMsg("Vira para a câmara de trás para usar o flash");
+      return;
+    }
+    if (!torchSupported()) {
+      setMsg("Flash não disponível neste telemóvel");
+      return;
+    }
+    setTorch(!torchOn);
+  }
+
   function startCam() {
     stopStream(); loopOn = true;
     var video = document.getElementById("tscVideo");
@@ -238,8 +316,10 @@
       .then(function (s) {
         stream = s; video.srcObject = s; video.muted = true; video.setAttribute("playsinline", "true");
         video.play().catch(function () {});
-        setMsg("Efeitos · Galeria ▦ · Círculo = foto");
+        setMsg("Efeitos · Galeria · Flash ⚡ · Círculo = foto");
         ensureLm(); loadImgs(); buildChips(); paintLoop();
+        if (facing === "environment" && torchOn) setTorch(true);
+        else { torchOn = false; updateFlashBtn(); }
       })
       .catch(function () { setMsg("Permite a CÂMARA nas definições"); });
   }

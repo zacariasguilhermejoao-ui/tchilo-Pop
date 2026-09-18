@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918audio';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918fix2';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -22,22 +22,27 @@
     }
     st.textContent =
       '#feedList .post{animation:none!important;}' +
+      '#feedList video{animation:none!important;}' +
       '#galleryBtn,#faceFxOpenBtn{display:none!important;}' +
-      '.toast,#toast,.toast.show{display:none!important;}';
+      /* só esconde toasts de “busy/loading”, não erros */
+      '.toast.busy,#toast.busy{display:none!important;}';
   }
 
-  function silenceToasts() {
+  function silenceBusyOnly() {
     try {
-      window.showToast = function () {};
-      window.tchiloShowBusy = function () {};
+      if (typeof showToast === 'function' && !window.__tchiloRealShowToast) {
+        window.__tchiloRealShowToast = showToast;
+      }
+      // não anular showToast — mensagens de erro têm de aparecer
+      if (typeof window.tchiloShowBusy === 'function') {
+        window.tchiloShowBusy = function () {};
+      }
     } catch (e) {}
   }
 
-  setInterval(silenceToasts, 3000);
-
   function boot() {
     injectCSS();
-    silenceToasts();
+    silenceBusyOnly();
     loadExtra(
       'https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@40b50f4d0007135b7ed210db4a1de2422d87cb3d/native/stable-fix.js',
       'data-tchilo-stable'
@@ -45,6 +50,7 @@
     loadExtra('native/gal-thumb.js', 'data-tchilo-gal-thumb');
     loadExtra('native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs');
     loadExtra('native/chat-audio-fix.js', 'data-tchilo-chat-audio');
+    loadExtra('native/chat-send-fix.js', 'data-tchilo-chat-send');
     [
       ['native/deezer-fetch.js', 'data-tchilo-deezer'],
       ['native/music-android-patch.js', 'data-tchilo-music-patch'],

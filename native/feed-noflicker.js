@@ -70,6 +70,7 @@
       ['native/music-android-patch.js', 'data-tchilo-music-patch'],
       ['native/boot-fast.js', 'data-tchilo-boot-fast'],
       ['native/android-media-fix.js', 'data-tchilo-android-media'],
+      ['native/pt-themes-fix.js', 'data-tchilo-pt-themes'],
       ['native/camera-tiktok.js', 'data-tchilo-camera-tiktok'],
       ['native/camera-no-autoopen.js', 'data-tchilo-camera-no-auto'],
       ['native/nav-layout.js', 'data-tchilo-nav-layout'],

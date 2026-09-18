@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918c';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918d';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -22,7 +22,6 @@
     }
     st.textContent =
       '#feedList .post{animation:none!important;}' +
-      '#feedList .post-media{background:#e8e6de!important;}' +
       '#galleryBtn,#faceFxOpenBtn{display:none!important;}' +
       '.toast,#toast,.toast.show{display:none!important;}';
   }

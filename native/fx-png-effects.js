@@ -1,7 +1,6 @@
 /**
- * tchilo-Pop — efeitos PNG custom (os 17 da pasta)
- * Substitui chips antigos, desenha na cara, ícones com preview do PNG
- * Desenha DEPOIS do clearRect do face-effects.js
+ * tchilo-Pop — efeitos PNG na lista e na cara
+ * Funciona em #tchiloCam (Foto ou vídeo) e #tchiloFaceFx
  */
 (function () {
   'use strict';
@@ -32,8 +31,6 @@
   var ownLm = null;
   var lastLm = null;
   var lastT = 0;
-  var chipsBuilt = false;
-  var paintScheduled = false;
 
   function assetSrc(file) {
     var A = window.TchiloFxPngAssets || {};
@@ -46,8 +43,12 @@
       var src = assetSrc(fx.file);
       if (!src) return;
       var im = new Image();
-      im.onload = function () { imgs[fx.file] = im; };
-      im.onerror = function () { console.warn('fx img fail', fx.file); };
+      im.onload = function () {
+        imgs[fx.file] = im;
+      };
+      im.onerror = function () {
+        console.warn('fx img fail', fx.file);
+      };
       im.src = src;
     });
   }
@@ -77,7 +78,8 @@
     var mouthR = lm(L, 291, w, h);
     var mouthMid = { x: (mouthL.x + mouthR.x) / 2, y: (mouthL.y + mouthR.y) / 2 };
 
-    var cx = midEyes.x, cy = midEyes.y;
+    var cx = midEyes.x;
+    var cy = midEyes.y;
     var targetW = faceW * (fx.scale || 2);
     if (fx.anchor === 'forehead') {
       cx = top.x;
@@ -107,77 +109,95 @@
     var st = document.createElement('style');
     st.id = 'tchiloPngFxCSS';
     st.textContent =
-      '#tchiloFxProBar,.fx-row-label[data-pro],#tchiloFxProBar + *{display:none!important;}' +
-      '#tchiloFxChips{display:flex!important;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:8px 4px;}' +
+      '#tchiloFxProBar{display:none!important;}' +
       '#tchiloFxChips .fx-chip:not(.fx-png-chip){display:none!important;}' +
-      '#tchiloFxChips .fx-png-chip{' +
+      '#tchiloFxChips .fx-png-chip,#tchiloCamFxTrack .fx-png-chip{' +
       'flex:0 0 auto;width:64px!important;height:64px!important;min-width:64px!important;' +
       'border-radius:50%!important;padding:0!important;overflow:hidden!important;' +
-      'border:2px solid rgba(255,255,255,.35)!important;background:rgba(0,0,0,.35)!important;' +
+      'border:2.5px solid rgba(255,255,255,.4)!important;background:rgba(0,0,0,.4)!important;' +
       'display:flex!important;align-items:center!important;justify-content:center!important;' +
-      'font-size:0!important;color:transparent!important;cursor:pointer;}' +
-      '#tchiloFxChips .fx-png-chip.active{' +
-      'border-color:#c8f560!important;box-shadow:0 0 0 3px rgba(200,245,96,.4)!important;}' +
-      '#tchiloFxChips .fx-png-chip img{width:100%;height:100%;object-fit:cover;pointer-events:none;}' +
-      '#tchiloFxChips .fx-png-chip.fx-none{font-size:11px!important;color:#fff!important;font-weight:800!important;}';
+      'font-size:0!important;color:transparent!important;cursor:pointer;scroll-snap-align:center;}' +
+      '#tchiloFxChips .fx-png-chip.active,#tchiloCamFxTrack .fx-png-chip.active{' +
+      'border-color:#c8f560!important;box-shadow:0 0 0 3px rgba(200,245,96,.4)!important;' +
+      'opacity:1!important;transform:scale(1.08);}' +
+      '#tchiloFxChips .fx-png-chip img,#tchiloCamFxTrack .fx-png-chip img{' +
+      'width:100%;height:100%;object-fit:cover;pointer-events:none;}' +
+      '#tchiloFxChips .fx-png-chip.fx-none,#tchiloCamFxTrack .fx-png-chip.fx-none{' +
+      'font-size:11px!important;color:#fff!important;font-weight:800!important;}' +
+      '#tchiloCamFxTrack .fx-3d-item:not(.fx-png-chip){display:none!important;}';
     document.head.appendChild(st);
   }
 
-  function hideOldSystems() {
-    var pro = document.getElementById('tchiloFxProBar');
-    if (pro) {
-      pro.style.display = 'none';
-      var prev = pro.previousElementSibling;
-      if (prev && prev.textContent && /lentes|pro/i.test(prev.textContent)) prev.style.display = 'none';
+  function makeChip(fx, i, barId) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'fx-chip fx-png-chip fx-3d-item' + (i === pngIndex ? ' active' : '') + (!fx.file ? ' fx-none' : '');
+    b.setAttribute('data-label', fx.label);
+    b.setAttribute('aria-label', fx.label);
+    b.title = fx.label;
+    if (fx.file) {
+      var src = assetSrc(fx.file);
+      if (src) {
+        var img = document.createElement('img');
+        img.alt = fx.label;
+        img.src = src;
+        b.appendChild(img);
+      } else {
+        b.textContent = fx.label.slice(0, 6);
+        b.classList.add('fx-none');
+      }
+    } else {
+      b.textContent = 'Normal';
     }
-    var bar = document.getElementById('tchiloFxChips');
-    if (bar) {
-      bar.querySelectorAll('.fx-chip').forEach(function (c) {
-        if (!c.classList.contains('fx-png-chip')) c.style.display = 'none';
+    b.onclick = function () {
+      pngIndex = i;
+      window.__tchiloPngFxIndex = i;
+      document.querySelectorAll('.fx-png-chip').forEach(function (c) {
+        c.classList.toggle('active', c.getAttribute('data-label') === fx.label && c.parentNode && c.parentNode.id === barId);
       });
-    }
+      // sync both bars
+      document.querySelectorAll('#tchiloFxChips .fx-png-chip, #tchiloCamFxTrack .fx-png-chip').forEach(function (c) {
+        var lab = c.getAttribute('data-label');
+        c.classList.toggle('active', lab === fx.label);
+      });
+    };
+    return b;
   }
 
   function buildChips(force) {
     injectCSS();
-    hideOldSystems();
-    var bar = document.getElementById('tchiloFxChips');
-    if (!bar) return;
-    if (chipsBuilt && !force && bar.querySelectorAll('.fx-png-chip').length >= FX.length) return;
-
-    bar.innerHTML = '';
-    chipsBuilt = true;
-
-    FX.forEach(function (fx, i) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'fx-chip fx-png-chip' + (i === 0 ? ' active fx-none' : '');
-      b.setAttribute('data-label', fx.label);
-      b.setAttribute('aria-label', fx.label);
-      b.title = fx.label;
-      if (fx.file) {
-        var src = assetSrc(fx.file);
-        if (src) {
-          var img = document.createElement('img');
-          img.alt = fx.label;
-          img.src = src;
-          b.appendChild(img);
-        } else {
-          b.textContent = fx.label.slice(0, 6);
-          b.classList.add('fx-none');
-        }
-      } else {
-        b.textContent = 'Normal';
-      }
-      b.onclick = function () {
-        pngIndex = i;
-        window.__tchiloPngFxIndex = i;
-        document.querySelectorAll('#tchiloFxChips .fx-png-chip').forEach(function (c) {
-          c.classList.toggle('active', c === b);
-        });
-      };
-      bar.appendChild(b);
+    loadImages();
+    ['tchiloFxChips', 'tchiloCamFxTrack'].forEach(function (id) {
+      var bar = document.getElementById(id);
+      if (!bar) return;
+      if (!force && bar.querySelectorAll('.fx-png-chip').length >= FX.length) return;
+      bar.innerHTML = '';
+      FX.forEach(function (fx, i) {
+        bar.appendChild(makeChip(fx, i, id));
+      });
     });
+  }
+
+  function getActivePair() {
+    var cam = document.getElementById('tchiloCam');
+    if (cam && (cam.classList.contains('open') || cam.style.display === 'flex')) {
+      return {
+        root: cam,
+        video: document.getElementById('tchiloCamVideo'),
+        canvas: document.getElementById('tchiloCamCanvas'),
+        mirror: !cam.classList.contains('cam-env')
+      };
+    }
+    var face = document.getElementById('tchiloFaceFx');
+    if (face && face.classList.contains('open')) {
+      return {
+        root: face,
+        video: document.getElementById('tchiloFxVideo'),
+        canvas: document.getElementById('tchiloFxCanvas'),
+        mirror: !face.classList.contains('fx-env')
+      };
+    }
+    return null;
   }
 
   function ensureLm() {
@@ -188,26 +208,20 @@
         var fileset = await vision.FilesetResolver.forVisionTasks(
           'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
         );
+        var opts = {
+          baseOptions: {
+            modelAssetPath:
+              'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+            delegate: 'GPU'
+          },
+          runningMode: 'VIDEO',
+          numFaces: 1
+        };
         try {
-          ownLm = await vision.FaceLandmarker.createFromOptions(fileset, {
-            baseOptions: {
-              modelAssetPath:
-                'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
-              delegate: 'GPU'
-            },
-            runningMode: 'VIDEO',
-            numFaces: 1
-          });
+          ownLm = await vision.FaceLandmarker.createFromOptions(fileset, opts);
         } catch (e) {
-          ownLm = await vision.FaceLandmarker.createFromOptions(fileset, {
-            baseOptions: {
-              modelAssetPath:
-                'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
-              delegate: 'CPU'
-            },
-            runningMode: 'VIDEO',
-            numFaces: 1
-          });
+          opts.baseOptions.delegate = 'CPU';
+          ownLm = await vision.FaceLandmarker.createFromOptions(fileset, opts);
         }
       } catch (e2) {
         console.warn('fx-png landmarker', e2);
@@ -217,15 +231,23 @@
   }
 
   function paintPng() {
-    var root = document.getElementById('tchiloFaceFx');
-    if (!root || !root.classList.contains('open')) return;
-    if (pngIndex === 0 && !(window.__tchiloPngFxIndex > 0)) return;
-    pngIndex = window.__tchiloPngFxIndex || pngIndex;
-    if (pngIndex === 0) return;
+    var pair = getActivePair();
+    if (!pair || !pair.video || !pair.canvas) return;
 
-    var video = document.getElementById('tchiloFxVideo');
-    var canvas = document.getElementById('tchiloFxCanvas');
-    if (!video || !canvas || video.readyState < 2) return;
+    pngIndex = typeof window.__tchiloPngFxIndex === 'number' ? window.__tchiloPngFxIndex : pngIndex;
+    if (pngIndex === 0) {
+      // limpa canvas se Normal
+      var c0 = pair.canvas;
+      if (c0.width) {
+        var ctx0 = c0.getContext('2d');
+        ctx0.clearRect(0, 0, c0.width, c0.height);
+      }
+      return;
+    }
+
+    var video = pair.video;
+    var canvas = pair.canvas;
+    if (video.readyState < 2) return;
 
     var vw = video.videoWidth || 640;
     var vh = video.videoHeight || 480;
@@ -235,9 +257,7 @@
     }
 
     var now = performance.now();
-    if (window.__tchiloLastLandmarks && window.__tchiloLastLandmarks.length) {
-      lastLm = window.__tchiloLastLandmarks;
-    } else if (ownLm && now - lastT > 33) {
+    if (ownLm && now - lastT > 30) {
       lastT = now;
       try {
         var res = ownLm.detectForVideo(video, now);
@@ -246,13 +266,12 @@
     }
     if (!lastLm) return;
 
-    var w = canvas.width, h = canvas.height;
-    if (!w || !h) return;
+    var w = canvas.width;
+    var h = canvas.height;
     var ctx = canvas.getContext('2d');
-    var facingUser = !root.classList.contains('fx-env');
-
+    ctx.clearRect(0, 0, w, h);
     ctx.save();
-    if (facingUser) {
+    if (pair.mirror) {
       ctx.translate(w, 0);
       ctx.scale(-1, 1);
     }
@@ -260,77 +279,51 @@
     ctx.restore();
   }
 
-  function runOverlay() {
-    requestAnimationFrame(runOverlay);
-    hideOldSystems();
+  function loop() {
+    requestAnimationFrame(loop);
     paintPng();
-    if (!paintScheduled) {
-      paintScheduled = true;
-      setTimeout(function () {
-        paintPng();
-        paintScheduled = false;
-      }, 0);
-    }
-  }
-
-  function neutralizeOldDrawers() {
-    hideOldSystems();
-    var bar = document.getElementById('tchiloFxChips');
-    if (bar) {
-      var pngCount = bar.querySelectorAll('.fx-png-chip').length;
-      if (pngCount < FX.length) {
-        chipsBuilt = false;
-        buildChips(true);
-      }
-    }
   }
 
   function onOpen() {
     loadImages();
     ensureLm();
-    chipsBuilt = false;
     buildChips(true);
-    hideOldSystems();
-    setTimeout(function () { buildChips(true); hideOldSystems(); }, 150);
-    setTimeout(function () { buildChips(true); hideOldSystems(); }, 600);
-    setTimeout(function () { buildChips(true); hideOldSystems(); }, 1500);
+    setTimeout(function () {
+      buildChips(true);
+    }, 200);
+    setTimeout(function () {
+      buildChips(true);
+    }, 800);
   }
 
   window.__tchiloPngOnOpen = onOpen;
+  window.__tchiloPngFxIndex = 0;
+  window.__tchiloPngFxList = FX;
 
   function boot() {
     injectCSS();
     loadImages();
     ensureLm();
-    runOverlay();
+    loop();
 
-    setInterval(neutralizeOldDrawers, 800);
-
-    var root = document.getElementById('tchiloFaceFx');
-    if (root) {
-      new MutationObserver(function () {
-        if (root.classList.contains('open')) onOpen();
-      }).observe(root, { attributes: true, attributeFilter: ['class'] });
-      if (root.classList.contains('open')) onOpen();
-    }
-
+    // observar abertura das duas câmaras
     try {
       new MutationObserver(function () {
-        if (document.getElementById('tchiloFxChips')) {
-          if (document.getElementById('tchiloFaceFx') &&
-              document.getElementById('tchiloFaceFx').classList.contains('open')) {
-            onOpen();
-          }
+        var cam = document.getElementById('tchiloCam');
+        var face = document.getElementById('tchiloFaceFx');
+        if ((cam && cam.classList.contains('open')) || (face && face.classList.contains('open'))) {
+          onOpen();
         }
-      }).observe(document.body, { childList: true, subtree: true });
+        if (document.getElementById('tchiloCamFxTrack') || document.getElementById('tchiloFxChips')) {
+          buildChips(false);
+        }
+      }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
     } catch (e) {}
 
-    setTimeout(onOpen, 800);
-    setTimeout(onOpen, 2000);
+    setTimeout(onOpen, 500);
+    setTimeout(onOpen, 1500);
+    setTimeout(onOpen, 3000);
   }
-
-  window.__tchiloPngFxIndex = 0;
-  window.__tchiloPngFxList = FX;
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

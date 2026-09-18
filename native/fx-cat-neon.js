@@ -1,39 +1,43 @@
 /**
- * tchilo-Pop — Gato Neon (imagem do utilizador)
- * Ícone no círculo + overlay na câmara (MediaPipe)
- * Assets: carrega ICON/OVERLAY embutidos ou de ficheiros auxiliares
+ * tchilo-Pop — Gato Neon (estilo da imagem do utilizador)
+ * Ícone no círculo + overlay na câmara (MediaPipe Face Landmarker)
  */
 (function () {
   'use strict';
 
-  // SVG fallback idêntico ao estilo (se PNG ainda não carregou)
+  /* Réplica visual da imagem: orelhas roxas + bigodes + coração branco */
   var SVG_ICON =
     'data:image/svg+xml,' +
     encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">' +
-        '<defs><filter id="g" x="-30%" y="-30%" width="160%" height="160%">' +
-        '<feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
-        '<g filter="url(#g)" fill="none" stroke="#e8c0ff" stroke-width="6" stroke-linecap="round">' +
-        '<path d="M45 85 C50 35 75 25 90 55" stroke="#fff" stroke-width="8"/>' +
-        '<path d="M55 80 C60 50 72 42 82 58" stroke="#fff" stroke-width="4"/>' +
-        '<path d="M155 85 C150 35 125 25 110 55" stroke="#fff" stroke-width="8"/>' +
-        '<path d="M145 80 C140 50 128 42 118 58" stroke="#fff" stroke-width="4"/>' +
-        '<path d="M88 120 L50 108" stroke="#fff" stroke-width="5"/>' +
-        '<path d="M88 128 L45 128" stroke="#fff" stroke-width="5"/>' +
-        '<path d="M88 136 L50 148" stroke="#fff" stroke-width="5"/>' +
-        '<path d="M112 120 L150 108" stroke="#fff" stroke-width="5"/>' +
-        '<path d="M112 128 L155 128" stroke="#fff" stroke-width="5"/>' +
-        '<path d="M112 136 L150 148" stroke="#fff" stroke-width="5"/>' +
+        '<defs>' +
+        '<filter id="glow" x="-40%" y="-40%" width="180%" height="180%">' +
+        '<feGaussianBlur stdDeviation="2.5" result="b"/>' +
+        '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+        '</filter>' +
+        '</defs>' +
+        /* orelha esquerda — forma roxa preenchida */
+        '<path filter="url(#glow)" d="M28 95 C22 50 40 22 72 48 C78 55 70 78 62 95 C50 110 35 108 28 95Z" fill="#5a1a5e" stroke="#e8b8ff" stroke-width="3"/>' +
+        '<path d="M40 88 C42 58 55 42 65 55" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>' +
+        '<path d="M44 82 C48 62 55 52 60 58" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' +
+        /* orelha direita */
+        '<path filter="url(#glow)" d="M172 95 C178 50 160 22 128 48 C122 55 130 78 138 95 C150 110 165 108 172 95Z" fill="#5a1a5e" stroke="#e8b8ff" stroke-width="3"/>' +
+        '<path d="M160 88 C158 58 145 42 135 55" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>' +
+        '<path d="M156 82 C152 62 145 52 140 58" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' +
+        /* bloco bigodes + nariz */
+        '<path filter="url(#glow)" d="M55 118 C70 105 85 108 100 115 C115 108 130 105 145 118 C155 128 148 145 130 148 C115 150 100 145 100 145 C100 145 85 150 70 148 C52 145 45 128 55 118Z" fill="#5a1a5e" stroke="#e8b8ff" stroke-width="3"/>' +
+        /* bigodes */
+        '<g stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none">' +
+        '<path d="M88 125 L58 118"/><path d="M88 132 L52 132"/><path d="M88 139 L58 148"/>' +
+        '<path d="M112 125 L142 118"/><path d="M112 132 L148 132"/><path d="M112 139 L142 148"/>' +
         '</g>' +
-        '<path filter="url(#g)" d="M100 145 C90 136 82 128 82 118 C82 110 88 105 95 105 C98 105 100 107 100 112 C100 107 102 105 105 105 C112 105 118 110 118 118 C118 128 110 136 100 145 Z" fill="#fff"/>' +
+        /* coração */
+        '<path filter="url(#glow)" d="M100 142 C94 136 88 130 88 124 C88 119 92 116 96 116 C98 116 100 118 100 120 C100 118 102 116 104 116 C108 116 112 119 112 124 C112 130 106 136 100 142Z" fill="#fff"/>' +
       '</svg>'
     );
 
   var ICON_URL = window.__TCHILO_CAT_ICON || SVG_ICON;
-  var OVERLAY_URL =
-    window.__TCHILO_CAT_OV1 && window.__TCHILO_CAT_OV2
-      ? 'data:image/png;base64,' + window.__TCHILO_CAT_OV1 + window.__TCHILO_CAT_OV2
-      : window.__TCHILO_CAT_ICON || SVG_ICON;
+  var OVERLAY_URL = window.__TCHILO_CAT_ICON || SVG_ICON;
 
   var overlayImg = null;
   var landmarker = null;
@@ -43,19 +47,12 @@
   function loadImages() {
     return new Promise(function (resolve) {
       var img = new Image();
-      img.crossOrigin = 'anonymous';
       img.onload = function () {
         overlayImg = img;
         resolve(img);
       };
       img.onerror = function () {
-        // fallback SVG as image
-        var img2 = new Image();
-        img2.onload = function () {
-          overlayImg = img2;
-          resolve(img2);
-        };
-        img2.src = SVG_ICON;
+        resolve(null);
       };
       img.src = OVERLAY_URL;
     });
@@ -101,7 +98,7 @@
         var im = document.createElement('img');
         im.src = ICON_URL;
         im.alt = 'Gato';
-        im.style.cssText = 'width:54px;height:54px;object-fit:contain;pointer-events:none;display:block;';
+        im.style.cssText = 'width:56px;height:56px;object-fit:contain;pointer-events:none;display:block;';
         btn.appendChild(im);
         btn.__fxIcon = true;
       });
@@ -166,14 +163,14 @@
     var cx = (left.x + right.x) / 2;
     var cy = (top.y + nose.y) / 2;
     var ang = Math.atan2(right.y - left.y, right.x - left.x);
-    var drawW = faceW * 1.65;
+    var drawW = faceW * 1.7;
     var nh = overlayImg.naturalHeight || overlayImg.height || 200;
     var nw = overlayImg.naturalWidth || overlayImg.width || 200;
     var drawH = drawW * (nh / Math.max(1, nw));
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(ang);
-    ctx.drawImage(overlayImg, -drawW / 2, -drawH * 0.38, drawW, drawH);
+    ctx.drawImage(overlayImg, -drawW / 2, -drawH * 0.36, drawW, drawH);
     ctx.restore();
   }
 
@@ -215,7 +212,7 @@
     st.id = 'tchiloCatNeonCSS';
     st.textContent =
       '#tchiloFxChips .fx-chip[data-fx="cat-neon"],#tchiloCamFxTrack .fx-3d-item[data-fx="cat-neon"]{' +
-      'background:rgba(40,5,50,.5)!important;overflow:visible!important;}' +
+      'background:rgba(40,5,50,.55)!important;overflow:visible!important;}' +
       '#tchiloFxChips .fx-chip[data-fx="cat-neon"] img,#tchiloCamFxTrack .fx-3d-item[data-fx="cat-neon"] img{' +
       'width:56px!important;height:56px!important;object-fit:contain!important;}';
     document.head.appendChild(st);
@@ -223,36 +220,14 @@
 
   function boot() {
     injectCSS();
-    // carregar assets PNG se existirem
-    var s1 = document.createElement('script');
-    s1.src = 'native/fx-cat-neon-icon.js';
-    s1.onload = function () {
-      ICON_URL = window.__TCHILO_CAT_ICON || ICON_URL;
-      applyChipIcons();
-    };
-    document.head.appendChild(s1);
-    var s2 = document.createElement('script');
-    s2.src = 'native/fx-cat-neon-ov1.js';
-    s2.onload = function () {
-      var s3 = document.createElement('script');
-      s3.src = 'native/fx-cat-neon-ov2.js';
-      s3.onload = function () {
-        if (window.__TCHILO_CAT_OV1 && window.__TCHILO_CAT_OV2) {
-          OVERLAY_URL = 'data:image/png;base64,' + window.__TCHILO_CAT_OV1 + window.__TCHILO_CAT_OV2;
-        }
-        loadImages().then(function () {
-          applyChipIcons();
-        });
-      };
-      document.head.appendChild(s3);
-    };
-    document.head.appendChild(s2);
-
+    ICON_URL = window.__TCHILO_CAT_ICON || SVG_ICON;
+    OVERLAY_URL = window.__TCHILO_CAT_ICON || SVG_ICON;
     loadImages();
     ensureLandmarker();
     applyChipIcons();
-    setTimeout(applyChipIcons, 600);
-    setTimeout(applyChipIcons, 2000);
+    setTimeout(applyChipIcons, 500);
+    setTimeout(applyChipIcons, 1500);
+    setTimeout(applyChipIcons, 3000);
     try {
       new MutationObserver(function () {
         applyChipIcons();

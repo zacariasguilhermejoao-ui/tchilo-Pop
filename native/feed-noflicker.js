@@ -30,7 +30,8 @@
       '#feedList .post{animation:none!important;}' +
       '#screen-feed .topbar,#screen-feed,#feedList{background:var(--paper,#F3F1E9)!important;}' +
       '.toast,#toast,.toast.show{display:none!important;opacity:0!important;visibility:hidden!important;height:0!important;}' +
-      '#tchiloBusy.tchilo-busy,.tchilo-busy.show{display:none!important;}';
+      '#tchiloBusy.tchilo-busy,.tchilo-busy.show{display:none!important;}' +
+      '#galleryBtn,#faceFxOpenBtn{display:none!important;}';
   }
 
   function silenceToasts() {
@@ -72,6 +73,7 @@
       ['native/android-media-fix.js', 'data-tchilo-android-media'],
       ['native/pt-themes-fix.js', 'data-tchilo-pt-themes'],
       ['native/camera-tiktok.js', 'data-tchilo-camera-tiktok'],
+      ['native/camera-open-fix.js', 'data-tchilo-camera-open-fix'],
       ['native/camera-no-autoopen.js', 'data-tchilo-camera-no-auto'],
       ['native/nav-layout.js', 'data-tchilo-nav-layout'],
       ['native/feed-music-fix.js', 'data-tchilo-feed-music-fix'],

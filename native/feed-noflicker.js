@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — loaders mínimos + stable-fix
+ * tchilo-Pop — loaders
  */
 (function () {
   'use strict';
@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918stable';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918c';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -23,10 +23,8 @@
     st.textContent =
       '#feedList .post{animation:none!important;}' +
       '#feedList .post-media{background:#e8e6de!important;}' +
-      '#feedList .post-media img,#feedList .post-media video{background:#111!important;transition:none!important;}' +
-      '#screen-feed .topbar,#screen-feed,#feedList{background:var(--paper,#F3F1E9)!important;}' +
-      '.toast,#toast,.toast.show{display:none!important;}' +
-      '#galleryBtn,#faceFxOpenBtn{display:none!important;}';
+      '#galleryBtn,#faceFxOpenBtn{display:none!important;}' +
+      '.toast,#toast,.toast.show{display:none!important;}';
   }
 
   function silenceToasts() {
@@ -41,9 +39,8 @@
   function boot() {
     injectCSS();
     silenceToasts();
-    // stable-fix PRIMEIRO — câmara + anti-piscar
     loadExtra('native/stable-fix.js', 'data-tchilo-stable');
-    // extras úteis (sem re-carregar câmara competindo)
+    loadExtra('native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs');
     [
       ['native/deezer-fetch.js', 'data-tchilo-deezer'],
       ['native/music-android-patch.js', 'data-tchilo-music-patch'],

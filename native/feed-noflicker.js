@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918gal';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918vidauto';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -38,12 +38,10 @@
   function boot() {
     injectCSS();
     silenceToasts();
-    // Câmara completa (efeitos + flash) a partir do commit estável
     loadExtra(
       'https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@40b50f4d0007135b7ed210db4a1de2422d87cb3d/native/stable-fix.js',
       'data-tchilo-stable'
     );
-    // Miniatura da foto recente no botão da galeria
     loadExtra('native/gal-thumb.js', 'data-tchilo-gal-thumb');
     loadExtra('native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs');
     [

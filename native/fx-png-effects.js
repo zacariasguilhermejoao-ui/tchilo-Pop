@@ -207,13 +207,10 @@
     })();
   }
 
-  function runOverlay() {
-    requestAnimationFrame(runOverlay);
+  function paintPng() {
     var root = document.getElementById('tchiloFaceFx');
     if (!root || !root.classList.contains('open')) return;
     if (pngIndex === 0) return;
-
-    hideOldSystems();
 
     var video = document.getElementById('tchiloFxVideo');
     var canvas = document.getElementById('tchiloFxCanvas');
@@ -248,6 +245,13 @@
     }
     drawPng(ctx, lastLm, w, h);
     ctx.restore();
+  }
+
+  function runOverlay() {
+    requestAnimationFrame(runOverlay);
+    hideOldSystems();
+    paintPng();
+    setTimeout(paintPng, 0);
   }
 
   function neutralizeOldDrawers() {

@@ -1,24 +1,9 @@
 /**
- * tchilo-Pop — temas do criar post em português + UI mais viva
- * Corrige "EPIC NIGHT" → "Noite Épica" e renova o seletor de cores.
+ * tchilo-Pop — temas do criar post em português + UI limpa
+ * Corrige "EPIC NIGHT" → "Noite Épica". Sem nomes nas cores.
  */
 (function () {
   'use strict';
-
-  var THEME_NAMES = {
-    m1: 'Menta',
-    m2: 'Sol',
-    m3: 'Roxo',
-    m4: 'Rosa',
-    m5: 'Papel',
-    m6: 'Céu',
-    m7: 'Laranja',
-    m8: 'Coral',
-    m9: 'Água',
-    m10: 'Lilás',
-    m11: 'Noite',
-    m12: 'Areia'
-  };
 
   var PT_MAP = [
     ['EPIC NIGHT', 'NOITE ÉPICA'],
@@ -26,7 +11,6 @@
     ['epic night', 'noite épica'],
     ['NEW POST', 'NOVO POST'],
     ['NEW STORY', 'NOVO STORY'],
-    ['NOVO\nSTORY', 'NOVO\nSTORY'],
     ['SHARE', 'PARTILHAR'],
     ['DUET', 'DUETO']
   ];
@@ -42,7 +26,7 @@
       'letter-spacing:.04em;text-transform:uppercase;margin:0 0 10px;}' +
       '#themeSection .color-picks{' +
       'display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;' +
-      'padding:4px 2px 12px;scrollbar-width:none;}' +
+      'padding:4px 2px 8px;scrollbar-width:none;}' +
       '#themeSection .color-picks::-webkit-scrollbar{display:none;}' +
       '#themeSection .color-pick{' +
       'flex:0 0 auto;width:52px;height:52px;border-radius:16px;' +
@@ -52,11 +36,8 @@
       '#themeSection .color-pick.active{' +
       'transform:scale(1.08);border-color:var(--ink,#0B0B0C);' +
       'box-shadow:0 0 0 3px rgba(200,245,96,.55),0 8px 20px rgba(0,0,0,.18);}' +
-      '#themeSection .color-pick .tchilo-tn{' +
-      'position:absolute;left:50%;bottom:-18px;transform:translateX(-50%);' +
-      'font:700 9px Inter,system-ui,sans-serif;color:var(--ink,#0B0B0C);' +
-      'white-space:nowrap;opacity:.75;pointer-events:none;}' +
-      '#themeSection .color-pick.active .tchilo-tn{opacity:1;font-weight:800;}' +
+      /* esconder nomes das cores se ainda existirem no DOM */
+      '#themeSection .color-pick .tchilo-tn{display:none!important;}' +
       '#createTitle::placeholder{color:var(--muted,#6b6b70);opacity:.85;}';
     document.head.appendChild(st);
   }
@@ -91,28 +72,24 @@
       else sec.insertBefore(lab, sec.firstChild);
     }
 
+    // remove nomes das cores
+    sec.querySelectorAll('.color-pick .tchilo-tn').forEach(function (n) {
+      try {
+        n.remove();
+      } catch (e) {}
+    });
     sec.querySelectorAll('.color-pick').forEach(function (el) {
-      var key = el.getAttribute('data-color') || '';
-      var name = THEME_NAMES[key];
-      if (!name) return;
-      if (!el.querySelector('.tchilo-tn')) {
-        var n = document.createElement('span');
-        n.className = 'tchilo-tn';
-        n.textContent = name;
-        el.appendChild(n);
-      }
-      el.setAttribute('aria-label', name);
-      el.title = name;
+      el.removeAttribute('title');
     });
   }
 
-  function walkTextNodes(root, fn) {
+  function walkTextNodes(root) {
     if (!root) return;
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
     var node;
     while ((node = walker.nextNode())) {
       var t = node.nodeValue;
-      if (!t || t.indexOf('Epic') < 0 && t.indexOf('EPIC') < 0 && t.indexOf('epic') < 0) continue;
+      if (!t || (t.indexOf('Epic') < 0 && t.indexOf('EPIC') < 0 && t.indexOf('epic') < 0)) continue;
       var next = t;
       PT_MAP.forEach(function (pair) {
         if (next.indexOf(pair[0]) >= 0) next = next.split(pair[0]).join(pair[1]);
@@ -127,13 +104,12 @@
     window.updateStamp = function () {
       var titleEl = document.getElementById('createTitle');
       if (titleEl && !String(titleEl.value || '').trim()) {
-        // default stamp em português
         var stamp = document.getElementById('createStamp');
         if (stamp) stamp.innerHTML = 'NOVO<br>POST';
         return;
       }
       var r = orig.apply(this, arguments);
-      walkTextNodes(document.getElementById('createStamp'), null);
+      walkTextNodes(document.getElementById('createStamp'));
       return r;
     };
     window.updateStamp.__pt = true;
@@ -185,7 +161,6 @@
       onCreateScreen();
       hookGoTo();
     }, 600);
-    // observação: textos dinâmicos
     try {
       new MutationObserver(function () {
         forcePtInVisibleUI();

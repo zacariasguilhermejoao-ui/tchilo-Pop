@@ -33,11 +33,20 @@ jobs:
           if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
-          for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js camera-tiktok.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js; do
+          for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js camera-tiktok.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js fx-png-effects.js; do
             if [ -f "www/native/$js" ] && ! grep -q "native/$js" www/index.html; then
               sed -i "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
           done
+
+          if [ -d www/native/fx-one ]; then
+            for js in www/native/fx-one/*.js; do
+              bn=$(basename "$js")
+              if ! grep -q "native/fx-one/$bn" www/index.html; then
+                sed -i "s#</body>#<script src=\"native/fx-one/$bn\"></script></body>#" www/index.html
+              fi
+            done
+          fi
 
       - name: Verify complete web payload
         shell: bash

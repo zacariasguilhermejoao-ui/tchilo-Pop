@@ -1,28 +1,9 @@
 /**
- * tchilo-Pop — câmara: efeitos, galeria, flash SVG, inverter só em baixo
+ * tchilo-Pop — câmara (efeitos removidos; novos virão um a um)
  */
 (function () {
   "use strict";
-  var FX = [
-    { label: "Normal", file: null },
-    { label: "Thug Life", file: "oculos_pixel_thug_life.png", anchor: "eyes", scale: 1.85, oy: 0.02 },
-    { label: "Estrela", file: "oculos_estrela_rosa.png", anchor: "eyes", scale: 1.75, oy: 0 },
-    { label: "Nerd", file: "oculos_nerd_laco_rosa.png", anchor: "eyes", scale: 1.8, oy: -0.02 },
-    { label: "Prata", file: "oculos_prata_esportivo.png", anchor: "eyes", scale: 1.8, oy: 0 },
-    { label: "Gato", file: "orelha_gato_laco_bigodes.png", anchor: "face", scale: 1.55, oy: -0.05 },
-    { label: "Coroa", file: "coroa_dourada.png", anchor: "forehead", scale: 1.15, oy: -0.18 },
-    { label: "Chifres", file: "chifres_demonio.png", anchor: "forehead", scale: 1.2, oy: -0.28 },
-    { label: "Boné", file: "bone_rosa_dodgers.png", anchor: "forehead", scale: 1.25, oy: -0.14 },
-    { label: "Bob", file: "peruca_bob_franja.png", anchor: "hair", scale: 1.65, oy: -0.1 },
-    { label: "Afro", file: "cabelo_afro.png", anchor: "hair", scale: 1.7, oy: -0.12 },
-    { label: "Dreads", file: "dreadlocks_bicolor.png", anchor: "hair", scale: 1.65, oy: -0.06 },
-    { label: "Topo", file: "cabelo_topo_liso.png", anchor: "hair", scale: 1.55, oy: -0.14 },
-    { label: "Beijo", file: "labios_beijo_rosa.png", anchor: "mouth", scale: 1.15, oy: 0.02 },
-    { label: "Gloss", file: "labios_gloss_vermelho.png", anchor: "mouth", scale: 1.1, oy: 0.02 },
-    { label: "Dentes", file: "mascara_boca_dentes.png", anchor: "mouth", scale: 1.25, oy: 0.03 },
-    { label: "Spider", file: "mascara_spiderman.png", anchor: "face", scale: 1.55, oy: -0.02 },
-    { label: "Robô", file: "cabeca_robo_metal.png", anchor: "face", scale: 1.6, oy: -0.02 }
-  ];
+  var FX = [{ label: "Normal", file: null }];
   var imgs = {}, fxIndex = 0, stream = null, facing = "user", lm = null, lastLm = null, lastT = 0, loopOn = false, torchOn = false;
 
   function asset(f) { return (window.TchiloFxPngAssets || {})[f] || null; }
@@ -34,7 +15,6 @@
       var im = new Image();
       im.crossOrigin = "anonymous";
       im.onload = function () { imgs[fx.file] = im; };
-      im.onerror = function () { try { delete imgs[fx.file]; } catch (e) {} };
       im.src = src;
     });
   }
@@ -79,42 +59,13 @@
   function buildChips() {
     var track = document.getElementById("tscTrack");
     if (!track) return;
-    loadImgs();
     track.innerHTML = "";
     FX.forEach(function (fx, i) {
       var b = document.createElement("button");
       b.type = "button";
       b.className = "chip" + (i === fxIndex ? " active" : "");
       b.title = fx.label;
-      b.setAttribute("data-idx", String(i));
-      if (fx.file) b.setAttribute("data-file", fx.file);
-      if (fx.file) {
-        var src = asset(fx.file);
-        if (src) {
-          var img = document.createElement("img");
-          img.src = src;
-          img.alt = fx.label;
-          b.appendChild(img);
-        } else {
-          b.textContent = fx.label.slice(0, 5);
-          (function (btn, file, label) {
-            var tries = 0;
-            var t = setInterval(function () {
-              tries++;
-              var s = asset(file);
-              if (s) {
-                btn.innerHTML = "";
-                var im = document.createElement("img");
-                im.src = s;
-                im.alt = label;
-                btn.appendChild(im);
-                loadImgs();
-                clearInterval(t);
-              } else if (tries > 40) clearInterval(t);
-            }, 250);
-          })(b, fx.file, fx.label);
-        }
-      } else b.textContent = "Normal";
+      b.textContent = fx.label;
       b.onclick = function () {
         fxIndex = i;
         lastLm = null;
@@ -128,10 +79,7 @@
 
   function ensureUI() {
     var el = document.getElementById("tchiloStableCam");
-    if (el) {
-      buildChips();
-      return el;
-    }
+    if (el) { buildChips(); return el; }
     el = document.createElement("div");
     el.id = "tchiloStableCam";
     el.className = "mir";
@@ -153,17 +101,10 @@
       '<path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button></div>' +
       '<input type="file" id="tscFile" accept="image/*,video/*" style="display:none"></div>';
     document.body.appendChild(el);
-    document.getElementById("tscClose").onclick = function (e) {
-      e.preventDefault();
-      closeCam();
-    };
+    document.getElementById("tscClose").onclick = function (e) { e.preventDefault(); closeCam(); };
     function flip(e) {
       e.preventDefault();
-      if (torchOn) {
-        try {
-          setTorch(false);
-        } catch (e0) {}
-      }
+      if (torchOn) { try { setTorch(false); } catch (e0) {} }
       torchOn = false;
       facing = facing === "user" ? "environment" : "user";
       el.classList.toggle("mir", facing === "user");
@@ -172,10 +113,7 @@
     document.getElementById("tscFlip").onclick = flip;
     var flashBtn = document.getElementById("tscFlash");
     if (flashBtn) flashBtn.onclick = toggleFlash;
-    document.getElementById("tscSnap").onclick = function (e) {
-      e.preventDefault();
-      snap();
-    };
+    document.getElementById("tscSnap").onclick = function (e) { e.preventDefault(); snap(); };
     document.getElementById("tscGal").onclick = function (e) {
       e.preventDefault();
       document.getElementById("tscFile").click();
@@ -187,23 +125,11 @@
       var url = URL.createObjectURL(f);
       closeCam();
       try {
-        window.createMediaData = {
-          type: isV ? "video" : "image",
-          items: [{ type: isV ? "video" : "image", url: url, name: f.name, file: f }],
-          files: [f]
-        };
+        window.createMediaData = { type: isV ? "video" : "image", items: [{ type: isV ? "video" : "image", url: url, name: f.name, file: f }], files: [f] };
         window.createMediaFiles = [f];
       } catch (e) {}
       if (typeof window.tchiloOpenMediaEditor === "function") {
-        try {
-          window.tchiloOpenMediaEditor({
-            mode: "post",
-            mediaType: isV ? "video" : "image",
-            src: url,
-            file: f
-          });
-          return;
-        } catch (e2) {}
+        try { window.tchiloOpenMediaEditor({ mode: "post", mediaType: isV ? "video" : "image", src: url, file: f }); return; } catch (e2) {}
       }
       if (typeof goTo === "function") goTo("create");
       ev.target.value = "";
@@ -212,35 +138,20 @@
     return el;
   }
 
-  function setMsg(t) {
-    var m = document.getElementById("tscMsg");
-    if (m) m.textContent = t || "";
-  }
-
+  function setMsg(t) { var m = document.getElementById("tscMsg"); if (m) m.textContent = t || ""; }
   function stopStream() {
     if (stream) {
-      stream.getTracks().forEach(function (t) {
-        try {
-          t.stop();
-        } catch (e) {}
-      });
+      stream.getTracks().forEach(function (t) { try { t.stop(); } catch (e) {} });
       stream = null;
     }
   }
   function closeCam() {
-    if (torchOn) {
-      try {
-        setTorch(false);
-      } catch (e0) {}
-    }
+    if (torchOn) { try { setTorch(false); } catch (e0) {} }
     torchOn = false;
     loopOn = false;
     stopStream();
     var el = document.getElementById("tchiloStableCam");
-    if (el) {
-      el.classList.remove("on");
-      el.style.display = "none";
-    }
+    if (el) { el.classList.remove("on"); el.style.display = "none"; }
     document.body.style.overflow = "";
   }
 
@@ -248,101 +159,19 @@
     if (lm) return lm;
     try {
       var vision = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm");
-      var fs = await vision.FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
-      );
+      var fs = await vision.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
       var opts = {
         baseOptions: {
-          modelAssetPath:
-            "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+          modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
           delegate: "GPU"
         },
         runningMode: "VIDEO",
         numFaces: 1
       };
-      try {
-        lm = await vision.FaceLandmarker.createFromOptions(fs, opts);
-      } catch (e) {
-        opts.baseOptions.delegate = "CPU";
-        lm = await vision.FaceLandmarker.createFromOptions(fs, opts);
-      }
-      setMsg("Efeitos prontos · aponta a cara");
-    } catch (e2) {
-      console.warn("FaceLandmarker", e2);
-      setMsg("Efeitos: a carregar…");
-    }
+      try { lm = await vision.FaceLandmarker.createFromOptions(fs, opts); }
+      catch (e) { opts.baseOptions.delegate = "CPU"; lm = await vision.FaceLandmarker.createFromOptions(fs, opts); }
+    } catch (e2) { console.warn("FaceLandmarker", e2); }
     return lm;
-  }
-
-  function pt(L, i, w, h) {
-    var p = L[i];
-    return { x: p.x * w, y: p.y * h };
-  }
-  function dist(a, b) {
-    return Math.hypot(a.x - b.x, a.y - b.y);
-  }
-
-  function drawFx(ctx, landmarks, w, h) {
-    var fx = FX[fxIndex];
-    if (!fx || !fx.file || !landmarks || !landmarks.length) return;
-    var im = imgs[fx.file];
-    if (!im || !im.complete || !im.naturalWidth) {
-      loadImgs();
-      return;
-    }
-    var L = landmarks[0];
-    var le = pt(L, 33, w, h),
-      re = pt(L, 263, w, h),
-      top = pt(L, 10, w, h),
-      chin = pt(L, 152, w, h);
-    var cL = pt(L, 234, w, h),
-      cR = pt(L, 454, w, h),
-      mL = pt(L, 61, w, h),
-      mR = pt(L, 291, w, h);
-    var lipU = pt(L, 13, w, h),
-      lipD = pt(L, 14, w, h);
-    var eyeW = dist(le, re) || 1,
-      faceW = dist(cL, cR) || eyeW * 2.1,
-      faceH = dist(top, chin) || faceW * 1.25;
-    var angle = Math.atan2(re.y - le.y, re.x - le.x);
-    var midE = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
-    var mouth = { x: (mL.x + mR.x) / 2, y: (lipU.y + lipD.y) / 2 };
-    var center = { x: (cL.x + cR.x) / 2, y: (top.y + chin.y) / 2 };
-    var cx = midE.x,
-      cy = midE.y,
-      tw = eyeW * (fx.scale || 1.8);
-    if (fx.anchor === "eyes") {
-      cx = midE.x;
-      cy = midE.y + eyeW * (fx.oy || 0);
-      tw = eyeW * (fx.scale || 1.8);
-    } else if (fx.anchor === "forehead") {
-      cx = top.x;
-      cy = top.y + faceH * (fx.oy || -0.16);
-      tw = faceW * (fx.scale || 1.15);
-    } else if (fx.anchor === "hair") {
-      cx = center.x;
-      cy = top.y + faceH * (fx.oy || -0.1);
-      tw = faceW * (fx.scale || 1.65);
-    } else if (fx.anchor === "mouth") {
-      var mw = dist(mL, mR) || eyeW * 0.55;
-      cx = mouth.x;
-      cy = mouth.y + mw * (fx.oy || 0);
-      tw = mw * (fx.scale || 1.15);
-    } else {
-      cx = center.x;
-      cy = center.y + faceH * (fx.oy || 0);
-      tw = faceW * (fx.scale || 1.55);
-    }
-    var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
-    ctx.save();
-    ctx.imageSmoothingEnabled = true;
-    try {
-      ctx.imageSmoothingQuality = "high";
-    } catch (e) {}
-    ctx.translate(cx, cy);
-    ctx.rotate(angle);
-    ctx.drawImage(im, -tw / 2, -th / 2, tw, th);
-    ctx.restore();
   }
 
   function paintLoop() {
@@ -350,46 +179,17 @@
     requestAnimationFrame(paintLoop);
     var root = document.getElementById("tchiloStableCam");
     if (!root || !root.classList.contains("on")) return;
-    var video = document.getElementById("tscVideo"),
-      canvas = document.getElementById("tscCanvas");
+    var video = document.getElementById("tscVideo"), canvas = document.getElementById("tscCanvas");
     if (!video || !canvas || video.readyState < 2) return;
-    var w = video.videoWidth || 640,
-      h = video.videoHeight || 480;
+    var w = video.videoWidth || 640, h = video.videoHeight || 480;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      canvas.style.width = "100%"; canvas.style.height = "100%";
     }
     var ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
-    ctx.imageSmoothingEnabled = true;
-    try {
-      ctx.imageSmoothingQuality = "high";
-    } catch (e) {}
-    if (fxIndex === 0) return;
-    if (!lm) {
-      ensureLm();
-      return;
-    }
-    var now = performance.now();
-    if (lm && now - lastT > 33) {
-      lastT = now;
-      try {
-        var res = lm.detectForVideo(video, now);
-        if (res && res.faceLandmarks && res.faceLandmarks.length) lastLm = res.faceLandmarks;
-      } catch (e) {}
-    }
-    if (!lastLm) return;
-    ctx.save();
-    if (facing === "user") {
-      ctx.translate(w, 0);
-      ctx.scale(-1, 1);
-    }
-    drawFx(ctx, lastLm, w, h);
-    ctx.restore();
   }
 
   function getVideoTrack() {
@@ -397,18 +197,14 @@
     var tracks = stream.getVideoTracks();
     return tracks && tracks[0] ? tracks[0] : null;
   }
-
   function torchSupported() {
     var track = getVideoTrack();
     if (!track || typeof track.getCapabilities !== "function") return false;
     try {
       var caps = track.getCapabilities();
       return !!(caps && (caps.torch === true || (caps.torch && caps.torch.length)));
-    } catch (e) {
-      return false;
-    }
+    } catch (e) { return false; }
   }
-
   function updateFlashBtn() {
     var btn = document.getElementById("tscFlash");
     if (!btn) return;
@@ -416,58 +212,26 @@
     var ok = back && torchSupported();
     btn.disabled = !ok;
     btn.classList.toggle("on", !!torchOn && ok);
-    btn.title = !back
-      ? "Flash só na câmara traseira"
-      : ok
-        ? torchOn
-          ? "Desligar flash"
-          : "Ligar flash"
-        : "Flash não disponível";
-    btn.setAttribute("aria-label", btn.title);
+    btn.title = !back ? "Flash só na câmara traseira" : ok ? (torchOn ? "Desligar flash" : "Ligar flash") : "Flash não disponível";
   }
-
   function setTorch(on) {
     var track = getVideoTrack();
     if (!track) return Promise.resolve(false);
     torchOn = !!on;
-    return track
-      .applyConstraints({ advanced: [{ torch: torchOn }] })
-      .then(function () {
-        updateFlashBtn();
-        setMsg(torchOn ? "Flash ligado" : "Flash desligado");
-        return true;
-      })
-      .catch(function () {
-        return track
-          .applyConstraints({ torch: torchOn })
-          .then(function () {
-            updateFlashBtn();
-            setMsg(torchOn ? "Flash ligado" : "Flash desligado");
-            return true;
-          })
-          .catch(function (err2) {
-            console.warn("torch", err2);
-            torchOn = false;
-            updateFlashBtn();
-            setMsg("Flash não suportado neste dispositivo");
-            return false;
-          });
+    return track.applyConstraints({ advanced: [{ torch: torchOn }] }).then(function () {
+      updateFlashBtn(); setMsg(torchOn ? "Flash ligado" : "Flash desligado"); return true;
+    }).catch(function () {
+      return track.applyConstraints({ torch: torchOn }).then(function () {
+        updateFlashBtn(); setMsg(torchOn ? "Flash ligado" : "Flash desligado"); return true;
+      }).catch(function () {
+        torchOn = false; updateFlashBtn(); setMsg("Flash não suportado"); return false;
       });
+    });
   }
-
   function toggleFlash(e) {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    if (facing !== "environment") {
-      setMsg("Vira para a câmara de trás para usar o flash");
-      return;
-    }
-    if (!torchSupported()) {
-      setMsg("Flash não disponível neste telemóvel");
-      return;
-    }
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (facing !== "environment") { setMsg("Vira para a câmara de trás para usar o flash"); return; }
+    if (!torchSupported()) { setMsg("Flash não disponível neste telemóvel"); return; }
     setTorch(!torchOn);
   }
 
@@ -478,107 +242,53 @@
     if (!video) return;
     setMsg("A abrir câmara…");
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setMsg("Câmara indisponível");
-      return;
+      setMsg("Câmara indisponível"); return;
     }
-    navigator.mediaDevices
-      .getUserMedia({
-        audio: false,
-        video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } }
-      })
-      .then(function (s) {
-        stream = s;
-        video.srcObject = s;
-        video.muted = true;
-        video.setAttribute("playsinline", "true");
-        video.play().catch(function () {});
-        setMsg("Efeitos · Galeria · Flash · Círculo = foto");
-        ensureLm()
-          .then(function () {
-            loadImgs();
-            buildChips();
-          })
-          .catch(function () {});
-        loadImgs();
-        buildChips();
-        paintLoop();
-        setTimeout(function () {
-          ensureLm();
-          loadImgs();
-          buildChips();
-        }, 800);
-        setTimeout(function () {
-          ensureLm();
-          loadImgs();
-          buildChips();
-        }, 2000);
-        if (facing === "environment" && torchOn) setTorch(true);
-        else {
-          torchOn = false;
-          updateFlashBtn();
-        }
-      })
-      .catch(function () {
-        setMsg("Permite a CÂMARA nas definições");
-      });
+    navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    }).then(function (s) {
+      stream = s;
+      video.srcObject = s;
+      video.muted = true;
+      video.setAttribute("playsinline", "true");
+      video.play().catch(function () {});
+      setMsg("Galeria · Flash · Círculo = foto");
+      buildChips();
+      paintLoop();
+      ensureLm();
+      torchOn = false;
+      updateFlashBtn();
+    }).catch(function () {
+      setMsg("Permite a CÂMARA nas definições");
+    });
   }
 
   function snap() {
-    var video = document.getElementById("tscVideo"),
-      overlay = document.getElementById("tscCanvas");
-    if (!video || video.readyState < 2) {
-      setMsg("Aguarda a câmara…");
-      return;
-    }
-    var w = video.videoWidth || 720,
-      h = video.videoHeight || 1280;
+    var video = document.getElementById("tscVideo");
+    if (!video || video.readyState < 2) { setMsg("Aguarda a câmara…"); return; }
+    var w = video.videoWidth || 720, h = video.videoHeight || 1280;
     var c = document.createElement("canvas");
-    c.width = w;
-    c.height = h;
+    c.width = w; c.height = h;
     var ctx = c.getContext("2d");
-    if (facing === "user") {
-      ctx.translate(w, 0);
-      ctx.scale(-1, 1);
-    }
+    if (facing === "user") { ctx.translate(w, 0); ctx.scale(-1, 1); }
     ctx.drawImage(video, 0, 0, w, h);
-    if (overlay && overlay.width) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      if (facing === "user") {
-        ctx.translate(w, 0);
-        ctx.scale(-1, 1);
-      }
-      ctx.drawImage(overlay, 0, 0, w, h);
-    }
     c.toBlob(function (blob) {
       if (!blob) return;
       var url = URL.createObjectURL(blob);
       var file;
-      try {
-        file = new File([blob], "tchilo.jpg", { type: "image/jpeg" });
-      } catch (e) {
-        file = blob;
-        file.name = "tchilo.jpg";
-      }
+      try { file = new File([blob], "tchilo.jpg", { type: "image/jpeg" }); }
+      catch (e) { file = blob; file.name = "tchilo.jpg"; }
       closeCam();
       try {
-        window.createMediaData = {
-          type: "image",
-          items: [{ type: "image", url: url, name: "tchilo.jpg", file: file }],
-          files: [file]
-        };
+        window.createMediaData = { type: "image", items: [{ type: "image", url: url, name: "tchilo.jpg", file: file }], files: [file] };
         window.createMediaFiles = [file];
       } catch (e2) {}
       if (typeof window.tchiloDeliverFaceFxPhoto === "function") {
-        try {
-          window.tchiloDeliverFaceFxPhoto(file, url);
-          return;
-        } catch (e3) {}
+        try { window.tchiloDeliverFaceFxPhoto(file, url); return; } catch (e3) {}
       }
       if (typeof window.tchiloOpenMediaEditor === "function") {
-        try {
-          window.tchiloOpenMediaEditor({ mode: "post", mediaType: "image", src: url, file: file });
-          return;
-        } catch (e4) {}
+        try { window.tchiloOpenMediaEditor({ mode: "post", mediaType: "image", src: url, file: file }); return; } catch (e4) {}
       }
       if (typeof goTo === "function") goTo("create");
     }, "image/jpeg", 0.92);
@@ -586,7 +296,6 @@
 
   function openCam() {
     css();
-    loadImgs();
     var el = ensureUI();
     buildChips();
     el.classList.add("on");
@@ -596,19 +305,31 @@
     document.body.style.overflow = "hidden";
     ["tchiloCam", "tchiloCamLive", "tchiloFaceFx"].forEach(function (id) {
       var x = document.getElementById(id);
-      if (x) {
-        x.style.display = "none";
-        x.classList.remove("open", "on");
-      }
+      if (x) { x.style.display = "none"; x.classList.remove("open", "on"); }
     });
     startCam();
-    setTimeout(buildChips, 400);
-    setTimeout(buildChips, 1500);
   }
 
   window.tchiloOpenCamera = openCam;
   window.tchiloOpenCameraNow = openCam;
   window.tchiloCloseCamera = closeCam;
+  /** API para adicionar efeitos novos um a um */
+  window.tchiloAddFaceFx = function (fx) {
+    if (!fx || !fx.label) return;
+    FX.push({
+      label: fx.label,
+      file: fx.file || null,
+      anchor: fx.anchor || "face",
+      scale: fx.scale != null ? fx.scale : 1.5,
+      oy: fx.oy != null ? fx.oy : 0
+    });
+    if (fx.file && fx.dataUrl) {
+      window.TchiloFxPngAssets = window.TchiloFxPngAssets || {};
+      window.TchiloFxPngAssets[fx.file] = fx.dataUrl;
+      loadImgs();
+    }
+    buildChips();
+  };
 
   function ensureBtn() {
     css();
@@ -625,62 +346,39 @@
       btn.id = "tchiloOpenCamBtn";
       btn.className = "gallery-btn tchilo-keep";
       btn.innerHTML = "<span>Foto ou vídeo</span>";
-      btn.style.cssText =
-        "display:inline-flex!important;align-items:center;justify-content:center;width:calc(100% - 32px);max-width:340px;margin:12px 16px;padding:14px 18px;border:2px solid #0B0B0C;border-radius:16px;background:#c8f560;color:#0B0B0C;font-weight:800;font-size:15px;z-index:60";
+      btn.style.cssText = "display:inline-flex!important;align-items:center;justify-content:center;width:calc(100% - 32px);max-width:340px;margin:12px 16px;padding:14px 18px;border:2px solid #0B0B0C;border-radius:16px;background:#c8f560;color:#0B0B0C;font-weight:800;font-size:15px;z-index:60";
       var preview = document.getElementById("createPreview");
       if (preview && preview.parentNode) preview.parentNode.insertBefore(btn, preview.nextSibling);
-      else
-        (screen.querySelector(".create-body") || screen).insertBefore(
-          btn,
-          (screen.querySelector(".create-body") || screen).firstChild
-        );
+      else (screen.querySelector(".create-body") || screen).insertBefore(btn, (screen.querySelector(".create-body") || screen).firstChild);
     }
-    btn.onclick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      openCam();
-    };
+    btn.onclick = function (e) { e.preventDefault(); e.stopPropagation(); openCam(); };
   }
 
-  document.addEventListener(
-    "click",
-    function (ev) {
-      var t = ev.target;
-      if (!t) return;
-      if (t.closest && t.closest("#tchiloStableCam")) return;
-      var btn = t.closest ? t.closest("#tchiloOpenCamBtn") : null;
-      if (!btn) {
-        var txt = ((t.textContent || "") + "").replace(/\s+/g, " ").trim().toLowerCase();
-        if (txt.indexOf("foto ou vídeo") >= 0 || txt.indexOf("foto ou video") >= 0)
-          btn = t.closest("button") || t;
-      }
-      if (!btn) return;
-      ev.preventDefault();
-      ev.stopPropagation();
-      openCam();
-    },
-    true
-  );
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (!t) return;
+    if (t.closest && t.closest("#tchiloStableCam")) return;
+    var btn = t.closest ? t.closest("#tchiloOpenCamBtn") : null;
+    if (!btn) {
+      var txt = ((t.textContent || "") + "").replace(/\s+/g, " ").trim().toLowerCase();
+      if (txt.indexOf("foto ou vídeo") >= 0 || txt.indexOf("foto ou video") >= 0) btn = t.closest("button") || t;
+    }
+    if (!btn) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    openCam();
+  }, true);
 
   function boot() {
+    window.TchiloFxPngAssets = {};
     css();
-    loadImgs();
     ensureBtn();
-    [100, 800, 2000].forEach(function (ms) {
-      setTimeout(function () {
-        css();
-        ensureBtn();
-        loadImgs();
-      }, ms);
-    });
+    [100, 800, 2000].forEach(function (ms) { setTimeout(ensureBtn, ms); });
     if (typeof window.goTo === "function" && !window.goTo.__stableCam) {
       var orig = window.goTo;
       window.goTo = function (s) {
         var r = orig.apply(this, arguments);
-        if (s === "create" || s === "screen-create") {
-          setTimeout(ensureBtn, 30);
-          setTimeout(ensureBtn, 150);
-        }
+        if (s === "create" || s === "screen-create") { setTimeout(ensureBtn, 30); setTimeout(ensureBtn, 150); }
         return r;
       };
       window.goTo.__stableCam = true;

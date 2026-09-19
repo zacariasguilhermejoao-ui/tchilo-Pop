@@ -1,0 +1,1 @@
+(function(){window.TchiloFxPngAssets=window.TchiloFxPngAssets||{};if(window.__chifres_0&&window.__chifres_1&&window.__chifres_2&&window.__chifres_3){window.TchiloFxPngAssets['chifres-pretos.png']='data:image/webp;base64,'+window.__chifres_0+window.__chifres_1+window.__chifres_2+window.__chifres_3;}})();

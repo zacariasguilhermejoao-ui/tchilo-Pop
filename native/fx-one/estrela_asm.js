@@ -1,0 +1,1 @@
+(function(){window.TchiloFxPngAssets=window.TchiloFxPngAssets||{};if(window.__estrela_0&&window.__estrela_1&&window.__estrela_2&&window.__estrela_3){window.TchiloFxPngAssets['oculos-estrela-rosa.png']='data:image/webp;base64,'+window.__estrela_0+window.__estrela_1+window.__estrela_2+window.__estrela_3;}})();

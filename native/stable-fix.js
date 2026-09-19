@@ -1,9 +1,9 @@
-/** Load camera + Estrela (PNG real) */
+/** Load camera + só óculos */
 (function () {
   "use strict";
   function load(src, cb) {
     var s = document.createElement("script");
-    s.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=estrelaPNG4";
+    s.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=soOculos1";
     s.onload = function () {
       if (cb) cb();
     };

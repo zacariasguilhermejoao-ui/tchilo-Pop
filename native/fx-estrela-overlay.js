@@ -1,105 +1,44 @@
 /**
- * Efeito Estrela — óculos de estrela neon rosa + ícone no picker
+ * Estrela — PNG do utilizador (óculos estrela neon) no ícone e na cara
  */
 (function () {
   "use strict";
 
+  var FILE = "oculos_estrela_neon.png";
   var active = false;
   var lm = null;
   var lastLm = null;
   var lastT = 0;
   var loopOn = false;
   var ov = null;
-  var iconUrl = null;
+  var img = null;
 
-  function makeIcon() {
-    if (iconUrl) return iconUrl;
-    var c = document.createElement("canvas");
-    c.width = 128;
-    c.height = 128;
-    var ctx = c.getContext("2d");
-    ctx.fillStyle = "#111";
-    ctx.fillRect(0, 0, 128, 128);
-    drawStars(ctx, 64, 64, 52, 0);
-    iconUrl = c.toDataURL("image/png");
-    return iconUrl;
+  function asset() {
+    return (window.TchiloFxPngAssets && window.TchiloFxPngAssets[FILE]) || null;
   }
 
-  /** Desenha par de óculos estrela neon rosa */
-  function drawStars(ctx, cx, cy, scale, angle) {
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(angle || 0);
-    var s = scale / 52;
-
-    function starPath(x, y, outer, inner) {
-      ctx.beginPath();
-      for (var i = 0; i < 10; i++) {
-        var r = i % 2 === 0 ? outer : inner;
-        var a = (Math.PI / 2) * 3 + (i * Math.PI) / 5;
-        var px = x + Math.cos(a) * r;
-        var py = y + Math.sin(a) * r;
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.closePath();
+  function ensureImg(cb) {
+    var src = asset();
+    if (!src) {
+      setTimeout(function () {
+        ensureImg(cb);
+      }, 300);
+      return;
     }
-
-    // haste esquerda / direita
-    ctx.strokeStyle = "#222";
-    ctx.lineWidth = 3 * s;
-    ctx.beginPath();
-    ctx.moveTo(-48 * s, 0);
-    ctx.lineTo(-38 * s, 0);
-    ctx.moveTo(38 * s, 0);
-    ctx.lineTo(48 * s, 0);
-    ctx.stroke();
-
-    // ponte
-    ctx.strokeStyle = "#ff2d8a";
-    ctx.lineWidth = 4 * s;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(-10 * s, -2 * s);
-    ctx.quadraticCurveTo(0, 8 * s, 10 * s, -2 * s);
-    ctx.stroke();
-
-    // estrela esquerda
-    ctx.save();
-    ctx.shadowColor = "#ff4da6";
-    ctx.shadowBlur = 12 * s;
-    starPath(-24 * s, 0, 18 * s, 8 * s);
-    ctx.fillStyle = "#111";
-    ctx.fill();
-    ctx.strokeStyle = "#ff2d8a";
-    ctx.lineWidth = 4.5 * s;
-    ctx.stroke();
-    // brilho
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = "rgba(255,180,220,0.9)";
-    ctx.lineWidth = 1.5 * s;
-    starPath(-24 * s, 0, 16 * s, 7 * s);
-    ctx.stroke();
-    ctx.restore();
-
-    // estrela direita
-    ctx.save();
-    ctx.shadowColor = "#ff4da6";
-    ctx.shadowBlur = 12 * s;
-    starPath(24 * s, 0, 18 * s, 8 * s);
-    ctx.fillStyle = "#111";
-    ctx.fill();
-    ctx.strokeStyle = "#ff2d8a";
-    ctx.lineWidth = 4.5 * s;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = "rgba(255,180,220,0.9)";
-    ctx.lineWidth = 1.5 * s;
-    starPath(24 * s, 0, 16 * s, 7 * s);
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.restore();
+    if (img && img.dataset.src === src && img.complete) {
+      if (cb) cb();
+      return;
+    }
+    img = new Image();
+    img.crossOrigin = "anonymous";
+    img.dataset.src = src;
+    img.onload = function () {
+      if (cb) cb();
+    };
+    img.onerror = function () {
+      console.warn("Estrela PNG falhou");
+    };
+    img.src = src;
   }
 
   function ensureOverlayCanvas() {
@@ -110,7 +49,7 @@
       ov = document.createElement("canvas");
       ov.id = "tscEstrelaCanvas";
       ov.style.cssText =
-        "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:4;pointer-events:none";
+        "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:5;pointer-events:none";
       stage.appendChild(ov);
     }
     return ov;
@@ -118,17 +57,23 @@
 
   function addChip() {
     var track = document.getElementById("tscTrack");
-    if (!track || track.querySelector("[data-estrela]")) return;
+    if (!track) return;
+    if (track.querySelector("[data-estrela]")) return;
+    var src = asset();
+    if (!src) return;
+
     var b = document.createElement("button");
     b.type = "button";
     b.className = "chip";
     b.setAttribute("data-estrela", "1");
     b.title = "Estrela";
     var ic = document.createElement("img");
-    ic.src = makeIcon();
+    ic.src = src;
     ic.alt = "Estrela";
-    ic.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:50%";
+    ic.style.cssText =
+      "width:100%;height:100%;object-fit:cover;border-radius:50%;background:#111";
     b.appendChild(ic);
+
     b.onclick = function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -145,8 +90,11 @@
           ctx.clearRect(0, 0, main.width, main.height);
         }
       } catch (e2) {}
-      startLoop();
+      ensureImg(function () {
+        startLoop();
+      });
     };
+
     track.addEventListener(
       "click",
       function (ev) {
@@ -201,6 +149,11 @@
     var video = document.getElementById("tscVideo");
     var canvas = ensureOverlayCanvas();
     if (!video || !canvas || video.readyState < 2) return;
+    if (!img || !img.complete || !img.naturalWidth) {
+      ensureImg();
+      return;
+    }
+
     var w = video.videoWidth || 640;
     var h = video.videoHeight || 480;
     var maxW = 520;
@@ -233,11 +186,13 @@
     function P(i) {
       return { x: L[i].x * pw, y: L[i].y * ph };
     }
-    var le = P(33),
-      re = P(263);
+    var le = P(33);
+    var re = P(263);
     var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
     var mid = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
     var angle = Math.atan2(re.y - le.y, re.x - le.x);
+    var tw = eyeW * 2.1;
+    var th = tw * (img.naturalHeight / Math.max(1, img.naturalWidth));
 
     var root = document.getElementById("tchiloStableCam");
     var mir = root && root.classList.contains("mir");
@@ -246,7 +201,13 @@
       ctx.translate(pw, 0);
       ctx.scale(-1, 1);
     }
-    drawStars(ctx, mid.x, mid.y, eyeW * 1.15, angle);
+    ctx.translate(mid.x, mid.y);
+    ctx.rotate(angle);
+    ctx.imageSmoothingEnabled = true;
+    try {
+      ctx.imageSmoothingQuality = "high";
+    } catch (e3) {}
+    ctx.drawImage(img, -tw / 2, -th / 2, tw, th);
     ctx.restore();
   }
 
@@ -266,21 +227,19 @@
     loop();
   }
 
-  function watch() {
+  function tick() {
     addChip();
     ensureOverlayCanvas();
-  }
-
-  setInterval(function () {
-    if (document.getElementById("tscTrack")) addChip();
     if (
       document.getElementById("tchiloStableCam") &&
       document.getElementById("tchiloStableCam").classList.contains("on")
     ) {
       startLoop();
     }
-  }, 700);
+  }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watch);
-  else watch();
+  ensureImg(function () {
+    tick();
+  });
+  setInterval(tick, 500);
 })();

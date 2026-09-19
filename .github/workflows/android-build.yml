@@ -33,7 +33,7 @@ jobs:
           if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
-          for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js camera-tiktok.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js fx-png-effects.js; do
+          for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js camera-tiktok.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js fx-png-effects.js chat-send-fix.js chat-audio-fix.js; do
             if [ -f "www/native/$js" ] && ! grep -q "native/$js" www/index.html; then
               sed -i "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
@@ -79,46 +79,35 @@ jobs:
         shell: bash
         run: |
           set -e
-          PROJECT_GRADLE="android/build.gradle"
-          APP_GRADLE="android/app/build.gradle"
-          if [ -f "$PROJECT_GRADLE" ] && ! grep -q 'com.google.gms:google-services' "$PROJECT_GRADLE"; then
-            sed -i "/dependencies {/a\\        classpath 'com.google.gms:google-services:4.4.2'" "$PROJECT_GRADLE"
-          fi
-          if [ -f "$APP_GRADLE" ] && ! grep -q 'com.google.gms.google-services' "$APP_GRADLE"; then
-            printf '\napply plugin: "com.google.gms.google-services"\n' >> "$APP_GRADLE"
-          fi
-
-      - name: Configure Android permissions
-        shell: bash
-        run: |
-          set -e
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-          for PERMISSION in android.permission.CAMERA android.permission.ACCESS_COARSE_LOCATION android.permission.ACCESS_FINE_LOCATION android.permission.POST_NOTIFICATIONS android.permission.RECORD_AUDIO android.permission.INTERNET android.permission.ACCESS_NETWORK_STATE; do
-            if ! grep -q "$PERMISSION" "$MANIFEST"; then
-              sed -i "/<application/i\\    <uses-permission android:name=\"$PERMISSION\" />" "$MANIFEST"
+          ROOT_BUILD=android/build.gradle
+          APP_BUILD=android/app/build.gradle
+          if [ -f "$ROOT_BUILD" ] && ! grep -q 'com.google.gms:google-services' "$ROOT_BUILD"; then
+            if grep -q "classpath 'com.android.tools.build:gradle" "$ROOT_BUILD"; then
+              sed -i "/classpath 'com.android.tools.build:gradle/a\    classpath 'com.google.gms:google-services:4.4.2'" "$ROOT_BUILD"
             fi
-          done
-
-      - name: Decode release keystore
-        env:
-          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        shell: bash
-        run: |
-          set -e
-          if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::Falta o secret ANDROID_KEYSTORE_BASE64"
-            exit 1
           fi
-          mkdir -p android/app
-          echo "$KEYSTORE_BASE64" | base64 -d > android/app/tchilo-release.keystore
-          test -s android/app/tchilo-release.keystore
-          echo "Keystore OK"
+          if [ -f "$APP_BUILD" ] && ! grep -q "apply plugin: 'com.google.gms.google-services'" "$APP_BUILD"; then
+            echo "\napply plugin: 'com.google.gms.google-services'" >> "$APP_BUILD"
+          fi
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        shell: bash
+        run: |
+          set -e
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::Falta secret ANDROID_KEYSTORE_BASE64"
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/tchilo-release.keystore
+          test -s android/app/tchilo-release.keystore
 
       - name: Build signed release APK
         working-directory: android

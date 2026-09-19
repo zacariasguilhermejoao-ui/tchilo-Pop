@@ -1,11 +1,11 @@
 /**
- * Estrela — PNG real do utilizador (óculos estrela neon)
+ * Só efeito Óculos (PNG Estrela) + ícone de óculos
+ * Remove todos os outros efeitos da barra
  */
 (function () {
   "use strict";
 
   var PNG_URL = "https://iili.io/nI6EKyx.webp";
-  var FILE = "oculos_estrela_neon.png";
   var active = false;
   var lm = null;
   var lastLm = null;
@@ -14,9 +14,8 @@
   var ov = null;
   var img = null;
 
-  // registar asset global
   window.TchiloFxPngAssets = window.TchiloFxPngAssets || {};
-  window.TchiloFxPngAssets[FILE] = PNG_URL;
+  window.TchiloFxPngAssets["oculos_estrela_neon.png"] = PNG_URL;
 
   function ensureImg(cb) {
     if (img && img.complete && img.naturalWidth) {
@@ -29,7 +28,7 @@
       if (cb) cb();
     };
     img.onerror = function () {
-      console.warn("Estrela: falha a carregar PNG");
+      console.warn("Óculos: falha a carregar PNG");
     };
     img.src = PNG_URL;
   }
@@ -48,19 +47,35 @@
     return ov;
   }
 
+  /** Remove Olhos+, Lábios+, Cara+, Olhos verm., etc. — só Normal + Óculos */
+  function cleanChips() {
+    var track = document.getElementById("tscTrack");
+    if (!track) return;
+    var chips = track.querySelectorAll(".chip");
+    chips.forEach(function (c) {
+      if (c.getAttribute("data-oculos") === "1") return;
+      var t = ((c.textContent || "") + " " + (c.title || "")).toLowerCase();
+      // manter só "Normal"
+      if (t.indexOf("normal") >= 0) return;
+      c.remove();
+    });
+  }
+
   function addChip() {
     var track = document.getElementById("tscTrack");
     if (!track) return;
-    if (track.querySelector("[data-estrela]")) return;
+    cleanChips();
+    if (track.querySelector("[data-oculos]")) return;
 
     var b = document.createElement("button");
     b.type = "button";
     b.className = "chip";
-    b.setAttribute("data-estrela", "1");
-    b.title = "Estrela";
+    b.setAttribute("data-oculos", "1");
+    b.title = "Óculos";
+    // ícone = a imagem dos óculos (não texto)
     var ic = document.createElement("img");
     ic.src = PNG_URL;
-    ic.alt = "Estrela";
+    ic.alt = "Óculos";
     ic.crossOrigin = "anonymous";
     ic.style.cssText =
       "width:100%;height:100%;object-fit:cover;border-radius:50%;background:#111";
@@ -91,14 +106,22 @@
       "click",
       function (ev) {
         var t = ev.target && ev.target.closest ? ev.target.closest(".chip") : null;
-        if (t && !t.getAttribute("data-estrela")) {
+        if (t && !t.getAttribute("data-oculos")) {
           active = false;
           clearOv();
         }
       },
       true
     );
-    track.appendChild(b);
+
+    // inserir a seguir ao Normal
+    var normal = null;
+    track.querySelectorAll(".chip").forEach(function (c) {
+      var t = ((c.textContent || "") + "").toLowerCase();
+      if (t.indexOf("normal") >= 0) normal = c;
+    });
+    if (normal && normal.nextSibling) track.insertBefore(b, normal.nextSibling);
+    else track.appendChild(b);
   }
 
   function clearOv() {
@@ -131,7 +154,7 @@
         lm = await vision.FaceLandmarker.createFromOptions(fs, opts);
       }
     } catch (e2) {
-      console.warn("estrela lm", e2);
+      console.warn("oculos lm", e2);
     }
     return lm;
   }
@@ -220,6 +243,7 @@
   }
 
   function tick() {
+    cleanChips();
     addChip();
     ensureOverlayCanvas();
     if (

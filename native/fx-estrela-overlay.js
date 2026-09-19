@@ -1,9 +1,10 @@
 /**
- * Estrela — PNG do utilizador (óculos estrela neon) no ícone e na cara
+ * Estrela — PNG real do utilizador (óculos estrela neon)
  */
 (function () {
   "use strict";
 
+  var PNG_URL = "https://iili.io/nI6EKyx.webp";
   var FILE = "oculos_estrela_neon.png";
   var active = false;
   var lm = null;
@@ -13,32 +14,24 @@
   var ov = null;
   var img = null;
 
-  function asset() {
-    return (window.TchiloFxPngAssets && window.TchiloFxPngAssets[FILE]) || null;
-  }
+  // registar asset global
+  window.TchiloFxPngAssets = window.TchiloFxPngAssets || {};
+  window.TchiloFxPngAssets[FILE] = PNG_URL;
 
   function ensureImg(cb) {
-    var src = asset();
-    if (!src) {
-      setTimeout(function () {
-        ensureImg(cb);
-      }, 300);
-      return;
-    }
-    if (img && img.dataset.src === src && img.complete) {
+    if (img && img.complete && img.naturalWidth) {
       if (cb) cb();
       return;
     }
     img = new Image();
     img.crossOrigin = "anonymous";
-    img.dataset.src = src;
     img.onload = function () {
       if (cb) cb();
     };
     img.onerror = function () {
-      console.warn("Estrela PNG falhou");
+      console.warn("Estrela: falha a carregar PNG");
     };
-    img.src = src;
+    img.src = PNG_URL;
   }
 
   function ensureOverlayCanvas() {
@@ -59,8 +52,6 @@
     var track = document.getElementById("tscTrack");
     if (!track) return;
     if (track.querySelector("[data-estrela]")) return;
-    var src = asset();
-    if (!src) return;
 
     var b = document.createElement("button");
     b.type = "button";
@@ -68,8 +59,9 @@
     b.setAttribute("data-estrela", "1");
     b.title = "Estrela";
     var ic = document.createElement("img");
-    ic.src = src;
+    ic.src = PNG_URL;
     ic.alt = "Estrela";
+    ic.crossOrigin = "anonymous";
     ic.style.cssText =
       "width:100%;height:100%;object-fit:cover;border-radius:50%;background:#111";
     b.appendChild(ic);
@@ -191,7 +183,7 @@
     var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
     var mid = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
     var angle = Math.atan2(re.y - le.y, re.x - le.x);
-    var tw = eyeW * 2.1;
+    var tw = eyeW * 2.15;
     var th = tw * (img.naturalHeight / Math.max(1, img.naturalWidth));
 
     var root = document.getElementById("tchiloStableCam");
@@ -241,5 +233,5 @@
   ensureImg(function () {
     tick();
   });
-  setInterval(tick, 500);
+  setInterval(tick, 400);
 })();

@@ -1,0 +1,1 @@
+(function(){window.TchiloFxPngAssets=window.TchiloFxPngAssets||{};if(window.__cateye_0&&window.__cateye_1&&window.__cateye_2&&window.__cateye_3){window.TchiloFxPngAssets['oculos-cat-eye-prata.png']='data:image/webp;base64,'+window.__cateye_0+window.__cateye_1+window.__cateye_2+window.__cateye_3;}})();

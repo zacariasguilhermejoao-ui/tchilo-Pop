@@ -63,12 +63,10 @@
   }
 
   function boot() {
-    // pintar o mais cedo possível
     paintNow();
     setTimeout(paintNow, 0);
     setTimeout(paintNow, 50);
     setTimeout(paintNow, 150);
-    // rede em paralelo (não bloqueia UI)
     setTimeout(softNetworkRefresh, 200);
     setTimeout(softNetworkRefresh, 1200);
   }
@@ -78,8 +76,9 @@
   } else {
     boot();
   }
-  // Capacitor: quando a app volta ao foreground
   document.addEventListener('resume', function () {
     softNetworkRefresh();
   });
 })();
+
+;(function(){try{if(!document.querySelector('script[data-tchilo-flash]')){var s=document.createElement('script');s.src='native/cam-flash-svg.js?v=1';s.setAttribute('data-tchilo-flash','1');(document.head||document.documentElement).appendChild(s);}}catch(e){}})();

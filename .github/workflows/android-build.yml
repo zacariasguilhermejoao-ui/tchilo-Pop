@@ -38,7 +38,14 @@ jobs:
               sed -i "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
           done
-          # fx-one desativado — efeitos removidos à espera de novos assets
+          if [ -d www/native/fx-one ]; then
+            for js in www/native/fx-one/*.js; do
+              bn=$(basename "$js")
+              if ! grep -q "native/fx-one/$bn" www/index.html; then
+                sed -i "s#</body>#<script src=\"native/fx-one/$bn\"></script></body>#" www/index.html
+              fi
+            done
+          fi
 
       - name: Verify complete web payload
         shell: bash

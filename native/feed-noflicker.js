@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260919cam';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260919nofx';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -39,6 +39,7 @@
   }
 
   function boot() {
+    try { window.TchiloFxPngAssets = {}; } catch (e) {}
     injectCSS();
     silenceBusyOnly();
     loadExtra('native/stable-fix.js', 'data-tchilo-stable');

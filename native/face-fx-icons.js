@@ -1,2 +1,2 @@
-/** tchilo-Pop — face-fx-icons desativado (PNG effects no canvas) */
-(function () { 'use strict'; /* noop — efeitos 3D antigos desligados */ })();
+/** tchilo-Pop — efeitos desativados */
+(function () { 'use strict'; /* noop */ })();

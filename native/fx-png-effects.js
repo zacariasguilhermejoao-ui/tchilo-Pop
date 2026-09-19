@@ -2,4 +2,6 @@
 (function () {
   'use strict';
   window.TchiloFxPngAssets = {};
+  window.__tchiloPngFxList = [];
+  window.__tchiloPngFxIndex = 0;
 })();

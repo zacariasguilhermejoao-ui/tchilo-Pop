@@ -1,6 +1,6 @@
 /**
  * tchilo-Pop — efeitos PNG na lista e na cara
- * Funciona em #tchiloCam (Foto ou vídeo) e #tchiloFaceFx
+ * tchiloCam e desenhado pelo camera-tiktok.js (este ficheiro nao limpa esse canvas)
  */
 (function () {
   'use strict';
@@ -8,13 +8,13 @@
   var FX = [
     { id: 'png_none', label: 'Normal', file: null },
     { id: 'png_thug', label: 'Thug Life', file: 'oculos_pixel_thug_life.png', anchor: 'eyes', scale: 2.4, oy: 0 },
-    { id: 'png_estrela', label: 'Óculos estrela', file: 'oculos_estrela_rosa.png', anchor: 'eyes', scale: 2.2, oy: 0 },
-    { id: 'png_nerd', label: 'Nerd laço', file: 'oculos_nerd_laco_rosa.png', anchor: 'eyes', scale: 2.3, oy: -0.05 },
-    { id: 'png_prata', label: 'Óculos prata', file: 'oculos_prata_esportivo.png', anchor: 'eyes', scale: 2.3, oy: 0 },
+    { id: 'png_estrela', label: 'Oculos estrela', file: 'oculos_estrela_rosa.png', anchor: 'eyes', scale: 2.2, oy: 0 },
+    { id: 'png_nerd', label: 'Nerd laco', file: 'oculos_nerd_laco_rosa.png', anchor: 'eyes', scale: 2.3, oy: -0.05 },
+    { id: 'png_prata', label: 'Oculos prata', file: 'oculos_prata_esportivo.png', anchor: 'eyes', scale: 2.3, oy: 0 },
     { id: 'png_gato', label: 'Gato', file: 'orelha_gato_laco_bigodes.png', anchor: 'face', scale: 1.8, oy: -0.15 },
     { id: 'png_coroa', label: 'Coroa', file: 'coroa_dourada.png', anchor: 'forehead', scale: 1.5, oy: -0.55 },
     { id: 'png_chifres', label: 'Chifres', file: 'chifres_demonio.png', anchor: 'forehead', scale: 1.4, oy: -0.7 },
-    { id: 'png_bone', label: 'Boné', file: 'bone_rosa_dodgers.png', anchor: 'forehead', scale: 1.6, oy: -0.45 },
+    { id: 'png_bone', label: 'Bone', file: 'bone_rosa_dodgers.png', anchor: 'forehead', scale: 1.6, oy: -0.45 },
     { id: 'png_bob', label: 'Bob', file: 'peruca_bob_franja.png', anchor: 'forehead', scale: 2.0, oy: -0.35 },
     { id: 'png_afro', label: 'Afro', file: 'cabelo_afro.png', anchor: 'forehead', scale: 2.2, oy: -0.4 },
     { id: 'png_dreads', label: 'Dreads', file: 'dreadlocks_bicolor.png', anchor: 'forehead', scale: 2.1, oy: -0.25 },
@@ -23,7 +23,7 @@
     { id: 'png_gloss', label: 'Gloss', file: 'labios_gloss_vermelho.png', anchor: 'mouth', scale: 0.85, oy: 0.05 },
     { id: 'png_dentes', label: 'Dentes', file: 'mascara_boca_dentes.png', anchor: 'mouth', scale: 1.1, oy: 0.1 },
     { id: 'png_spider', label: 'Spiderman', file: 'mascara_spiderman.png', anchor: 'face', scale: 1.7, oy: -0.05 },
-    { id: 'png_robo', label: 'Robô', file: 'cabeca_robo_metal.png', anchor: 'face', scale: 1.75, oy: -0.08 }
+    { id: 'png_robo', label: 'Robo', file: 'cabeca_robo_metal.png', anchor: 'face', scale: 1.75, oy: -0.08 }
   ];
 
   var imgs = {};
@@ -43,20 +43,16 @@
       var src = assetSrc(fx.file);
       if (!src) return;
       var im = new Image();
-      im.onload = function () {
-        imgs[fx.file] = im;
-      };
-      im.onerror = function () {
-        console.warn('fx img fail', fx.file);
-      };
+      im.onload = function () { imgs[fx.file] = im; };
       im.src = src;
     });
   }
 
-  function lm(L, idx, w, h) {
-    var p = L[idx];
+  function lm(L, i, w, h) {
+    var p = L[i];
     return { x: p.x * w, y: p.y * h };
   }
+
   function dist(a, b) {
     return Math.hypot(a.x - b.x, a.y - b.y);
   }
@@ -118,12 +114,11 @@
       'display:flex!important;align-items:center!important;justify-content:center!important;' +
       'font-size:0!important;color:transparent!important;cursor:pointer;scroll-snap-align:center;}' +
       '#tchiloFxChips .fx-png-chip.active,#tchiloCamFxTrack .fx-png-chip.active{' +
-      'border-color:#c8f560!important;box-shadow:0 0 0 3px rgba(200,245,96,.4)!important;' +
-      'opacity:1!important;transform:scale(1.08);}' +
+      'border-color:#c8f560!important;opacity:1!important;transform:scale(1.08);}' +
       '#tchiloFxChips .fx-png-chip img,#tchiloCamFxTrack .fx-png-chip img{' +
-      'width:100%;height:100%;object-fit:cover;pointer-events:none;}' +
+      'width:100%;height:100%;object-fit:cover;}' +
       '#tchiloFxChips .fx-png-chip.fx-none,#tchiloCamFxTrack .fx-png-chip.fx-none{' +
-      'font-size:11px!important;color:#fff!important;font-weight:800!important;}' +
+      'font-size:11px!important;color:#fff!important;font-weight:800;}' +
       '#tchiloCamFxTrack .fx-3d-item:not(.fx-png-chip){display:none!important;}';
     document.head.appendChild(st);
   }
@@ -132,20 +127,15 @@
     var b = document.createElement('button');
     b.type = 'button';
     b.className = 'fx-chip fx-png-chip fx-3d-item' + (i === pngIndex ? ' active' : '') + (!fx.file ? ' fx-none' : '');
-    b.setAttribute('data-label', fx.label);
-    b.setAttribute('aria-label', fx.label);
     b.title = fx.label;
     if (fx.file) {
       var src = assetSrc(fx.file);
       if (src) {
         var img = document.createElement('img');
-        img.alt = fx.label;
         img.src = src;
+        img.alt = fx.label;
         b.appendChild(img);
-      } else {
-        b.textContent = fx.label.slice(0, 6);
-        b.classList.add('fx-none');
-      }
+      } else b.textContent = fx.label.slice(0, 6);
     } else {
       b.textContent = 'Normal';
     }
@@ -153,13 +143,12 @@
       pngIndex = i;
       window.__tchiloPngFxIndex = i;
       document.querySelectorAll('.fx-png-chip').forEach(function (c) {
-        c.classList.toggle('active', c.getAttribute('data-label') === fx.label && c.parentNode && c.parentNode.id === barId);
+        c.classList.remove('active');
       });
-      // sync both bars
       document.querySelectorAll('#tchiloFxChips .fx-png-chip, #tchiloCamFxTrack .fx-png-chip').forEach(function (c) {
-        var lab = c.getAttribute('data-label');
-        c.classList.toggle('active', lab === fx.label);
+        if (c.title === fx.label || (c.textContent || '').indexOf(fx.label.slice(0, 4)) >= 0) c.classList.add('active');
       });
+      b.classList.add('active');
     };
     return b;
   }
@@ -171,6 +160,8 @@
       var bar = document.getElementById(id);
       if (!bar) return;
       if (!force && bar.querySelectorAll('.fx-png-chip').length >= FX.length) return;
+      // So preenche tchiloFxChips — tchiloCamFxTrack e do camera-tiktok
+      if (id === 'tchiloCamFxTrack') return;
       bar.innerHTML = '';
       FX.forEach(function (fx, i) {
         bar.appendChild(makeChip(fx, i, id));
@@ -179,15 +170,7 @@
   }
 
   function getActivePair() {
-    var cam = document.getElementById('tchiloCam');
-    if (cam && (cam.classList.contains('open') || cam.style.display === 'flex')) {
-      return {
-        root: cam,
-        video: document.getElementById('tchiloCamVideo'),
-        canvas: document.getElementById('tchiloCamCanvas'),
-        mirror: !cam.classList.contains('cam-env')
-      };
-    }
+    // tchiloCam e desenhado so pelo camera-tiktok.js — nao limpar o canvas aqui
     var face = document.getElementById('tchiloFaceFx');
     if (face && face.classList.contains('open')) {
       return {
@@ -236,7 +219,6 @@
 
     pngIndex = typeof window.__tchiloPngFxIndex === 'number' ? window.__tchiloPngFxIndex : pngIndex;
     if (pngIndex === 0) {
-      // limpa canvas se Normal
       var c0 = pair.canvas;
       if (c0.width) {
         var ctx0 = c0.getContext('2d');
@@ -288,12 +270,8 @@
     loadImages();
     ensureLm();
     buildChips(true);
-    setTimeout(function () {
-      buildChips(true);
-    }, 200);
-    setTimeout(function () {
-      buildChips(true);
-    }, 800);
+    setTimeout(function () { buildChips(true); }, 200);
+    setTimeout(function () { buildChips(true); }, 800);
   }
 
   window.__tchiloPngOnOpen = onOpen;
@@ -306,17 +284,11 @@
     ensureLm();
     loop();
 
-    // observar abertura das duas câmaras
     try {
       new MutationObserver(function () {
-        var cam = document.getElementById('tchiloCam');
         var face = document.getElementById('tchiloFaceFx');
-        if ((cam && cam.classList.contains('open')) || (face && face.classList.contains('open'))) {
-          onOpen();
-        }
-        if (document.getElementById('tchiloCamFxTrack') || document.getElementById('tchiloFxChips')) {
-          buildChips(false);
-        }
+        if (face && face.classList.contains('open')) onOpen();
+        if (document.getElementById('tchiloFxChips')) buildChips(false);
       }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
     } catch (e) {}
 

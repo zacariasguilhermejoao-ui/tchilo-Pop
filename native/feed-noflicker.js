@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260918fix2';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260919cam';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -24,7 +24,6 @@
       '#feedList .post{animation:none!important;}' +
       '#feedList video{animation:none!important;}' +
       '#galleryBtn,#faceFxOpenBtn{display:none!important;}' +
-      /* só esconde toasts de “busy/loading”, não erros */
       '.toast.busy,#toast.busy{display:none!important;}';
   }
 
@@ -33,7 +32,6 @@
       if (typeof showToast === 'function' && !window.__tchiloRealShowToast) {
         window.__tchiloRealShowToast = showToast;
       }
-      // não anular showToast — mensagens de erro têm de aparecer
       if (typeof window.tchiloShowBusy === 'function') {
         window.tchiloShowBusy = function () {};
       }
@@ -43,10 +41,7 @@
   function boot() {
     injectCSS();
     silenceBusyOnly();
-    loadExtra(
-      'https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@40b50f4d0007135b7ed210db4a1de2422d87cb3d/native/stable-fix.js',
-      'data-tchilo-stable'
-    );
+    loadExtra('native/stable-fix.js', 'data-tchilo-stable');
     loadExtra('native/gal-thumb.js', 'data-tchilo-gal-thumb');
     loadExtra('native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs');
     loadExtra('native/chat-audio-fix.js', 'data-tchilo-chat-audio');

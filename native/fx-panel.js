@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — efeitos faciais + chuva de beijos
+ * tchilo-Pop — efeitos na cara (robusto)
  */
 (function () {
   "use strict";
@@ -12,8 +12,7 @@
       url: "https://iili.io/nTKp9oB.webp",
       icon: "https://iili.io/nTKpHMP.webp",
       scale: 1.35,
-      oy: 0,
-      blackLenses: false
+      oy: 0
     },
     {
       id: "oculos_estrela",
@@ -32,8 +31,7 @@
       url: "https://litter.catbox.moe/l8ldun.webp",
       icon: "https://litter.catbox.moe/vpmz1v.webp",
       scale: 1.75,
-      oy: 0,
-      blackLenses: false
+      oy: 0
     },
     {
       id: "cao",
@@ -55,6 +53,15 @@
       icon: "https://litter.catbox.moe/8kuhk9.webp",
       scale: 1.25,
       oy: -0.05
+    },
+    {
+      id: "mascara",
+      label: "Máscara",
+      type: "face",
+      url: "https://litter.catbox.moe/r3mz1a.webp",
+      icon: "https://litter.catbox.moe/cpifm1.webp",
+      scale: 1.55,
+      oy: 0.02
     },
     {
       id: "beijos",
@@ -79,25 +86,7 @@
   var loopOn = false;
   var ov = null;
   var rainParticles = [];
-  var rainSprites = [];
-
-  (function () {
-    var st = document.getElementById("tchiloFxPanelCSS");
-    if (!st) {
-      st = document.createElement("style");
-      st.id = "tchiloFxPanelCSS";
-      document.head.appendChild(st);
-    }
-    st.textContent =
-      "#tchiloStableCam #tscTrack .chip{" +
-      "width:56px!important;height:56px!important;min-width:56px!important;" +
-      "max-width:56px!important;padding:4px!important;box-sizing:border-box!important;" +
-      "overflow:hidden!important;border-radius:50%!important;flex:0 0 56px!important}" +
-      "#tchiloStableCam #tscTrack .chip img{" +
-      "display:block!important;width:48px!important;height:48px!important;" +
-      "object-fit:contain!important;object-position:center!important;" +
-      "border-radius:50%!important;background:#222!important;margin:0 auto!important}";
-  })();
+  var builtOnce = false;
 
   function loadOne(key, url) {
     if (!url) return;
@@ -139,10 +128,10 @@
     if (!ov) {
       ov = document.createElement("canvas");
       ov.id = "tscFxCanvas";
-      ov.style.cssText =
-        "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:5;pointer-events:none";
       stage.appendChild(ov);
     }
+    ov.style.cssText =
+      "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:8;pointer-events:none;display:block";
     return ov;
   }
 
@@ -161,23 +150,33 @@
     return true;
   }
 
+  function selectFx(id) {
+    activeId = id;
+    if (id === "beijos") rainParticles = [];
+    // forçar câmara antiga a não distorcer
+    try {
+      var root = document.getElementById("tchiloStableCam");
+      if (root) root.setAttribute("data-fx", id || "none");
+    } catch (e) {}
+  }
+
   function buildChips() {
     var track = document.getElementById("tscTrack");
     if (!track) return;
     var cam = document.getElementById("tchiloStableCam");
     if (!cam || !cam.classList.contains("on")) return;
-    if (ourChipsOk(track)) return;
+    if (ourChipsOk(track) && builtOnce) return;
 
     track.innerHTML = "";
+    builtOnce = true;
 
     var n = document.createElement("button");
     n.type = "button";
     n.className = "chip" + (activeId ? "" : " active");
     n.textContent = "Normal";
-    n.title = "Normal";
+    n.setAttribute("data-fx", "none");
     n.onclick = function () {
-      activeId = null;
-      rainParticles = [];
+      selectFx(null);
       clearOv();
       track.querySelectorAll(".chip").forEach(function (c) {
         c.classList.remove("active");
@@ -200,120 +199,47 @@
       ic.onerror = function () {
         ic.onerror = null;
         if (fx.url) ic.src = fx.url;
-        else if (fx.sprites && fx.sprites[0]) ic.src = fx.sprites[0];
+        else if (fx.sprites) ic.src = fx.sprites[0];
       };
       b.appendChild(ic);
       b.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
-        activeId = fx.id;
-        if (fx.type === "rain") {
-          rainParticles = [];
-          initRain(fx);
-        }
+        selectFx(fx.id);
         track.querySelectorAll(".chip").forEach(function (c) {
           c.classList.remove("active");
         });
         b.classList.add("active");
+        // limpar canvas de warp antigo
         try {
           var main = document.getElementById("tscCanvas");
           if (main) {
-            var ctx = main.getContext("2d");
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.clearRect(0, 0, main.width, main.height);
+            var c2 = main.getContext("2d");
+            c2.setTransform(1, 0, 0, 1, 0, 0);
+            c2.clearRect(0, 0, main.width, main.height);
           }
         } catch (e2) {}
+        ensureLm();
         startLoop();
       };
       track.appendChild(b);
     });
   }
 
-  function getRainSprites(fx) {
-    var list = [];
-    (fx.sprites || []).forEach(function (u, i) {
-      var im = imgs[fx.id + "_s" + i];
-      if (im && im.complete && im.naturalWidth) list.push(im);
+  // impedir a câmara antiga de reescrever os chips
+  function guardChips() {
+    var track = document.getElementById("tscTrack");
+    if (!track || track.__fxGuard) return;
+    track.__fxGuard = true;
+    var obs = new MutationObserver(function () {
+      if (!ourChipsOk(track)) {
+        builtOnce = false;
+        buildChips();
+      }
     });
-    return list;
-  }
-
-  function spawnParticle(pw, ph, sprites) {
-    if (!sprites.length) return null;
-    var size = 28 + Math.random() * 36; // 28–64 px nos ecrãs (cabe em todo lado)
-    return {
-      x: Math.random() * pw,
-      y: -40 - Math.random() * ph * 0.3,
-      vy: 1.2 + Math.random() * 2.4,
-      vx: (Math.random() - 0.5) * 0.8,
-      rot: Math.random() * Math.PI * 2,
-      vrot: (Math.random() - 0.5) * 0.04,
-      size: size,
-      img: sprites[Math.floor(Math.random() * sprites.length)],
-      alpha: 0.85 + Math.random() * 0.15
-    };
-  }
-
-  function initRain(fx) {
-    loadFx(fx);
-    var sprites = getRainSprites(fx);
-    rainSprites = sprites;
-    rainParticles = [];
-    var video = document.getElementById("tscVideo");
-    var pw = 360,
-      ph = 640;
-    if (video && video.videoWidth) {
-      pw = Math.min(480, video.videoWidth);
-      ph = Math.round((pw / video.videoWidth) * video.videoHeight);
-    }
-    for (var i = 0; i < 28; i++) {
-      var p = spawnParticle(pw, ph, sprites);
-      if (p) {
-        p.y = Math.random() * ph;
-        rainParticles.push(p);
-      }
-    }
-  }
-
-  function drawRain(ctx, fx, pw, ph) {
-    loadFx(fx);
-    var sprites = getRainSprites(fx);
-    if (!sprites.length) return;
-
-    if (rainParticles.length < 20) {
-      for (var s = 0; s < 3; s++) {
-        var np = spawnParticle(pw, ph, sprites);
-        if (np) rainParticles.push(np);
-      }
-    }
-
-    ctx.imageSmoothingEnabled = true;
     try {
-      ctx.imageSmoothingQuality = "high";
+      obs.observe(track, { childList: true });
     } catch (e) {}
-
-    var next = [];
-    for (var i = 0; i < rainParticles.length; i++) {
-      var p = rainParticles[i];
-      p.y += p.vy;
-      p.x += p.vx;
-      p.rot += p.vrot;
-      if (p.y > ph + 50) {
-        var r = spawnParticle(pw, ph, sprites);
-        if (r) next.push(r);
-        continue;
-      }
-      if (!p.img || !p.img.complete) continue;
-      var th = p.size * (p.img.naturalHeight / Math.max(1, p.img.naturalWidth));
-      ctx.save();
-      ctx.globalAlpha = p.alpha;
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot);
-      ctx.drawImage(p.img, -p.size / 2, -th / 2, p.size, th);
-      ctx.restore();
-      next.push(p);
-    }
-    rainParticles = next;
   }
 
   async function ensureLm() {
@@ -339,7 +265,7 @@
         lm = await vision.FaceLandmarker.createFromOptions(fs, opts);
       }
     } catch (e2) {
-      console.warn("fx lm", e2);
+      console.warn("[fx] MediaPipe", e2);
     }
     return lm;
   }
@@ -349,11 +275,44 @@
     return null;
   }
 
-  function drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, pw) {
-    var midE = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
-    var cx = midE.x;
-    var cy = midE.y + eyeW * (fx.oy || 0);
-    var tw = eyeW * (fx.scale || 1.35);
+  function faceGeom(pw, ph) {
+    // fallback centrado se não houver landmarks
+    var g = {
+      le: { x: pw * 0.35, y: ph * 0.42 },
+      re: { x: pw * 0.65, y: ph * 0.42 },
+      nose: { x: pw * 0.5, y: ph * 0.52 },
+      top: { x: pw * 0.5, y: ph * 0.22 },
+      chin: { x: pw * 0.5, y: ph * 0.78 },
+      eyeW: pw * 0.3,
+      faceW: pw * 0.55,
+      faceH: ph * 0.55,
+      angle: 0
+    };
+    if (lastLm && lastLm[0]) {
+      var L = lastLm[0];
+      function P(i) {
+        return { x: L[i].x * pw, y: L[i].y * ph };
+      }
+      g.le = P(33);
+      g.re = P(263);
+      g.nose = P(1);
+      g.top = P(10);
+      g.chin = P(152);
+      var cL = P(234),
+        cR = P(454);
+      g.eyeW = Math.hypot(g.le.x - g.re.x, g.le.y - g.re.y) || g.eyeW;
+      g.faceW = Math.hypot(cL.x - cR.x, cL.y - cR.y) || g.faceW;
+      g.faceH = Math.hypot(g.top.x - g.chin.x, g.top.y - g.chin.y) || g.faceH;
+      g.angle = Math.atan2(g.re.y - g.le.y, g.re.x - g.le.x);
+    }
+    return g;
+  }
+
+  function drawGlasses(ctx, fx, im, g, mir, pw) {
+    if (!im || !im.complete || !im.naturalWidth) return;
+    var cx = (g.le.x + g.re.x) / 2;
+    var cy = (g.le.y + g.re.y) / 2 + g.eyeW * (fx.oy || 0);
+    var tw = g.eyeW * (fx.scale || 1.35);
     var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
 
     ctx.save();
@@ -362,12 +321,11 @@
       ctx.scale(-1, 1);
     }
     ctx.translate(cx, cy);
-    ctx.rotate(angle);
-
+    ctx.rotate(g.angle);
     if (fx.blackLenses) {
-      var lensRx = tw * 0.22;
-      var lensRy = th * 0.32;
-      var gap = tw * 0.28;
+      var lensRx = tw * 0.22,
+        lensRy = th * 0.32,
+        gap = tw * 0.28;
       ctx.fillStyle = "#0a0a0a";
       ctx.beginPath();
       ctx.ellipse(-gap, 0, lensRx, lensRy, 0, 0, Math.PI * 2);
@@ -376,69 +334,120 @@
       ctx.ellipse(gap, 0, lensRx, lensRy, 0, 0, Math.PI * 2);
       ctx.fill();
     }
-
     ctx.imageSmoothingEnabled = true;
     try {
       ctx.imageSmoothingQuality = "high";
-    } catch (e3) {}
+    } catch (e) {}
     ctx.drawImage(im, -tw / 2, -th / 2, tw, th);
     ctx.restore();
   }
 
-  function drawDog(ctx, fx, P, faceW, faceH, angle, mir, pw) {
+  function drawDog(ctx, fx, g, mir, pw) {
     var ears = imgs[fx.id + "_ears"];
     var snout = imgs[fx.id + "_snout"];
-    var top = P(10);
-    var nose = P(1);
-
     ctx.imageSmoothingEnabled = true;
-    try {
-      ctx.imageSmoothingQuality = "high";
-    } catch (e3) {}
-
     function place(im, cx, cy, scale, oy) {
       if (!im || !im.complete || !im.naturalWidth) return;
-      var tw = faceW * scale;
+      var tw = g.faceW * scale;
       var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
       ctx.save();
       if (mir) {
         ctx.translate(pw, 0);
         ctx.scale(-1, 1);
       }
-      ctx.translate(cx, cy + faceH * (oy || 0));
-      ctx.rotate(angle);
+      ctx.translate(cx, cy + g.faceH * (oy || 0));
+      ctx.rotate(g.angle);
       ctx.drawImage(im, -tw / 2, -th / 2, tw, th);
       ctx.restore();
     }
-
-    place(ears, top.x, top.y, fx.earsScale || 1.15, fx.earsOy || -0.08);
-    place(snout, nose.x, nose.y, fx.snoutScale || 0.95, fx.snoutOy || 0.05);
+    place(ears, g.top.x, g.top.y, fx.earsScale || 1.15, fx.earsOy || -0.08);
+    place(snout, g.nose.x, g.nose.y, fx.snoutScale || 0.95, fx.snoutOy || 0.05);
   }
 
-  function drawFace(ctx, fx, im, P, faceW, faceH, angle, mir, pw) {
+  function drawFace(ctx, fx, im, g, mir, pw) {
     if (!im || !im.complete || !im.naturalWidth) return;
-    var top = P(10);
-    var chin = P(152);
-    var mid = {
-      x: (top.x + chin.x) / 2,
-      y: (top.y + chin.y) / 2 + faceH * (fx.oy || 0)
-    };
-    var tw = faceW * (fx.scale || 1.25);
+    var cx = (g.top.x + g.chin.x) / 2;
+    var cy = (g.top.y + g.chin.y) / 2 + g.faceH * (fx.oy || 0);
+    var tw = g.faceW * (fx.scale || 1.25);
     var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
-
     ctx.save();
     if (mir) {
       ctx.translate(pw, 0);
       ctx.scale(-1, 1);
     }
-    ctx.translate(mid.x, mid.y);
-    ctx.rotate(angle);
+    ctx.translate(cx, cy);
+    ctx.rotate(g.angle);
     ctx.imageSmoothingEnabled = true;
     try {
       ctx.imageSmoothingQuality = "high";
-    } catch (e3) {}
+    } catch (e) {}
     ctx.drawImage(im, -tw / 2, -th / 2, tw, th);
     ctx.restore();
+  }
+
+  function getRainSprites(fx) {
+    var list = [];
+    (fx.sprites || []).forEach(function (u, i) {
+      var im = imgs[fx.id + "_s" + i];
+      if (im && im.complete && im.naturalWidth) list.push(im);
+    });
+    return list;
+  }
+
+  function spawnParticle(pw, ph, sprites) {
+    if (!sprites.length) return null;
+    var size = 28 + Math.random() * 36;
+    return {
+      x: Math.random() * pw,
+      y: -40 - Math.random() * 80,
+      vy: 1.2 + Math.random() * 2.4,
+      vx: (Math.random() - 0.5) * 0.8,
+      rot: Math.random() * Math.PI * 2,
+      vrot: (Math.random() - 0.5) * 0.04,
+      size: size,
+      img: sprites[Math.floor(Math.random() * sprites.length)],
+      alpha: 0.85 + Math.random() * 0.15
+    };
+  }
+
+  function drawRain(ctx, fx, pw, ph) {
+    var sprites = getRainSprites(fx);
+    if (!sprites.length) {
+      loadFx(fx);
+      return;
+    }
+    if (rainParticles.length < 22) {
+      for (var s = 0; s < 4; s++) {
+        var np = spawnParticle(pw, ph, sprites);
+        if (np) {
+          if (rainParticles.length < 8) np.y = Math.random() * ph;
+          rainParticles.push(np);
+        }
+      }
+    }
+    ctx.imageSmoothingEnabled = true;
+    var next = [];
+    for (var i = 0; i < rainParticles.length; i++) {
+      var p = rainParticles[i];
+      p.y += p.vy;
+      p.x += p.vx;
+      p.rot += p.vrot;
+      if (p.y > ph + 50) {
+        var r = spawnParticle(pw, ph, sprites);
+        if (r) next.push(r);
+        continue;
+      }
+      if (!p.img || !p.img.complete) continue;
+      var th = p.size * (p.img.naturalHeight / Math.max(1, p.img.naturalWidth));
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.drawImage(p.img, -p.size / 2, -th / 2, p.size, th);
+      ctx.restore();
+      next.push(p);
+    }
+    rainParticles = next;
   }
 
   function draw() {
@@ -470,54 +479,46 @@
       return;
     }
 
-    if (!lm) {
+    // detetar face
+    if (lm) {
+      var now = performance.now();
+      if (now - lastT > 33) {
+        lastT = now;
+        try {
+          var res = lm.detectForVideo(video, now);
+          if (res && res.faceLandmarks && res.faceLandmarks.length) {
+            lastLm = res.faceLandmarks;
+            try {
+              window.__tchiloLastLm = lastLm;
+            } catch (e3) {}
+          }
+        } catch (e) {}
+      }
+    } else {
       ensureLm();
-      return;
     }
-    var now = performance.now();
-    if (now - lastT > 40) {
-      lastT = now;
-      try {
-        var res = lm.detectForVideo(video, now);
-        if (res && res.faceLandmarks && res.faceLandmarks.length) lastLm = res.faceLandmarks;
-      } catch (e) {}
-    }
-    if (!lastLm) return;
 
-    var L = lastLm[0];
-    function P(i) {
-      return { x: L[i].x * pw, y: L[i].y * ph };
-    }
-    var le = P(33),
-      re = P(263),
-      cL = P(234),
-      cR = P(454),
-      top = P(10),
-      chin = P(152);
-    var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
-    var faceW = Math.hypot(cL.x - cR.x, cL.y - cR.y) || eyeW * 2.2;
-    var faceH = Math.hypot(top.x - chin.x, top.y - chin.y) || faceW;
-    var angle = Math.atan2(re.y - le.y, re.x - le.x);
     var root = document.getElementById("tchiloStableCam");
     var mir = root && root.classList.contains("mir");
+    var g = faceGeom(pw, ph);
 
     if (fx.type === "dog") {
       loadFx(fx);
-      drawDog(ctx, fx, P, faceW, faceH, angle, mir, pw);
+      drawDog(ctx, fx, g, mir, pw);
     } else if (fx.type === "face") {
       var imF = imgs[fx.id];
-      if (!imF || !imF.complete || !imF.naturalWidth) {
+      if (!imF || !imF.complete) {
         loadFx(fx);
         return;
       }
-      drawFace(ctx, fx, imF, P, faceW, faceH, angle, mir, pw);
+      drawFace(ctx, fx, imF, g, mir, pw);
     } else {
       var im = imgs[fx.id];
-      if (!im || !im.complete || !im.naturalWidth) {
+      if (!im || !im.complete) {
         loadFx(fx);
         return;
       }
-      drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, pw);
+      drawGlasses(ctx, fx, im, g, mir, pw);
     }
   }
 
@@ -527,6 +528,7 @@
     var root = document.getElementById("tchiloStableCam");
     if (!root || !root.classList.contains("on")) return;
     buildChips();
+    guardChips();
     if (activeId) draw();
     else clearOv();
   }
@@ -540,8 +542,8 @@
 
   function hookSnap() {
     var btn = document.getElementById("tscSnap");
-    if (!btn || btn.__fxSnap) return;
-    btn.__fxSnap = true;
+    if (!btn || btn.__fxSnap2) return;
+    btn.__fxSnap2 = true;
     btn.addEventListener(
       "click",
       function (e) {
@@ -567,32 +569,15 @@
 
         var fx = getFx();
         if (fx) {
-          if (fx.type === "rain") {
-            drawRain(ctx, fx, w, h);
-          } else if (lastLm) {
-            var L = lastLm[0];
-            function P(i) {
-              return { x: L[i].x * w, y: L[i].y * h };
-            }
-            var le = P(33),
-              re = P(263),
-              cL = P(234),
-              cR = P(454),
-              top = P(10),
-              chin = P(152);
-            var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
-            var faceW = Math.hypot(cL.x - cR.x, cL.y - cR.y) || eyeW * 2.2;
-            var faceH = Math.hypot(top.x - chin.x, top.y - chin.y) || faceW;
-            var angle = Math.atan2(re.y - le.y, re.x - le.x);
-            if (fx.type === "dog") {
-              drawDog(ctx, fx, P, faceW, faceH, angle, mir, w);
-            } else if (fx.type === "face") {
-              var imF = imgs[fx.id];
-              if (imF) drawFace(ctx, fx, imF, P, faceW, faceH, angle, mir, w);
-            } else {
-              var im = imgs[fx.id];
-              if (im) drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, w);
-            }
+          var g = faceGeom(w, h);
+          if (fx.type === "rain") drawRain(ctx, fx, w, h);
+          else if (fx.type === "dog") drawDog(ctx, fx, g, mir, w);
+          else if (fx.type === "face") {
+            var imF = imgs[fx.id];
+            if (imF) drawFace(ctx, fx, imF, g, mir, w);
+          } else {
+            var im = imgs[fx.id];
+            if (im) drawGlasses(ctx, fx, im, g, mir, w);
           }
         }
         c.toBlob(function (blob) {
@@ -638,17 +623,18 @@
     var cam = document.getElementById("tchiloStableCam");
     if (cam && cam.classList.contains("on")) {
       buildChips();
+      guardChips();
       ensureOverlay();
       hookSnap();
       startLoop();
     }
   }
 
-  setInterval(tick, 250);
+  setInterval(tick, 300);
   tick();
-  setTimeout(tick, 100);
-  setTimeout(tick, 500);
-  setTimeout(tick, 1200);
+  setTimeout(tick, 200);
+  setTimeout(tick, 800);
+  setTimeout(tick, 2000);
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", tick);
   }

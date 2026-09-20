@@ -1,6 +1,6 @@
 /**
  * tchilo-Pop — efeitos faciais (PNG)
- * Óculos prata, Chifres, Óculos estrela, Correntes
+ * Tamanhos reduzidos + ícones quadrados sem distorção
  */
 (function () {
   "use strict";
@@ -11,7 +11,7 @@
       label: "Óculos",
       url: "https://iili.io/nTFNRtI.webp",
       anchor: "eyes",
-      scale: 2.05,
+      scale: 1.45,
       oy: 0
     },
     {
@@ -19,15 +19,15 @@
       label: "Chifres",
       url: "https://iili.io/nTFNqn1.webp",
       anchor: "forehead",
-      scale: 1.4,
-      oy: -0.18
+      scale: 0.95,
+      oy: -0.14
     },
     {
       id: "oculos_estrela",
       label: "Estrela",
       url: "https://iili.io/nTFNAwN.webp",
       anchor: "eyes",
-      scale: 2.05,
+      scale: 1.45,
       oy: 0
     },
     {
@@ -35,8 +35,8 @@
       label: "Correntes",
       url: "https://iili.io/nTFNC6g.webp",
       anchor: "neck",
-      scale: 1.75,
-      oy: 0.28
+      scale: 1.15,
+      oy: 0.22
     }
   ];
 
@@ -47,7 +47,16 @@
   var lastT = 0;
   var loopOn = false;
   var ov = null;
-  var chipsReady = false;
+
+  // CSS: chips quadrados, ícone contain (sem esticar)
+  if (!document.getElementById("tchiloFxPanelCSS")) {
+    var st = document.createElement("style");
+    st.id = "tchiloFxPanelCSS";
+    st.textContent =
+      "#tchiloStableCam .chip{width:56px!important;height:56px!important;min-width:56px!important;padding:4px!important;overflow:hidden!important;border-radius:50%!important}" +
+      "#tchiloStableCam .chip img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;border-radius:50%!important;background:#1a1a1a!important}";
+    document.head.appendChild(st);
+  }
 
   FX.forEach(function (fx) {
     var im = new Image();
@@ -82,11 +91,7 @@
   function buildChips() {
     var track = document.getElementById("tscTrack");
     if (!track) return;
-    // já tem os nossos chips?
-    if (track.querySelector("[data-fx]") && track.querySelectorAll(".chip").length >= 5) {
-      chipsReady = true;
-      return;
-    }
+    if (track.querySelector("[data-fx]") && track.querySelectorAll(".chip").length >= 5) return;
 
     track.innerHTML = "";
 
@@ -115,8 +120,9 @@
       ic.src = fx.url;
       ic.alt = fx.label;
       ic.crossOrigin = "anonymous";
+      // contain = não distorce / não estica
       ic.style.cssText =
-        "width:100%;height:100%;object-fit:cover;border-radius:50%;background:#111";
+        "width:100%;height:100%;object-fit:contain;object-position:center;border-radius:50%;background:#1a1a1a";
       b.appendChild(ic);
       b.onclick = function (e) {
         e.preventDefault();
@@ -138,7 +144,6 @@
       };
       track.appendChild(b);
     });
-    chipsReady = true;
   }
 
   async function ensureLm() {
@@ -234,19 +239,19 @@
 
     var cx = midE.x,
       cy = midE.y,
-      tw = eyeW * (fx.scale || 2);
+      tw = eyeW * (fx.scale || 1.4);
     if (fx.anchor === "eyes") {
       cx = midE.x;
       cy = midE.y + eyeW * (fx.oy || 0);
-      tw = eyeW * (fx.scale || 2.05);
+      tw = eyeW * (fx.scale || 1.45);
     } else if (fx.anchor === "forehead") {
       cx = top.x;
-      cy = top.y + faceH * (fx.oy || -0.15);
-      tw = faceW * (fx.scale || 1.35);
+      cy = top.y + faceH * (fx.oy || -0.14);
+      tw = faceW * (fx.scale || 0.95);
     } else if (fx.anchor === "neck") {
       cx = chin.x;
-      cy = chin.y + faceH * (fx.oy || 0.25);
-      tw = faceW * (fx.scale || 1.7);
+      cy = chin.y + faceH * (fx.oy || 0.22);
+      tw = faceW * (fx.scale || 1.15);
     }
     var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
 
@@ -283,7 +288,6 @@
     loop();
   }
 
-  /** Foto com efeito: vídeo + overlay */
   function hookSnap() {
     var btn = document.getElementById("tscSnap");
     if (!btn || btn.__fxSnap) return;
@@ -309,7 +313,6 @@
           ctx.scale(-1, 1);
         }
         ctx.drawImage(video, 0, 0, w, h);
-        // desenhar efeito em full res
         var fx = getFx();
         var im = fx && imgs[fx.id];
         if (fx && im && lastLm) {
@@ -330,19 +333,19 @@
           var angle = Math.atan2(re.y - le.y, re.x - le.x);
           var cx = midE.x,
             cy = midE.y,
-            tw = eyeW * 2;
+            tw = eyeW * 1.45;
           if (fx.anchor === "eyes") {
             cx = midE.x;
             cy = midE.y + eyeW * (fx.oy || 0);
-            tw = eyeW * (fx.scale || 2.05);
+            tw = eyeW * (fx.scale || 1.45);
           } else if (fx.anchor === "forehead") {
             cx = top.x;
-            cy = top.y + faceH * (fx.oy || -0.15);
-            tw = faceW * (fx.scale || 1.35);
+            cy = top.y + faceH * (fx.oy || -0.14);
+            tw = faceW * (fx.scale || 0.95);
           } else if (fx.anchor === "neck") {
             cx = chin.x;
-            cy = chin.y + faceH * (fx.oy || 0.25);
-            tw = faceW * (fx.scale || 1.7);
+            cy = chin.y + faceH * (fx.oy || 0.22);
+            tw = faceW * (fx.scale || 1.15);
           }
           var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
           ctx.save();
@@ -397,8 +400,6 @@
       ensureOverlay();
       hookSnap();
       startLoop();
-    } else {
-      chipsReady = false;
     }
   }
 

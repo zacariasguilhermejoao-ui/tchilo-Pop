@@ -1,11 +1,11 @@
 /**
- * tchilo-Pop — câmara + efeitos
+ * tchilo-Pop — câmara + efeitos (só óculos)
  */
 (function () {
   "use strict";
   function load(src, cb) {
     var s = document.createElement("script");
-    s.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=fxIcons3";
+    s.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=fx2oculos1";
     s.onload = function () {
       if (cb) cb();
     };

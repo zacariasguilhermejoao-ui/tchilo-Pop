@@ -1,6 +1,5 @@
 /**
- * tchilo-Pop — efeitos faciais
- * Só: Normal, Óculos prata, Óculos estrela
+ * tchilo-Pop — efeitos: Normal + Óculos prata + Óculos estrela
  */
 (function () {
   "use strict";
@@ -11,7 +10,6 @@
       label: "Óculos",
       url: "https://iili.io/nTKp9oB.webp",
       icon: "https://iili.io/nTKpHMP.webp",
-      anchor: "eyes",
       scale: 1.35,
       oy: 0
     },
@@ -20,7 +18,6 @@
       label: "Estrela",
       url: "https://iili.io/nTKmZ8b.webp",
       icon: "https://iili.io/nTKmptV.webp",
-      anchor: "eyes",
       scale: 1.35,
       oy: 0
     }
@@ -33,25 +30,28 @@
   var lastT = 0;
   var loopOn = false;
   var ov = null;
-  var built = false;
 
-  if (!document.getElementById("tchiloFxPanelCSS")) {
-    var st = document.createElement("style");
-    st.id = "tchiloFxPanelCSS";
+  // CSS ícones
+  (function () {
+    var st = document.getElementById("tchiloFxPanelCSS");
+    if (!st) {
+      st = document.createElement("style");
+      st.id = "tchiloFxPanelCSS";
+      document.head.appendChild(st);
+    }
     st.textContent =
-      "#tchiloStableCam .track .chip{" +
-      "width:56px!important;height:56px!important;min-width:56px!important;max-width:56px!important;" +
-      "padding:4px!important;box-sizing:border-box!important;overflow:hidden!important;" +
-      "border-radius:50%!important;flex:0 0 56px!important}" +
-      "#tchiloStableCam .track .chip img{" +
+      "#tchiloStableCam #tscTrack .chip{" +
+      "width:56px!important;height:56px!important;min-width:56px!important;" +
+      "max-width:56px!important;padding:4px!important;box-sizing:border-box!important;" +
+      "overflow:hidden!important;border-radius:50%!important;flex:0 0 56px!important}" +
+      "#tchiloStableCam #tscTrack .chip img{" +
       "display:block!important;width:48px!important;height:48px!important;" +
       "object-fit:contain!important;object-position:center!important;" +
       "border-radius:50%!important;background:#222!important;margin:0 auto!important}";
-    document.head.appendChild(st);
-  }
+  })();
 
   function loadImg(fx) {
-    if (imgs[fx.id]) return;
+    if (imgs[fx.id] && imgs[fx.id].complete && imgs[fx.id].naturalWidth) return;
     var im = new Image();
     im.crossOrigin = "anonymous";
     im.onload = function () {
@@ -89,15 +89,22 @@
     ctx.clearRect(0, 0, ov.width || 1, ov.height || 1);
   }
 
+  function ourChipsOk(track) {
+    if (!track) return false;
+    for (var i = 0; i < FX.length; i++) {
+      if (!track.querySelector('[data-fx="' + FX[i].id + '"]')) return false;
+    }
+    return true;
+  }
+
   function buildChips() {
     var track = document.getElementById("tscTrack");
     if (!track) return;
     var cam = document.getElementById("tchiloStableCam");
-    if (!cam || !cam.classList.contains("on")) {
-      built = false;
-      return;
-    }
-    if (built && track.querySelectorAll("[data-fx]").length === FX.length) return;
+    if (!cam || !cam.classList.contains("on")) return;
+
+    // se já temos os nossos chips, não recriar (evita piscar)
+    if (ourChipsOk(track)) return;
 
     track.innerHTML = "";
 
@@ -123,14 +130,17 @@
       b.className = "chip" + (activeId === fx.id ? " active" : "");
       b.title = fx.label;
       b.setAttribute("data-fx", fx.id);
+
       var ic = document.createElement("img");
-      ic.src = fx.icon || fx.url;
       ic.alt = fx.label;
       ic.draggable = false;
+      ic.src = fx.icon;
       ic.onerror = function () {
-        if (ic.src !== fx.url) ic.src = fx.url;
+        ic.onerror = null;
+        ic.src = fx.url;
       };
       b.appendChild(ic);
+
       b.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -151,7 +161,6 @@
       };
       track.appendChild(b);
     });
-    built = true;
   }
 
   async function ensureLm() {
@@ -239,7 +248,6 @@
     var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
     var midE = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
     var angle = Math.atan2(re.y - le.y, re.x - le.x);
-
     var cx = midE.x;
     var cy = midE.y + eyeW * (fx.oy || 0);
     var tw = eyeW * (fx.scale || 1.35);
@@ -267,6 +275,8 @@
     requestAnimationFrame(loop);
     var root = document.getElementById("tchiloStableCam");
     if (!root || !root.classList.contains("on")) return;
+    // manter chips sempre
+    buildChips();
     if (activeId) draw();
     else clearOv();
   }
@@ -371,17 +381,17 @@
       ensureOverlay();
       hookSnap();
       startLoop();
-    } else {
-      built = false;
     }
   }
 
-  setInterval(tick, 350);
+  // intervalo + arranque imediato
+  setInterval(tick, 250);
+  tick();
+  setTimeout(tick, 100);
+  setTimeout(tick, 500);
+  setTimeout(tick, 1200);
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () {
-      setTimeout(tick, 150);
-    });
-  } else {
-    setTimeout(tick, 150);
+    document.addEventListener("DOMContentLoaded", tick);
   }
 })();

@@ -1,11 +1,12 @@
 /**
- * tchilo-Pop — câmara + efeitos (só óculos)
+ * tchilo-Pop — câmara + efeitos
  */
 (function () {
   "use strict";
+  var v = "fxVis2";
   function load(src, cb) {
     var s = document.createElement("script");
-    s.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=fx2oculos1";
+    s.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=" + v;
     s.onload = function () {
       if (cb) cb();
     };
@@ -15,10 +16,26 @@
     };
     document.head.appendChild(s);
   }
+  // câmara base
   load(
     "https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@699a0f1e268a1bee2f85c966041c38a1540ad30c/native/stable-fix.js",
     function () {
-      load("native/fx-panel.js");
+      // painel de efeitos (URL absoluta no GitHub Pages)
+      var base = "";
+      try {
+        var scripts = document.getElementsByTagName("script");
+        for (var i = 0; i < scripts.length; i++) {
+          var u = scripts[i].src || "";
+          if (u.indexOf("stable-fix.js") >= 0) {
+            base = u.replace(/\/native\/stable-fix\.js.*$/, "/");
+            break;
+          }
+        }
+      } catch (e) {}
+      if (!base) {
+        base = "https://zacariasguilhermejoao-ui.github.io/tchilo-Pop/";
+      }
+      load(base + "native/fx-panel.js");
     }
   );
 })();

@@ -1,5 +1,6 @@
 /**
- * tchilo-Pop — efeitos: Normal + Óculos prata + Óculos estrela
+ * tchilo-Pop — Normal + Óculos prata + Óculos estrela
+ * Lentes pretas opacas no óculos estrela
  */
 (function () {
   "use strict";
@@ -11,7 +12,8 @@
       url: "https://iili.io/nTKp9oB.webp",
       icon: "https://iili.io/nTKpHMP.webp",
       scale: 1.35,
-      oy: 0
+      oy: 0,
+      blackLenses: false
     },
     {
       id: "oculos_estrela",
@@ -19,7 +21,8 @@
       url: "https://iili.io/nTKmZ8b.webp",
       icon: "https://iili.io/nTKmptV.webp",
       scale: 1.35,
-      oy: 0
+      oy: 0,
+      blackLenses: true
     }
   ];
 
@@ -31,7 +34,6 @@
   var loopOn = false;
   var ov = null;
 
-  // CSS ícones
   (function () {
     var st = document.getElementById("tchiloFxPanelCSS");
     if (!st) {
@@ -102,8 +104,6 @@
     if (!track) return;
     var cam = document.getElementById("tchiloStableCam");
     if (!cam || !cam.classList.contains("on")) return;
-
-    // se já temos os nossos chips, não recriar (evita piscar)
     if (ourChipsOk(track)) return;
 
     track.innerHTML = "";
@@ -130,7 +130,6 @@
       b.className = "chip" + (activeId === fx.id ? " active" : "");
       b.title = fx.label;
       b.setAttribute("data-fx", fx.id);
-
       var ic = document.createElement("img");
       ic.alt = fx.label;
       ic.draggable = false;
@@ -140,7 +139,6 @@
         ic.src = fx.url;
       };
       b.appendChild(ic);
-
       b.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -196,6 +194,44 @@
     return null;
   }
 
+  /** Desenha lentes pretas opacas + PNG da armação */
+  function drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, pw) {
+    var midE = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
+    var cx = midE.x;
+    var cy = midE.y + eyeW * (fx.oy || 0);
+    var tw = eyeW * (fx.scale || 1.35);
+    var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
+
+    ctx.save();
+    if (mir) {
+      ctx.translate(pw, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
+
+    // lentes pretas opacas (antes da armação)
+    if (fx.blackLenses) {
+      var lensRx = tw * 0.22;
+      var lensRy = th * 0.32;
+      var gap = tw * 0.28;
+      ctx.fillStyle = "#0a0a0a";
+      ctx.beginPath();
+      ctx.ellipse(-gap, 0, lensRx, lensRy, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(gap, 0, lensRx, lensRy, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.imageSmoothingEnabled = true;
+    try {
+      ctx.imageSmoothingQuality = "high";
+    } catch (e3) {}
+    ctx.drawImage(im, -tw / 2, -th / 2, tw, th);
+    ctx.restore();
+  }
+
   function draw() {
     var fx = getFx();
     if (!fx) {
@@ -246,28 +282,11 @@
     var le = P(33),
       re = P(263);
     var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
-    var midE = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
     var angle = Math.atan2(re.y - le.y, re.x - le.x);
-    var cx = midE.x;
-    var cy = midE.y + eyeW * (fx.oy || 0);
-    var tw = eyeW * (fx.scale || 1.35);
-    var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
-
     var root = document.getElementById("tchiloStableCam");
     var mir = root && root.classList.contains("mir");
-    ctx.save();
-    if (mir) {
-      ctx.translate(pw, 0);
-      ctx.scale(-1, 1);
-    }
-    ctx.translate(cx, cy);
-    ctx.rotate(angle);
-    ctx.imageSmoothingEnabled = true;
-    try {
-      ctx.imageSmoothingQuality = "high";
-    } catch (e3) {}
-    ctx.drawImage(im, -tw / 2, -th / 2, tw, th);
-    ctx.restore();
+
+    drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, pw);
   }
 
   function loop() {
@@ -275,7 +294,6 @@
     requestAnimationFrame(loop);
     var root = document.getElementById("tchiloStableCam");
     if (!root || !root.classList.contains("on")) return;
-    // manter chips sempre
     buildChips();
     if (activeId) draw();
     else clearOv();
@@ -313,6 +331,10 @@
           ctx.scale(-1, 1);
         }
         ctx.drawImage(video, 0, 0, w, h);
+        // desfazer mirror para drawGlasses aplicar de novo
+        if (mir) {
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
         var fx = getFx();
         var im = fx && imgs[fx.id];
         if (fx && im && lastLm) {
@@ -323,17 +345,8 @@
           var le = P(33),
             re = P(263);
           var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
-          var midE = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
           var angle = Math.atan2(re.y - le.y, re.x - le.x);
-          var cx = midE.x;
-          var cy = midE.y + eyeW * (fx.oy || 0);
-          var tw = eyeW * (fx.scale || 1.35);
-          var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
-          ctx.save();
-          ctx.translate(cx, cy);
-          ctx.rotate(angle);
-          ctx.drawImage(im, -tw / 2, -th / 2, tw, th);
-          ctx.restore();
+          drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, w);
         }
         c.toBlob(function (blob) {
           if (!blob) return;
@@ -384,13 +397,11 @@
     }
   }
 
-  // intervalo + arranque imediato
   setInterval(tick, 250);
   tick();
   setTimeout(tick, 100);
   setTimeout(tick, 500);
   setTimeout(tick, 1200);
-
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", tick);
   }

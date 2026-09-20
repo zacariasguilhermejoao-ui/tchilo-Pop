@@ -3,7 +3,7 @@
  */
 (function () {
   "use strict";
-  var v = "fxLensBlack1";
+  var v = "fxCao1";
   function load(src, cb) {
     var s = document.createElement("script");
     s.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=" + v;

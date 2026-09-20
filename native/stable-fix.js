@@ -3,7 +3,7 @@
  */
 (function () {
   "use strict";
-  var v = "fxBeijos1";
+  var v = "fxMask1";
   function load(src, cb) {
     var s = document.createElement("script");
     s.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=" + v;
@@ -30,7 +30,9 @@
           }
         }
       } catch (e) {}
-      load(base + "native/fx-panel.js");
+      load(base + "native/fx-panel.js", function () {
+        load(base + "native/fx-add-mascara.js");
+      });
     }
   );
 })();

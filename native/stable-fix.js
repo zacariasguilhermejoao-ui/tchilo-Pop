@@ -3,7 +3,7 @@
  */
 (function () {
   "use strict";
-  var v = "fxVis2";
+  var v = "fxLensBlack1";
   function load(src, cb) {
     var s = document.createElement("script");
     s.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=" + v;
@@ -16,12 +16,10 @@
     };
     document.head.appendChild(s);
   }
-  // câmara base
   load(
     "https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@699a0f1e268a1bee2f85c966041c38a1540ad30c/native/stable-fix.js",
     function () {
-      // painel de efeitos (URL absoluta no GitHub Pages)
-      var base = "";
+      var base = "https://zacariasguilhermejoao-ui.github.io/tchilo-Pop/";
       try {
         var scripts = document.getElementsByTagName("script");
         for (var i = 0; i < scripts.length; i++) {
@@ -32,9 +30,6 @@
           }
         }
       } catch (e) {}
-      if (!base) {
-        base = "https://zacariasguilhermejoao-ui.github.io/tchilo-Pop/";
-      }
       load(base + "native/fx-panel.js");
     }
   );

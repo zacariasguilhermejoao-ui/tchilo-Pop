@@ -1,6 +1,6 @@
 /**
  * tchilo-Pop — efeitos faciais
- * Ícones quadrados (URLs) + PNG na cara (tamanho reduzido)
+ * Só: Normal, Óculos prata, Óculos estrela
  */
 (function () {
   "use strict";
@@ -16,15 +16,6 @@
       oy: 0
     },
     {
-      id: "chifres",
-      label: "Chifres",
-      url: "https://iili.io/nTKmrt2.webp",
-      icon: "https://iili.io/nTKm6nS.webp",
-      anchor: "forehead",
-      scale: 0.85,
-      oy: -0.12
-    },
-    {
       id: "oculos_estrela",
       label: "Estrela",
       url: "https://iili.io/nTKmZ8b.webp",
@@ -32,15 +23,6 @@
       anchor: "eyes",
       scale: 1.35,
       oy: 0
-    },
-    {
-      id: "correntes",
-      label: "Correntes",
-      url: "https://iili.io/nTKmiP9.webp",
-      icon: "https://iili.io/nTKmQcu.webp",
-      anchor: "neck",
-      scale: 1.05,
-      oy: 0.18
     }
   ];
 
@@ -115,8 +97,7 @@
       built = false;
       return;
     }
-    // já tem os 4 efeitos?
-    if (built && track.querySelectorAll("[data-fx]").length === 4) return;
+    if (built && track.querySelectorAll("[data-fx]").length === FX.length) return;
 
     track.innerHTML = "";
 
@@ -147,7 +128,6 @@
       ic.alt = fx.label;
       ic.draggable = false;
       ic.onerror = function () {
-        // se o ícone falhar, usar o PNG principal
         if (ic.src !== fx.url) ic.src = fx.url;
       };
       b.appendChild(ic);
@@ -255,33 +235,14 @@
       return { x: L[i].x * pw, y: L[i].y * ph };
     }
     var le = P(33),
-      re = P(263),
-      top = P(10),
-      chin = P(152),
-      cL = P(234),
-      cR = P(454);
+      re = P(263);
     var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
-    var faceW = Math.hypot(cL.x - cR.x, cL.y - cR.y) || eyeW * 2.2;
-    var faceH = Math.hypot(top.x - chin.x, top.y - chin.y) || faceW;
     var midE = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
     var angle = Math.atan2(re.y - le.y, re.x - le.x);
 
-    var cx = midE.x,
-      cy = midE.y,
-      tw = eyeW * 1.35;
-    if (fx.anchor === "eyes") {
-      cx = midE.x;
-      cy = midE.y + eyeW * (fx.oy || 0);
-      tw = eyeW * (fx.scale || 1.35);
-    } else if (fx.anchor === "forehead") {
-      cx = top.x;
-      cy = top.y + faceH * (fx.oy || -0.12);
-      tw = faceW * (fx.scale || 0.85);
-    } else if (fx.anchor === "neck") {
-      cx = chin.x;
-      cy = chin.y + faceH * (fx.oy || 0.18);
-      tw = faceW * (fx.scale || 1.05);
-    }
+    var cx = midE.x;
+    var cy = midE.y + eyeW * (fx.oy || 0);
+    var tw = eyeW * (fx.scale || 1.35);
     var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
 
     var root = document.getElementById("tchiloStableCam");
@@ -350,32 +311,13 @@
             return { x: L[i].x * w, y: L[i].y * h };
           }
           var le = P(33),
-            re = P(263),
-            top = P(10),
-            chin = P(152),
-            cL = P(234),
-            cR = P(454);
+            re = P(263);
           var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
-          var faceW = Math.hypot(cL.x - cR.x, cL.y - cR.y) || eyeW * 2.2;
-          var faceH = Math.hypot(top.x - chin.x, top.y - chin.y) || faceW;
           var midE = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
           var angle = Math.atan2(re.y - le.y, re.x - le.x);
-          var cx = midE.x,
-            cy = midE.y,
-            tw = eyeW * 1.35;
-          if (fx.anchor === "eyes") {
-            cx = midE.x;
-            cy = midE.y + eyeW * (fx.oy || 0);
-            tw = eyeW * (fx.scale || 1.35);
-          } else if (fx.anchor === "forehead") {
-            cx = top.x;
-            cy = top.y + faceH * (fx.oy || -0.12);
-            tw = faceW * (fx.scale || 0.85);
-          } else if (fx.anchor === "neck") {
-            cx = chin.x;
-            cy = chin.y + faceH * (fx.oy || 0.18);
-            tw = faceW * (fx.scale || 1.05);
-          }
+          var cx = midE.x;
+          var cy = midE.y + eyeW * (fx.oy || 0);
+          var tw = eyeW * (fx.scale || 1.35);
           var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
           ctx.save();
           ctx.translate(cx, cy);

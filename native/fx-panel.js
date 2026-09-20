@@ -1,6 +1,5 @@
 /**
- * tchilo-Pop — efeitos: Normal, Óculos prata, Óculos estrela, Cão
- * Resolução overlay ~480–720px; scale relativo à cara
+ * tchilo-Pop — Normal, Óculos prata, Estrela, Cão, Gato
  */
 (function () {
   "use strict";
@@ -37,6 +36,15 @@
       snoutScale: 0.95,
       earsOy: -0.08,
       snoutOy: 0.05
+    },
+    {
+      id: "gato",
+      label: "Gato",
+      type: "face",
+      url: "https://litter.catbox.moe/nr4ci2.webp",
+      icon: "https://litter.catbox.moe/8kuhk9.webp",
+      scale: 1.25,
+      oy: -0.05
     }
   ];
 
@@ -88,11 +96,10 @@
     if (fx.type === "dog") {
       loadOne(fx.id + "_ears", fx.ears);
       loadOne(fx.id + "_snout", fx.snout);
-      loadOne(fx.id + "_icon", fx.icon);
     } else {
       loadOne(fx.id, fx.url);
-      loadOne(fx.id + "_icon", fx.icon);
     }
+    if (fx.icon) loadOne(fx.id + "_icon", fx.icon);
   }
   FX.forEach(loadFx);
 
@@ -159,7 +166,7 @@
       var ic = document.createElement("img");
       ic.alt = fx.label;
       ic.draggable = false;
-      ic.src = fx.icon;
+      ic.src = fx.icon || fx.url;
       ic.onerror = function () {
         ic.onerror = null;
         if (fx.url) ic.src = fx.url;
@@ -257,13 +264,11 @@
     ctx.restore();
   }
 
-  /** Orelhas na testa + focinho no nariz */
-  function drawDog(ctx, fx, L, P, faceW, faceH, angle, mir, pw) {
+  function drawDog(ctx, fx, P, faceW, faceH, angle, mir, pw) {
     var ears = imgs[fx.id + "_ears"];
     var snout = imgs[fx.id + "_snout"];
     var top = P(10);
     var nose = P(1);
-    var chin = P(152);
 
     ctx.imageSmoothingEnabled = true;
     try {
@@ -285,10 +290,35 @@
       ctx.restore();
     }
 
-    // orelhas: acima da testa
     place(ears, top.x, top.y, fx.earsScale || 1.15, fx.earsOy || -0.08);
-    // focinho: no nariz
     place(snout, nose.x, nose.y, fx.snoutScale || 0.95, fx.snoutOy || 0.05);
+  }
+
+  /** Máscara completa (orelhas + olhos + focinho) centrada na cara */
+  function drawFace(ctx, fx, im, P, faceW, faceH, angle, mir, pw) {
+    if (!im || !im.complete || !im.naturalWidth) return;
+    var top = P(10);
+    var chin = P(152);
+    var mid = {
+      x: (top.x + chin.x) / 2,
+      y: (top.y + chin.y) / 2 + faceH * (fx.oy || 0)
+    };
+    var tw = faceW * (fx.scale || 1.25);
+    var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
+
+    ctx.save();
+    if (mir) {
+      ctx.translate(pw, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.translate(mid.x, mid.y);
+    ctx.rotate(angle);
+    ctx.imageSmoothingEnabled = true;
+    try {
+      ctx.imageSmoothingQuality = "high";
+    } catch (e3) {}
+    ctx.drawImage(im, -tw / 2, -th / 2, tw, th);
+    ctx.restore();
   }
 
   function draw() {
@@ -348,7 +378,14 @@
 
     if (fx.type === "dog") {
       loadFx(fx);
-      drawDog(ctx, fx, L, P, faceW, faceH, angle, mir, pw);
+      drawDog(ctx, fx, P, faceW, faceH, angle, mir, pw);
+    } else if (fx.type === "face") {
+      var imF = imgs[fx.id];
+      if (!imF || !imF.complete || !imF.naturalWidth) {
+        loadFx(fx);
+        return;
+      }
+      drawFace(ctx, fx, imF, P, faceW, faceH, angle, mir, pw);
     } else {
       var im = imgs[fx.id];
       if (!im || !im.complete || !im.naturalWidth) {
@@ -420,7 +457,10 @@
           var faceH = Math.hypot(top.x - chin.x, top.y - chin.y) || faceW;
           var angle = Math.atan2(re.y - le.y, re.x - le.x);
           if (fx.type === "dog") {
-            drawDog(ctx, fx, L, P, faceW, faceH, angle, mir, w);
+            drawDog(ctx, fx, P, faceW, faceH, angle, mir, w);
+          } else if (fx.type === "face") {
+            var imF = imgs[fx.id];
+            if (imF) drawFace(ctx, fx, imF, P, faceW, faceH, angle, mir, w);
           } else {
             var im = imgs[fx.id];
             if (im) drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, w);

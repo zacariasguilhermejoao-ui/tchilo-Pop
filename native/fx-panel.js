@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — Normal, Óculos, Estrela, Cão, Gato, Olhos
+ * tchilo-Pop — efeitos faciais + chuva de beijos
  */
 (function () {
   "use strict";
@@ -55,6 +55,19 @@
       icon: "https://litter.catbox.moe/8kuhk9.webp",
       scale: 1.25,
       oy: -0.05
+    },
+    {
+      id: "beijos",
+      label: "Beijos",
+      type: "rain",
+      icon: "https://litter.catbox.moe/5s2564.webp",
+      sprites: [
+        "https://litter.catbox.moe/xdrm5k.webp",
+        "https://litter.catbox.moe/szy6fa.webp",
+        "https://litter.catbox.moe/8udqmz.webp",
+        "https://litter.catbox.moe/tpkhms.webp",
+        "https://litter.catbox.moe/igz5ba.webp"
+      ]
     }
   ];
 
@@ -65,6 +78,8 @@
   var lastT = 0;
   var loopOn = false;
   var ov = null;
+  var rainParticles = [];
+  var rainSprites = [];
 
   (function () {
     var st = document.getElementById("tchiloFxPanelCSS");
@@ -106,6 +121,10 @@
     if (fx.type === "dog") {
       loadOne(fx.id + "_ears", fx.ears);
       loadOne(fx.id + "_snout", fx.snout);
+    } else if (fx.type === "rain") {
+      (fx.sprites || []).forEach(function (u, i) {
+        loadOne(fx.id + "_s" + i, u);
+      });
     } else {
       loadOne(fx.id, fx.url);
     }
@@ -158,6 +177,7 @@
     n.title = "Normal";
     n.onclick = function () {
       activeId = null;
+      rainParticles = [];
       clearOv();
       track.querySelectorAll(".chip").forEach(function (c) {
         c.classList.remove("active");
@@ -176,17 +196,21 @@
       var ic = document.createElement("img");
       ic.alt = fx.label;
       ic.draggable = false;
-      ic.src = fx.icon || fx.url;
+      ic.src = fx.icon || fx.url || (fx.sprites && fx.sprites[0]);
       ic.onerror = function () {
         ic.onerror = null;
         if (fx.url) ic.src = fx.url;
-        else if (fx.ears) ic.src = fx.ears;
+        else if (fx.sprites && fx.sprites[0]) ic.src = fx.sprites[0];
       };
       b.appendChild(ic);
       b.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
         activeId = fx.id;
+        if (fx.type === "rain") {
+          rainParticles = [];
+          initRain(fx);
+        }
         track.querySelectorAll(".chip").forEach(function (c) {
           c.classList.remove("active");
         });
@@ -203,6 +227,93 @@
       };
       track.appendChild(b);
     });
+  }
+
+  function getRainSprites(fx) {
+    var list = [];
+    (fx.sprites || []).forEach(function (u, i) {
+      var im = imgs[fx.id + "_s" + i];
+      if (im && im.complete && im.naturalWidth) list.push(im);
+    });
+    return list;
+  }
+
+  function spawnParticle(pw, ph, sprites) {
+    if (!sprites.length) return null;
+    var size = 28 + Math.random() * 36; // 28–64 px nos ecrãs (cabe em todo lado)
+    return {
+      x: Math.random() * pw,
+      y: -40 - Math.random() * ph * 0.3,
+      vy: 1.2 + Math.random() * 2.4,
+      vx: (Math.random() - 0.5) * 0.8,
+      rot: Math.random() * Math.PI * 2,
+      vrot: (Math.random() - 0.5) * 0.04,
+      size: size,
+      img: sprites[Math.floor(Math.random() * sprites.length)],
+      alpha: 0.85 + Math.random() * 0.15
+    };
+  }
+
+  function initRain(fx) {
+    loadFx(fx);
+    var sprites = getRainSprites(fx);
+    rainSprites = sprites;
+    rainParticles = [];
+    var video = document.getElementById("tscVideo");
+    var pw = 360,
+      ph = 640;
+    if (video && video.videoWidth) {
+      pw = Math.min(480, video.videoWidth);
+      ph = Math.round((pw / video.videoWidth) * video.videoHeight);
+    }
+    for (var i = 0; i < 28; i++) {
+      var p = spawnParticle(pw, ph, sprites);
+      if (p) {
+        p.y = Math.random() * ph;
+        rainParticles.push(p);
+      }
+    }
+  }
+
+  function drawRain(ctx, fx, pw, ph) {
+    loadFx(fx);
+    var sprites = getRainSprites(fx);
+    if (!sprites.length) return;
+
+    if (rainParticles.length < 20) {
+      for (var s = 0; s < 3; s++) {
+        var np = spawnParticle(pw, ph, sprites);
+        if (np) rainParticles.push(np);
+      }
+    }
+
+    ctx.imageSmoothingEnabled = true;
+    try {
+      ctx.imageSmoothingQuality = "high";
+    } catch (e) {}
+
+    var next = [];
+    for (var i = 0; i < rainParticles.length; i++) {
+      var p = rainParticles[i];
+      p.y += p.vy;
+      p.x += p.vx;
+      p.rot += p.vrot;
+      if (p.y > ph + 50) {
+        var r = spawnParticle(pw, ph, sprites);
+        if (r) next.push(r);
+        continue;
+      }
+      if (!p.img || !p.img.complete) continue;
+      var th = p.size * (p.img.naturalHeight / Math.max(1, p.img.naturalWidth));
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.drawImage(p.img, -p.size / 2, -th / 2, p.size, th);
+      ctx.restore();
+      next.push(p);
+    }
+    rainParticles = next;
   }
 
   async function ensureLm() {
@@ -354,6 +465,11 @@
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, pw, ph);
 
+    if (fx.type === "rain") {
+      drawRain(ctx, fx, pw, ph);
+      return;
+    }
+
     if (!lm) {
       ensureLm();
       return;
@@ -450,29 +566,33 @@
         if (mir) ctx.setTransform(1, 0, 0, 1, 0, 0);
 
         var fx = getFx();
-        if (fx && lastLm) {
-          var L = lastLm[0];
-          function P(i) {
-            return { x: L[i].x * w, y: L[i].y * h };
-          }
-          var le = P(33),
-            re = P(263),
-            cL = P(234),
-            cR = P(454),
-            top = P(10),
-            chin = P(152);
-          var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
-          var faceW = Math.hypot(cL.x - cR.x, cL.y - cR.y) || eyeW * 2.2;
-          var faceH = Math.hypot(top.x - chin.x, top.y - chin.y) || faceW;
-          var angle = Math.atan2(re.y - le.y, re.x - le.x);
-          if (fx.type === "dog") {
-            drawDog(ctx, fx, P, faceW, faceH, angle, mir, w);
-          } else if (fx.type === "face") {
-            var imF = imgs[fx.id];
-            if (imF) drawFace(ctx, fx, imF, P, faceW, faceH, angle, mir, w);
-          } else {
-            var im = imgs[fx.id];
-            if (im) drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, w);
+        if (fx) {
+          if (fx.type === "rain") {
+            drawRain(ctx, fx, w, h);
+          } else if (lastLm) {
+            var L = lastLm[0];
+            function P(i) {
+              return { x: L[i].x * w, y: L[i].y * h };
+            }
+            var le = P(33),
+              re = P(263),
+              cL = P(234),
+              cR = P(454),
+              top = P(10),
+              chin = P(152);
+            var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
+            var faceW = Math.hypot(cL.x - cR.x, cL.y - cR.y) || eyeW * 2.2;
+            var faceH = Math.hypot(top.x - chin.x, top.y - chin.y) || faceW;
+            var angle = Math.atan2(re.y - le.y, re.x - le.x);
+            if (fx.type === "dog") {
+              drawDog(ctx, fx, P, faceW, faceH, angle, mir, w);
+            } else if (fx.type === "face") {
+              var imF = imgs[fx.id];
+              if (imF) drawFace(ctx, fx, imF, P, faceW, faceH, angle, mir, w);
+            } else {
+              var im = imgs[fx.id];
+              if (im) drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, w);
+            }
           }
         }
         c.toBlob(function (blob) {

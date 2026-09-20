@@ -47,6 +47,7 @@
   var lastT = 0;
   var loopOn = false;
   var ov = null;
+  var chipsReady = false;
 
   FX.forEach(function (fx) {
     var im = new Image();
@@ -81,10 +82,14 @@
   function buildChips() {
     var track = document.getElementById("tscTrack");
     if (!track) return;
+    // já tem os nossos chips?
+    if (track.querySelector("[data-fx]") && track.querySelectorAll(".chip").length >= 5) {
+      chipsReady = true;
+      return;
+    }
 
     track.innerHTML = "";
 
-    // Normal
     var n = document.createElement("button");
     n.type = "button";
     n.className = "chip" + (activeId ? "" : " active");
@@ -121,7 +126,6 @@
           c.classList.remove("active");
         });
         b.classList.add("active");
-        // limpar canvas de warps antigos
         try {
           var main = document.getElementById("tscCanvas");
           if (main) {
@@ -134,6 +138,7 @@
       };
       track.appendChild(b);
     });
+    chipsReady = true;
   }
 
   async function ensureLm() {
@@ -278,16 +283,126 @@
     loop();
   }
 
+  /** Foto com efeito: vídeo + overlay */
+  function hookSnap() {
+    var btn = document.getElementById("tscSnap");
+    if (!btn || btn.__fxSnap) return;
+    btn.__fxSnap = true;
+    btn.addEventListener(
+      "click",
+      function (e) {
+        if (!activeId) return;
+        e.preventDefault();
+        e.stopPropagation();
+        var video = document.getElementById("tscVideo");
+        if (!video || video.readyState < 2) return;
+        var w = video.videoWidth || 720;
+        var h = video.videoHeight || 1280;
+        var c = document.createElement("canvas");
+        c.width = w;
+        c.height = h;
+        var ctx = c.getContext("2d");
+        var root = document.getElementById("tchiloStableCam");
+        var mir = root && root.classList.contains("mir");
+        if (mir) {
+          ctx.translate(w, 0);
+          ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, 0, 0, w, h);
+        // desenhar efeito em full res
+        var fx = getFx();
+        var im = fx && imgs[fx.id];
+        if (fx && im && lastLm) {
+          var L = lastLm[0];
+          function P(i) {
+            return { x: L[i].x * w, y: L[i].y * h };
+          }
+          var le = P(33),
+            re = P(263),
+            top = P(10),
+            chin = P(152),
+            cL = P(234),
+            cR = P(454);
+          var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
+          var faceW = Math.hypot(cL.x - cR.x, cL.y - cR.y) || eyeW * 2.2;
+          var faceH = Math.hypot(top.x - chin.x, top.y - chin.y) || faceW;
+          var midE = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
+          var angle = Math.atan2(re.y - le.y, re.x - le.x);
+          var cx = midE.x,
+            cy = midE.y,
+            tw = eyeW * 2;
+          if (fx.anchor === "eyes") {
+            cx = midE.x;
+            cy = midE.y + eyeW * (fx.oy || 0);
+            tw = eyeW * (fx.scale || 2.05);
+          } else if (fx.anchor === "forehead") {
+            cx = top.x;
+            cy = top.y + faceH * (fx.oy || -0.15);
+            tw = faceW * (fx.scale || 1.35);
+          } else if (fx.anchor === "neck") {
+            cx = chin.x;
+            cy = chin.y + faceH * (fx.oy || 0.25);
+            tw = faceW * (fx.scale || 1.7);
+          }
+          var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(angle);
+          ctx.drawImage(im, -tw / 2, -th / 2, tw, th);
+          ctx.restore();
+        }
+        c.toBlob(function (blob) {
+          if (!blob) return;
+          var url = URL.createObjectURL(blob);
+          var file;
+          try {
+            file = new File([blob], "tchilo.jpg", { type: "image/jpeg" });
+          } catch (err) {
+            file = blob;
+            file.name = "tchilo.jpg";
+          }
+          try {
+            if (typeof window.tchiloCloseCamera === "function") window.tchiloCloseCamera();
+          } catch (e3) {}
+          try {
+            window.createMediaData = {
+              type: "image",
+              items: [{ type: "image", url: url, name: "tchilo.jpg", file: file }],
+              files: [file]
+            };
+            window.createMediaFiles = [file];
+          } catch (e4) {}
+          if (typeof window.tchiloOpenMediaEditor === "function") {
+            try {
+              window.tchiloOpenMediaEditor({
+                mode: "post",
+                mediaType: "image",
+                src: url,
+                file: file
+              });
+              return;
+            } catch (e5) {}
+          }
+          if (typeof goTo === "function") goTo("create");
+        }, "image/jpeg", 0.92);
+      },
+      true
+    );
+  }
+
   function tick() {
     var cam = document.getElementById("tchiloStableCam");
     if (cam && cam.classList.contains("on")) {
       buildChips();
       ensureOverlay();
+      hookSnap();
       startLoop();
+    } else {
+      chipsReady = false;
     }
   }
 
-  setInterval(tick, 600);
+  setInterval(tick, 500);
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
       setTimeout(tick, 200);

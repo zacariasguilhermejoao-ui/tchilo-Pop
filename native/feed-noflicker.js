@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260920fxFace3';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260920liveFx1';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -24,7 +24,8 @@
       '#feedList .post{animation:none!important;}' +
       '#feedList video{animation:none!important;}' +
       '#galleryBtn,#faceFxOpenBtn{display:none!important;}' +
-      '.toast.busy,#toast.busy{display:none!important;}';
+      '.toast.busy,#toast.busy{display:none!important;}' +
+      '#tchiloCamFxTrack .chip img{object-fit:contain!important;object-position:center!important;background:#1a1a1a!important;}';
   }
 
   function silenceBusyOnly() {
@@ -41,7 +42,8 @@
   function boot() {
     injectCSS();
     silenceBusyOnly();
-    loadExtra('native/stable-fix.js', 'data-tchilo-stable');
+    // efeitos corretos na câmara TikTok
+    loadExtra('native/fx-live-patch.js', 'data-tchilo-fx-live');
     loadExtra('native/gal-thumb.js', 'data-tchilo-gal-thumb');
     loadExtra('native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs');
     loadExtra('native/chat-audio-fix.js', 'data-tchilo-chat-audio');
@@ -57,7 +59,6 @@
       ['native/reels-fast.js', 'data-tchilo-reels-fast'],
       ['native/reels-follow-fix.js', 'data-tchilo-reels-follow'],
       ['native/offline-cache.js', 'data-tchilo-offline-cache'],
-      ['native/face-fx-deliver.js', 'data-tchilo-face-fx-deliver'],
       ['native/password-toggle.js', 'data-tchilo-pw-toggle']
     ].forEach(function (x) {
       loadExtra(x[0], x[1]);

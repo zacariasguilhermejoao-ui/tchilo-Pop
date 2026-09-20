@@ -1,6 +1,6 @@
 /**
- * tchilo-Pop — efeitos corretos na câmara TikTok (#tchiloCam)
- * Ícones = fotos reais | âncoras na cara | scales corretos
+ * tchilo-Pop — efeitos na câmara real (#tchiloCam)
+ * Canvas próprio por cima | ícones = fotos | âncoras MediaPipe
  */
 (function () {
   "use strict";
@@ -84,7 +84,6 @@
   var lastT = 0;
   var loopOn = false;
   var rainParticles = [];
-  var patched = false;
 
   function loadUrl(key, url) {
     if (!key || !url) return;
@@ -122,6 +121,20 @@
     return imgs[key] && imgs[key].complete && imgs[key].naturalWidth ? imgs[key] : null;
   }
 
+  function ensureCanvas() {
+    var stage = document.querySelector("#tchiloCam .stage");
+    if (!stage) return null;
+    var c = document.getElementById("tchiloCamFxLive");
+    if (!c) {
+      c = document.createElement("canvas");
+      c.id = "tchiloCamFxLive";
+      stage.appendChild(c);
+    }
+    c.style.cssText =
+      "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:6;pointer-events:none;display:block";
+    return c;
+  }
+
   async function ensureLm() {
     if (lm) return lm;
     try {
@@ -153,7 +166,6 @@
   function buildChips() {
     var track = document.getElementById("tchiloCamFxTrack");
     if (!track) return;
-    // marcar para não deixar o script antigo reescrever sem os nossos data-fx
     if (track.getAttribute("data-live-fx") === "1" && track.querySelector('[data-fx="mascara"]')) return;
 
     track.innerHTML = "";
@@ -190,6 +202,15 @@
         track.querySelectorAll(".chip").forEach(function (c, j) {
           c.classList.toggle("active", j === i);
         });
+        // limpar canvas antigo da câmara
+        try {
+          var old = document.getElementById("tchiloCamCanvas");
+          if (old) {
+            var cx = old.getContext("2d");
+            cx.setTransform(1, 0, 0, 1, 0, 0);
+            cx.clearRect(0, 0, old.width || 1, old.height || 1);
+          }
+        } catch (err) {}
         ensureLm();
         startLoop();
       };
@@ -261,7 +282,7 @@
     var root = document.getElementById("tchiloCam");
     if (!root || !root.classList.contains("open")) return;
     var video = document.getElementById("tchiloCamVideo");
-    var canvas = document.getElementById("tchiloCamCanvas");
+    var canvas = ensureCanvas();
     if (!video || !canvas || video.readyState < 2) return;
 
     var w = video.videoWidth || 640;
@@ -351,9 +372,6 @@
       cx = faceCenter.x;
       cy = faceCenter.y + faceH * (fx.oy || 0);
       tw = faceW * (fx.scale || 1.4);
-    } else {
-      cy = midEyes.y + eyeW * (fx.oy || 0);
-      tw = eyeW * (fx.scale || 1.45);
     }
 
     if (fx.blackLenses) {
@@ -412,6 +430,7 @@
     if (root && root.classList.contains("open")) {
       buildChips();
       guardTrack();
+      ensureCanvas();
       startLoop();
     }
   }

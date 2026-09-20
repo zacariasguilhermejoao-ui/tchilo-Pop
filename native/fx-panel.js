@@ -1,6 +1,6 @@
 /**
- * tchilo-Pop — Normal + Óculos prata + Óculos estrela
- * Lentes pretas opacas no óculos estrela
+ * tchilo-Pop — efeitos: Normal, Óculos prata, Óculos estrela, Cão
+ * Resolução overlay ~480–720px; scale relativo à cara
  */
 (function () {
   "use strict";
@@ -9,6 +9,7 @@
     {
       id: "oculos_prata",
       label: "Óculos",
+      type: "glasses",
       url: "https://iili.io/nTKp9oB.webp",
       icon: "https://iili.io/nTKpHMP.webp",
       scale: 1.35,
@@ -18,11 +19,24 @@
     {
       id: "oculos_estrela",
       label: "Estrela",
+      type: "glasses",
       url: "https://iili.io/nTKmZ8b.webp",
       icon: "https://iili.io/nTKmptV.webp",
       scale: 1.35,
       oy: 0,
       blackLenses: true
+    },
+    {
+      id: "cao",
+      label: "Cão",
+      type: "dog",
+      icon: "https://litter.catbox.moe/h2d4pl.webp",
+      ears: "https://litter.catbox.moe/lmxl6a.webp",
+      snout: "https://litter.catbox.moe/1zqg66.webp",
+      earsScale: 1.15,
+      snoutScale: 0.95,
+      earsOy: -0.08,
+      snoutOy: 0.05
     }
   ];
 
@@ -52,23 +66,35 @@
       "border-radius:50%!important;background:#222!important;margin:0 auto!important}";
   })();
 
-  function loadImg(fx) {
-    if (imgs[fx.id] && imgs[fx.id].complete && imgs[fx.id].naturalWidth) return;
+  function loadOne(key, url) {
+    if (!url) return;
+    if (imgs[key] && imgs[key].complete && imgs[key].naturalWidth) return;
     var im = new Image();
     im.crossOrigin = "anonymous";
     im.onload = function () {
-      imgs[fx.id] = im;
+      imgs[key] = im;
     };
     im.onerror = function () {
       var im2 = new Image();
       im2.onload = function () {
-        imgs[fx.id] = im2;
+        imgs[key] = im2;
       };
-      im2.src = fx.url;
+      im2.src = url;
     };
-    im.src = fx.url;
+    im.src = url;
   }
-  FX.forEach(loadImg);
+
+  function loadFx(fx) {
+    if (fx.type === "dog") {
+      loadOne(fx.id + "_ears", fx.ears);
+      loadOne(fx.id + "_snout", fx.snout);
+      loadOne(fx.id + "_icon", fx.icon);
+    } else {
+      loadOne(fx.id, fx.url);
+      loadOne(fx.id + "_icon", fx.icon);
+    }
+  }
+  FX.forEach(loadFx);
 
   function ensureOverlay() {
     var stage = document.querySelector("#tchiloStableCam .stage");
@@ -124,7 +150,7 @@
     track.appendChild(n);
 
     FX.forEach(function (fx) {
-      loadImg(fx);
+      loadFx(fx);
       var b = document.createElement("button");
       b.type = "button";
       b.className = "chip" + (activeId === fx.id ? " active" : "");
@@ -136,7 +162,8 @@
       ic.src = fx.icon;
       ic.onerror = function () {
         ic.onerror = null;
-        ic.src = fx.url;
+        if (fx.url) ic.src = fx.url;
+        else if (fx.ears) ic.src = fx.ears;
       };
       b.appendChild(ic);
       b.onclick = function (e) {
@@ -194,7 +221,6 @@
     return null;
   }
 
-  /** Desenha lentes pretas opacas + PNG da armação */
   function drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, pw) {
     var midE = { x: (le.x + re.x) / 2, y: (le.y + re.y) / 2 };
     var cx = midE.x;
@@ -210,7 +236,6 @@
     ctx.translate(cx, cy);
     ctx.rotate(angle);
 
-    // lentes pretas opacas (antes da armação)
     if (fx.blackLenses) {
       var lensRx = tw * 0.22;
       var lensRy = th * 0.32;
@@ -232,6 +257,40 @@
     ctx.restore();
   }
 
+  /** Orelhas na testa + focinho no nariz */
+  function drawDog(ctx, fx, L, P, faceW, faceH, angle, mir, pw) {
+    var ears = imgs[fx.id + "_ears"];
+    var snout = imgs[fx.id + "_snout"];
+    var top = P(10);
+    var nose = P(1);
+    var chin = P(152);
+
+    ctx.imageSmoothingEnabled = true;
+    try {
+      ctx.imageSmoothingQuality = "high";
+    } catch (e3) {}
+
+    function place(im, cx, cy, scale, oy) {
+      if (!im || !im.complete || !im.naturalWidth) return;
+      var tw = faceW * scale;
+      var th = tw * (im.naturalHeight / Math.max(1, im.naturalWidth));
+      ctx.save();
+      if (mir) {
+        ctx.translate(pw, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.translate(cx, cy + faceH * (oy || 0));
+      ctx.rotate(angle);
+      ctx.drawImage(im, -tw / 2, -th / 2, tw, th);
+      ctx.restore();
+    }
+
+    // orelhas: acima da testa
+    place(ears, top.x, top.y, fx.earsScale || 1.15, fx.earsOy || -0.08);
+    // focinho: no nariz
+    place(snout, nose.x, nose.y, fx.snoutScale || 0.95, fx.snoutOy || 0.05);
+  }
+
   function draw() {
     var fx = getFx();
     if (!fx) {
@@ -241,11 +300,6 @@
     var video = document.getElementById("tscVideo");
     var canvas = ensureOverlay();
     if (!video || !canvas || video.readyState < 2) return;
-    var im = imgs[fx.id];
-    if (!im || !im.complete || !im.naturalWidth) {
-      loadImg(fx);
-      return;
-    }
 
     var w = video.videoWidth || 640;
     var h = video.videoHeight || 480;
@@ -280,13 +334,29 @@
       return { x: L[i].x * pw, y: L[i].y * ph };
     }
     var le = P(33),
-      re = P(263);
+      re = P(263),
+      cL = P(234),
+      cR = P(454),
+      top = P(10),
+      chin = P(152);
     var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
+    var faceW = Math.hypot(cL.x - cR.x, cL.y - cR.y) || eyeW * 2.2;
+    var faceH = Math.hypot(top.x - chin.x, top.y - chin.y) || faceW;
     var angle = Math.atan2(re.y - le.y, re.x - le.x);
     var root = document.getElementById("tchiloStableCam");
     var mir = root && root.classList.contains("mir");
 
-    drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, pw);
+    if (fx.type === "dog") {
+      loadFx(fx);
+      drawDog(ctx, fx, L, P, faceW, faceH, angle, mir, pw);
+    } else {
+      var im = imgs[fx.id];
+      if (!im || !im.complete || !im.naturalWidth) {
+        loadFx(fx);
+        return;
+      }
+      drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, pw);
+    }
   }
 
   function loop() {
@@ -331,22 +401,30 @@
           ctx.scale(-1, 1);
         }
         ctx.drawImage(video, 0, 0, w, h);
-        // desfazer mirror para drawGlasses aplicar de novo
-        if (mir) {
-          ctx.setTransform(1, 0, 0, 1, 0, 0);
-        }
+        if (mir) ctx.setTransform(1, 0, 0, 1, 0, 0);
+
         var fx = getFx();
-        var im = fx && imgs[fx.id];
-        if (fx && im && lastLm) {
+        if (fx && lastLm) {
           var L = lastLm[0];
           function P(i) {
             return { x: L[i].x * w, y: L[i].y * h };
           }
           var le = P(33),
-            re = P(263);
+            re = P(263),
+            cL = P(234),
+            cR = P(454),
+            top = P(10),
+            chin = P(152);
           var eyeW = Math.hypot(le.x - re.x, le.y - re.y) || 40;
+          var faceW = Math.hypot(cL.x - cR.x, cL.y - cR.y) || eyeW * 2.2;
+          var faceH = Math.hypot(top.x - chin.x, top.y - chin.y) || faceW;
           var angle = Math.atan2(re.y - le.y, re.x - le.x);
-          drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, w);
+          if (fx.type === "dog") {
+            drawDog(ctx, fx, L, P, faceW, faceH, angle, mir, w);
+          } else {
+            var im = imgs[fx.id];
+            if (im) drawGlasses(ctx, fx, im, le, re, eyeW, angle, mir, w);
+          }
         }
         c.toBlob(function (blob) {
           if (!blob) return;

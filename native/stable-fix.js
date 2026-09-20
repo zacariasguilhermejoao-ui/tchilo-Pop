@@ -3,7 +3,7 @@
  */
 (function () {
   "use strict";
-  var v = "fxMask1";
+  var v = "fxFaceFix3";
   function load(src, cb) {
     var s = document.createElement("script");
     s.src = src + (src.indexOf("?") >= 0 ? "&" : "?") + "v=" + v;
@@ -16,6 +16,7 @@
     };
     document.head.appendChild(s);
   }
+  // câmara base (UI + vídeo)
   load(
     "https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@699a0f1e268a1bee2f85c966041c38a1540ad30c/native/stable-fix.js",
     function () {
@@ -30,9 +31,8 @@
           }
         }
       } catch (e) {}
-      load(base + "native/fx-panel.js", function () {
-        load(base + "native/fx-add-mascara.js");
-      });
+      // painel de efeitos PNG (óculos, cão, gato, máscara, beijos…)
+      load(base + "native/fx-panel.js");
     }
   );
 })();

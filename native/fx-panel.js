@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — Normal, Óculos prata, Estrela, Cão, Gato
+ * tchilo-Pop — Normal, Óculos, Estrela, Cão, Gato, Olhos
  */
 (function () {
   "use strict";
@@ -24,6 +24,16 @@
       scale: 1.35,
       oy: 0,
       blackLenses: true
+    },
+    {
+      id: "olhos",
+      label: "Olhos",
+      type: "glasses",
+      url: "https://litter.catbox.moe/l8ldun.webp",
+      icon: "https://litter.catbox.moe/vpmz1v.webp",
+      scale: 1.75,
+      oy: 0,
+      blackLenses: false
     },
     {
       id: "cao",
@@ -294,7 +304,6 @@
     place(snout, nose.x, nose.y, fx.snoutScale || 0.95, fx.snoutOy || 0.05);
   }
 
-  /** Máscara completa (orelhas + olhos + focinho) centrada na cara */
   function drawFace(ctx, fx, im, P, faceW, faceH, angle, mir, pw) {
     if (!im || !im.complete || !im.naturalWidth) return;
     var top = P(10);

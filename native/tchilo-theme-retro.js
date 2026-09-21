@@ -1,6 +1,6 @@
 /**
- * tchilo-Pop — Tema Retro (completo)
- * Cores, ícones, botões, barras e tipografia com estética vintage.
+ * tchilo-Pop — Tema Retro TOTAL
+ * Tudo vintage: cores, tipografia, ícones, botões, barras, posts, chat.
  */
 (function () {
   "use strict";
@@ -20,67 +20,79 @@
   }
 
   function ensureCSS() {
-    if (document.getElementById("tchiloThemeRetroCSS")) return;
-    var st = document.createElement("style");
-    st.id = "tchiloThemeRetroCSS";
+    var st = document.getElementById("tchiloThemeRetroCSS");
+    if (!st) {
+      st = document.createElement("style");
+      st.id = "tchiloThemeRetroCSS";
+      document.head.appendChild(st);
+    }
     st.textContent =
-      /* ---- tokens ---- */
       '[data-theme="retro"]{' +
-      '--ink:#2C2118;' +
-      '--paper:#EBD9B0;' +
-      '--mint:#1F7A6A;' +
-      '--pink:#C44B2F;' +
-      '--yellow:#D4A017;' +
-      '--violet:#6B4C3B;' +
-      '--line:#2C2118;' +
-      '--muted:#6E5748;' +
-      '--retro-cream:#F4E6C3;' +
-      '--retro-orange:#C44B2F;' +
-      '--retro-teal:#1F7A6A;' +
-      '--retro-gold:#D4A017;' +
-      '--retro-shadow:rgba(44,33,24,.22);' +
+      '--ink:#2C1810;' +
+      '--paper:#E8D4A8;' +
+      '--mint:#1A6B5C;' +
+      '--pink:#B8432A;' +
+      '--yellow:#C9920F;' +
+      '--violet:#5C3A28;' +
+      '--line:#2C1810;' +
+      '--muted:#6A4E3C;' +
+      '--retro-cream:#F3E4BC;' +
+      '--retro-orange:#B8432A;' +
+      '--retro-teal:#1A6B5C;' +
+      '--retro-gold:#C9920F;' +
+      '--retro-shadow:#2C1810;' +
       '}' +
 
-      /* ---- fundo global ---- */
-      '[data-theme="retro"] body{' +
-      'background:#2C2118!important;' +
-      '}' +
+      '[data-theme="retro"] body{background:#1a100c!important;}' +
+
       '[data-theme="retro"] #appFrame,' +
       '[data-theme="retro"].frame{' +
       'background-color:var(--paper)!important;' +
       'background-image:' +
-      'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(44,33,24,.03) 2px, rgba(44,33,24,.03) 3px),' +
-      'radial-gradient(ellipse at 15% 0%, rgba(212,160,23,.28), transparent 50%),' +
-      'radial-gradient(ellipse at 100% 100%, rgba(31,122,106,.2), transparent 45%)!important;' +
+      'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(44,24,16,.045) 3px,rgba(44,24,16,.045) 4px),' +
+      'radial-gradient(ellipse at 12% 0%,rgba(201,146,15,.32),transparent 52%),' +
+      'radial-gradient(ellipse at 100% 100%,rgba(26,107,92,.22),transparent 48%)!important;' +
       'color:var(--ink)!important;' +
-      'font-family:"IBM Plex Mono", "Special Elite", Inter, system-ui, monospace!important;' +
+      'font-family:"IBM Plex Mono","Special Elite",ui-monospace,monospace!important;' +
       '}' +
 
-      /* títulos com carácter */
+      /* tipografia */
       '[data-theme="retro"] h1,' +
+      '[data-theme="retro"] .screen-header h1,' +
       '[data-theme="retro"] .topbar .logo,' +
-      '[data-theme="retro"] .screen-header h1{' +
-      'font-family:"Special Elite", "IBM Plex Mono", serif!important;' +
-      'letter-spacing:.04em;' +
-      'font-weight:700!important;' +
+      '[data-theme="retro"] .topbar b,' +
+      '[data-theme="retro"] #chatName{' +
+      'font-family:"Special Elite",serif!important;' +
+      'letter-spacing:.05em!important;' +
+      'text-transform:uppercase;' +
       '}' +
 
-      /* ---- chrome: topbar / nav / headers ---- */
+      /* chrome */
       '[data-theme="retro"] .topbar,' +
       '[data-theme="retro"] .screen-header,' +
+      '[data-theme="retro"] .chat-header,' +
       '[data-theme="retro"] .bottom-nav,' +
-      '[data-theme="retro"] .chat-header{' +
+      '[data-theme="retro"] #bottomNav,' +
+      '[data-theme="retro"] nav.bottom{' +
       'background:var(--retro-cream)!important;' +
       'border-color:var(--ink)!important;' +
-      'border-width:3px!important;' +
-      'box-shadow:inset 0 -2px 0 rgba(44,33,24,.08);' +
       '}' +
-      '[data-theme="retro"] .bottom-nav{' +
+      '[data-theme="retro"] .topbar,' +
+      '[data-theme="retro"] .screen-header,' +
+      '[data-theme="retro"] .chat-header{' +
+      'border-bottom:3px solid var(--ink)!important;' +
+      'box-shadow:0 4px 0 rgba(44,24,16,.12)!important;' +
+      '}' +
+      '[data-theme="retro"] .bottom-nav,' +
+      '[data-theme="retro"] #bottomNav{' +
       'border-top:3px solid var(--ink)!important;' +
-      'box-shadow:0 -4px 0 var(--retro-shadow);' +
+      'box-shadow:0 -4px 0 rgba(44,24,16,.12)!important;' +
       '}' +
 
-      /* ---- ícones: traço grosso + filtro sépia/vintage ---- */
+      /* ÍCONES — filtro vintage forte + traço grosso */
+      '[data-theme="retro"] svg{' +
+      'stroke-width:2.75!important;' +
+      '}' +
       '[data-theme="retro"] .bottom-nav svg,' +
       '[data-theme="retro"] .topbar svg,' +
       '[data-theme="retro"] .screen-header svg,' +
@@ -92,49 +104,61 @@
       '[data-theme="retro"] .sg-trigger svg,' +
       '[data-theme="retro"] .sc-create-trigger svg,' +
       '[data-theme="retro"] .post-menu-btn,' +
+      '[data-theme="retro"] .settings-item svg,' +
       '[data-theme="retro"] button svg{' +
-      'stroke-width:2.6!important;' +
-      'filter:sepia(.55) saturate(1.15) hue-rotate(-8deg) contrast(1.05);' +
+      'filter:sepia(.7) saturate(1.25) hue-rotate(-12deg) contrast(1.12) brightness(.95)!important;' +
+      'stroke:var(--ink)!important;' +
       '}' +
       '[data-theme="retro"] .bottom-nav button.active svg,' +
-      '[data-theme="retro"] .bottom-nav .active svg{' +
-      'filter:none;' +
-      'color:var(--retro-orange)!important;' +
+      '[data-theme="retro"] .bottom-nav .active svg,' +
+      '[data-theme="retro"] .nav-item.active svg{' +
+      'filter:sepia(.3) saturate(1.4) hue-rotate(-5deg)!important;' +
       'stroke:var(--retro-orange)!important;' +
+      'color:var(--retro-orange)!important;' +
+      '}' +
+      '[data-theme="retro"] .act.liked svg{' +
+      'filter:none!important;' +
+      'stroke:var(--retro-orange)!important;' +
+      'fill:var(--retro-orange)!important;' +
       '}' +
 
-      /* botão criar (+) estilo placa */
+      /* botão + estilo placa de metal */
       '[data-theme="retro"] .nav-create,' +
       '[data-theme="retro"] .bottom-nav .create,' +
       '[data-theme="retro"] button.nav-create{' +
       'background:var(--retro-gold)!important;' +
       'color:var(--ink)!important;' +
       'border:3px solid var(--ink)!important;' +
-      'border-radius:12px!important;' +
+      'border-radius:10px!important;' +
       'box-shadow:3px 3px 0 var(--ink)!important;' +
+      '}' +
+      '[data-theme="retro"] .nav-create svg{' +
       'filter:none!important;' +
+      'stroke:var(--ink)!important;' +
       '}' +
 
-      /* ---- posts ---- */
+      /* posts como cartões de papel */
       '[data-theme="retro"] .post{' +
       'background:var(--retro-cream)!important;' +
       'border:3px solid var(--ink)!important;' +
-      'border-radius:14px!important;' +
-      'box-shadow:4px 4px 0 var(--retro-shadow)!important;' +
-      'margin-bottom:14px;' +
+      'border-radius:12px!important;' +
+      'box-shadow:5px 5px 0 var(--ink)!important;' +
+      'margin-bottom:16px!important;' +
       '}' +
-      '[data-theme="retro"] .post-head,' +
+      '[data-theme="retro"] .post-head{' +
+      'border-bottom:2px dashed rgba(44,24,16,.2)!important;' +
+      '}' +
       '[data-theme="retro"] .post-actions{' +
-      'border-color:rgba(44,33,24,.15)!important;' +
+      'border-top:2px dashed rgba(44,24,16,.18)!important;' +
       '}' +
       '[data-theme="retro"] .post-boost-btn{' +
       'background:var(--retro-gold)!important;' +
       'color:var(--ink)!important;' +
       'border:2.5px solid var(--ink)!important;' +
       'box-shadow:2px 2px 0 var(--ink)!important;' +
-      'font-family:"Special Elite", monospace!important;' +
-      'text-transform:uppercase;' +
-      'letter-spacing:.04em;' +
+      'font-family:"Special Elite",serif!important;' +
+      'text-transform:uppercase!important;' +
+      'letter-spacing:.06em!important;' +
       '}' +
       '[data-theme="retro"] .post-follow,' +
       '[data-theme="retro"] .follow-btn{' +
@@ -142,41 +166,51 @@
       'color:var(--retro-cream)!important;' +
       'border:2.5px solid var(--ink)!important;' +
       'box-shadow:2px 2px 0 var(--ink)!important;' +
-      'border-radius:10px!important;' +
-      'font-family:"IBM Plex Mono", monospace!important;' +
+      'border-radius:8px!important;' +
+      'font-family:"IBM Plex Mono",monospace!important;' +
+      'text-transform:uppercase;' +
+      'font-size:11px!important;' +
+      '}' +
+      '[data-theme="retro"] .follow-btn.following,' +
+      '[data-theme="retro"] .post-follow.following{' +
+      'background:var(--retro-cream)!important;' +
+      'color:var(--ink)!important;' +
       '}' +
 
-      /* ---- settings / listas ---- */
+      /* settings */
       '[data-theme="retro"] .settings-item,' +
       '[data-theme="retro"] .msg-item,' +
       '[data-theme="retro"] .share-opt{' +
       'background:var(--retro-cream)!important;' +
-      'border-bottom:2px solid rgba(44,33,24,.12)!important;' +
+      'border-bottom:2px solid rgba(44,24,16,.14)!important;' +
+      'font-family:"IBM Plex Mono",monospace!important;' +
       '}' +
       '[data-theme="retro"] .si-icon{' +
       'border:2.5px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--retro-shadow)!important;' +
-      'border-radius:10px!important;' +
-      'filter:sepia(.35) saturate(1.1);' +
+      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'border-radius:8px!important;' +
+      'filter:sepia(.45) saturate(1.15)!important;' +
       '}' +
       '[data-theme="retro"] .theme-swatch{' +
       'border:3px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--retro-shadow);' +
+      'box-shadow:2px 2px 0 var(--ink)!important;' +
       '}' +
 
-      /* ---- inputs / botões ---- */
+      /* inputs */
       '[data-theme="retro"] input,' +
       '[data-theme="retro"] textarea,' +
       '[data-theme="retro"] select{' +
-      'background:#F8EFDA!important;' +
+      'background:#F8EDD4!important;' +
       'border:2.5px solid var(--ink)!important;' +
-      'border-radius:10px!important;' +
-      'box-shadow:inset 2px 2px 0 rgba(44,33,24,.08)!important;' +
-      'font-family:"IBM Plex Mono", monospace!important;' +
+      'border-radius:8px!important;' +
+      'box-shadow:inset 2px 2px 0 rgba(44,24,16,.1)!important;' +
+      'font-family:"IBM Plex Mono",monospace!important;' +
       'color:var(--ink)!important;' +
       '}' +
-      '[data-theme="retro"] button.profile-btn,' +
+
+      /* botões de ação */
       '[data-theme="retro"] .profile-btn,' +
+      '[data-theme="retro"] button.profile-btn,' +
       '[data-theme="retro"] .ads-pay,' +
       '[data-theme="retro"] .af-pay,' +
       '[data-theme="retro"] .sc-btn.primary{' +
@@ -184,23 +218,26 @@
       'color:var(--ink)!important;' +
       'border:3px solid var(--ink)!important;' +
       'box-shadow:3px 3px 0 var(--ink)!important;' +
-      'border-radius:12px!important;' +
-      'font-family:"Special Elite", monospace!important;' +
-      'text-transform:uppercase;' +
-      'letter-spacing:.03em;' +
+      'border-radius:10px!important;' +
+      'font-family:"Special Elite",serif!important;' +
+      'text-transform:uppercase!important;' +
+      'letter-spacing:.04em!important;' +
       '}' +
 
-      /* ---- chat ---- */
+      /* chat */
+      '[data-theme="retro"] .bubble{' +
+      'border:2.5px solid var(--ink)!important;' +
+      'border-radius:12px!important;' +
+      'font-family:"IBM Plex Mono",monospace!important;' +
+      '}' +
       '[data-theme="retro"] .bubble.me{' +
       'background:var(--retro-teal)!important;' +
       'color:var(--retro-cream)!important;' +
-      'border:2.5px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'box-shadow:3px 3px 0 var(--ink)!important;' +
       '}' +
       '[data-theme="retro"] .bubble.them{' +
       'background:var(--retro-cream)!important;' +
-      'border:2.5px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--retro-shadow)!important;' +
+      'box-shadow:3px 3px 0 rgba(44,24,16,.2)!important;' +
       '}' +
       '[data-theme="retro"] .chat-input-bar{' +
       'background:var(--retro-cream)!important;' +
@@ -210,45 +247,67 @@
       '[data-theme="retro"] .chat-attach-btn,' +
       '[data-theme="retro"] .sg-trigger,' +
       '[data-theme="retro"] .sc-create-trigger{' +
-      'border:2.5px solid var(--ink)!important;' +
       'background:var(--retro-gold)!important;' +
+      'border:2.5px solid var(--ink)!important;' +
       'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'border-radius:10px!important;' +
+      '}' +
+      '[data-theme="retro"] .chat-send svg,' +
+      '[data-theme="retro"] .chat-attach-btn svg,' +
+      '[data-theme="retro"] .sg-trigger svg,' +
+      '[data-theme="retro"] .sc-create-trigger svg{' +
+      'filter:none!important;' +
+      'stroke:var(--ink)!important;' +
       '}' +
 
-      /* ---- stories ---- */
+      /* stories */
       '[data-theme="retro"] .story-card{' +
       'border:3px solid var(--ink)!important;' +
-      'box-shadow:3px 3px 0 var(--retro-shadow)!important;' +
-      'border-radius:14px!important;' +
+      'box-shadow:4px 4px 0 var(--ink)!important;' +
+      'border-radius:12px!important;' +
       '}' +
-      '[data-theme="retro"] .story-card-create-inner{' +
+      '[data-theme="retro"] .story-card.unseen{' +
+      'outline:3px solid var(--retro-orange);' +
+      'outline-offset:3px;' +
+      '}' +
+      '[data-theme="retro"] .story-card-create-inner,' +
+      '[data-theme="retro"] .story-card-plus{' +
       'background:var(--retro-gold)!important;' +
-      'border-color:var(--ink)!important;' +
+      'border:2.5px solid var(--ink)!important;' +
+      'color:var(--ink)!important;' +
       '}' +
 
-      /* ---- sheets / modais ---- */
+      /* sheets */
       '[data-theme="retro"] #tchiloSGSheet,' +
-      '[data-theme="retro"] .comment-sheet,' +
+      '[data-theme="retro"] #commentSheet,' +
       '[data-theme="retro"] #postMenuSheet,' +
-      '[data-theme="retro"] .sheet{' +
+      '[data-theme="retro"] .sheet,' +
+      '[data-theme="retro"] .comment-sheet{' +
       'background:var(--retro-cream)!important;' +
       'border-color:var(--ink)!important;' +
-      'box-shadow:0 -6px 0 var(--retro-shadow)!important;' +
+      'box-shadow:0 -6px 0 rgba(44,24,16,.15)!important;' +
       '}' +
-      '[data-theme="retro"] .sg-tab.on,' +
       '[data-theme="retro"] .sg-tab{' +
       'border:2.5px solid var(--ink)!important;' +
-      'font-family:"IBM Plex Mono", monospace!important;' +
+      'font-family:"IBM Plex Mono",monospace!important;' +
+      'background:#F8EDD4!important;' +
       '}' +
       '[data-theme="retro"] .sg-tab.on{' +
       'background:var(--retro-gold)!important;' +
       '}' +
+      '[data-theme="retro"] .sg-item{' +
+      'border:2.5px solid var(--ink)!important;' +
+      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'background:#F8EDD4!important;' +
+      '}' +
 
-      /* avatares com anel grosso */
+      /* avatares */
       '[data-theme="retro"] .avatar,' +
       '[data-theme="retro"] .story-card-avatar{' +
       'border:3px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--retro-shadow)!important;' +
+      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'border-radius:10px!important;' +
+      'filter:sepia(.2) contrast(1.05);' +
       '}' +
 
       /* tags */
@@ -256,9 +315,15 @@
       'background:var(--retro-gold)!important;' +
       'color:var(--ink)!important;' +
       'border:2px solid var(--ink)!important;' +
-      'font-family:"IBM Plex Mono", monospace!important;' +
+      'font-family:"IBM Plex Mono",monospace!important;' +
+      'box-shadow:1px 1px 0 var(--ink);' +
+      '}' +
+
+      /* logo / imagens de marca */
+      '[data-theme="retro"] .topbar img,' +
+      '[data-theme="retro"] .brand-logo{' +
+      'filter:sepia(.4) saturate(1.1) contrast(1.05)!important;' +
       '}';
-    document.head.appendChild(st);
   }
 
   function storageKey() {
@@ -306,7 +371,7 @@
       } catch (e) {}
     };
     btn.innerHTML =
-      '<div class="theme-swatch" style="background:linear-gradient(135deg,#EBD9B0 35%,#C44B2F 35% 65%,#1F7A6A 65%)"></div>' +
+      '<div class="theme-swatch" style="background:linear-gradient(135deg,#E8D4A8 35%,#B8432A 35% 65%,#1A6B5C 65%)"></div>' +
       "<span>" +
       LABEL +
       "</span>" +
@@ -322,7 +387,7 @@
 
   function patchSetAppTheme() {
     if (typeof window.setAppTheme !== "function") return false;
-    if (window.setAppTheme.__retro3) return true;
+    if (window.setAppTheme.__retro4) return true;
     var orig = window.setAppTheme;
     window.setAppTheme = function (theme) {
       if (theme === CODE) {
@@ -335,13 +400,13 @@
       if (el) el.textContent = "";
       return r;
     };
-    window.setAppTheme.__retro3 = true;
+    window.setAppTheme.__retro4 = true;
     return true;
   }
 
   function patchGetAppTheme() {
     if (typeof window.getAppTheme !== "function") return false;
-    if (window.getAppTheme.__retro3) return true;
+    if (window.getAppTheme.__retro4) return true;
     var orig = window.getAppTheme;
     window.getAppTheme = function () {
       try {
@@ -349,7 +414,7 @@
       } catch (e) {}
       return orig.apply(this, arguments);
     };
-    window.getAppTheme.__retro3 = true;
+    window.getAppTheme.__retro4 = true;
     return true;
   }
 

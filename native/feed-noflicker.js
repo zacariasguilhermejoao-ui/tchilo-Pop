@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260922stickercreate';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260922retro';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -52,6 +52,7 @@
     loadExtra('native/tchilo-stickers-gifs.js', 'data-tchilo-sg');
     loadExtra('native/tchilo-sticker-create.js', 'data-tchilo-sc');
     loadExtra('native/tchilo-stickers-custom-hook.js', 'data-tchilo-sc-hook');
+    loadExtra('native/tchilo-theme-retro.js', 'data-tchilo-retro');
     loadExtra('native/gal-thumb.js', 'data-tchilo-gal-thumb');
     loadExtra('native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs');
     loadExtra('native/chat-audio-fix.js', 'data-tchilo-chat-audio');

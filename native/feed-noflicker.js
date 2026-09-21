@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260922booststable';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260922stickercreate';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -50,6 +50,8 @@
     loadExtra('native/tchilo-ads-draft.js', 'data-tchilo-ads-draft');
     loadExtra('native/tchilo-ads-analytics.js', 'data-tchilo-ads-analytics');
     loadExtra('native/tchilo-stickers-gifs.js', 'data-tchilo-sg');
+    loadExtra('native/tchilo-sticker-create.js', 'data-tchilo-sc');
+    loadExtra('native/tchilo-stickers-custom-hook.js', 'data-tchilo-sc-hook');
     loadExtra('native/gal-thumb.js', 'data-tchilo-gal-thumb');
     loadExtra('native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs');
     loadExtra('native/chat-audio-fix.js', 'data-tchilo-chat-audio');

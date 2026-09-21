@@ -129,7 +129,6 @@
     } catch (e) {}
 
     ensureAdsScript(function () {
-      // aplicar draft no módulo de ads se existir
       try {
         if (window.__tchiloBoostDraft && typeof window.tchiloApplyAdDraft === "function") {
           window.tchiloApplyAdDraft(window.__tchiloBoostDraft);
@@ -164,7 +163,6 @@
     else list.appendChild(btn);
   }
 
-  /** Botão Turbinar no header do post — só posts próprios, no lugar do Seguir */
   function injectBoostButtons() {
     ensureCSS();
     var me = myUsername();
@@ -180,7 +178,6 @@
       var head = post.querySelector(".post-head");
       if (!head) return;
 
-      // não meter em posts de outros (double-check via @ no who)
       var whoUser = post.querySelector(".post-user-tap, .post-user");
       var dataUser = whoUser && whoUser.getAttribute("data-user");
       if (dataUser && String(dataUser) !== me) return;
@@ -195,7 +192,6 @@
         openCreateFromPost(id);
       };
 
-      // ao lado do menu ⋯ — no slot onde estaria o Seguir (antes do menu)
       var menu = head.querySelector(".post-menu-btn");
       if (menu) head.insertBefore(btn, menu);
       else head.appendChild(btn);
@@ -215,7 +211,6 @@
           var old = box.querySelector("[data-tchilo-boost]");
           if (old) old.remove();
 
-          // SÓ posts próprios
           if (!isOwnPost(postId)) return;
 
           var b = document.createElement("button");
@@ -223,7 +218,8 @@
           b.className = "share-opt";
           b.setAttribute("data-tchilo-boost", "1");
           b.innerHTML =
-            '<div class="so-icon" style="background:#c8f560;color:#0B0B0C;font-weight:900">⚡</div>' +
+            '<div class="so-icon" style="background:#c8f560;color:#0B0B0C;display:flex;align-items:center;justify-content:center">' +
+            '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg></div>' +
             "<div><b>Turbinar / Anunciar</b>" +
             '<div style="font-size:12px;color:var(--muted);font-weight:500">Impulsionar no feed</div></div>';
           b.onclick = function () {

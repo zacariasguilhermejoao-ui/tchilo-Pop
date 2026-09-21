@@ -1,5 +1,5 @@
 // Supabase Edge Function: paddle-webhook
-// Verifica assinatura Paddle e atualiza profiles.is_premium
+// Premium + Anúncios Tchilo
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -10,8 +10,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, paddle-signature",
 };
 
-const PRICE_ID = "pri_01m2ztke3vf0v4xwj13t0hbdav";
-const PRODUCT_ID = "pro_01m2ztbfaqeme2ycp5ehf2zakk";
+const PREMIUM_PRICE_ID = "pri_01m2ztke3vf0v4xwj13t0hbdav";
+const PREMIUM_PRODUCT_ID = "pro_01m2ztbfaqeme2ycp5ehf2zakk";
+const AD_PRICE_ID = "pri_01m31nb48pzvs976yz2nd1wtbp";
+const AD_PRODUCT_ID = "pro_01m31ms9xn7ec78wssjp61eb01";
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -49,13 +51,10 @@ async function verifyPaddleSignature(
     if (k === "h1") h1 = v || "";
   }
   if (!ts || !h1) return false;
-
-  // tolerância 5 min contra replay
   const tsNum = parseInt(ts, 10);
   if (!Number.isFinite(tsNum)) return false;
   const now = Math.floor(Date.now() / 1000);
   if (Math.abs(now - tsNum) > 300) return false;
-
   const expected = await hmacSha256Hex(secret, `${ts}:${rawBody}`);
   return timingSafeEqual(expected, h1);
 }
@@ -77,10 +76,48 @@ function collectCustomData(data: any): Record<string, string> {
   return out;
 }
 
+function extractItems(data: any): any[] {
+  const items =
+    data?.items ||
+    data?.details?.line_items ||
+    data?.details?.lineItems ||
+    [];
+  return Array.isArray(items) ? items : [];
+}
+
+function itemsMatchPrice(data: any, priceId: string, productId: string): boolean {
+  const items = extractItems(data);
+  if (!items.length) return false;
+  return items.some((it: any) => {
+    const pid = it?.price?.id || it?.price_id || it?.priceId;
+    const prod = it?.price?.product_id || it?.product?.id || it?.product_id;
+    return pid === priceId || prod === productId;
+  });
+}
+
+function extractQuantity(data: any, priceId: string): number {
+  const items = extractItems(data);
+  for (const it of items) {
+    const pid = it?.price?.id || it?.price_id || it?.priceId;
+    if (pid === priceId) {
+      const q = parseInt(String(it?.quantity ?? it?.qty ?? 1), 10);
+      return Number.isFinite(q) && q > 0 ? Math.min(30, q) : 1;
+    }
+  }
+  return 1;
+}
+
 function extractUserId(event: any): string | null {
   const custom = collectCustomData(event?.data || event);
   const uid = custom.user_id || custom.userId || custom.uid || "";
   if (uid && /^[0-9a-f-]{36}$/i.test(uid)) return uid;
+  return null;
+}
+
+function extractAdId(event: any): string | null {
+  const custom = collectCustomData(event?.data || event);
+  const id = custom.ad_id || custom.adId || "";
+  if (id && /^[0-9a-f-]{36}$/i.test(id)) return id;
   return null;
 }
 
@@ -99,51 +136,10 @@ function extractTxnId(event: any): string | null {
   return d?.id || d?.transaction_id || d?.transaction?.id || null;
 }
 
-function eventGrantsPremium(eventType: string, data: any): boolean {
-  if (eventType === "transaction.completed") {
-    // confirmar que inclui o nosso preço (quando disponível)
-    const items = data?.items || data?.details?.line_items || [];
-    if (Array.isArray(items) && items.length) {
-      const hit = items.some((it: any) => {
-        const pid = it?.price?.id || it?.price_id || it?.priceId;
-        const prod = it?.price?.product_id || it?.product?.id;
-        return pid === PRICE_ID || prod === PRODUCT_ID;
-      });
-      // se não conseguir ler items, ainda assim confia no completed
-      if (items.length && !hit) return false;
-    }
-    return true;
-  }
-  if (
-    eventType === "subscription.activated" ||
-    eventType === "subscription.created" ||
-    eventType === "subscription.updated"
-  ) {
-    const status = data?.status || "";
-    return status === "active" || status === "trialing" || !status;
-  }
-  return false;
-}
-
-function eventRevokesPremium(eventType: string, data: any): boolean {
-  if (
-    eventType === "subscription.canceled" ||
-    eventType === "subscription.past_due"
-  ) {
-    return true;
-  }
-  if (eventType === "subscription.updated") {
-    const status = data?.status || "";
-    return status === "canceled" || status === "past_due" || status === "paused";
-  }
-  return false;
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
-
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
@@ -159,7 +155,6 @@ serve(async (req) => {
     "";
 
   if (!webhookSecret) {
-    console.error("PADDLE_WEBHOOK_SECRET em falta");
     return new Response(JSON.stringify({ error: "Server misconfigured" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -167,11 +162,11 @@ serve(async (req) => {
   }
 
   const rawBody = await req.text();
-  const signature = req.headers.get("paddle-signature") || req.headers.get("Paddle-Signature");
-
+  const signature =
+    req.headers.get("paddle-signature") ||
+    req.headers.get("Paddle-Signature");
   const valid = await verifyPaddleSignature(rawBody, signature, webhookSecret);
   if (!valid) {
-    console.warn("Assinatura Paddle inválida");
     return new Response(JSON.stringify({ error: "Invalid signature" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -190,10 +185,11 @@ serve(async (req) => {
 
   const eventType = event?.event_type || event?.eventType || "";
   const data = event?.data || {};
-  console.log("Paddle event", eventType, extractTxnId(event));
+  const custom = collectCustomData(data);
+  const txnId = extractTxnId(event);
+  console.log("Paddle event", eventType, txnId, custom.kind || "");
 
   if (!supabaseUrl || !serviceKey) {
-    console.error("Supabase env em falta");
     return new Response(JSON.stringify({ error: "Server misconfigured" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -206,12 +202,11 @@ serve(async (req) => {
 
   let userId = extractUserId(event);
   const email = extractEmail(event);
-  const txnId = extractTxnId(event);
-
-  // resolver user por email se não veio custom_data.user_id
   if (!userId && email) {
     try {
-      const { data: listed, error } = await sb.auth.admin.listUsers({ perPage: 1000 });
+      const { data: listed, error } = await sb.auth.admin.listUsers({
+        perPage: 1000,
+      });
       if (!error && listed?.users) {
         const found = listed.users.find(
           (u) => (u.email || "").toLowerCase() === email
@@ -221,64 +216,143 @@ serve(async (req) => {
     } catch (e) {
       console.warn("listUsers", e);
     }
-    if (!userId) {
-      const { data: prof } = await sb
-        .from("profiles")
-        .select("id")
-        .ilike("email", email)
-        .maybeSingle();
-      if (prof?.id) userId = prof.id;
-    }
   }
 
-  if (!userId) {
-    console.warn("Sem user_id para evento", eventType, email);
-    // 200 para o Paddle não reenviar indefinidamente; log fica para análise
+  const isAdPurchase =
+    eventType === "transaction.completed" &&
+    (custom.kind === "ad" ||
+      itemsMatchPrice(data, AD_PRICE_ID, AD_PRODUCT_ID));
+
+  const isPremiumPurchase =
+    eventType === "transaction.completed" &&
+    !isAdPurchase &&
+    (itemsMatchPrice(data, PREMIUM_PRICE_ID, PREMIUM_PRODUCT_ID) ||
+      custom.kind === "premium");
+
+  // --- ANÚNCIO ---
+  if (isAdPurchase) {
+    const adId = extractAdId(event);
+    const daysFromQty = extractQuantity(data, AD_PRICE_ID);
+    const daysCustom = parseInt(custom.days || "", 10);
+    const days =
+      Number.isFinite(daysCustom) && daysCustom > 0
+        ? Math.min(30, daysCustom)
+        : daysFromQty;
+
+    const starts = new Date();
+    const ends = new Date(starts.getTime() + days * 86400000);
+    const reachMin = days * 800;
+    const reachMax = days * 1000;
+
+    if (adId) {
+      const { error } = await sb
+        .from("ads")
+        .update({
+          status: "active",
+          days,
+          reach_min: reachMin,
+          reach_max: reachMax,
+          starts_at: starts.toISOString(),
+          ends_at: ends.toISOString(),
+          paddle_txn: txnId ? String(txnId).slice(0, 120) : null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", adId)
+        .eq("status", "pending");
+
+      if (error) {
+        console.error("activate ad", error);
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      console.log("Ad ON", adId, days);
+      return new Response(
+        JSON.stringify({ ok: true, ad: true, ad_id: adId, days }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // sem ad_id: ativar o pending mais recente do user
+    if (userId) {
+      const { data: pending } = await sb
+        .from("ads")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (pending?.id) {
+        await sb
+          .from("ads")
+          .update({
+            status: "active",
+            days,
+            reach_min: reachMin,
+            reach_max: reachMax,
+            starts_at: starts.toISOString(),
+            ends_at: ends.toISOString(),
+            paddle_txn: txnId ? String(txnId).slice(0, 120) : null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", pending.id);
+        console.log("Ad ON (fallback)", pending.id, days);
+        return new Response(
+          JSON.stringify({ ok: true, ad: true, ad_id: pending.id, days }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    console.warn("Ad payment without ad row", userId, txnId);
     return new Response(
-      JSON.stringify({ ok: true, skipped: true, reason: "no_user" }),
+      JSON.stringify({ ok: true, ad: false, reason: "no_ad_row" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 
-  if (eventGrantsPremium(eventType, data)) {
+  // --- PREMIUM ---
+  if (isPremiumPurchase || (eventType === "subscription.activated" && !isAdPurchase)) {
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ ok: true, skipped: true, reason: "no_user" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     const row: Record<string, unknown> = {
       id: userId,
       is_premium: true,
       premium_updated_at: new Date().toISOString(),
     };
     if (txnId) row.premium_txn = String(txnId).slice(0, 120);
-
     const { error } = await sb.from("profiles").upsert(row, { onConflict: "id" });
     if (error) {
-      console.error("upsert premium", error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    console.log("Premium ON", userId, txnId);
     return new Response(
       JSON.stringify({ ok: true, premium: true, user_id: userId }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 
-  if (eventRevokesPremium(eventType, data)) {
-    const { error } = await sb
-      .from("profiles")
-      .update({
-        is_premium: false,
-        premium_updated_at: new Date().toISOString(),
-      })
-      .eq("id", userId);
-    if (error) {
-      console.error("revoke premium", error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+  if (
+    eventType === "subscription.canceled" ||
+    eventType === "subscription.past_due"
+  ) {
+    if (userId) {
+      await sb
+        .from("profiles")
+        .update({
+          is_premium: false,
+          premium_updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
     }
-    console.log("Premium OFF", userId);
     return new Response(
       JSON.stringify({ ok: true, premium: false, user_id: userId }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

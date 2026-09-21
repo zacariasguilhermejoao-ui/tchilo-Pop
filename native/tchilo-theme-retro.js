@@ -1,5 +1,6 @@
 /**
- * tchilo-Pop — Tema Retro
+ * tchilo-Pop — Tema Retro (completo)
+ * Cores, ícones, botões, barras e tipografia com estética vintage.
  */
 (function () {
   "use strict";
@@ -8,49 +9,255 @@
   var LABEL = "Retro";
   var THEME_STORAGE = "tchilo_theme";
 
+  function ensureFont() {
+    if (document.getElementById("tchiloRetroFont")) return;
+    var l = document.createElement("link");
+    l.id = "tchiloRetroFont";
+    l.rel = "stylesheet";
+    l.href =
+      "https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:wght@500;600;700&display=swap";
+    document.head.appendChild(l);
+  }
+
   function ensureCSS() {
     if (document.getElementById("tchiloThemeRetroCSS")) return;
     var st = document.createElement("style");
     st.id = "tchiloThemeRetroCSS";
     st.textContent =
+      /* ---- tokens ---- */
       '[data-theme="retro"]{' +
-      '--ink:#2A1F14;' +
-      '--paper:#F3E5C4;' +
-      '--mint:#2A9D8F;' +
-      '--pink:#E76F51;' +
-      '--yellow:#E9C46A;' +
-      '--violet:#9C6644;' +
-      '--line:#2A1F14;' +
-      '--muted:#6B5344;' +
+      '--ink:#2C2118;' +
+      '--paper:#EBD9B0;' +
+      '--mint:#1F7A6A;' +
+      '--pink:#C44B2F;' +
+      '--yellow:#D4A017;' +
+      '--violet:#6B4C3B;' +
+      '--line:#2C2118;' +
+      '--muted:#6E5748;' +
+      '--retro-cream:#F4E6C3;' +
+      '--retro-orange:#C44B2F;' +
+      '--retro-teal:#1F7A6A;' +
+      '--retro-gold:#D4A017;' +
+      '--retro-shadow:rgba(44,33,24,.22);' +
+      '}' +
+
+      /* ---- fundo global ---- */
+      '[data-theme="retro"] body{' +
+      'background:#2C2118!important;' +
       '}' +
       '[data-theme="retro"] #appFrame,' +
       '[data-theme="retro"].frame{' +
-      'background:var(--paper);' +
+      'background-color:var(--paper)!important;' +
       'background-image:' +
-      'radial-gradient(ellipse at 20% 0%, rgba(233,196,106,.35), transparent 55%),' +
-      'radial-gradient(ellipse at 90% 100%, rgba(42,157,143,.18), transparent 50%);' +
+      'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(44,33,24,.03) 2px, rgba(44,33,24,.03) 3px),' +
+      'radial-gradient(ellipse at 15% 0%, rgba(212,160,23,.28), transparent 50%),' +
+      'radial-gradient(ellipse at 100% 100%, rgba(31,122,106,.2), transparent 45%)!important;' +
+      'color:var(--ink)!important;' +
+      'font-family:"IBM Plex Mono", "Special Elite", Inter, system-ui, monospace!important;' +
       '}' +
+
+      /* títulos com carácter */
+      '[data-theme="retro"] h1,' +
+      '[data-theme="retro"] .topbar .logo,' +
+      '[data-theme="retro"] .screen-header h1{' +
+      'font-family:"Special Elite", "IBM Plex Mono", serif!important;' +
+      'letter-spacing:.04em;' +
+      'font-weight:700!important;' +
+      '}' +
+
+      /* ---- chrome: topbar / nav / headers ---- */
       '[data-theme="retro"] .topbar,' +
+      '[data-theme="retro"] .screen-header,' +
       '[data-theme="retro"] .bottom-nav,' +
-      '[data-theme="retro"] .screen-header{' +
+      '[data-theme="retro"] .chat-header{' +
+      'background:var(--retro-cream)!important;' +
       'border-color:var(--ink)!important;' +
+      'border-width:3px!important;' +
+      'box-shadow:inset 0 -2px 0 rgba(44,33,24,.08);' +
       '}' +
-      '[data-theme="retro"] .post{' +
-      'border-color:var(--ink)!important;' +
-      'box-shadow:3px 3px 0 rgba(42,31,20,.12);' +
+      '[data-theme="retro"] .bottom-nav{' +
+      'border-top:3px solid var(--ink)!important;' +
+      'box-shadow:0 -4px 0 var(--retro-shadow);' +
       '}' +
+
+      /* ---- ícones: traço grosso + filtro sépia/vintage ---- */
+      '[data-theme="retro"] .bottom-nav svg,' +
+      '[data-theme="retro"] .topbar svg,' +
+      '[data-theme="retro"] .screen-header svg,' +
+      '[data-theme="retro"] .back-btn svg,' +
+      '[data-theme="retro"] .act svg,' +
+      '[data-theme="retro"] .si-icon svg,' +
+      '[data-theme="retro"] .chat-send svg,' +
+      '[data-theme="retro"] .chat-attach-btn svg,' +
+      '[data-theme="retro"] .sg-trigger svg,' +
+      '[data-theme="retro"] .sc-create-trigger svg,' +
+      '[data-theme="retro"] .post-menu-btn,' +
+      '[data-theme="retro"] button svg{' +
+      'stroke-width:2.6!important;' +
+      'filter:sepia(.55) saturate(1.15) hue-rotate(-8deg) contrast(1.05);' +
+      '}' +
+      '[data-theme="retro"] .bottom-nav button.active svg,' +
+      '[data-theme="retro"] .bottom-nav .active svg{' +
+      'filter:none;' +
+      'color:var(--retro-orange)!important;' +
+      'stroke:var(--retro-orange)!important;' +
+      '}' +
+
+      /* botão criar (+) estilo placa */
       '[data-theme="retro"] .nav-create,' +
+      '[data-theme="retro"] .bottom-nav .create,' +
+      '[data-theme="retro"] button.nav-create{' +
+      'background:var(--retro-gold)!important;' +
+      'color:var(--ink)!important;' +
+      'border:3px solid var(--ink)!important;' +
+      'border-radius:12px!important;' +
+      'box-shadow:3px 3px 0 var(--ink)!important;' +
+      'filter:none!important;' +
+      '}' +
+
+      /* ---- posts ---- */
+      '[data-theme="retro"] .post{' +
+      'background:var(--retro-cream)!important;' +
+      'border:3px solid var(--ink)!important;' +
+      'border-radius:14px!important;' +
+      'box-shadow:4px 4px 0 var(--retro-shadow)!important;' +
+      'margin-bottom:14px;' +
+      '}' +
+      '[data-theme="retro"] .post-head,' +
+      '[data-theme="retro"] .post-actions{' +
+      'border-color:rgba(44,33,24,.15)!important;' +
+      '}' +
       '[data-theme="retro"] .post-boost-btn{' +
-      'background:#E9C46A!important;' +
-      'color:#2A1F14!important;' +
+      'background:var(--retro-gold)!important;' +
+      'color:var(--ink)!important;' +
+      'border:2.5px solid var(--ink)!important;' +
+      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'font-family:"Special Elite", monospace!important;' +
+      'text-transform:uppercase;' +
+      'letter-spacing:.04em;' +
       '}' +
-      '[data-theme="retro"] .follow-btn,' +
-      '[data-theme="retro"] .post-follow{' +
-      'background:#2A9D8F!important;' +
-      'color:#F3E5C4!important;' +
-      'border-color:#2A1F14!important;' +
+      '[data-theme="retro"] .post-follow,' +
+      '[data-theme="retro"] .follow-btn{' +
+      'background:var(--retro-teal)!important;' +
+      'color:var(--retro-cream)!important;' +
+      'border:2.5px solid var(--ink)!important;' +
+      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'border-radius:10px!important;' +
+      'font-family:"IBM Plex Mono", monospace!important;' +
       '}' +
-      '[data-theme="retro"] body{background:#2A1F14;}';
+
+      /* ---- settings / listas ---- */
+      '[data-theme="retro"] .settings-item,' +
+      '[data-theme="retro"] .msg-item,' +
+      '[data-theme="retro"] .share-opt{' +
+      'background:var(--retro-cream)!important;' +
+      'border-bottom:2px solid rgba(44,33,24,.12)!important;' +
+      '}' +
+      '[data-theme="retro"] .si-icon{' +
+      'border:2.5px solid var(--ink)!important;' +
+      'box-shadow:2px 2px 0 var(--retro-shadow)!important;' +
+      'border-radius:10px!important;' +
+      'filter:sepia(.35) saturate(1.1);' +
+      '}' +
+      '[data-theme="retro"] .theme-swatch{' +
+      'border:3px solid var(--ink)!important;' +
+      'box-shadow:2px 2px 0 var(--retro-shadow);' +
+      '}' +
+
+      /* ---- inputs / botões ---- */
+      '[data-theme="retro"] input,' +
+      '[data-theme="retro"] textarea,' +
+      '[data-theme="retro"] select{' +
+      'background:#F8EFDA!important;' +
+      'border:2.5px solid var(--ink)!important;' +
+      'border-radius:10px!important;' +
+      'box-shadow:inset 2px 2px 0 rgba(44,33,24,.08)!important;' +
+      'font-family:"IBM Plex Mono", monospace!important;' +
+      'color:var(--ink)!important;' +
+      '}' +
+      '[data-theme="retro"] button.profile-btn,' +
+      '[data-theme="retro"] .profile-btn,' +
+      '[data-theme="retro"] .ads-pay,' +
+      '[data-theme="retro"] .af-pay,' +
+      '[data-theme="retro"] .sc-btn.primary{' +
+      'background:var(--retro-gold)!important;' +
+      'color:var(--ink)!important;' +
+      'border:3px solid var(--ink)!important;' +
+      'box-shadow:3px 3px 0 var(--ink)!important;' +
+      'border-radius:12px!important;' +
+      'font-family:"Special Elite", monospace!important;' +
+      'text-transform:uppercase;' +
+      'letter-spacing:.03em;' +
+      '}' +
+
+      /* ---- chat ---- */
+      '[data-theme="retro"] .bubble.me{' +
+      'background:var(--retro-teal)!important;' +
+      'color:var(--retro-cream)!important;' +
+      'border:2.5px solid var(--ink)!important;' +
+      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      '}' +
+      '[data-theme="retro"] .bubble.them{' +
+      'background:var(--retro-cream)!important;' +
+      'border:2.5px solid var(--ink)!important;' +
+      'box-shadow:2px 2px 0 var(--retro-shadow)!important;' +
+      '}' +
+      '[data-theme="retro"] .chat-input-bar{' +
+      'background:var(--retro-cream)!important;' +
+      'border-top:3px solid var(--ink)!important;' +
+      '}' +
+      '[data-theme="retro"] .chat-send,' +
+      '[data-theme="retro"] .chat-attach-btn,' +
+      '[data-theme="retro"] .sg-trigger,' +
+      '[data-theme="retro"] .sc-create-trigger{' +
+      'border:2.5px solid var(--ink)!important;' +
+      'background:var(--retro-gold)!important;' +
+      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      '}' +
+
+      /* ---- stories ---- */
+      '[data-theme="retro"] .story-card{' +
+      'border:3px solid var(--ink)!important;' +
+      'box-shadow:3px 3px 0 var(--retro-shadow)!important;' +
+      'border-radius:14px!important;' +
+      '}' +
+      '[data-theme="retro"] .story-card-create-inner{' +
+      'background:var(--retro-gold)!important;' +
+      'border-color:var(--ink)!important;' +
+      '}' +
+
+      /* ---- sheets / modais ---- */
+      '[data-theme="retro"] #tchiloSGSheet,' +
+      '[data-theme="retro"] .comment-sheet,' +
+      '[data-theme="retro"] #postMenuSheet,' +
+      '[data-theme="retro"] .sheet{' +
+      'background:var(--retro-cream)!important;' +
+      'border-color:var(--ink)!important;' +
+      'box-shadow:0 -6px 0 var(--retro-shadow)!important;' +
+      '}' +
+      '[data-theme="retro"] .sg-tab.on,' +
+      '[data-theme="retro"] .sg-tab{' +
+      'border:2.5px solid var(--ink)!important;' +
+      'font-family:"IBM Plex Mono", monospace!important;' +
+      '}' +
+      '[data-theme="retro"] .sg-tab.on{' +
+      'background:var(--retro-gold)!important;' +
+      '}' +
+
+      /* avatares com anel grosso */
+      '[data-theme="retro"] .avatar,' +
+      '[data-theme="retro"] .story-card-avatar{' +
+      'border:3px solid var(--ink)!important;' +
+      'box-shadow:2px 2px 0 var(--retro-shadow)!important;' +
+      '}' +
+
+      /* tags */
+      '[data-theme="retro"] .tag{' +
+      'background:var(--retro-gold)!important;' +
+      'color:var(--ink)!important;' +
+      'border:2px solid var(--ink)!important;' +
+      'font-family:"IBM Plex Mono", monospace!important;' +
+      '}';
     document.head.appendChild(st);
   }
 
@@ -61,24 +268,26 @@
     return THEME_STORAGE;
   }
 
-  function applyRetro() {
-    ensureCSS();
-    try {
-      localStorage.setItem(storageKey(), CODE);
-    } catch (e) {}
-    document.documentElement.setAttribute("data-theme", CODE);
-    var frame = document.getElementById("appFrame");
-    if (frame) frame.setAttribute("data-theme", CODE);
-    var label = document.getElementById("currentThemeLabel");
-    if (label) label.textContent = LABEL;
-    syncAllChecks(CODE);
-  }
-
   function syncAllChecks(active) {
     ["classic", "dark", "yellow", "violet", "red", CODE].forEach(function (code) {
       var el = document.getElementById("theme-check-" + code);
       if (el) el.textContent = active === code ? "✓" : "";
     });
+  }
+
+  function applyRetro() {
+    ensureFont();
+    ensureCSS();
+    try {
+      localStorage.setItem(storageKey(), CODE);
+    } catch (e) {}
+    document.documentElement.setAttribute("data-theme", CODE);
+    document.body.setAttribute("data-theme", CODE);
+    var frame = document.getElementById("appFrame");
+    if (frame) frame.setAttribute("data-theme", CODE);
+    var label = document.getElementById("currentThemeLabel");
+    if (label) label.textContent = LABEL;
+    syncAllChecks(CODE);
   }
 
   function injectSettingsItem() {
@@ -97,7 +306,7 @@
       } catch (e) {}
     };
     btn.innerHTML =
-      '<div class="theme-swatch" style="background:linear-gradient(135deg,#F3E5C4 40%,#E76F51 40% 70%,#2A9D8F 70%)"></div>' +
+      '<div class="theme-swatch" style="background:linear-gradient(135deg,#EBD9B0 35%,#C44B2F 35% 65%,#1F7A6A 65%)"></div>' +
       "<span>" +
       LABEL +
       "</span>" +
@@ -113,35 +322,34 @@
 
   function patchSetAppTheme() {
     if (typeof window.setAppTheme !== "function") return false;
-    if (window.setAppTheme.__retro2) return true;
+    if (window.setAppTheme.__retro3) return true;
     var orig = window.setAppTheme;
     window.setAppTheme = function (theme) {
       if (theme === CODE) {
         applyRetro();
         return;
       }
+      document.body.removeAttribute("data-theme");
       var r = orig.apply(this, arguments);
-      // limpar check retro quando outro tema é escolhido
       var el = document.getElementById("theme-check-retro");
       if (el) el.textContent = "";
       return r;
     };
-    window.setAppTheme.__retro2 = true;
+    window.setAppTheme.__retro3 = true;
     return true;
   }
 
   function patchGetAppTheme() {
     if (typeof window.getAppTheme !== "function") return false;
-    if (window.getAppTheme.__retro2) return true;
+    if (window.getAppTheme.__retro3) return true;
     var orig = window.getAppTheme;
     window.getAppTheme = function () {
       try {
-        var stored = localStorage.getItem(storageKey()) || "";
-        if (stored === CODE) return CODE;
+        if (localStorage.getItem(storageKey()) === CODE) return CODE;
       } catch (e) {}
       return orig.apply(this, arguments);
     };
-    window.getAppTheme.__retro2 = true;
+    window.getAppTheme.__retro3 = true;
     return true;
   }
 
@@ -158,6 +366,7 @@
   }
 
   function boot() {
+    ensureFont();
     ensureCSS();
     patchLabels();
     patchSetAppTheme();

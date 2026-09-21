@@ -1,5 +1,6 @@
 /**
- * tchilo-Pop — UI anúncios: só posts próprios + botão no header + abrir criar
+ * tchilo-Pop — UI anúncios (Turbinar + Meus Anúncios)
+ * Carrega tchilo-ads.js com vários caminhos; se falhar, abre UI embutida.
  */
 (function () {
   "use strict";
@@ -55,38 +56,254 @@
       "#tchiloAdsMgrBtn .chev{margin-left:auto;opacity:.5;font-size:18px}" +
       ".post-boost-btn{flex-shrink:0;margin-left:6px;padding:6px 10px;border:2px solid var(--ink,#0B0B0C);border-radius:999px;background:#c8f560;font:800 11px Inter,system-ui,sans-serif;color:var(--ink,#0B0B0C);cursor:pointer;line-height:1;white-space:nowrap}" +
       ".post-boost-btn:active{transform:scale(.96)}" +
-      ".post-head{align-items:center}";
+      "#tchiloAdsFallback{display:none;position:fixed;inset:0;z-index:4000;background:var(--paper,#f7f6f2);flex-direction:column;color:var(--ink,#0B0B0C)}" +
+      "#tchiloAdsFallback.open{display:flex}" +
+      "#tchiloAdsFallback .af-top{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;border-bottom:2.5px solid var(--ink,#0B0B0C)}" +
+      "#tchiloAdsFallback .af-top h1{flex:1;margin:0;font:800 18px Inter,system-ui,sans-serif}" +
+      "#tchiloAdsFallback .af-top button{width:40px;height:40px;border:2.5px solid var(--ink,#0B0B0C);border-radius:50%;background:#ffe566;font:900 20px Inter,sans-serif}" +
+      "#tchiloAdsFallback .af-body{flex:1;overflow:auto;padding:16px;padding-bottom:calc(24px + env(safe-area-inset-bottom))}" +
+      "#tchiloAdsFallback label{display:block;font:800 12px Inter,sans-serif;margin:12px 0 6px;text-transform:uppercase;opacity:.7}" +
+      "#tchiloAdsFallback input,#tchiloAdsFallback textarea,#tchiloAdsFallback select{width:100%;box-sizing:border-box;padding:12px;border:2.5px solid var(--ink,#0B0B0C);border-radius:12px;font:600 14px Inter,sans-serif;background:#fff}" +
+      "#tchiloAdsFallback textarea{min-height:90px}" +
+      "#tchiloAdsFallback .af-reach{margin:12px 0;padding:12px;border:2.5px dashed var(--ink,#0B0B0C);border-radius:14px;background:#f1ecff;font:700 13px Inter,sans-serif}" +
+      "#tchiloAdsFallback .af-pay{width:100%;margin-top:16px;padding:14px;border:3px solid var(--ink,#0B0B0C);border-radius:16px;background:#c8f560;font:900 15px Inter,sans-serif;box-shadow:4px 4px 0 var(--ink,#0B0B0C)}";
     document.head.appendChild(st);
   }
 
-  function ensureAdsScript(cb) {
+  function scriptCandidates() {
+    var origin = "";
+    try {
+      origin = location.origin || "";
+    } catch (e) {}
+    var v = "v=20260922adsfix1";
+    return [
+      "native/tchilo-ads.js?" + v,
+      "./native/tchilo-ads.js?" + v,
+      "/native/tchilo-ads.js?" + v,
+      origin + "/native/tchilo-ads.js?" + v,
+      "https://zacariasguilhermejoao-ui.github.io/tchilo-Pop/native/tchilo-ads.js?" + v
+    ];
+  }
+
+  function loadScriptOnce(src) {
+    return new Promise(function (resolve) {
+      var existing = document.querySelector('script[src="' + src + '"]');
+      if (existing) {
+        resolve(true);
+        return;
+      }
+      var s = document.createElement("script");
+      s.src = src;
+      s.async = true;
+      s.onload = function () {
+        resolve(true);
+      };
+      s.onerror = function () {
+        resolve(false);
+      };
+      document.head.appendChild(s);
+    });
+  }
+
+  async function ensureAdsScript(cb) {
     if (typeof window.tchiloOpenAdCreate === "function") {
-      cb && cb();
+      cb && cb(true);
       return;
     }
-    if (!document.querySelector("script[data-tchilo-ads]")) {
-      var s = document.createElement("script");
-      s.src = "native/tchilo-ads.js?v=20260921boost1";
-      s.defer = true;
-      s.setAttribute("data-tchilo-ads", "1");
-      document.head.appendChild(s);
+    var list = scriptCandidates();
+    for (var i = 0; i < list.length; i++) {
+      await loadScriptOnce(list[i]);
+      if (typeof window.tchiloOpenAdCreate === "function") {
+        cb && cb(true);
+        return;
+      }
+      // pequeno wait para o script executar
+      await new Promise(function (r) {
+        setTimeout(r, 120);
+      });
+      if (typeof window.tchiloOpenAdCreate === "function") {
+        cb && cb(true);
+        return;
+      }
     }
+    // último wait
     var n = 0;
     var t = setInterval(function () {
       if (typeof window.tchiloOpenAdCreate === "function") {
         clearInterval(t);
-        cb && cb();
-      } else if (++n > 40) {
+        cb && cb(true);
+      } else if (++n > 15) {
         clearInterval(t);
-        alert("Não foi possível abrir anúncios. Atualiza a página.");
+        cb && cb(false);
       }
-    }, 150);
+    }, 100);
+  }
+
+  function openFallbackCreate() {
+    ensureCSS();
+    var el = document.getElementById("tchiloAdsFallback");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "tchiloAdsFallback";
+      el.innerHTML =
+        '<div class="af-top"><button type="button" id="afClose" aria-label="Fechar">‹</button><h1>Criar anúncio</h1><span style="width:40px"></span></div>' +
+        '<div class="af-body">' +
+        "<label>Tipo</label>" +
+        '<select id="afType"><option value="click">Clique (site)</option><option value="message">Mensagem (Tchilo)</option></select>' +
+        "<label>Texto</label>" +
+        '<textarea id="afBody" maxlength="500" placeholder="Descrição do anúncio…"></textarea>' +
+        "<label>Link (só tipo Clique)</label>" +
+        '<input id="afLink" type="url" placeholder="https://exemplo.com"/>' +
+        "<label>Dias (1–30)</label>" +
+        '<input id="afDays" type="number" min="1" max="30" value="3"/>' +
+        '<div class="af-reach" id="afReach">3 dias = $3 · alcance estimado de 2.400 a 3.000 pessoas</div>' +
+        '<button type="button" class="af-pay" id="afPay">Continuar para pagar</button>' +
+        '<p style="margin-top:12px;font:600 12px Inter,sans-serif;opacity:.65">$1 por dia. O pagamento abre no Paddle.</p>' +
+        "</div>";
+      document.body.appendChild(el);
+      document.getElementById("afClose").onclick = function () {
+        el.classList.remove("open");
+      };
+      function updateReach() {
+        var d = Math.max(1, Math.min(30, parseInt(document.getElementById("afDays").value, 10) || 1));
+        document.getElementById("afDays").value = String(d);
+        document.getElementById("afReach").textContent =
+          d +
+          " dias = $" +
+          d +
+          " · alcance estimado de " +
+          (d * 800).toLocaleString("pt-PT") +
+          " a " +
+          (d * 1000).toLocaleString("pt-PT") +
+          " pessoas";
+        document.getElementById("afPay").textContent = "Pagar $" + d + " e publicar";
+      }
+      document.getElementById("afDays").oninput = updateReach;
+      updateReach();
+
+      // pré-preencher draft
+      try {
+        var d = window.__tchiloBoostDraft;
+        if (d && d.body) document.getElementById("afBody").value = d.body;
+      } catch (e) {}
+
+      document.getElementById("afPay").onclick = function () {
+        fallbackPay();
+      };
+    }
+    try {
+      var d2 = window.__tchiloBoostDraft;
+      if (d2 && d2.body) document.getElementById("afBody").value = d2.body;
+    } catch (e2) {}
+    el.classList.add("open");
+  }
+
+  async function fallbackPay() {
+    var body = (document.getElementById("afBody").value || "").trim();
+    var type = document.getElementById("afType").value || "click";
+    var link = (document.getElementById("afLink").value || "").trim();
+    var days = Math.max(1, Math.min(30, parseInt(document.getElementById("afDays").value, 10) || 1));
+    if (!body) {
+      alert("Escreve a descrição");
+      return;
+    }
+    if (type === "click") {
+      if (!link) {
+        alert("Indica o link do site");
+        return;
+      }
+      if (!/^https?:\/\//i.test(link)) link = "https://" + link;
+    }
+    var uid = myId();
+    if (!uid) {
+      alert("Inicia sessão");
+      return;
+    }
+    var SB = window.SB || window.tchiloSupabase;
+    if (!SB) {
+      alert("Sem ligação à base de dados");
+      return;
+    }
+
+    var draftMedia = window.__tchiloBoostDraft || {};
+    var row = {
+      user_id: uid,
+      status: "pending",
+      ad_type: type,
+      body: body,
+      media_url: draftMedia.media_url || null,
+      media_type: draftMedia.media_type || null,
+      link_url: type === "click" ? link : null,
+      days: days,
+      reach_min: days * 800,
+      reach_max: days * 1000,
+      impressions: 0,
+      clicks: 0,
+      conversations: 0
+    };
+
+    try {
+      var ins = await SB.from("ads").insert(row).select("id").single();
+      if (ins.error || !ins.data) {
+        alert("Erro ao guardar. Confirma o SQL dos anúncios no Supabase.");
+        return;
+      }
+      var adId = ins.data.id;
+      openPaddleAd(adId, days);
+    } catch (e) {
+      alert("Erro: " + (e && e.message ? e.message : e));
+    }
+  }
+
+  function openPaddleAd(adId, days) {
+    var PRICE = "pri_01m31nb48pzvs976yz2nd1wtbp";
+    var TOKEN = "live_05be77c7629150c894e94e62559";
+    function doOpen() {
+      try {
+        if (!window.__tchiloPaddleInited && window.Paddle) {
+          Paddle.Initialize({ token: TOKEN });
+          window.__tchiloPaddleInited = true;
+        }
+        window.__tchiloCheckoutKind = "ad";
+        Paddle.Checkout.open({
+          items: [{ priceId: PRICE, quantity: days }],
+          settings: { displayMode: "overlay", theme: "light", locale: "pt" },
+          customData: {
+            app: "tchilo",
+            kind: "ad",
+            ad_id: adId,
+            user_id: myId() || "",
+            days: String(days)
+          }
+        });
+        var fb = document.getElementById("tchiloAdsFallback");
+        if (fb) fb.classList.remove("open");
+      } catch (e) {
+        alert("Não foi possível abrir o pagamento");
+      }
+    }
+    if (window.Paddle && window.Paddle.Checkout) {
+      doOpen();
+      return;
+    }
+    var s = document.createElement("script");
+    s.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
+    s.onload = doOpen;
+    s.onerror = function () {
+      alert("Erro ao carregar Paddle");
+    };
+    document.head.appendChild(s);
   }
 
   function openMgr() {
-    ensureAdsScript(function () {
-      if (typeof window.tchiloOpenAdsManager === "function") window.tchiloOpenAdsManager();
-      else if (typeof window.tchiloOpenAdCreate === "function") window.tchiloOpenAdCreate();
+    ensureAdsScript(function (ok) {
+      if (ok && typeof window.tchiloOpenAdsManager === "function") {
+        window.tchiloOpenAdsManager();
+      } else if (ok && typeof window.tchiloOpenAdCreate === "function") {
+        window.tchiloOpenAdCreate();
+      } else {
+        openFallbackCreate();
+      }
     });
   }
 
@@ -128,16 +345,16 @@
       }
     } catch (e) {}
 
-    ensureAdsScript(function () {
-      try {
-        if (window.__tchiloBoostDraft && typeof window.tchiloApplyAdDraft === "function") {
-          window.tchiloApplyAdDraft(window.__tchiloBoostDraft);
-        }
-      } catch (e2) {}
-      if (typeof window.tchiloOpenAdCreate === "function") {
+    ensureAdsScript(function (ok) {
+      if (ok && typeof window.tchiloOpenAdCreate === "function") {
+        try {
+          if (window.__tchiloBoostDraft && typeof window.tchiloApplyAdDraft === "function") {
+            window.tchiloApplyAdDraft(window.__tchiloBoostDraft);
+          }
+        } catch (e2) {}
         window.tchiloOpenAdCreate();
       } else {
-        alert("A carregar… tenta outra vez.");
+        openFallbackCreate();
       }
     });
   }
@@ -169,19 +386,15 @@
     if (!me) return;
     var feed = document.getElementById("feedList");
     if (!feed) return;
-
     feed.querySelectorAll(".post").forEach(function (post) {
       if (post.querySelector(".post-boost-btn")) return;
       var id = post.getAttribute("data-id");
       if (!id || !isOwnPost(id)) return;
-
       var head = post.querySelector(".post-head");
       if (!head) return;
-
       var whoUser = post.querySelector(".post-user-tap, .post-user");
       var dataUser = whoUser && whoUser.getAttribute("data-user");
       if (dataUser && String(dataUser) !== me) return;
-
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "post-boost-btn";
@@ -191,7 +404,6 @@
         e.stopPropagation();
         openCreateFromPost(id);
       };
-
       var menu = head.querySelector(".post-menu-btn");
       if (menu) head.insertBefore(btn, menu);
       else head.appendChild(btn);
@@ -200,7 +412,7 @@
 
   function patchPostMenu() {
     if (typeof window.openPostMenu !== "function") return false;
-    if (window.openPostMenu.__adsBoost2) return true;
+    if (window.openPostMenu.__adsBoost3) return true;
     var orig = window.openPostMenu;
     window.openPostMenu = function (postId) {
       var r = orig.apply(this, arguments);
@@ -210,9 +422,7 @@
           if (!box) return;
           var old = box.querySelector("[data-tchilo-boost]");
           if (old) old.remove();
-
           if (!isOwnPost(postId)) return;
-
           var b = document.createElement("button");
           b.type = "button";
           b.className = "share-opt";
@@ -234,7 +444,7 @@
       }, 40);
       return r;
     };
-    window.openPostMenu.__adsBoost2 = true;
+    window.openPostMenu.__adsBoost3 = true;
     return true;
   }
 
@@ -251,7 +461,7 @@
   }
 
   function patchGoTo() {
-    if (typeof window.goTo !== "function" || window.goTo.__adsUi2) return;
+    if (typeof window.goTo !== "function" || window.goTo.__adsUi3) return;
     var orig = window.goTo;
     window.goTo = function (s) {
       var r = orig.apply(this, arguments);
@@ -259,7 +469,7 @@
       if (s === "feed") setTimeout(injectBoostButtons, 100);
       return r;
     };
-    window.goTo.__adsUi2 = true;
+    window.goTo.__adsUi3 = true;
   }
 
   function boot() {
@@ -269,6 +479,8 @@
     patchPostMenu();
     patchRenderFeed();
     patchGoTo();
+    // pré-carregar módulo de anúncios
+    ensureAdsScript(function () {});
   }
 
   setInterval(function () {

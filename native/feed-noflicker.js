@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260921boost2';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260921sg1';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -49,6 +49,7 @@
     loadExtra('native/tchilo-ads-ui.js', 'data-tchilo-ads-ui');
     loadExtra('native/tchilo-ads-draft.js', 'data-tchilo-ads-draft');
     loadExtra('native/tchilo-ads-analytics.js', 'data-tchilo-ads-analytics');
+    loadExtra('native/tchilo-stickers-gifs.js', 'data-tchilo-sg');
     loadExtra('native/gal-thumb.js', 'data-tchilo-gal-thumb');
     loadExtra('native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs');
     loadExtra('native/chat-audio-fix.js', 'data-tchilo-chat-audio');

@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260922themepack';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260922themepremium';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -45,6 +45,7 @@
     loadExtra('native/fx-live-patch.js', 'data-tchilo-fx-live');
     loadExtra('native/paddle-premium.js', 'data-tchilo-paddle');
     loadExtra('native/paddle-ad-guard.js', 'data-tchilo-paddle-guard');
+    loadExtra('native/tchilo-theme-premium-gate.js', 'data-tchilo-theme-gate');
     loadExtra('native/tchilo-ads.js', 'data-tchilo-ads');
     loadExtra('native/tchilo-ads-ui.js', 'data-tchilo-ads-ui');
     loadExtra('native/tchilo-ads-draft.js', 'data-tchilo-ads-draft');

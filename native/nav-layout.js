@@ -1,6 +1,6 @@
 /**
  * tchilo-Pop — layout de navegação
- * Feed = texto "Fee" | Mensagens = círculo "SMS" | Reels na barra
+ * Feed = Fee | Mensagens = SMS (só texto) | Lupa sem moldura | Reels na barra
  */
 (function () {
   'use strict';
@@ -9,7 +9,7 @@
     '<span class="nav-text-icon nav-fee" aria-hidden="true">Fee</span>';
 
   var ICON_SMS =
-    '<span class="nav-sms-icon" aria-hidden="true"><span class="nav-sms-circle">SMS</span></span>';
+    '<span class="nav-sms-text" aria-hidden="true">SMS</span>';
 
   var SVG_REELS =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
@@ -33,18 +33,24 @@
       'letter-spacing:-0.04em;color:currentColor;' +
       'user-select:none;-webkit-user-select:none;}' +
       '.nav-item.active .nav-text-icon.nav-fee{font-weight:900;}' +
-      '.nav-sms-icon,.icon-btn .nav-sms-icon{' +
+
+      /* SMS só texto, maior, sem círculo */
+      '.nav-sms-text{' +
       'display:inline-flex;align-items:center;justify-content:center;' +
-      'width:28px;height:28px;}' +
-      '.nav-sms-circle{' +
-      'display:inline-flex;align-items:center;justify-content:center;' +
-      'width:28px;height:28px;border-radius:50%;' +
-      'border:2.4px solid currentColor;' +
-      'font:900 9px Inter,system-ui,sans-serif;' +
-      'letter-spacing:0.02em;line-height:1;' +
-      'color:currentColor;box-sizing:border-box;' +
+      'font:900 15px Inter,system-ui,sans-serif;' +
+      'letter-spacing:0.02em;line-height:1;color:currentColor;' +
       'user-select:none;-webkit-user-select:none;}' +
-      '.icon-btn .nav-sms-circle{width:26px;height:26px;font-size:8.5px;}' +
+      '.icon-btn .nav-sms-text{font-size:15px;}' +
+
+      /* Topbar: sem caixa/círculo — só o ícone */
+      '#screen-feed .topbar-icons .icon-btn{' +
+      'width:auto!important;min-width:28px;height:36px!important;' +
+      'border:none!important;border-radius:0!important;' +
+      'background:transparent!important;box-shadow:none!important;' +
+      'padding:0 2px!important;}' +
+      '#screen-feed .topbar-icons .icon-btn svg{' +
+      'width:22px!important;height:22px!important;}' +
+
       '#reelsViewer .reels-close,.reels-viewer .reels-close{' +
       'position:absolute!important;top:max(12px, env(safe-area-inset-top, 0px) + 8px)!important;' +
       'left:12px!important;right:auto!important;z-index:20!important;}' +
@@ -61,7 +67,7 @@
     if (!btn) return;
     var dot = btn.querySelector('.dot');
     var badge = btn.querySelector('.badge');
-    btn.querySelectorAll('svg, .nav-text-icon, .nav-sms-icon').forEach(function (n) {
+    btn.querySelectorAll('svg, .nav-text-icon, .nav-sms-icon, .nav-sms-text, .nav-sms-circle').forEach(function (n) {
       try { n.remove(); } catch (e) {}
     });
     var wrap = document.createElement('div');
@@ -91,13 +97,19 @@
 
   function applySmsIcon(el) {
     if (!el) return;
-    if (el.querySelector('.nav-sms-circle')) return;
-    var svg = el.querySelector('svg');
-    if (svg) {
+    /* substitui versão antiga com círculo */
+    var old =
+      el.querySelector('.nav-sms-circle') ||
+      el.querySelector('.nav-sms-icon') ||
+      el.querySelector('svg');
+    if (el.querySelector('.nav-sms-text') && !el.querySelector('.nav-sms-circle')) return;
+    if (old) {
       var wrap = document.createElement('div');
       wrap.innerHTML = ICON_SMS;
-      svg.replaceWith(wrap.firstChild);
-    } else if (!el.querySelector('.nav-sms-icon')) {
+      old.replaceWith(wrap.firstChild);
+      return;
+    }
+    if (!el.querySelector('.nav-sms-text')) {
       var w = document.createElement('div');
       w.innerHTML = ICON_SMS;
       el.insertBefore(w.firstChild, el.firstChild);

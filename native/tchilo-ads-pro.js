@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — Gestor de Anúncios Profissional (versão estável)
+ * tchilo-Pop — Gestor de Anúncios Profissional (estável)
  */
 (function () {
   "use strict";
@@ -8,22 +8,20 @@
   var PADDLE_TOKEN = "live_05be77c7629150c894e94e62559";
 
   var AO_PROVINCES = [
-    { name: "Luanda", lat: -8.84, lng: 13.23, cities: ["Luanda", "Viana", "Cacuaco", "Belas", "Cazenga"] },
-    { name: "Benguela", lat: -12.58, lng: 13.41, cities: ["Benguela", "Lobito", "Catumbela"] },
-    { name: "Huíla", lat: -14.92, lng: 13.5, cities: ["Lubango", "Humpata"] },
-    { name: "Huambo", lat: -12.78, lng: 15.73, cities: ["Huambo", "Caála"] },
-    { name: "Cabinda", lat: -5.55, lng: 12.19, cities: ["Cabinda"] },
-    { name: "Uíge", lat: -7.61, lng: 15.06, cities: ["Uíge", "Negage"] },
-    { name: "Malanje", lat: -9.54, lng: 16.34, cities: ["Malanje"] },
-    { name: "Cunene", lat: -17.06, lng: 15.73, cities: ["Ondjiva"] },
-    { name: "Namibe", lat: -15.2, lng: 12.15, cities: ["Moçâmedes"] },
-    { name: "Zaire", lat: -6.13, lng: 12.37, cities: ["M'banza-Kongo", "Soyo"] }
+    { name: "Luanda", cities: ["Luanda", "Viana", "Cacuaco", "Belas"] },
+    { name: "Benguela", cities: ["Benguela", "Lobito"] },
+    { name: "Huíla", cities: ["Lubango"] },
+    { name: "Huambo", cities: ["Huambo"] },
+    { name: "Cabinda", cities: ["Cabinda"] },
+    { name: "Uíge", cities: ["Uíge"] },
+    { name: "Malanje", cities: ["Malanje"] },
+    { name: "Namibe", cities: ["Moçâmedes"] },
+    { name: "Zaire", cities: ["Soyo"] },
+    { name: "Cunene", cities: ["Ondjiva"] }
   ];
 
   var draft = {
     step: 1,
-    source: "media",
-    postId: null,
     mediaUrl: null,
     mediaType: null,
     title: "",
@@ -31,20 +29,19 @@
     objective: "click",
     link: "",
     days: 3,
-    country: "AO",
     province: "Luanda",
     city: "",
     ageMin: 18,
-    ageMax: 45,
-    gender: "all"
+    ageMax: 45
   };
 
+  // Escaping sem entidades HTML literais (evita corrupção no deploy)
   function esc(s) {
     return String(s == null ? "" : s)
-      .replace(/&/g, "&")
-      .replace(/</g, "<")
-      .replace(/>/g, ">")
-      .replace(/"/g, """);
+      .split("&").join("&" + "amp;")
+      .split("<").join("&" + "lt;")
+      .split(">").join("&" + "gt;")
+      .split('"').join("&" + "quot;");
   }
 
   function meId() {
@@ -88,7 +85,7 @@
       "#tchiloAdsPro .ap-btn b{font:900 15px Inter,sans-serif}" +
       "#tchiloAdsPro .ap-btn span{font:600 12px Inter,sans-serif;opacity:.7}" +
       "#tchiloAdsPro label.ap-lab{display:block;font:800 11px Inter,sans-serif;text-transform:uppercase;letter-spacing:.04em;opacity:.65;margin:12px 0 6px}" +
-      "#tchiloAdsPro input,#tchiloAdsPro textarea,#tchiloAdsPro select{width:100%;box-sizing:border-box;padding:12px;border:2.5px solid var(--ink,#0B0B0C);border-radius:12px;font:600 14px Inter,sans-serif;background:#fff;color:var(--ink,#0B0B0C)}" +
+      "#tchiloAdsPro input,#tchiloAdsPro textarea,#tchiloAdsPro select{width:100%;box-sizing:border-box;padding:12px;border:2.5px solid var(--ink,#0B0B0C);border-radius:12px;font:600 14px Inter,sans-serif;background:#fff}" +
       "#tchiloAdsPro textarea{min-height:90px}" +
       "#tchiloAdsPro .ap-chips{display:flex;flex-wrap:wrap;gap:8px}" +
       "#tchiloAdsPro .ap-chip{padding:8px 12px;border:2px solid var(--ink,#0B0B0C);border-radius:999px;font:800 12px Inter,sans-serif;background:#fff;cursor:pointer}" +
@@ -115,10 +112,9 @@
     el.id = "tchiloAdsPro";
     el.innerHTML =
       '<div class="ap-top">' +
-      '<button type="button" class="ap-back" id="apBack" aria-label="Voltar">←</button>' +
+      '<button type="button" class="ap-back" id="apBack">←</button>' +
       '<h1 id="apTitle">Anúncios</h1>' +
-      '<button type="button" class="ap-x" id="apClose" aria-label="Fechar">×</button>' +
-      "</div>" +
+      '<button type="button" class="ap-x" id="apClose">×</button></div>' +
       '<div class="ap-body" id="apBody"></div>';
     document.body.appendChild(el);
     el.querySelector("#apClose").onclick = close;
@@ -150,36 +146,23 @@
     if (h) h.textContent = t;
   }
 
-  function body() {
+  function bodyEl() {
     return document.getElementById("apBody");
   }
 
   function reachText(days) {
     var d = Math.max(1, Math.min(30, parseInt(days, 10) || 1));
-    return (
-      d +
-      " dias = $" +
-      d +
-      " · alcance estimado de " +
-      (d * 800).toLocaleString("pt-PT") +
-      " a " +
-      (d * 1000).toLocaleString("pt-PT") +
-      " pessoas"
-    );
+    return d + " dias = $" + d + " · alcance estimado de " + d * 800 + " a " + d * 1000 + " pessoas";
   }
 
   function renderHub() {
     root().dataset.view = "hub";
     setTitle("Gestor de Anúncios");
-    body().innerHTML =
+    bodyEl().innerHTML =
       '<div class="ap-grid">' +
-      '<button type="button" class="ap-btn primary" id="apGoCreate">' +
-      "<b>Fazer anúncio</b><span>Foto, vídeo ou post · Localização · Pagamento</span></button>" +
-      '<button type="button" class="ap-btn" id="apGoManage">' +
-      "<b>Gerir anúncios</b><span>Métricas, pausar, desempenho</span></button>" +
-      "</div>" +
-      '<div class="ap-card" style="margin-top:14px"><h2>Como funciona</h2>' +
-      "<p>Escolhe o conteúdo, define o público (província/cidade em Angola), duração e paga. O anúncio entra no feed com etiqueta Anúncio.</p></div>";
+      '<button type="button" class="ap-btn primary" id="apGoCreate"><b>Fazer anúncio</b><span>Foto, vídeo · Localização · Pagamento</span></button>' +
+      '<button type="button" class="ap-btn" id="apGoManage"><b>Gerir anúncios</b><span>Métricas e estado</span></button></div>' +
+      '<div class="ap-card" style="margin-top:14px"><h2>Como funciona</h2><p>Escolhe o conteúdo, define o público em Angola, duração e paga. O anúncio entra no feed com etiqueta Anúncio.</p></div>';
     document.getElementById("apGoCreate").onclick = function () {
       draft.step = 1;
       renderCreate();
@@ -209,17 +192,16 @@
   }
 
   function renderStep1() {
-    body().innerHTML =
+    bodyEl().innerHTML =
       stepsHtml() +
-      '<div class="ap-card"><h2>Conteúdo</h2><p>Carrega foto/vídeo ou usa um post teu.</p></div>' +
-      '<label class="ap-lab">Título</label><input id="apTitleIn" maxlength="80" placeholder="Título do anúncio" value="' +
+      '<div class="ap-card"><h2>Conteúdo</h2><p>Carrega foto/vídeo e escreve o texto.</p></div>' +
+      '<label class="ap-lab">Título</label><input id="apTitleIn" maxlength="80" placeholder="Título" value="' +
       esc(draft.title) +
       '"/>' +
       '<label class="ap-lab">Descrição</label><textarea id="apBodyIn" maxlength="500" placeholder="Texto do anúncio…">' +
       esc(draft.body) +
       "</textarea>" +
-      '<label class="ap-lab">Media (foto ou vídeo)</label>' +
-      '<input id="apMediaFile" type="file" accept="image/*,video/*"/>' +
+      '<label class="ap-lab">Media</label><input id="apMediaFile" type="file" accept="image/*,video/*"/>' +
       '<button type="button" class="ap-pay" id="apNext1" style="margin-top:16px">Continuar</button>';
     document.getElementById("apNext1").onclick = function () {
       draft.title = (document.getElementById("apTitleIn").value || "").trim();
@@ -241,7 +223,7 @@
   }
 
   function renderStep2() {
-    body().innerHTML =
+    bodyEl().innerHTML =
       stepsHtml() +
       '<div class="ap-card"><h2>Objectivo</h2></div>' +
       '<div class="ap-chips" id="apObj">' +
@@ -250,9 +232,8 @@
       '" data-v="click">Clique (site)</button>' +
       '<button type="button" class="ap-chip' +
       (draft.objective === "message" ? " on" : "") +
-      '" data-v="message">Mensagem no Tchilo</button>' +
-      "</div>" +
-      '<label class="ap-lab">Link (só tipo Clique)</label>' +
+      '" data-v="message">Mensagem no Tchilo</button></div>' +
+      '<label class="ap-lab">Link (só Clique)</label>' +
       '<input id="apLink" type="url" placeholder="https://exemplo.com" value="' +
       esc(draft.link) +
       '"/>' +
@@ -268,10 +249,8 @@
     });
     document.getElementById("apNext2").onclick = function () {
       draft.link = (document.getElementById("apLink").value || "").trim();
-      draft.objective =
-        (document.querySelector("#apObj .ap-chip.on") &&
-          document.querySelector("#apObj .ap-chip.on").getAttribute("data-v")) ||
-        "click";
+      var on = document.querySelector("#apObj .ap-chip.on");
+      draft.objective = (on && on.getAttribute("data-v")) || "click";
       if (draft.objective === "click" && !draft.link) {
         alert("Indica o link do site");
         return;
@@ -284,26 +263,24 @@
   function renderStep3() {
     var provOpts = AO_PROVINCES.map(function (p) {
       return (
-        '<option value="' +
+        "<option value=\"" +
         esc(p.name) +
-        '"' +
+        "\"" +
         (draft.province === p.name ? " selected" : "") +
         ">" +
         esc(p.name) +
         "</option>"
       );
     }).join("");
-    body().innerHTML =
+    bodyEl().innerHTML =
       stepsHtml() +
       "<h2 style=\"margin:0 0 10px;font:800 16px Inter,sans-serif\">Localização e público</h2>" +
-      '<label class="ap-lab">Província (Angola)</label>' +
-      '<select id="apProvince">' +
+      '<label class="ap-lab">Província</label><select id="apProvince">' +
       provOpts +
       "</select>" +
-      '<label class="ap-lab">Cidade</label>' +
-      '<input id="apCity" placeholder="Cidade" value="' +
+      '<label class="ap-lab">Cidade</label><input id="apCity" value="' +
       esc(draft.city) +
-      '"/>' +
+      '" placeholder="Cidade"/>' +
       '<label class="ap-lab">Idade mín.</label><input type="number" id="apAgeMin" min="13" max="65" value="' +
       draft.ageMin +
       '"/>' +
@@ -321,19 +298,14 @@
     };
   }
 
-  function ctaLabel() {
-    if (draft.objective === "message") return "Enviar mensagem";
-    return "Saber mais";
-  }
-
   function renderStep4() {
     var media =
       draft.mediaUrl
         ? draft.mediaType === "video"
           ? '<video src="' + esc(draft.mediaUrl) + '" muted playsinline controls></video>'
           : '<img src="' + esc(draft.mediaUrl) + '" alt="">'
-        : "Pré-visualização da media";
-    body().innerHTML =
+        : "Pré-visualização";
+    bodyEl().innerHTML =
       stepsHtml() +
       "<h2 style=\"margin:0 0 10px;font:800 16px Inter,sans-serif\">Duração e pagamento</h2>" +
       '<label class="ap-lab">Dias (1–30)</label>' +
@@ -348,7 +320,7 @@
       esc((meName().charAt(0) || "T").toUpperCase()) +
       "</div><div><b>@" +
       esc(meName()) +
-      '</b><div style="font:800 10px Inter,sans-serif;margin-top:2px">Anúncio</div></div></div>' +
+      '</b><div style="font:800 10px Inter,sans-serif">Anúncio</div></div></div>' +
       '<div class="pv-media">' +
       media +
       "</div>" +
@@ -358,7 +330,7 @@
       esc(draft.title || draft.body || "O teu anúncio") +
       "</div>" +
       '<div class="pv-cta">' +
-      ctaLabel() +
+      (draft.objective === "message" ? "Enviar mensagem" : "Saber mais") +
       "</div></div>" +
       '<button type="button" class="ap-pay" id="apPay">Pagar e publicar</button>';
     var daysEl = document.getElementById("apDays");
@@ -414,7 +386,6 @@
           Paddle.Initialize({ token: PADDLE_TOKEN });
           window.__tchiloPaddleInited = true;
         }
-        window.__tchiloCheckoutKind = "ad";
         Paddle.Checkout.open({
           items: [{ priceId: PRICE_AD, quantity: days }],
           settings: { displayMode: "overlay", theme: "light", locale: "pt" },
@@ -446,11 +417,11 @@
   async function renderManage() {
     root().dataset.view = "manage";
     setTitle("Gerir anúncios");
-    body().innerHTML = '<div class="ap-card"><p>A carregar os teus anúncios…</p></div>';
+    bodyEl().innerHTML = '<div class="ap-card"><p>A carregar…</p></div>';
     var SB = window.SB || window.tchiloSupabase;
     var uid = meId();
     if (!SB || !uid) {
-      body().innerHTML =
+      bodyEl().innerHTML =
         '<div class="ap-card"><p>Inicia sessão para ver os anúncios.</p></div>' +
         '<button type="button" class="ap-pay" id="apBackHub">Voltar</button>';
       document.getElementById("apBackHub").onclick = renderHub;
@@ -460,7 +431,7 @@
       var res = await SB.from("ads").select("*").eq("user_id", uid).order("created_at", { ascending: false });
       var rows = (res && res.data) || [];
       if (!rows.length) {
-        body().innerHTML =
+        bodyEl().innerHTML =
           '<div class="ap-card"><h2>Sem anúncios</h2><p>Ainda não criaste nenhum.</p></div>' +
           '<button type="button" class="ap-pay" id="apNew">Fazer anúncio</button>';
         document.getElementById("apNew").onclick = function () {
@@ -469,27 +440,23 @@
         };
         return;
       }
-      body().innerHTML = rows
+      bodyEl().innerHTML = rows
         .map(function (a) {
           return (
-            '<div class="ap-card">' +
-            "<h2>" +
-            esc(a.body || a.title || "Anúncio") +
-            "</h2>" +
-            "<p>Estado: <b>" +
+            '<div class="ap-card"><h2>' +
+            esc(a.body || "Anúncio") +
+            "</h2><p>Estado: <b>" +
             esc(a.status || "—") +
             "</b> · " +
             (a.days || 0) +
             " dias · impressões " +
             (a.impressions || 0) +
-            " / ~" +
-            (a.reach_max || a.reach_min || 0) +
             "</p></div>"
           );
         })
         .join("");
     } catch (e) {
-      body().innerHTML =
+      bodyEl().innerHTML =
         '<div class="ap-card"><p>Erro ao carregar. Confirma a tabela ads no Supabase.</p></div>';
     }
   }
@@ -515,7 +482,7 @@
     }
   }
 
-  setInterval(hookBtn, 1200);
+  setInterval(hookBtn, 1000);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", hookBtn);
   else hookBtn();
 })();

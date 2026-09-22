@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — Gestor de Anúncios Profissional (estável)
+ * tchilo-Pop — Gestor de Anúncios (estavel)
  */
 (function () {
   "use strict";
@@ -8,40 +8,25 @@
   var PADDLE_TOKEN = "live_05be77c7629150c894e94e62559";
 
   var AO_PROVINCES = [
-    { name: "Luanda", cities: ["Luanda", "Viana", "Cacuaco", "Belas"] },
-    { name: "Benguela", cities: ["Benguela", "Lobito"] },
-    { name: "Huíla", cities: ["Lubango"] },
-    { name: "Huambo", cities: ["Huambo"] },
-    { name: "Cabinda", cities: ["Cabinda"] },
-    { name: "Uíge", cities: ["Uíge"] },
-    { name: "Malanje", cities: ["Malanje"] },
-    { name: "Namibe", cities: ["Moçâmedes"] },
-    { name: "Zaire", cities: ["Soyo"] },
-    { name: "Cunene", cities: ["Ondjiva"] }
+    "Luanda", "Benguela", "Huila", "Huambo", "Cabinda",
+    "Uige", "Malanje", "Namibe", "Zaire", "Cunene"
   ];
 
   var draft = {
-    step: 1,
-    mediaUrl: null,
-    mediaType: null,
-    title: "",
-    body: "",
-    objective: "click",
-    link: "",
-    days: 3,
-    province: "Luanda",
-    city: "",
-    ageMin: 18,
-    ageMax: 45
+    step: 1, mediaUrl: null, mediaType: null, title: "", body: "",
+    objective: "click", link: "", days: 3, province: "Luanda", city: "",
+    ageMin: 18, ageMax: 45
   };
 
-  // Escaping sem entidades HTML literais (evita corrupção no deploy)
   function esc(s) {
-    return String(s == null ? "" : s)
-      .split("&").join("&" + "amp;")
-      .split("<").join("&" + "lt;")
-      .split(">").join("&" + "gt;")
-      .split('"').join("&" + "quot;");
+    var amp = String.fromCharCode(38);
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      if (c === "&") return amp + "amp;";
+      if (c === "<") return amp + "lt;";
+      if (c === ">") return amp + "gt;";
+      if (c === '"') return amp + "quot;";
+      return amp + "#39;";
+    });
   }
 
   function meId() {
@@ -70,38 +55,38 @@
     var st = document.createElement("style");
     st.id = "tchiloAdsProCSS";
     st.textContent =
-      "#tchiloAdsPro{display:none;position:fixed;inset:0;z-index:9999;background:var(--paper,#F7F6F2);color:var(--ink,#0B0B0C);flex-direction:column;font-family:Inter,system-ui,sans-serif}" +
+      "#tchiloAdsPro{display:none;position:fixed;inset:0;z-index:9999;background:#F7F6F2;color:#0B0B0C;flex-direction:column;font-family:Inter,system-ui,sans-serif}" +
       "#tchiloAdsPro.open{display:flex!important}" +
-      "#tchiloAdsPro .ap-top{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;border-bottom:2.5px solid var(--ink,#0B0B0C);flex-shrink:0}" +
+      "#tchiloAdsPro .ap-top{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;border-bottom:2.5px solid #0B0B0C;flex-shrink:0}" +
       "#tchiloAdsPro .ap-top h1{flex:1;margin:0;font:800 17px Inter,sans-serif}" +
-      "#tchiloAdsPro .ap-back,#tchiloAdsPro .ap-x{width:40px;height:40px;border:2.5px solid var(--ink,#0B0B0C);border-radius:50%;background:#FFE566;font:900 18px Inter,sans-serif;cursor:pointer}" +
-      "#tchiloAdsPro .ap-body{flex:1;overflow:auto;padding:14px 14px calc(28px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}" +
-      "#tchiloAdsPro .ap-card{border:2.5px solid var(--ink,#0B0B0C);border-radius:16px;padding:14px;margin-bottom:12px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.08)}" +
+      "#tchiloAdsPro .ap-back,#tchiloAdsPro .ap-x{width:40px;height:40px;border:2.5px solid #0B0B0C;border-radius:50%;background:#FFE566;font:900 18px Inter,sans-serif;cursor:pointer}" +
+      "#tchiloAdsPro .ap-body{flex:1;overflow:auto;padding:14px 14px calc(28px + env(safe-area-inset-bottom))}" +
+      "#tchiloAdsPro .ap-card{border:2.5px solid #0B0B0C;border-radius:16px;padding:14px;margin-bottom:12px;background:#fff}" +
       "#tchiloAdsPro .ap-card h2{margin:0 0 6px;font:800 15px Inter,sans-serif}" +
-      "#tchiloAdsPro .ap-card p{margin:0;font:600 13px Inter,sans-serif;opacity:.75;line-height:1.4}" +
+      "#tchiloAdsPro .ap-card p{margin:0;font:600 13px Inter,sans-serif;opacity:.75}" +
       "#tchiloAdsPro .ap-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}" +
-      "#tchiloAdsPro .ap-btn{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:16px;border:2.5px solid var(--ink,#0B0B0C);border-radius:16px;background:#fff;cursor:pointer;text-align:left;font:inherit;color:inherit;box-shadow:3px 3px 0 var(--ink,#0B0B0C)}" +
+      "#tchiloAdsPro .ap-btn{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:16px;border:2.5px solid #0B0B0C;border-radius:16px;background:#fff;cursor:pointer;text-align:left;font:inherit;color:inherit;box-shadow:3px 3px 0 #0B0B0C}" +
       "#tchiloAdsPro .ap-btn.primary{background:#c8f560}" +
       "#tchiloAdsPro .ap-btn b{font:900 15px Inter,sans-serif}" +
       "#tchiloAdsPro .ap-btn span{font:600 12px Inter,sans-serif;opacity:.7}" +
-      "#tchiloAdsPro label.ap-lab{display:block;font:800 11px Inter,sans-serif;text-transform:uppercase;letter-spacing:.04em;opacity:.65;margin:12px 0 6px}" +
-      "#tchiloAdsPro input,#tchiloAdsPro textarea,#tchiloAdsPro select{width:100%;box-sizing:border-box;padding:12px;border:2.5px solid var(--ink,#0B0B0C);border-radius:12px;font:600 14px Inter,sans-serif;background:#fff}" +
+      "#tchiloAdsPro label.ap-lab{display:block;font:800 11px Inter,sans-serif;text-transform:uppercase;opacity:.65;margin:12px 0 6px}" +
+      "#tchiloAdsPro input,#tchiloAdsPro textarea,#tchiloAdsPro select{width:100%;box-sizing:border-box;padding:12px;border:2.5px solid #0B0B0C;border-radius:12px;font:600 14px Inter,sans-serif;background:#fff}" +
       "#tchiloAdsPro textarea{min-height:90px}" +
       "#tchiloAdsPro .ap-chips{display:flex;flex-wrap:wrap;gap:8px}" +
-      "#tchiloAdsPro .ap-chip{padding:8px 12px;border:2px solid var(--ink,#0B0B0C);border-radius:999px;font:800 12px Inter,sans-serif;background:#fff;cursor:pointer}" +
+      "#tchiloAdsPro .ap-chip{padding:8px 12px;border:2px solid #0B0B0C;border-radius:999px;font:800 12px Inter,sans-serif;background:#fff;cursor:pointer}" +
       "#tchiloAdsPro .ap-chip.on{background:#c8f560}" +
-      "#tchiloAdsPro .ap-reach{padding:12px;border:2.5px dashed var(--ink,#0B0B0C);border-radius:14px;background:#f1ecff;font:700 13px Inter,sans-serif;margin:12px 0}" +
-      "#tchiloAdsPro .ap-pay{width:100%;margin-top:8px;padding:14px;border:3px solid var(--ink,#0B0B0C);border-radius:16px;background:#c8f560;font:900 15px Inter,sans-serif;box-shadow:4px 4px 0 var(--ink,#0B0B0C);cursor:pointer}" +
+      "#tchiloAdsPro .ap-reach{padding:12px;border:2.5px dashed #0B0B0C;border-radius:14px;background:#f1ecff;font:700 13px Inter,sans-serif;margin:12px 0}" +
+      "#tchiloAdsPro .ap-pay{width:100%;margin-top:8px;padding:14px;border:3px solid #0B0B0C;border-radius:16px;background:#c8f560;font:900 15px Inter,sans-serif;box-shadow:4px 4px 0 #0B0B0C;cursor:pointer}" +
       "#tchiloAdsPro .ap-steps{display:flex;gap:6px;margin-bottom:14px}" +
       "#tchiloAdsPro .ap-step{flex:1;height:4px;border-radius:4px;background:rgba(0,0,0,.12)}" +
-      "#tchiloAdsPro .ap-step.on{background:var(--ink,#0B0B0C)}" +
-      "#tchiloAdsPro .ap-preview{border:2.5px solid var(--ink,#0B0B0C);border-radius:16px;overflow:hidden;background:#fff;margin-top:12px}" +
-      "#tchiloAdsPro .ap-preview .pv-head{display:flex;align-items:center;gap:10px;padding:10px 12px}" +
-      "#tchiloAdsPro .ap-preview .pv-av{width:36px;height:36px;border-radius:50%;background:#c8f560;border:2px solid var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;font:900 14px Inter,sans-serif}" +
-      "#tchiloAdsPro .ap-preview .pv-media{min-height:140px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font:700 13px Inter,sans-serif}" +
-      "#tchiloAdsPro .ap-preview .pv-media img,#tchiloAdsPro .ap-preview .pv-media video{width:100%;max-height:240px;object-fit:cover;display:block}" +
-      "#tchiloAdsPro .ap-preview .pv-cap{padding:10px 12px;font:600 14px Inter,sans-serif}" +
-      "#tchiloAdsPro .ap-preview .pv-cta{margin:0 12px 12px;padding:11px;border:2.5px solid var(--ink,#0B0B0C);border-radius:12px;background:#c8f560;font:900 13px Inter,sans-serif;text-align:center}";
+      "#tchiloAdsPro .ap-step.on{background:#0B0B0C}" +
+      "#tchiloAdsPro .ap-preview{border:2.5px solid #0B0B0C;border-radius:16px;overflow:hidden;background:#fff;margin-top:12px}" +
+      "#tchiloAdsPro .pv-head{display:flex;align-items:center;gap:10px;padding:10px 12px}" +
+      "#tchiloAdsPro .pv-av{width:36px;height:36px;border-radius:50%;background:#c8f560;border:2px solid #0B0B0C;display:flex;align-items:center;justify-content:center;font:900 14px Inter,sans-serif}" +
+      "#tchiloAdsPro .pv-media{min-height:140px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center}" +
+      "#tchiloAdsPro .pv-media img,#tchiloAdsPro .pv-media video{width:100%;max-height:240px;object-fit:cover;display:block}" +
+      "#tchiloAdsPro .pv-cap{padding:10px 12px;font:600 14px Inter,sans-serif}" +
+      "#tchiloAdsPro .pv-cta{margin:0 12px 12px;padding:11px;border:2.5px solid #0B0B0C;border-radius:12px;background:#c8f560;font:900 13px Inter,sans-serif;text-align:center}";
     document.head.appendChild(st);
   }
 
@@ -111,11 +96,11 @@
     el = document.createElement("div");
     el.id = "tchiloAdsPro";
     el.innerHTML =
-      '<div class="ap-top">' +
-      '<button type="button" class="ap-back" id="apBack">←</button>' +
-      '<h1 id="apTitle">Anúncios</h1>' +
-      '<button type="button" class="ap-x" id="apClose">×</button></div>' +
-      '<div class="ap-body" id="apBody"></div>';
+      "<div class=\"ap-top\">" +
+      "<button type=\"button\" class=\"ap-back\" id=\"apBack\">\u2190</button>" +
+      "<h1 id=\"apTitle\">Anuncios</h1>" +
+      "<button type=\"button\" class=\"ap-x\" id=\"apClose\">\u00d7</button></div>" +
+      "<div class=\"ap-body\" id=\"apBody\"></div>";
     document.body.appendChild(el);
     el.querySelector("#apClose").onclick = close;
     el.querySelector("#apBack").onclick = function () {
@@ -157,12 +142,12 @@
 
   function renderHub() {
     root().dataset.view = "hub";
-    setTitle("Gestor de Anúncios");
+    setTitle("Gestor de Anuncios");
     bodyEl().innerHTML =
-      '<div class="ap-grid">' +
-      '<button type="button" class="ap-btn primary" id="apGoCreate"><b>Fazer anúncio</b><span>Foto, vídeo · Localização · Pagamento</span></button>' +
-      '<button type="button" class="ap-btn" id="apGoManage"><b>Gerir anúncios</b><span>Métricas e estado</span></button></div>' +
-      '<div class="ap-card" style="margin-top:14px"><h2>Como funciona</h2><p>Escolhe o conteúdo, define o público em Angola, duração e paga. O anúncio entra no feed com etiqueta Anúncio.</p></div>';
+      "<div class=\"ap-grid\">" +
+      "<button type=\"button\" class=\"ap-btn primary\" id=\"apGoCreate\"><b>Fazer anuncio</b><span>Foto, video · Localizacao · Pagamento</span></button>" +
+      "<button type=\"button\" class=\"ap-btn\" id=\"apGoManage\"><b>Gerir anuncios</b><span>Metricas e estado</span></button></div>" +
+      "<div class=\"ap-card\" style=\"margin-top:14px\"><h2>Como funciona</h2><p>Escolhe o conteudo, define o publico em Angola, duracao e paga. O anuncio entra no feed.</p></div>";
     document.getElementById("apGoCreate").onclick = function () {
       draft.step = 1;
       renderCreate();
@@ -172,10 +157,10 @@
 
   function stepsHtml() {
     return (
-      '<div class="ap-steps">' +
+      "<div class=\"ap-steps\">" +
       [1, 2, 3, 4]
         .map(function (i) {
-          return '<div class="ap-step' + (i <= draft.step ? " on" : "") + '"></div>';
+          return "<div class=\"ap-step" + (i <= draft.step ? " on" : "") + "\"></div>";
         })
         .join("") +
       "</div>"
@@ -184,7 +169,7 @@
 
   function renderCreate() {
     root().dataset.view = "create";
-    setTitle("Criar anúncio");
+    setTitle("Criar anuncio");
     if (draft.step === 1) renderStep1();
     else if (draft.step === 2) renderStep2();
     else if (draft.step === 3) renderStep3();
@@ -194,15 +179,15 @@
   function renderStep1() {
     bodyEl().innerHTML =
       stepsHtml() +
-      '<div class="ap-card"><h2>Conteúdo</h2><p>Carrega foto/vídeo e escreve o texto.</p></div>' +
-      '<label class="ap-lab">Título</label><input id="apTitleIn" maxlength="80" placeholder="Título" value="' +
+      "<div class=\"ap-card\"><h2>Conteudo</h2><p>Carrega foto/video e escreve o texto.</p></div>" +
+      "<label class=\"ap-lab\">Titulo</label><input id=\"apTitleIn\" maxlength=\"80\" placeholder=\"Titulo\" value=\"" +
       esc(draft.title) +
-      '"/>' +
-      '<label class="ap-lab">Descrição</label><textarea id="apBodyIn" maxlength="500" placeholder="Texto do anúncio…">' +
+      "\"/>" +
+      "<label class=\"ap-lab\">Descricao</label><textarea id=\"apBodyIn\" maxlength=\"500\">" +
       esc(draft.body) +
       "</textarea>" +
-      '<label class="ap-lab">Media</label><input id="apMediaFile" type="file" accept="image/*,video/*"/>' +
-      '<button type="button" class="ap-pay" id="apNext1" style="margin-top:16px">Continuar</button>';
+      "<label class=\"ap-lab\">Media</label><input id=\"apMediaFile\" type=\"file\" accept=\"image/*,video/*\"/>" +
+      "<button type=\"button\" class=\"ap-pay\" id=\"apNext1\" style=\"margin-top:16px\">Continuar</button>";
     document.getElementById("apNext1").onclick = function () {
       draft.title = (document.getElementById("apTitleIn").value || "").trim();
       draft.body = (document.getElementById("apBodyIn").value || "").trim();
@@ -214,7 +199,7 @@
         } catch (e) {}
       }
       if (!draft.body && !draft.mediaUrl) {
-        alert("Escreve uma descrição ou escolhe uma media");
+        alert("Escreve uma descricao ou escolhe uma media");
         return;
       }
       draft.step = 2;
@@ -225,19 +210,19 @@
   function renderStep2() {
     bodyEl().innerHTML =
       stepsHtml() +
-      '<div class="ap-card"><h2>Objectivo</h2></div>' +
-      '<div class="ap-chips" id="apObj">' +
-      '<button type="button" class="ap-chip' +
+      "<div class=\"ap-card\"><h2>Objectivo</h2></div>" +
+      "<div class=\"ap-chips\" id=\"apObj\">" +
+      "<button type=\"button\" class=\"ap-chip" +
       (draft.objective === "click" ? " on" : "") +
-      '" data-v="click">Clique (site)</button>' +
-      '<button type="button" class="ap-chip' +
+      "\" data-v=\"click\">Clique (site)</button>" +
+      "<button type=\"button\" class=\"ap-chip" +
       (draft.objective === "message" ? " on" : "") +
-      '" data-v="message">Mensagem no Tchilo</button></div>' +
-      '<label class="ap-lab">Link (só Clique)</label>' +
-      '<input id="apLink" type="url" placeholder="https://exemplo.com" value="' +
+      "\" data-v=\"message\">Mensagem no Tchilo</button></div>" +
+      "<label class=\"ap-lab\">Link (so Clique)</label>" +
+      "<input id=\"apLink\" type=\"url\" placeholder=\"https://exemplo.com\" value=\"" +
       esc(draft.link) +
-      '"/>' +
-      '<button type="button" class="ap-pay" id="apNext2" style="margin-top:16px">Continuar</button>';
+      "\"/>" +
+      "<button type=\"button\" class=\"ap-pay\" id=\"apNext2\" style=\"margin-top:16px\">Continuar</button>";
     document.querySelectorAll("#apObj .ap-chip").forEach(function (c) {
       c.onclick = function () {
         document.querySelectorAll("#apObj .ap-chip").forEach(function (x) {
@@ -264,30 +249,30 @@
     var provOpts = AO_PROVINCES.map(function (p) {
       return (
         "<option value=\"" +
-        esc(p.name) +
+        esc(p) +
         "\"" +
-        (draft.province === p.name ? " selected" : "") +
+        (draft.province === p ? " selected" : "") +
         ">" +
-        esc(p.name) +
+        esc(p) +
         "</option>"
       );
     }).join("");
     bodyEl().innerHTML =
       stepsHtml() +
-      "<h2 style=\"margin:0 0 10px;font:800 16px Inter,sans-serif\">Localização e público</h2>" +
-      '<label class="ap-lab">Província</label><select id="apProvince">' +
+      "<h2 style=\"margin:0 0 10px;font:800 16px Inter,sans-serif\">Localizacao e publico</h2>" +
+      "<label class=\"ap-lab\">Provincia</label><select id=\"apProvince\">" +
       provOpts +
       "</select>" +
-      '<label class="ap-lab">Cidade</label><input id="apCity" value="' +
+      "<label class=\"ap-lab\">Cidade</label><input id=\"apCity\" value=\"" +
       esc(draft.city) +
-      '" placeholder="Cidade"/>' +
-      '<label class="ap-lab">Idade mín.</label><input type="number" id="apAgeMin" min="13" max="65" value="' +
+      "\" placeholder=\"Cidade\"/>" +
+      "<label class=\"ap-lab\">Idade min.</label><input type=\"number\" id=\"apAgeMin\" min=\"13\" max=\"65\" value=\"" +
       draft.ageMin +
-      '"/>' +
-      '<label class="ap-lab">Idade máx.</label><input type="number" id="apAgeMax" min="13" max="65" value="' +
+      "\"/>" +
+      "<label class=\"ap-lab\">Idade max.</label><input type=\"number\" id=\"apAgeMax\" min=\"13\" max=\"65\" value=\"" +
       draft.ageMax +
-      '"/>' +
-      '<button type="button" class="ap-pay" id="apNext3" style="margin-top:16px">Continuar</button>';
+      "\"/>" +
+      "<button type=\"button\" class=\"ap-pay\" id=\"apNext3\" style=\"margin-top:16px\">Continuar</button>";
     document.getElementById("apNext3").onclick = function () {
       draft.province = document.getElementById("apProvince").value;
       draft.city = (document.getElementById("apCity").value || "").trim();
@@ -302,37 +287,37 @@
     var media =
       draft.mediaUrl
         ? draft.mediaType === "video"
-          ? '<video src="' + esc(draft.mediaUrl) + '" muted playsinline controls></video>'
-          : '<img src="' + esc(draft.mediaUrl) + '" alt="">'
-        : "Pré-visualização";
+          ? "<video src=\"" + esc(draft.mediaUrl) + "\" muted playsinline controls></video>"
+          : "<img src=\"" + esc(draft.mediaUrl) + "\" alt=\"\">"
+        : "Pre-visualizacao";
     bodyEl().innerHTML =
       stepsHtml() +
-      "<h2 style=\"margin:0 0 10px;font:800 16px Inter,sans-serif\">Duração e pagamento</h2>" +
-      '<label class="ap-lab">Dias (1–30)</label>' +
-      '<input type="number" id="apDays" min="1" max="30" value="' +
+      "<h2 style=\"margin:0 0 10px;font:800 16px Inter,sans-serif\">Duracao e pagamento</h2>" +
+      "<label class=\"ap-lab\">Dias (1-30)</label>" +
+      "<input type=\"number\" id=\"apDays\" min=\"1\" max=\"30\" value=\"" +
       draft.days +
-      '"/>' +
-      '<div class="ap-reach" id="apReach">' +
+      "\"/>" +
+      "<div class=\"ap-reach\" id=\"apReach\">" +
       reachText(draft.days) +
       "</div>" +
-      '<div class="ap-preview">' +
-      '<div class="pv-head"><div class="pv-av">' +
+      "<div class=\"ap-preview\">" +
+      "<div class=\"pv-head\"><div class=\"pv-av\">" +
       esc((meName().charAt(0) || "T").toUpperCase()) +
       "</div><div><b>@" +
       esc(meName()) +
-      '</b><div style="font:800 10px Inter,sans-serif">Anúncio</div></div></div>' +
-      '<div class="pv-media">' +
+      "</b><div style=\"font:800 10px Inter,sans-serif\">Anuncio</div></div></div>" +
+      "<div class=\"pv-media\">" +
       media +
       "</div>" +
-      '<div class="pv-cap"><b>@' +
+      "<div class=\"pv-cap\"><b>@" +
       esc(meName()) +
       "</b> " +
-      esc(draft.title || draft.body || "O teu anúncio") +
+      esc(draft.title || draft.body || "O teu anuncio") +
       "</div>" +
-      '<div class="pv-cta">' +
+      "<div class=\"pv-cta\">" +
       (draft.objective === "message" ? "Enviar mensagem" : "Saber mais") +
       "</div></div>" +
-      '<button type="button" class="ap-pay" id="apPay">Pagar e publicar</button>';
+      "<button type=\"button\" class=\"ap-pay\" id=\"apPay\">Pagar e publicar</button>";
     var daysEl = document.getElementById("apDays");
     daysEl.oninput = function () {
       draft.days = Math.max(1, Math.min(30, parseInt(daysEl.value, 10) || 1));
@@ -347,7 +332,7 @@
   async function pay() {
     var uid = meId();
     if (!uid) {
-      alert("Inicia sessão");
+      alert("Inicia sessao");
       return;
     }
     var days = Math.max(1, Math.min(30, draft.days || 1));
@@ -398,7 +383,7 @@
           }
         });
       } catch (e) {
-        alert("Não foi possível abrir o pagamento");
+        alert("Nao foi possivel abrir o pagamento");
       }
     }
     if (window.Paddle && window.Paddle.Checkout) {
@@ -416,14 +401,14 @@
 
   async function renderManage() {
     root().dataset.view = "manage";
-    setTitle("Gerir anúncios");
-    bodyEl().innerHTML = '<div class="ap-card"><p>A carregar…</p></div>';
+    setTitle("Gerir anuncios");
+    bodyEl().innerHTML = "<div class=\"ap-card\"><p>A carregar...</p></div>";
     var SB = window.SB || window.tchiloSupabase;
     var uid = meId();
     if (!SB || !uid) {
       bodyEl().innerHTML =
-        '<div class="ap-card"><p>Inicia sessão para ver os anúncios.</p></div>' +
-        '<button type="button" class="ap-pay" id="apBackHub">Voltar</button>';
+        "<div class=\"ap-card\"><p>Inicia sessao para ver os anuncios.</p></div>" +
+        "<button type=\"button\" class=\"ap-pay\" id=\"apBackHub\">Voltar</button>";
       document.getElementById("apBackHub").onclick = renderHub;
       return;
     }
@@ -432,8 +417,8 @@
       var rows = (res && res.data) || [];
       if (!rows.length) {
         bodyEl().innerHTML =
-          '<div class="ap-card"><h2>Sem anúncios</h2><p>Ainda não criaste nenhum.</p></div>' +
-          '<button type="button" class="ap-pay" id="apNew">Fazer anúncio</button>';
+          "<div class=\"ap-card\"><h2>Sem anuncios</h2><p>Ainda nao criaste nenhum.</p></div>" +
+          "<button type=\"button\" class=\"ap-pay\" id=\"apNew\">Fazer anuncio</button>";
         document.getElementById("apNew").onclick = function () {
           draft.step = 1;
           renderCreate();
@@ -443,13 +428,13 @@
       bodyEl().innerHTML = rows
         .map(function (a) {
           return (
-            '<div class="ap-card"><h2>' +
-            esc(a.body || "Anúncio") +
+            "<div class=\"ap-card\"><h2>" +
+            esc(a.body || "Anuncio") +
             "</h2><p>Estado: <b>" +
-            esc(a.status || "—") +
+            esc(a.status || "-") +
             "</b> · " +
             (a.days || 0) +
-            " dias · impressões " +
+            " dias · impressoes " +
             (a.impressions || 0) +
             "</p></div>"
           );
@@ -457,7 +442,7 @@
         .join("");
     } catch (e) {
       bodyEl().innerHTML =
-        '<div class="ap-card"><p>Erro ao carregar. Confirma a tabela ads no Supabase.</p></div>';
+        "<div class=\"ap-card\"><p>Erro ao carregar. Confirma a tabela ads no Supabase.</p></div>";
     }
   }
 

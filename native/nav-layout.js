@@ -1,6 +1,6 @@
 /**
  * tchilo-Pop — layout de navegação
- * Feed = Fee | Mensagens = SMS (só texto) | Lupa sem moldura | Reels na barra
+ * Fee | SMS texto grande | Lupa grande sem caixa | Reels
  */
 (function () {
   'use strict';
@@ -32,24 +32,33 @@
       'font:900 19px Inter,system-ui,sans-serif;' +
       'letter-spacing:-0.04em;color:currentColor;' +
       'user-select:none;-webkit-user-select:none;}' +
-      '.nav-item.active .nav-text-icon.nav-fee{font-weight:900;}' +
 
-      /* SMS só texto, maior, sem círculo */
-      '.nav-sms-text{' +
-      'display:inline-flex;align-items:center;justify-content:center;' +
-      'font:900 15px Inter,system-ui,sans-serif;' +
-      'letter-spacing:0.02em;line-height:1;color:currentColor;' +
+      /* SMS — só texto, grande, sem caixa */
+      '.nav-sms-text,' +
+      '#screen-feed .topbar-icons .icon-btn .nav-sms-text{' +
+      'display:inline-flex!important;align-items:center;justify-content:center;' +
+      'font:900 18px Inter,system-ui,sans-serif!important;' +
+      'letter-spacing:0.03em;line-height:1;color:currentColor;' +
+      'border:none!important;background:none!important;box-shadow:none!important;' +
       'user-select:none;-webkit-user-select:none;}' +
-      '.icon-btn .nav-sms-text{font-size:15px;}' +
 
-      /* Topbar: sem caixa/círculo — só o ícone */
-      '#screen-feed .topbar-icons .icon-btn{' +
-      'width:auto!important;min-width:28px;height:36px!important;' +
-      'border:none!important;border-radius:0!important;' +
-      'background:transparent!important;box-shadow:none!important;' +
-      'padding:0 2px!important;}' +
-      '#screen-feed .topbar-icons .icon-btn svg{' +
-      'width:22px!important;height:22px!important;}' +
+      /* Topbar icons: ZERO caixa / borda / fundo */
+      '#screen-feed .topbar .topbar-icons .icon-btn,' +
+      '#screen-feed .topbar-icons .icon-btn,' +
+      '.topbar-icons .icon-btn{' +
+      'width:auto!important;min-width:0!important;height:auto!important;' +
+      'min-height:0!important;' +
+      'border:0!important;border-width:0!important;outline:none!important;' +
+      'border-radius:0!important;' +
+      'background:transparent!important;background-color:transparent!important;' +
+      'box-shadow:none!important;-webkit-box-shadow:none!important;' +
+      'padding:4px!important;margin:0!important;}' +
+
+      /* Lupa maior */
+      '#screen-feed .topbar-icons .icon-btn svg,' +
+      '.topbar-icons .icon-btn svg{' +
+      'width:26px!important;height:26px!important;' +
+      'stroke-width:2.4!important;}' +
 
       '#reelsViewer .reels-close,.reels-viewer .reels-close{' +
       'position:absolute!important;top:max(12px, env(safe-area-inset-top, 0px) + 8px)!important;' +
@@ -61,6 +70,19 @@
       'border:2px solid #fff!important;border-radius:10px!important;' +
       'background:rgba(0,0,0,.45)!important;color:#fff!important;' +
       'font:800 12px Inter,system-ui,sans-serif!important;}';
+  }
+
+  function stripIconBtnBox(el) {
+    if (!el) return;
+    el.style.setProperty('border', 'none', 'important');
+    el.style.setProperty('border-width', '0', 'important');
+    el.style.setProperty('background', 'transparent', 'important');
+    el.style.setProperty('background-color', 'transparent', 'important');
+    el.style.setProperty('box-shadow', 'none', 'important');
+    el.style.setProperty('border-radius', '0', 'important');
+    el.style.setProperty('width', 'auto', 'important');
+    el.style.setProperty('height', 'auto', 'important');
+    el.style.setProperty('padding', '4px', 'important');
   }
 
   function setNavIcon(btn, html) {
@@ -97,7 +119,7 @@
 
   function applySmsIcon(el) {
     if (!el) return;
-    /* substitui versão antiga com círculo */
+    stripIconBtnBox(el);
     var old =
       el.querySelector('.nav-sms-circle') ||
       el.querySelector('.nav-sms-icon') ||
@@ -114,6 +136,17 @@
       w.innerHTML = ICON_SMS;
       el.insertBefore(w.firstChild, el.firstChild);
     }
+  }
+
+  function stripAllTopbarBoxes() {
+    document.querySelectorAll('#screen-feed .topbar-icons .icon-btn, .topbar-icons .icon-btn').forEach(function (el) {
+      stripIconBtnBox(el);
+      var svg = el.querySelector('svg');
+      if (svg) {
+        svg.style.setProperty('width', '26px', 'important');
+        svg.style.setProperty('height', '26px', 'important');
+      }
+    });
   }
 
   function ensureTopbarMessages() {
@@ -133,6 +166,7 @@
       icons.appendChild(btn);
     }
     applySmsIcon(btn);
+    stripAllTopbarBoxes();
   }
 
   function replaceNavMessagesWithReels() {
@@ -200,6 +234,7 @@
     injectNavIconCSS();
     applyFeedFee();
     ensureTopbarMessages();
+    stripAllTopbarBoxes();
     replaceNavMessagesWithReels();
     placeFollowButtons();
     watchReelsDom();
@@ -209,7 +244,8 @@
   setInterval(function () {
     applyFeedFee();
     ensureTopbarMessages();
-  }, 1500);
+    stripAllTopbarBoxes();
+  }, 1200);
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

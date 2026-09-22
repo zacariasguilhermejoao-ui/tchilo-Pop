@@ -5,8 +5,8 @@
 (function () {
   "use strict";
 
-  var FREE = { classic: true };
   var THEME_STORAGE = "tchilo_theme";
+  var lastWrapped = null;
 
   function storageKey() {
     try {
@@ -56,7 +56,6 @@
     try {
       if (typeof goTo === "function") goTo("settings");
     } catch (e3) {}
-    alert("Temas extras são do Tchilo Premium. Assina em Definições.");
   }
 
   function forceClassic() {
@@ -105,7 +104,6 @@
       "#screen-settings-theme .settings-item[data-theme-locked=\"1\"]::after{" +
       "content:'Premium';font:800 10px Inter,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;" +
       "margin-left:8px;padding:3px 8px;border-radius:999px;background:#c8f560;color:#0B0B0C;border:2px solid #0B0B0C}" +
-      "#screen-settings-theme .settings-item[data-theme-opt=\"classic\"]::after{display:none}" +
       "#tchiloThemePremiumBanner{display:none;margin:12px 14px;padding:12px 14px;border:2.5px solid var(--ink,#0B0B0C);" +
       "border-radius:14px;background:#c8f560;color:#0B0B0C;font:700 13px Inter,system-ui,sans-serif}" +
       "#tchiloThemePremiumBanner.show{display:block}" +
@@ -136,42 +134,37 @@
     injectBanner();
     var prem = isPremium();
     document.querySelectorAll("#screen-settings-theme .settings-item").forEach(function (btn) {
-      var code =
-        btn.getAttribute("data-theme-opt") ||
-        (btn.getAttribute("onclick") || "").match(/setAppTheme\('([^']+)'\)/);
-      if (Array.isArray(code)) code = code[1];
+      var code = btn.getAttribute("data-theme-opt");
       if (!code) {
-        // botões nativos: classic/dark/... via onclick
         var oc = btn.getAttribute("onclick") || "";
         var m = oc.match(/setAppTheme\(['\"]([^'\"]+)['\"]\)/);
         if (m) code = m[1];
       }
       if (!code) return;
-      if (code === "classic" || prem) {
-        btn.removeAttribute("data-theme-locked");
-      } else {
-        btn.setAttribute("data-theme-locked", "1");
-      }
+      if (code === "classic" || prem) btn.removeAttribute("data-theme-locked");
+      else btn.setAttribute("data-theme-locked", "1");
     });
   }
 
-  function patchSetAppTheme() {
-    if (typeof window.setAppTheme !== "function") return false;
-    if (window.setAppTheme.__premiumGate) return true;
-    var orig = window.setAppTheme;
-    window.setAppTheme = function (theme) {
+  function wrapSetAppTheme() {
+    if (typeof window.setAppTheme !== "function") return;
+    // se outro módulo redefiniu setAppTheme, volta a envolver
+    if (window.setAppTheme === lastWrapped) return;
+    var inner = window.setAppTheme;
+    function gated(theme) {
       var t = theme || "classic";
       if (!canUse(t)) {
         openPremiumUpsell();
         return;
       }
-      return orig.apply(this, arguments);
-    };
-    window.setAppTheme.__premiumGate = true;
-    return true;
+      return inner.apply(this, arguments);
+    }
+    gated.__premiumGateOuter = true;
+    gated.__inner = inner;
+    window.setAppTheme = gated;
+    lastWrapped = gated;
   }
 
-  // interceptar cliques nos itens de tema (extras injectados)
   function bindListClicks() {
     var list = document.querySelector("#screen-settings-theme .settings-list");
     if (!list || list.__tchiloThemeGate) return;
@@ -187,7 +180,7 @@
           var m = oc.match(/setAppTheme\(['\"]([^'\"]+)['\"]\)/);
           if (m) code = m[1];
         }
-        if (!code) return;
+        if (!code || code === "classic") return;
         if (!canUse(code)) {
           e.preventDefault();
           e.stopPropagation();
@@ -204,10 +197,14 @@
     try {
       cur = localStorage.getItem(storageKey()) || "classic";
     } catch (e) {}
-    if (!canUse(cur)) forceClassic();
+    if (!canUse(cur)) {
+      // se data-theme atual for premium sem subscrição, força clássico
+      var attr = document.documentElement.getAttribute("data-theme");
+      if (attr && attr !== "classic") forceClassic();
+      else if (cur !== "classic") forceClassic();
+    }
   }
 
-  // API pública para outros módulos de tema
   window.tchiloThemeRequiresPremium = function (code) {
     return !canUse(code);
   };
@@ -215,22 +212,22 @@
   window.tchiloOpenThemePremium = openPremiumUpsell;
 
   function boot() {
-    patchSetAppTheme();
+    wrapSetAppTheme();
     bindListClicks();
     markLockedItems();
     enforceStored();
   }
 
   setInterval(function () {
-    patchSetAppTheme();
+    wrapSetAppTheme();
     bindListClicks();
     markLockedItems();
     enforceStored();
-  }, 1200);
+  }, 800);
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
-  setTimeout(boot, 300);
-  setTimeout(boot, 1000);
-  setTimeout(boot, 2500);
+  setTimeout(boot, 200);
+  setTimeout(boot, 800);
+  setTimeout(boot, 2000);
 })();

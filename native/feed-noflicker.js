@@ -1,11 +1,10 @@
 /**
- * tchilo-Pop — boot crítico + loaders
- * Aplica Fee/SMS/lupa, Premium e Gestor de Anúncios de imediato.
+ * tchilo-Pop — boot critico + loaders
  */
 (function () {
   'use strict';
 
-  var V = 'v=20260922reelsnav';
+  var V = 'v=20260922geomap';
 
   function injectCriticalCSS() {
     var st = document.getElementById('tchiloCriticalCSS');
@@ -21,10 +20,7 @@
       '.nav-item .nav-text-icon.nav-fee{display:inline-flex;align-items:center;justify-content:center;width:36px;height:32px;font:900 19px Inter,system-ui,sans-serif;letter-spacing:-.04em;color:currentColor}' +
       '.nav-sms-text{display:inline-flex;align-items:center;justify-content:center;font:900 18px Inter,system-ui,sans-serif!important;letter-spacing:.03em;color:currentColor;border:none!important;background:none!important}' +
       '.nav-item .nav-reels-icon{width:26px;height:26px;display:block}' +
-      '#screen-feed .topbar-icons .icon-btn,.topbar-icons .icon-btn{' +
-      'width:auto!important;height:auto!important;min-width:0!important;' +
-      'border:0!important;border-radius:0!important;background:transparent!important;' +
-      'box-shadow:none!important;padding:4px!important}' +
+      '#screen-feed .topbar-icons .icon-btn,.topbar-icons .icon-btn{width:auto!important;height:auto!important;min-width:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:4px!important}' +
       '#screen-feed .topbar-icons .icon-btn svg,.topbar-icons .icon-btn svg{width:26px!important;height:26px!important}' +
       '#tchiloPremiumBtn{display:flex!important;align-items:center;gap:12px;width:calc(100% - 36px);margin:12px 18px 4px;padding:14px;border:3px solid var(--ink,#0B0B0C);border-radius:16px;background:linear-gradient(135deg,#c8f560 0%,#9ee0ff 100%);color:var(--ink,#0B0B0C);font:800 14px Inter,system-ui,sans-serif;text-align:left;cursor:pointer;box-shadow:4px 4px 0 var(--ink,#0B0B0C)}' +
       '#tchiloPremiumBtn .prem-icon{width:42px;height:42px;border-radius:12px;border:2.5px solid var(--ink,#0B0B0C);background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}' +
@@ -95,7 +91,6 @@
         smsBtn.style.setProperty('background', 'transparent', 'important');
       }
 
-      /* Reels na barra de baixo (não mensagens) */
       var nav = document.querySelector('.navbar');
       if (nav) {
         var msgBtn =
@@ -152,11 +147,8 @@
           window.tchiloOpenPremiumCheckout();
         } else {
           loadScriptOnce('native/paddle-premium.js', 'data-tchilo-paddle').then(function () {
-            if (typeof window.tchiloOpenPremiumCheckout === 'function') {
-              window.tchiloOpenPremiumCheckout();
-            } else {
-              alert('A carregar pagamento... tenta de novo em 1 segundo.');
-            }
+            if (typeof window.tchiloOpenPremiumCheckout === 'function') window.tchiloOpenPremiumCheckout();
+            else alert('A carregar pagamento...');
           });
         }
       };
@@ -179,7 +171,6 @@
           '<div class="si-icon">A</div><span>Gestor de Anuncios</span><div class="chev">\u203a</div>';
         var after = document.getElementById('tchiloPremiumBtn');
         if (after && after.nextSibling) list.insertBefore(btn, after.nextSibling);
-        else if (after) list.insertBefore(btn, after.nextSibling);
         else if (list.firstChild) list.insertBefore(btn, list.firstChild);
         else list.appendChild(btn);
       }
@@ -217,25 +208,10 @@
       window.tchiloOpenAdsManager();
       return;
     }
-    var paths = [
-      'native/tchilo-ads-pro.js',
-      'https://tchilopop.com/native/tchilo-ads-pro.js',
-      'https://zacariasguilhermejoao-ui.github.io/tchilo-Pop/native/tchilo-ads-pro.js'
-    ];
-    var i = 0;
-    function tryNext() {
-      if (i >= paths.length) {
-        alert('Nao foi possivel abrir o Gestor de Anuncios. Faz hard refresh.');
-        return;
-      }
-      var src = paths[i++];
-      loadScriptOnce(src, i === 1 ? 'data-tchilo-ads-pro' : 'data-tchilo-ads-pro-' + i).then(function () {
-        if (typeof window.tchiloOpenAdsPro === 'function') window.tchiloOpenAdsPro();
-        else if (typeof window.tchiloOpenAdsManager === 'function') window.tchiloOpenAdsManager();
-        else tryNext();
-      });
-    }
-    tryNext();
+    loadScriptOnce('native/tchilo-ads-pro.js', 'data-tchilo-ads-pro').then(function () {
+      if (typeof window.tchiloOpenAdsPro === 'function') window.tchiloOpenAdsPro();
+      else alert('Nao foi possivel abrir o Gestor. Faz hard refresh.');
+    });
   }
 
   window.tchiloOpenAdsManager = window.tchiloOpenAdsManager || openAdsNow;
@@ -246,8 +222,7 @@
     function (e) {
       var t = e.target;
       if (!t || !t.closest) return;
-      var btn = t.closest('#tchiloAdsMgrBtn');
-      if (btn) {
+      if (t.closest('#tchiloAdsMgrBtn')) {
         e.preventDefault();
         e.stopPropagation();
         openAdsNow();
@@ -279,9 +254,7 @@
       if (typeof showToast === 'function' && !window.__tchiloRealShowToast) {
         window.__tchiloRealShowToast = showToast;
       }
-      if (typeof window.tchiloShowBusy === 'function') {
-        window.tchiloShowBusy = function () {};
-      }
+      if (typeof window.tchiloShowBusy === 'function') window.tchiloShowBusy = function () {};
     } catch (e) {}
   }
 
@@ -293,30 +266,31 @@
   }
 
   function bootScripts() {
+    loadExtra('native/tchilo-geo.js', 'data-tchilo-geo');
     loadExtra('native/paddle-premium.js', 'data-tchilo-paddle');
     loadExtra('native/tchilo-ads-pro.js', 'data-tchilo-ads-pro');
     loadExtra('native/tchilo-ads-force.js', 'data-tchilo-ads-force');
     loadExtra('native/tchilo-ads-ui.js', 'data-tchilo-ads-ui');
     loadExtra('native/nav-layout.js', 'data-tchilo-nav-layout');
-    loadDeferred('native/fx-live-patch.js', 'data-tchilo-fx-live');
-    loadDeferred('native/paddle-ad-guard.js', 'data-tchilo-paddle-guard');
-    loadDeferred('native/tchilo-theme-premium-gate.js', 'data-tchilo-theme-gate');
-    loadDeferred('native/tchilo-ads.js', 'data-tchilo-ads');
-    loadDeferred('native/tchilo-ads-draft.js', 'data-tchilo-ads-draft');
-    loadDeferred('native/tchilo-ads-analytics.js', 'data-tchilo-ads-analytics');
-    loadDeferred('native/tchilo-ads-preview.js', 'data-tchilo-ads-preview');
-    loadDeferred('native/tchilo-stickers-gifs.js', 'data-tchilo-sg');
-    loadDeferred('native/tchilo-sticker-create.js', 'data-tchilo-sc');
-    loadDeferred('native/tchilo-stickers-custom-hook.js', 'data-tchilo-sc-hook');
-    loadDeferred('native/tchilo-theme-retro.js', 'data-tchilo-retro');
-    loadDeferred('native/tchilo-theme-halloween.js', 'data-tchilo-halloween');
-    loadDeferred('native/tchilo-theme-gothic.js', 'data-tchilo-gothic');
-    loadDeferred('native/tchilo-themes-pack.js', 'data-tchilo-themes-pack');
-    loadDeferred('native/gal-thumb.js', 'data-tchilo-gal-thumb');
-    loadDeferred('native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs');
-    loadDeferred('native/chat-audio-fix.js', 'data-tchilo-chat-audio');
-    loadDeferred('native/chat-send-fix.js', 'data-tchilo-chat-send');
     [
+      ['native/fx-live-patch.js', 'data-tchilo-fx-live'],
+      ['native/paddle-ad-guard.js', 'data-tchilo-paddle-guard'],
+      ['native/tchilo-theme-premium-gate.js', 'data-tchilo-theme-gate'],
+      ['native/tchilo-ads.js', 'data-tchilo-ads'],
+      ['native/tchilo-ads-draft.js', 'data-tchilo-ads-draft'],
+      ['native/tchilo-ads-analytics.js', 'data-tchilo-ads-analytics'],
+      ['native/tchilo-ads-preview.js', 'data-tchilo-ads-preview'],
+      ['native/tchilo-stickers-gifs.js', 'data-tchilo-sg'],
+      ['native/tchilo-sticker-create.js', 'data-tchilo-sc'],
+      ['native/tchilo-stickers-custom-hook.js', 'data-tchilo-sc-hook'],
+      ['native/tchilo-theme-retro.js', 'data-tchilo-retro'],
+      ['native/tchilo-theme-halloween.js', 'data-tchilo-halloween'],
+      ['native/tchilo-theme-gothic.js', 'data-tchilo-gothic'],
+      ['native/tchilo-themes-pack.js', 'data-tchilo-themes-pack'],
+      ['native/gal-thumb.js', 'data-tchilo-gal-thumb'],
+      ['native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs'],
+      ['native/chat-audio-fix.js', 'data-tchilo-chat-audio'],
+      ['native/chat-send-fix.js', 'data-tchilo-chat-send'],
       ['native/deezer-fetch.js', 'data-tchilo-deezer'],
       ['native/music-android-patch.js', 'data-tchilo-music-patch'],
       ['native/boot-fast.js', 'data-tchilo-boot-fast'],
@@ -356,11 +330,8 @@
   injectCriticalCSS();
   bootUI();
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
   setInterval(bootUI, 2000);
   setTimeout(bootUI, 100);
   setTimeout(bootUI, 400);

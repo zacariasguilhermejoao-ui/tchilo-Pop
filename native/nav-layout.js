@@ -1,6 +1,6 @@
 /**
  * tchilo-Pop — layout de navegação
- * Fee | SMS texto grande | Lupa grande sem caixa | Reels
+ * Fee | SMS no topbar | Reels na barra de baixo (não mensagens)
  */
 (function () {
   'use strict';
@@ -12,7 +12,7 @@
     '<span class="nav-sms-text" aria-hidden="true">SMS</span>';
 
   var SVG_REELS =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<svg class="nav-reels-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
     '<rect x="2" y="5" width="20" height="14" rx="2.5"/>' +
     '<path d="M7 5V3M12 5V3M17 5V3"/>' +
     '<path d="M10 10.5v5l4.5-2.5L10 10.5z" fill="currentColor" stroke="none"/>' +
@@ -33,7 +33,6 @@
       'letter-spacing:-0.04em;color:currentColor;' +
       'user-select:none;-webkit-user-select:none;}' +
 
-      /* SMS — só texto, grande, sem caixa */
       '.nav-sms-text,' +
       '#screen-feed .topbar-icons .icon-btn .nav-sms-text{' +
       'display:inline-flex!important;align-items:center;justify-content:center;' +
@@ -42,7 +41,8 @@
       'border:none!important;background:none!important;box-shadow:none!important;' +
       'user-select:none;-webkit-user-select:none;}' +
 
-      /* Topbar icons: ZERO caixa / borda / fundo */
+      '.nav-item .nav-reels-icon{width:26px;height:26px;display:block;}' +
+
       '#screen-feed .topbar .topbar-icons .icon-btn,' +
       '#screen-feed .topbar-icons .icon-btn,' +
       '.topbar-icons .icon-btn{' +
@@ -54,7 +54,6 @@
       'box-shadow:none!important;-webkit-box-shadow:none!important;' +
       'padding:4px!important;margin:0!important;}' +
 
-      /* Lupa maior */
       '#screen-feed .topbar-icons .icon-btn svg,' +
       '.topbar-icons .icon-btn svg{' +
       'width:26px!important;height:26px!important;' +
@@ -89,7 +88,7 @@
     if (!btn) return;
     var dot = btn.querySelector('.dot');
     var badge = btn.querySelector('.badge');
-    btn.querySelectorAll('svg, .nav-text-icon, .nav-sms-icon, .nav-sms-text, .nav-sms-circle').forEach(function (n) {
+    btn.querySelectorAll('svg, .nav-text-icon, .nav-sms-icon, .nav-sms-text, .nav-sms-circle, .nav-reels-icon').forEach(function (n) {
       try { n.remove(); } catch (e) {}
     });
     var wrap = document.createElement('div');
@@ -169,25 +168,41 @@
     stripAllTopbarBoxes();
   }
 
-  function replaceNavMessagesWithReels() {
+  function findMessagesNavSlot() {
     var nav = document.querySelector('.navbar');
-    if (!nav) return;
-    var msgBtn =
+    if (!nav) return null;
+    return (
       nav.querySelector('.nav-item[data-screen="messages"]') ||
-      nav.querySelector('.nav-item[data-screen="reels"]');
+      nav.querySelector('.nav-item[data-screen="reels"]') ||
+      nav.querySelector('.nav-item[aria-label*="ensag" i]') ||
+      nav.querySelector('.nav-item[aria-label*="essage" i]') ||
+      nav.querySelector('.nav-item[onclick*="messages"]') ||
+      null
+    );
+  }
+
+  function replaceNavMessagesWithReels() {
+    var msgBtn = findMessagesNavSlot();
     if (!msgBtn) return;
+
     msgBtn.setAttribute('data-screen', 'reels');
     msgBtn.setAttribute('aria-label', 'Reels');
+    msgBtn.removeAttribute('onclick');
+
     msgBtn.onclick = function (e) {
       e.preventDefault();
       e.stopPropagation();
       try {
         if (typeof openReels === 'function') openReels();
+        else if (typeof window.openReels === 'function') window.openReels();
+        else if (typeof goTo === 'function') goTo('reels');
       } catch (err) {
         console.warn('Tchilo reels nav', err);
       }
     };
-    if (!msgBtn.querySelector('svg rect')) {
+
+    /* força ícone de reels sempre (não deixa voltar a mensagem) */
+    if (!msgBtn.querySelector('.nav-reels-icon')) {
       setNavIcon(msgBtn, SVG_REELS);
     }
   }
@@ -245,10 +260,12 @@
     applyFeedFee();
     ensureTopbarMessages();
     stripAllTopbarBoxes();
-  }, 1200);
+    replaceNavMessagesWithReels();
+  }, 800);
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
-  setTimeout(boot, 400);
-  setTimeout(boot, 1200);
+  setTimeout(boot, 200);
+  setTimeout(boot, 600);
+  setTimeout(boot, 1500);
 })();

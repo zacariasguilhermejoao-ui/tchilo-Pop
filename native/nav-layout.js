@@ -1,16 +1,15 @@
 /**
  * tchilo-Pop — layout de navegação
- * - Mensagens no topo (ao lado da lupa)
- * - Reels na barra de baixo com ícone de vídeo
- * - Seguir no canto superior DIREITO (longe do X)
+ * Feed = texto "Fee" | Mensagens = círculo "SMS" | Reels na barra
  */
 (function () {
   'use strict';
 
-  var SVG_MSG =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">' +
-    '<path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.4A8.4 8.4 0 1 1 21 11.5z"/>' +
-    '</svg>';
+  var ICON_FEE =
+    '<span class="nav-text-icon nav-fee" aria-hidden="true">Fee</span>';
+
+  var ICON_SMS =
+    '<span class="nav-sms-icon" aria-hidden="true"><span class="nav-sms-circle">SMS</span></span>';
 
   var SVG_REELS =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
@@ -19,88 +18,116 @@
     '<path d="M10 10.5v5l4.5-2.5L10 10.5z" fill="currentColor" stroke="none"/>' +
     '</svg>';
 
-  function injectReelsCSS() {
-    var st = document.getElementById('tchiloReelsLayoutCSS');
+  function injectNavIconCSS() {
+    var st = document.getElementById('tchiloNavIconCSS');
     if (!st) {
       st = document.createElement('style');
-      st.id = 'tchiloReelsLayoutCSS';
+      st.id = 'tchiloNavIconCSS';
       document.head.appendChild(st);
     }
     st.textContent =
-      '#reelsViewer .reels-close,' +
-      '.reels-viewer .reels-close{' +
-      'position:absolute!important;' +
-      'top:max(12px, env(safe-area-inset-top, 0px) + 8px)!important;' +
-      'left:12px!important;' +
-      'right:auto!important;' +
-      'z-index:20!important;}' +
-      '#reelsViewer .reel-follow,' +
-      '.reels-viewer .reel-follow,' +
-      '.reel-slide > .reel-follow,' +
-      'button.reel-follow{' +
-      'position:absolute!important;' +
-      'top:max(14px, env(safe-area-inset-top, 0px) + 10px)!important;' +
-      'right:12px!important;' +
-      'left:auto!important;' +
-      'transform:none!important;' +
-      'z-index:19!important;' +
-      'margin:0!important;' +
-      'min-width:72px!important;' +
-      'padding:8px 14px!important;' +
-      'border:2px solid #fff!important;' +
-      'border-radius:10px!important;' +
-      'background:rgba(0,0,0,.45)!important;' +
-      'color:#fff!important;' +
-      'font:800 12px Inter,system-ui,sans-serif!important;' +
-      'backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}' +
-      '#reelsViewer .duet-label,.reels-viewer .duet-label{' +
-      'top:58px!important;right:12px!important;left:auto!important;}';
+      /* Fee — mesmo tamanho visual dos SVG 28x28 */
+      '.nav-item .nav-text-icon.nav-fee{' +
+      'display:inline-flex;align-items:center;justify-content:center;' +
+      'width:28px;height:28px;line-height:1;' +
+      'font:900 15px Inter,system-ui,sans-serif;' +
+      'letter-spacing:-0.04em;color:currentColor;' +
+      'user-select:none;-webkit-user-select:none;}' +
+      '.nav-item.active .nav-text-icon.nav-fee{font-weight:900;}' +
+
+      /* SMS em círculo */
+      '.nav-sms-icon,.icon-btn .nav-sms-icon{' +
+      'display:inline-flex;align-items:center;justify-content:center;' +
+      'width:28px;height:28px;}' +
+      '.nav-sms-circle{' +
+      'display:inline-flex;align-items:center;justify-content:center;' +
+      'width:28px;height:28px;border-radius:50%;' +
+      'border:2.4px solid currentColor;' +
+      'font:900 9px Inter,system-ui,sans-serif;' +
+      'letter-spacing:0.02em;line-height:1;' +
+      'color:currentColor;box-sizing:border-box;' +
+      'user-select:none;-webkit-user-select:none;}' +
+      '.icon-btn .nav-sms-circle{width:26px;height:26px;font-size:8.5px;}' +
+
+      /* Reels follow layout (mantém) */
+      '#reelsViewer .reels-close,.reels-viewer .reels-close{' +
+      'position:absolute!important;top:max(12px, env(safe-area-inset-top, 0px) + 8px)!important;' +
+      'left:12px!important;right:auto!important;z-index:20!important;}' +
+      '#reelsViewer .reel-follow,.reels-viewer .reel-follow,button.reel-follow{' +
+      'position:absolute!important;top:max(14px, env(safe-area-inset-top, 0px) + 10px)!important;' +
+      'right:12px!important;left:auto!important;transform:none!important;z-index:19!important;' +
+      'margin:0!important;min-width:72px!important;padding:8px 14px!important;' +
+      'border:2px solid #fff!important;border-radius:10px!important;' +
+      'background:rgba(0,0,0,.45)!important;color:#fff!important;' +
+      'font:800 12px Inter,system-ui,sans-serif!important;}';
   }
 
-  function placeFollowButtons() {
-    document.querySelectorAll('#reelsViewer .reel-follow, .reels-viewer .reel-follow, button.reel-follow').forEach(function (btn) {
-      btn.style.setProperty('position', 'absolute', 'important');
-      btn.style.setProperty('top', 'max(14px, calc(env(safe-area-inset-top, 0px) + 10px))', 'important');
-      btn.style.setProperty('right', '12px', 'important');
-      btn.style.setProperty('left', 'auto', 'important');
-      btn.style.setProperty('z-index', '19', 'important');
-      btn.style.setProperty('margin', '0', 'important');
+  function setNavIcon(btn, html) {
+    if (!btn) return;
+    var dot = btn.querySelector('.dot');
+    var badge = btn.querySelector('.badge');
+    btn.querySelectorAll('svg, .nav-text-icon, .nav-sms-icon').forEach(function (n) {
+      try {
+        n.remove();
+      } catch (e) {}
     });
-    var close = document.querySelector('#reelsViewer .reels-close, .reels-viewer .reels-close');
-    if (close) {
-      close.style.setProperty('left', '12px', 'important');
-      close.style.setProperty('right', 'auto', 'important');
-      close.style.setProperty('z-index', '20', 'important');
+    var wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    var node = wrap.firstChild;
+    if (node) {
+      if (badge) btn.insertBefore(node, badge);
+      else if (dot) btn.insertBefore(node, dot);
+      else btn.insertBefore(node, btn.firstChild);
+    }
+    if (!btn.querySelector('.dot')) {
+      var d = document.createElement('div');
+      d.className = 'dot';
+      btn.appendChild(d);
     }
   }
 
-  function watchReelsDom() {
-    var viewer = document.getElementById('reelsViewer');
-    if (!viewer || viewer.__followWatch) return;
-    viewer.__followWatch = true;
-    try {
-      new MutationObserver(function () {
-        placeFollowButtons();
-      }).observe(viewer, { childList: true, subtree: true });
-    } catch (e) {}
+  function applyFeedFee() {
+    var feedBtn =
+      document.querySelector('.navbar .nav-item[data-screen="feed"]') ||
+      document.querySelector('.navbar .nav-item[onclick*="onNavFeed"]');
+    if (!feedBtn) return;
+    if (feedBtn.querySelector('.nav-fee')) return;
+    setNavIcon(feedBtn, ICON_FEE);
+    feedBtn.setAttribute('aria-label', 'Feed');
+  }
+
+  function applySmsIcon(el) {
+    if (!el) return;
+    if (el.querySelector('.nav-sms-circle')) return;
+    var svg = el.querySelector('svg');
+    if (svg) {
+      var wrap = document.createElement('div');
+      wrap.innerHTML = ICON_SMS;
+      svg.replaceWith(wrap.firstChild);
+    } else if (!el.querySelector('.nav-sms-icon')) {
+      var w = document.createElement('div');
+      w.innerHTML = ICON_SMS;
+      el.insertBefore(w.firstChild, el.firstChild);
+    }
   }
 
   function ensureTopbarMessages() {
     var icons = document.querySelector('#screen-feed .topbar-icons');
     if (!icons) return;
-    if (icons.querySelector('[data-top-messages]')) return;
-
-    var btn = document.createElement('div');
-    btn.className = 'icon-btn';
-    btn.setAttribute('data-top-messages', '1');
-    btn.setAttribute('aria-label', 'Mensagens');
-    btn.innerHTML = SVG_MSG;
-    btn.onclick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (typeof goTo === 'function') goTo('messages');
-    };
-    icons.appendChild(btn);
+    var btn = icons.querySelector('[data-top-messages]');
+    if (!btn) {
+      btn = document.createElement('div');
+      btn.className = 'icon-btn';
+      btn.setAttribute('data-top-messages', '1');
+      btn.setAttribute('aria-label', 'Mensagens');
+      btn.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof goTo === 'function') goTo('messages');
+      };
+      icons.appendChild(btn);
+    }
+    applySmsIcon(btn);
   }
 
   function replaceNavMessagesWithReels() {
@@ -124,28 +151,42 @@
       }
     };
 
-    var svg = msgBtn.querySelector('svg');
-    var wrap = document.createElement('div');
-    wrap.innerHTML = SVG_REELS;
-    var next = wrap.firstChild;
-    if (svg && next) svg.replaceWith(next);
-    else if (next) {
-      var dot = msgBtn.querySelector('.dot');
-      msgBtn.innerHTML = '';
-      msgBtn.appendChild(next);
-      if (dot) msgBtn.appendChild(dot);
-      else {
-        var d = document.createElement('div');
-        d.className = 'dot';
-        msgBtn.appendChild(d);
-      }
+    if (!msgBtn.querySelector('svg rect')) {
+      setNavIcon(msgBtn, SVG_REELS);
     }
+  }
+
+  function placeFollowButtons() {
+    document
+      .querySelectorAll('#reelsViewer .reel-follow, .reels-viewer .reel-follow, button.reel-follow')
+      .forEach(function (btn) {
+        btn.style.setProperty('position', 'absolute', 'important');
+        btn.style.setProperty(
+          'top',
+          'max(14px, calc(env(safe-area-inset-top, 0px) + 10px))',
+          'important'
+        );
+        btn.style.setProperty('right', '12px', 'important');
+        btn.style.setProperty('left', 'auto', 'important');
+        btn.style.setProperty('z-index', '19', 'important');
+        btn.style.setProperty('margin', '0', 'important');
+      });
+  }
+
+  function watchReelsDom() {
+    var viewer = document.getElementById('reelsViewer');
+    if (!viewer || viewer.__followWatch) return;
+    viewer.__followWatch = true;
+    try {
+      new MutationObserver(function () {
+        placeFollowButtons();
+      }).observe(viewer, { childList: true, subtree: true });
+    } catch (e) {}
   }
 
   function patchOpenReels() {
     if (typeof window.openReels !== 'function' || window.openReels.__followRight) return;
     var orig = window.openReels;
-    // se já tem __fast do reels-fast, empilha
     window.openReels = function () {
       var r = orig.apply(this, arguments);
       setTimeout(placeFollowButtons, 0);
@@ -158,25 +199,22 @@
   }
 
   function boot() {
-    injectReelsCSS();
-    placeFollowButtons();
-    watchReelsDom();
+    injectNavIconCSS();
+    applyFeedFee();
     ensureTopbarMessages();
     replaceNavMessagesWithReels();
+    placeFollowButtons();
+    watchReelsDom();
     patchOpenReels();
-    setTimeout(function () {
-      injectReelsCSS();
-      placeFollowButtons();
-      ensureTopbarMessages();
-      replaceNavMessagesWithReels();
-      patchOpenReels();
-    }, 400);
-    setTimeout(function () {
-      replaceNavMessagesWithReels();
-      patchOpenReels();
-    }, 1200);
   }
+
+  setInterval(function () {
+    applyFeedFee();
+    ensureTopbarMessages();
+  }, 1500);
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
+  setTimeout(boot, 400);
+  setTimeout(boot, 1200);
 })();

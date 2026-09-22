@@ -174,8 +174,6 @@
     return (
       nav.querySelector('.nav-item[data-screen="messages"]') ||
       nav.querySelector('.nav-item[data-screen="reels"]') ||
-      nav.querySelector('.nav-item[aria-label*="ensag" i]') ||
-      nav.querySelector('.nav-item[aria-label*="essage" i]') ||
       nav.querySelector('.nav-item[onclick*="messages"]') ||
       null
     );
@@ -201,7 +199,6 @@
       }
     };
 
-    /* força ícone de reels sempre (não deixa voltar a mensagem) */
     if (!msgBtn.querySelector('.nav-reels-icon')) {
       setNavIcon(msgBtn, SVG_REELS);
     }
@@ -245,7 +242,17 @@
     if (orig.__fast) window.openReels.__fast = true;
   }
 
+  function loadNameCooldown() {
+    if (document.querySelector('script[data-tchilo-namecd]')) return;
+    var s = document.createElement('script');
+    s.src = 'native/profile-name-cooldown.js?v=20260922namecd';
+    s.defer = true;
+    s.setAttribute('data-tchilo-namecd', '1');
+    (document.head || document.documentElement).appendChild(s);
+  }
+
   function boot() {
+    loadNameCooldown();
     injectNavIconCSS();
     applyFeedFee();
     ensureTopbarMessages();

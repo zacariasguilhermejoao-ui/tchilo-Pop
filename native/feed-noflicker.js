@@ -5,9 +5,8 @@
 (function () {
   'use strict';
 
-  var V = 'v=20260922critboot';
+  var V = 'v=20260922reelsnav';
 
-  /* —— CSS crítico (anti-flash + topbar limpa) —— */
   function injectCriticalCSS() {
     var st = document.getElementById('tchiloCriticalCSS');
     if (!st) {
@@ -19,17 +18,14 @@
       '#feedList .post,#feedList video{animation:none!important}' +
       '#galleryBtn,#faceFxOpenBtn{display:none!important}' +
       '.toast.busy,#toast.busy{display:none!important}' +
-      /* Fee */
       '.nav-item .nav-text-icon.nav-fee{display:inline-flex;align-items:center;justify-content:center;width:36px;height:32px;font:900 19px Inter,system-ui,sans-serif;letter-spacing:-.04em;color:currentColor}' +
-      /* SMS texto */
       '.nav-sms-text{display:inline-flex;align-items:center;justify-content:center;font:900 18px Inter,system-ui,sans-serif!important;letter-spacing:.03em;color:currentColor;border:none!important;background:none!important}' +
-      /* Topbar sem caixa */
+      '.nav-item .nav-reels-icon{width:26px;height:26px;display:block}' +
       '#screen-feed .topbar-icons .icon-btn,.topbar-icons .icon-btn{' +
       'width:auto!important;height:auto!important;min-width:0!important;' +
       'border:0!important;border-radius:0!important;background:transparent!important;' +
       'box-shadow:none!important;padding:4px!important}' +
       '#screen-feed .topbar-icons .icon-btn svg,.topbar-icons .icon-btn svg{width:26px!important;height:26px!important}' +
-      /* Premium + Ads botões sempre visíveis quando injectados */
       '#tchiloPremiumBtn{display:flex!important;align-items:center;gap:12px;width:calc(100% - 36px);margin:12px 18px 4px;padding:14px;border:3px solid var(--ink,#0B0B0C);border-radius:16px;background:linear-gradient(135deg,#c8f560 0%,#9ee0ff 100%);color:var(--ink,#0B0B0C);font:800 14px Inter,system-ui,sans-serif;text-align:left;cursor:pointer;box-shadow:4px 4px 0 var(--ink,#0B0B0C)}' +
       '#tchiloPremiumBtn .prem-icon{width:42px;height:42px;border-radius:12px;border:2.5px solid var(--ink,#0B0B0C);background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}' +
       '#tchiloPremiumBtn .prem-text{flex:1;min-width:0}' +
@@ -38,12 +34,10 @@
       '#tchiloAdsMgrBtn{display:flex!important;align-items:center;gap:12px;width:100%;border:0;background:none;padding:14px 18px;text-align:left;font:700 15px Inter,system-ui,sans-serif;color:var(--ink,#0B0B0C);cursor:pointer;border-bottom:1px solid rgba(0,0,0,.06)}' +
       '#tchiloAdsMgrBtn .si-icon{width:36px;height:36px;border-radius:10px;background:#c8f560;border:2px solid var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}' +
       '#tchiloAdsMgrBtn .chev{margin-left:auto;opacity:.5;font-size:18px}' +
-      /* Gestor overlay */
       '#tchiloAdsPro{display:none;position:fixed;inset:0;z-index:9999;background:var(--paper,#F7F6F2);color:var(--ink,#0B0B0C);flex-direction:column}' +
       '#tchiloAdsPro.open{display:flex!important}';
   }
 
-  /* —— Ícones nav de imediato —— */
   function applyNavNow() {
     try {
       var feedBtn =
@@ -100,10 +94,45 @@
         smsBtn.style.setProperty('border', 'none', 'important');
         smsBtn.style.setProperty('background', 'transparent', 'important');
       }
+
+      /* Reels na barra de baixo (não mensagens) */
+      var nav = document.querySelector('.navbar');
+      if (nav) {
+        var msgBtn =
+          nav.querySelector('.nav-item[data-screen="messages"]') ||
+          nav.querySelector('.nav-item[data-screen="reels"]');
+        if (msgBtn) {
+          msgBtn.setAttribute('data-screen', 'reels');
+          msgBtn.setAttribute('aria-label', 'Reels');
+          msgBtn.onclick = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+              if (typeof openReels === 'function') openReels();
+              else if (typeof window.openReels === 'function') window.openReels();
+            } catch (err) {}
+          };
+          if (!msgBtn.querySelector('.nav-reels-icon')) {
+            msgBtn.querySelectorAll('svg, .nav-text-icon, .nav-sms-text').forEach(function (n) {
+              try { n.remove(); } catch (e3) {}
+            });
+            var wrap = document.createElement('div');
+            wrap.innerHTML =
+              '<svg class="nav-reels-icon" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+              '<rect x="2" y="5" width="20" height="14" rx="2.5"/>' +
+              '<path d="M7 5V3M12 5V3M17 5V3"/>' +
+              '<path d="M10 10.5v5l4.5-2.5L10 10.5z" fill="currentColor" stroke="none"/>' +
+              '</svg>';
+            var node = wrap.firstChild;
+            var d2 = msgBtn.querySelector('.dot');
+            if (d2) msgBtn.insertBefore(node, d2);
+            else msgBtn.insertBefore(node, msgBtn.firstChild);
+          }
+        }
+      }
     } catch (e) {}
   }
 
-  /* —— Premium botão de imediato —— */
   function injectPremiumNow() {
     try {
       var list = document.querySelector('#screen-settings .settings-list');
@@ -113,9 +142,9 @@
       btn.type = 'button';
       btn.id = 'tchiloPremiumBtn';
       btn.innerHTML =
-        '<div class="prem-icon" aria-hidden="true">★</div>' +
-        '<div class="prem-text"><b data-prem-title>Tchilo Premium</b><span data-prem-sub>$3 · Ativar</span></div>' +
-        '<span class="chev" style="font-size:18px;opacity:.6">›</span>';
+        '<div class="prem-icon" aria-hidden="true">\u2605</div>' +
+        '<div class="prem-text"><b data-prem-title>Tchilo Premium</b><span data-prem-sub>$3 \u00b7 Ativar</span></div>' +
+        '<span class="chev" style="font-size:18px;opacity:.6">\u203a</span>';
       btn.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -126,7 +155,7 @@
             if (typeof window.tchiloOpenPremiumCheckout === 'function') {
               window.tchiloOpenPremiumCheckout();
             } else {
-              alert('A carregar pagamento… tenta de novo em 1 segundo.');
+              alert('A carregar pagamento... tenta de novo em 1 segundo.');
             }
           });
         }
@@ -136,7 +165,6 @@
     } catch (e) {}
   }
 
-  /* —— Gestor de Anúncios de imediato —— */
   function injectAdsBtnNow() {
     try {
       var list = document.querySelector('#screen-settings .settings-list');
@@ -148,7 +176,7 @@
         btn.id = 'tchiloAdsMgrBtn';
         btn.className = 'settings-item';
         btn.innerHTML =
-          '<div class="si-icon">A</div><span>Gestor de Anúncios</span><div class="chev">›</div>';
+          '<div class="si-icon">A</div><span>Gestor de Anuncios</span><div class="chev">\u203a</div>';
         var after = document.getElementById('tchiloPremiumBtn');
         if (after && after.nextSibling) list.insertBefore(btn, after.nextSibling);
         else if (after) list.insertBefore(btn, after.nextSibling);
@@ -189,7 +217,6 @@
       window.tchiloOpenAdsManager();
       return;
     }
-    /* carregar pro e abrir */
     var paths = [
       'native/tchilo-ads-pro.js',
       'https://tchilopop.com/native/tchilo-ads-pro.js',
@@ -198,18 +225,14 @@
     var i = 0;
     function tryNext() {
       if (i >= paths.length) {
-        alert('Não foi possível abrir o Gestor de Anúncios. Verifica a internet e faz hard refresh.');
+        alert('Nao foi possivel abrir o Gestor de Anuncios. Faz hard refresh.');
         return;
       }
       var src = paths[i++];
-      loadScriptOnce(src, i === 1 ? 'data-tchilo-ads-pro' : 'data-tchilo-ads-pro-' + i).then(function (ok) {
-        if (typeof window.tchiloOpenAdsPro === 'function') {
-          window.tchiloOpenAdsPro();
-        } else if (typeof window.tchiloOpenAdsManager === 'function') {
-          window.tchiloOpenAdsManager();
-        } else {
-          tryNext();
-        }
+      loadScriptOnce(src, i === 1 ? 'data-tchilo-ads-pro' : 'data-tchilo-ads-pro-' + i).then(function () {
+        if (typeof window.tchiloOpenAdsPro === 'function') window.tchiloOpenAdsPro();
+        else if (typeof window.tchiloOpenAdsManager === 'function') window.tchiloOpenAdsManager();
+        else tryNext();
       });
     }
     tryNext();
@@ -218,7 +241,6 @@
   window.tchiloOpenAdsManager = window.tchiloOpenAdsManager || openAdsNow;
   window.__tchiloOpenAdsNow = openAdsNow;
 
-  /* captura global no botão (mesmo se outro script reescrever) */
   document.addEventListener(
     'click',
     function (e) {
@@ -271,14 +293,11 @@
   }
 
   function bootScripts() {
-    /* críticos em ordem, sem defer */
     loadExtra('native/paddle-premium.js', 'data-tchilo-paddle');
     loadExtra('native/tchilo-ads-pro.js', 'data-tchilo-ads-pro');
     loadExtra('native/tchilo-ads-force.js', 'data-tchilo-ads-force');
     loadExtra('native/tchilo-ads-ui.js', 'data-tchilo-ads-ui');
     loadExtra('native/nav-layout.js', 'data-tchilo-nav-layout');
-
-    /* resto */
     loadDeferred('native/fx-live-patch.js', 'data-tchilo-fx-live');
     loadDeferred('native/paddle-ad-guard.js', 'data-tchilo-paddle-guard');
     loadDeferred('native/tchilo-theme-premium-gate.js', 'data-tchilo-theme-gate');
@@ -313,7 +332,6 @@
     });
   }
 
-  /* patch goTo settings para injectar já */
   function patchGoTo() {
     if (typeof window.goTo !== 'function' || window.goTo.__critBoot) return;
     var orig = window.goTo;
@@ -335,7 +353,6 @@
     patchGoTo();
   }
 
-  /* corre JÁ — não espera DOMContentLoaded se já há DOM */
   injectCriticalCSS();
   bootUI();
 

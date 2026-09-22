@@ -242,17 +242,22 @@
     if (orig.__fast) window.openReels.__fast = true;
   }
 
-  function loadNameCooldown() {
-    if (document.querySelector('script[data-tchilo-namecd]')) return;
+  function loadScriptOnce(src, attr, ver) {
+    if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = 'native/profile-name-cooldown.js?v=20260922namecd';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + (ver || 'v=1');
     s.defer = true;
-    s.setAttribute('data-tchilo-namecd', '1');
+    s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
   }
 
+  function loadExtras() {
+    loadScriptOnce('native/profile-name-cooldown.js', 'data-tchilo-namecd', 'v=20260922namecd');
+    loadScriptOnce('native/tchilo-support.js', 'data-tchilo-support', 'v=20260922support');
+  }
+
   function boot() {
-    loadNameCooldown();
+    loadExtras();
     injectNavIconCSS();
     applyFeedFee();
     ensureTopbarMessages();

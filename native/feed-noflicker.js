@@ -7,7 +7,7 @@
   function loadExtra(src, attr) {
     if (document.querySelector('script[' + attr + ']')) return;
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260922gothic';
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=20260922themepack';
     s.defer = true;
     s.setAttribute(attr, '1');
     (document.head || document.documentElement).appendChild(s);
@@ -55,6 +55,7 @@
     loadExtra('native/tchilo-theme-retro.js', 'data-tchilo-retro');
     loadExtra('native/tchilo-theme-halloween.js', 'data-tchilo-halloween');
     loadExtra('native/tchilo-theme-gothic.js', 'data-tchilo-gothic');
+    loadExtra('native/tchilo-themes-pack.js', 'data-tchilo-themes-pack');
     loadExtra('native/gal-thumb.js', 'data-tchilo-gal-thumb');
     loadExtra('native/feed-video-thumbs.js', 'data-tchilo-vid-thumbs');
     loadExtra('native/chat-audio-fix.js', 'data-tchilo-chat-audio');

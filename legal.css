@@ -28,9 +28,15 @@ a { color: var(--ink); }
   border: none !important;
   padding: 0 !important;
   border-radius: 0 !important;
+  line-height: 0;
+}
+.brand svg {
+  height: 48px;
+  width: auto;
+  display: block;
 }
 .brand img {
-  height: 56px;
+  height: 48px;
   width: auto;
   display: block;
   object-fit: contain;

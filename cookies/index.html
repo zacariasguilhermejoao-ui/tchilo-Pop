@@ -3,14 +3,27 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0B0B0C"/>
 <title>Política de cookies · Tchilo</title>
-<link rel="stylesheet" href="../legal.css"/>
+<link rel="stylesheet" href="../legal.css?v=3"/>
 </head>
 <body>
 <div class="wrap">
-<div class="topbar"><button type="button" class="back-btn" onclick="if(history.length>1){history.back()}else{location.href='../'}" aria-label="Voltar">
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-</button><div class="brand" aria-label="Tchilo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 176 56" width="176" height="56" role="img" aria-label="Tchilo" style="display:block;height:48px;width:auto">
+<div class="topbar"><button type="button" class="back-btn" id="tchilo-back" aria-label="Voltar">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M15 4L7 12l8 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+<script>
+(function(){
+  var b=document.getElementById('tchilo-back');
+  if(!b)return;
+  b.addEventListener('click',function(){
+    if(window.history.length>1){window.history.back();}
+    else{window.location.href='/';}
+  });
+})();
+</script><div class="brand" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 176 56" width="176" height="56" role="img" aria-label="Tchilo">
   <circle cx="28" cy="28" r="24" fill="#18E8B0"/>
   <circle cx="88" cy="28" r="24" fill="#F800A0"/>
   <circle cx="148" cy="28" r="24" fill="#7800F8"/>
@@ -24,11 +37,13 @@
       <a href="../sobre/">Sobre</a>
 </nav>
 <h1>Política de cookies</h1>
+
 <h3>1. O que são</h3><p>Cookies e armazenamento local ajudam o Tchilo a lembrar preferências, sessão e melhorar o desempenho.</p>
 <h3>2. Tipos</h3><p>Essenciais (login e segurança), preferências (tema, idioma) e desempenho (cache de conteúdo).</p>
 <h3>3. Controlo</h3><p>Podes limpar dados no browser ou nas definições do dispositivo. Sem cookies essenciais, algumas funções podem não funcionar.</p>
+
 <p class="meta">Última atualização: setembro 2026 · Tchilo</p>
-<div class="footer">© Tchilo · <a href="../privacidade/">Privacidade</a> · <a href="../termos/">Termos</a></div>
+<div class="footer">© Tchilo</div>
 </div>
 </body>
 </html>

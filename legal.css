@@ -22,15 +22,18 @@ a { color: var(--ink); }
   padding: 24px 18px 64px;
 }
 .brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0;
   margin-bottom: 20px;
   text-decoration: none;
   color: inherit;
+  background: #000;
+  border-radius: 14px;
+  padding: 8px 12px;
+  border: 2.5px solid #0B0B0C;
 }
 .brand img {
-  height: 48px;
+  height: 40px;
   width: auto;
   display: block;
   object-fit: contain;

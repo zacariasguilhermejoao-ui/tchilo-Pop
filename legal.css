@@ -1,9 +1,11 @@
-/* Tchilo — páginas legais públicas */
+/* Tchilo legal — essência do app */
 :root {
-  --ink: #0b0b0c;
-  --paper: #f7f6f2;
-  --muted: #6b6b70;
-  --mint: #c8f560;
+  --ink: #0B0B0C;
+  --paper: #F7F6F2;
+  --muted: #6B6B70;
+  --mint: #C8F560;
+  --pink: #F800A0;
+  --cyan: #18E8B0;
 }
 * { box-sizing: border-box; }
 html, body {
@@ -13,52 +15,54 @@ html, body {
   color: var(--ink);
   font-family: Inter, system-ui, -apple-system, sans-serif;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 a { color: var(--ink); }
 .wrap {
   max-width: 720px;
   margin: 0 auto;
-  padding: 16px 18px 64px;
+  padding: 12px 16px 72px;
 }
 .topbar {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 18px;
+  min-height: 48px;
 }
 .back-btn {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  margin-left: -8px;
-  border: none;
-  background: transparent;
-  color: var(--ink);
-  cursor: pointer;
-  border-radius: 999px;
-  padding: 0;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
+  border: 2.5px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 14px;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 3px 3px 0 var(--ink);
   -webkit-tap-highlight-color: transparent;
+  transition: transform .08s ease, box-shadow .08s ease;
 }
-.back-btn:active { background: rgba(0,0,0,.06); }
+.back-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+  background: var(--mint);
+}
 .brand {
-  display: inline-block;
-  margin: 0;
-  pointer-events: none;
+  display: block;
+  pointer-events: none !important;
   user-select: none;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
   line-height: 0;
 }
 .brand svg {
-  height: 40px;
+  height: 36px;
   width: auto;
   display: block;
-  pointer-events: none;
+  pointer-events: none !important;
 }
 nav.links {
   display: flex;
@@ -73,19 +77,26 @@ nav.links a {
   padding: 6px 12px;
   font: 800 12px Inter, system-ui, sans-serif;
   background: #fff;
+  color: var(--ink);
 }
-nav.links a.on { background: var(--mint); }
+nav.links a.on {
+  background: var(--mint);
+}
 h1 {
-  font-family: Anton, Inter, sans-serif;
+  font-family: Anton, Inter, system-ui, sans-serif;
   font-size: 28px;
   margin: 0 0 16px;
+  letter-spacing: 0.01em;
 }
-h2, h3 { font-size: 17px; margin: 22px 0 8px; }
+h2, h3 {
+  font-size: 17px;
+  margin: 22px 0 8px;
+  font-weight: 800;
+}
 p, li {
   font: 600 15px/1.55 Inter, system-ui, sans-serif;
   color: #222;
 }
-ul { padding-left: 18px; }
 .meta {
   margin-top: 28px;
   color: var(--muted);

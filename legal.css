@@ -4,7 +4,6 @@
   --paper: #f7f6f2;
   --muted: #6b6b70;
   --mint: #c8f560;
-  --line: #0b0b0c;
 }
 * { box-sizing: border-box; }
 html, body {
@@ -22,22 +21,20 @@ a { color: var(--ink); }
   padding: 24px 18px 64px;
 }
 .brand {
-  display: inline-flex;
-  align-items: center;
+  display: inline-block;
   margin-bottom: 20px;
   text-decoration: none;
-  color: inherit;
-  background: transparent;
-  border: none;
-  padding: 0;
-  border-radius: 0;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
 }
 .brand img {
-  height: 44px;
+  height: 56px;
   width: auto;
   display: block;
   object-fit: contain;
-  background: transparent;
+  background: transparent !important;
 }
 nav.links {
   display: flex;
@@ -53,19 +50,13 @@ nav.links a {
   font: 800 12px Inter, system-ui, sans-serif;
   background: #fff;
 }
-nav.links a.on {
-  background: var(--mint);
-}
+nav.links a.on { background: var(--mint); }
 h1 {
   font-family: Anton, Inter, sans-serif;
   font-size: 28px;
   margin: 0 0 16px;
-  letter-spacing: 0.02em;
 }
-h2, h3 {
-  font-size: 17px;
-  margin: 22px 0 8px;
-}
+h2, h3 { font-size: 17px; margin: 22px 0 8px; }
 p, li {
   font: 600 15px/1.55 Inter, system-ui, sans-serif;
   color: #222;

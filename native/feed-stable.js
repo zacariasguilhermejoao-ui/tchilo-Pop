@@ -132,7 +132,7 @@
   else boot();
 })();
 
-/* Tchilo dynamic URLs + app fixes */
+/* Tchilo dynamic URLs + app fixes + offline SW */
 (function () {
   try {
     var h = document.head || document.documentElement;
@@ -145,5 +145,6 @@
     }
     add('native/tchilo-router.js?v=3');
     add('native/tchilo-app-fix.js?v=1');
+    add('native/tchilo-offline.js?v=1');
   } catch (e) {}
 })();

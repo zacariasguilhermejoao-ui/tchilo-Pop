@@ -1,0 +1,105 @@
+/* Tchilo — páginas legais públicas */
+:root {
+  --ink: #0b0b0c;
+  --paper: #f7f6f2;
+  --muted: #6b6b70;
+  --mint: #c8f560;
+  --line: #0b0b0c;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
+a { color: var(--ink); }
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 18px 64px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 900;
+  font-size: 18px;
+}
+.brand span {
+  width: 36px;
+  height: 36px;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  background: var(--mint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+}
+nav.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+nav.links a {
+  text-decoration: none;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: 800 12px Inter, system-ui, sans-serif;
+  background: #fff;
+}
+nav.links a.on {
+  background: var(--mint);
+}
+h1 {
+  font-family: Anton, Inter, sans-serif;
+  font-size: 28px;
+  margin: 0 0 8px;
+  letter-spacing: 0.02em;
+}
+.url-box {
+  margin: 0 0 20px;
+  padding: 10px 12px;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  background: #fff;
+  font: 700 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  word-break: break-all;
+}
+.url-box b {
+  display: block;
+  font: 800 11px Inter, sans-serif;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-bottom: 4px;
+}
+h2, h3 {
+  font-size: 17px;
+  margin: 22px 0 8px;
+}
+p, li {
+  font: 600 15px/1.55 Inter, system-ui, sans-serif;
+  color: #222;
+}
+ul { padding-left: 18px; }
+.meta {
+  margin-top: 28px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.footer {
+  margin-top: 36px;
+  padding-top: 16px;
+  border-top: 2px solid rgba(0,0,0,.08);
+  font: 600 13px Inter, sans-serif;
+  color: var(--muted);
+}

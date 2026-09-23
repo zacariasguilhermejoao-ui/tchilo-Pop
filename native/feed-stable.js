@@ -95,7 +95,6 @@
   window.__tchiloStableMusicInject = stableMusicInject;
 
   function neutralizeNoisyHooks() {
-    // Desliga reinjeções agressivas dos scripts antigos
     if (typeof window.renderFeed === 'function' && !window.renderFeed.__stableHook) {
       var orig = window.renderFeed;
       window.renderFeed = function () {
@@ -104,14 +103,12 @@
         return r;
       };
       window.renderFeed.__stableHook = true;
-      // Marca flags dos outros hooks para não empilharem setTimeouts
       window.renderFeed.__fmp = true;
       window.renderFeed.__pmHook = true;
     }
   }
 
   function muteDuplicateIntervals() {
-    // CSS: evita flash de media ao repor atributos
     if (document.getElementById('tchiloFeedStableCSS')) return;
     var st = document.createElement('style');
     st.id = 'tchiloFeedStableCSS';
@@ -136,3 +133,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
+/* Tchilo dynamic URLs */
+(function(){try{var s=document.createElement('script');s.src='native/tchilo-router.js?v=2';s.defer=true;document.head.appendChild(s);}catch(e){}})();

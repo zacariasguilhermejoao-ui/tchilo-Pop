@@ -255,6 +255,7 @@
     loadScriptOnce('native/profile-name-cooldown.js', 'data-tchilo-namecd', 'v=20260922namecd');
     loadScriptOnce('native/tchilo-support.js', 'data-tchilo-support', 'v=20260922support');
     loadScriptOnce('native/tchilo-cookies-policy.js', 'data-tchilo-cookies', 'v=20260922cookies');
+    loadScriptOnce('native/tchilo-ads-manage.js', 'data-tchilo-ads-manage', 'v=20260923manage');
   }
 
   function boot() {

@@ -1,6 +1,6 @@
-/* Tchilo Service Worker — offline shell + media cache */
+/* Tchilo Service Worker — offline shell + media cache + push */
 /* eslint-disable no-restricted-globals */
-var SW_VERSION = 'tchilo-sw-v3';
+var SW_VERSION = 'tchilo-sw-v4';
 var SHELL_CACHE = SW_VERSION + '-shell';
 var MEDIA_CACHE = 'tchilo-media-v1';
 var RUNTIME_CACHE = SW_VERSION + '-runtime';
@@ -17,7 +17,9 @@ var PRECACHE = [
   './native/chat-send-fix.js',
   './native/chat-audio-fix.js',
   './native/feed-names-fix.js',
-  './native/legal-navbar-fix.js'
+  './native/legal-navbar-fix.js',
+  './native/tchilo-offline.js',
+  './native/tchilo-push.js'
 ];
 
 function isMediaRequest(url) {
@@ -30,35 +32,16 @@ function isMediaRequest(url) {
   return false;
 }
 
-function isAppShell(url) {
-  try {
-    var u = new URL(url, self.location.origin);
-    if (u.origin !== self.location.origin) return false;
-    var p = u.pathname;
-    if (p === '/' || p === '/index.html') return true;
-    if (p.indexOf('/native/') === 0) return true;
-    if (/\.(js|css|svg|woff2?)$/i.test(p)) return true;
-  } catch (e) {}
-  return false;
-}
-
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches
       .open(SHELL_CACHE)
       .then(function (cache) {
-        return cache.addAll(
+        return Promise.all(
           PRECACHE.map(function (p) {
-            return new Request(p, { cache: 'reload' });
+            return cache.add(p).catch(function () {});
           })
-        ).catch(function () {
-          /* alguns ficheiros podem falhar — continua */
-          return Promise.all(
-            PRECACHE.map(function (p) {
-              return cache.add(p).catch(function () {});
-            })
-          );
-        });
+        );
       })
       .then(function () {
         return self.skipWaiting();
@@ -73,15 +56,8 @@ self.addEventListener('activate', function (event) {
       .then(function (keys) {
         return Promise.all(
           keys.map(function (k) {
-            if (k === SHELL_CACHE || k === MEDIA_CACHE || k === RUNTIME_CACHE) return null;
-            if (k.indexOf('tchilo-sw-') === 0 || k.indexOf('tchilo-media') === 0) {
-              /* mantém MEDIA_CACHE partilhado com a app */
-              if (k === MEDIA_CACHE) return null;
-              if (k.indexOf('tchilo-media') === 0 && k !== MEDIA_CACHE) return caches.delete(k);
-              if (k.indexOf('tchilo-sw-') === 0 && k !== SHELL_CACHE && k !== RUNTIME_CACHE) {
-                return caches.delete(k);
-              }
-            }
+            if (k === SHELL_CACHE || k === MEDIA_CACHE || k === RUNTIME_CACHE || k === 'tchilo-notif-v1') return null;
+            if (k.indexOf('tchilo-sw-') === 0) return caches.delete(k);
             return null;
           })
         );
@@ -103,7 +79,6 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  /* Não interceptar APIs / auth / paddle */
   if (
     /supabase\.co\/(auth|rest|realtime|functions)/i.test(url.href) ||
     /paddle\./i.test(url.href) ||
@@ -112,19 +87,16 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  /* Navegação HTML — network first, fallback cache/offline shell */
   if (req.mode === 'navigate' || (req.headers.get('accept') || '').indexOf('text/html') !== -1) {
     event.respondWith(networkFirstNavigation(req));
     return;
   }
 
-  /* Media — cache first, depois rede e grava */
   if (isMediaRequest(url)) {
     event.respondWith(cacheFirstMedia(req));
     return;
   }
 
-  /* Shell / native JS/CSS same-origin — stale-while-revalidate */
   if (url.origin === self.location.origin) {
     event.respondWith(staleWhileRevalidate(req));
     return;
@@ -199,7 +171,6 @@ function staleWhileRevalidate(req) {
   });
 }
 
-/* Mensagens da página: aquecer cache de media */
 self.addEventListener('message', function (event) {
   var data = event.data || {};
   if (data.type === 'TCHILO_WARM' && Array.isArray(data.urls)) {
@@ -223,5 +194,102 @@ self.addEventListener('message', function (event) {
   }
   if (data.type === 'TCHILO_SKIP_WAITING') {
     self.skipWaiting();
+  }
+});
+
+/* ===== PUSH NOTIFICATIONS (app fechada / background) ===== */
+self.addEventListener('push', function (event) {
+  var title = 'Tchilo';
+  var options = {
+    body: 'Tens uma nova notificação',
+    icon: './logo.svg',
+    badge: './logo.svg',
+    tag: 'tchilo-push',
+    renotify: true,
+    data: { url: './' },
+    vibrate: [120, 60, 120]
+  };
+
+  try {
+    if (event.data) {
+      var payload = null;
+      try {
+        payload = event.data.json();
+      } catch (e) {
+        try {
+          payload = { body: event.data.text() };
+        } catch (e2) {}
+      }
+      if (payload) {
+        if (payload.title) title = String(payload.title);
+        if (payload.body) options.body = String(payload.body);
+        if (payload.icon) options.icon = payload.icon;
+        if (payload.badge) options.badge = payload.badge;
+        if (payload.tag) options.tag = String(payload.tag);
+        if (payload.url) options.data = { url: payload.url };
+        if (payload.data && typeof payload.data === 'object') {
+          options.data = Object.assign({}, options.data || {}, payload.data);
+          if (payload.data.url) options.data.url = payload.data.url;
+        }
+        if (payload.image) options.image = payload.image;
+      }
+    }
+  } catch (e) {}
+
+  event.waitUntil(
+    self.registration.showNotification(title, options).then(function () {
+      return caches.open('tchilo-notif-v1').then(function (cache) {
+        var body = JSON.stringify({
+          title: title,
+          body: options.body,
+          url: (options.data && options.data.url) || './',
+          at: Date.now()
+        });
+        return cache.put(
+          'last-notification',
+          new Response(body, { headers: { 'Content-Type': 'application/json' } })
+        );
+      }).catch(function () {});
+    })
+  );
+});
+
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+  var target = './';
+  try {
+    if (event.notification && event.notification.data && event.notification.data.url) {
+      target = event.notification.data.url;
+    }
+  } catch (e) {}
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
+      for (var i = 0; i < list.length; i++) {
+        var c = list[i];
+        if (c.url && 'focus' in c) {
+          c.postMessage({ type: 'TCHILO_NOTIF_CLICK', url: target });
+          return c.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(target);
+      }
+    })
+  );
+});
+
+self.addEventListener('sync', function (event) {
+  if (event.tag === 'tchilo-push-sync') {
+    event.waitUntil(
+      caches.open('tchilo-notif-v1').then(function (cache) {
+        return cache.match('pending-actions').then(function (res) {
+          if (!res) return;
+          return res.json().then(function () {
+            return cache.delete('pending-actions');
+          }).catch(function () {});
+        });
+      })
+    );
   }
 });

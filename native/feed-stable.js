@@ -1,6 +1,5 @@
 /**
  * tchilo-Pop — anti-flicker do feed
- * Evita re-injeções em cascata (música, nomes, observers) que fazem o feed piscar.
  */
 (function () {
   'use strict';
@@ -24,7 +23,6 @@
     }, wait || 50);
   }
 
-  /** Injeta música no feed sem destruir nós já presentes */
   function stableMusicInject() {
     var feed = document.getElementById('feedList');
     if (!feed) return;
@@ -133,5 +131,19 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
-/* Tchilo dynamic URLs */
-(function(){try{var s=document.createElement('script');s.src='native/tchilo-router.js?v=2';s.defer=true;document.head.appendChild(s);}catch(e){}})();
+
+/* Tchilo dynamic URLs + app fixes */
+(function () {
+  try {
+    var h = document.head || document.documentElement;
+    function add(src) {
+      if (document.querySelector('script[src*="' + src.split('?')[0] + '"]')) return;
+      var s = document.createElement('script');
+      s.src = src;
+      s.defer = true;
+      h.appendChild(s);
+    }
+    add('native/tchilo-router.js?v=3');
+    add('native/tchilo-app-fix.js?v=1');
+  } catch (e) {}
+})();

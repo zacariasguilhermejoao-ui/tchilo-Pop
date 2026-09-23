@@ -24,23 +24,16 @@ a { color: var(--ink); }
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: 0;
+  margin-bottom: 20px;
   text-decoration: none;
   color: inherit;
-  font-weight: 900;
-  font-size: 18px;
 }
-.brand span {
-  width: 36px;
-  height: 36px;
-  border: 2.5px solid var(--ink);
-  border-radius: 12px;
-  background: var(--mint);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
+.brand img {
+  height: 48px;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 nav.links {
   display: flex;
@@ -62,24 +55,8 @@ nav.links a.on {
 h1 {
   font-family: Anton, Inter, sans-serif;
   font-size: 28px;
-  margin: 0 0 8px;
+  margin: 0 0 16px;
   letter-spacing: 0.02em;
-}
-.url-box {
-  margin: 0 0 20px;
-  padding: 10px 12px;
-  border: 2.5px solid var(--ink);
-  border-radius: 12px;
-  background: #fff;
-  font: 700 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
-  word-break: break-all;
-}
-.url-box b {
-  display: block;
-  font: 800 11px Inter, sans-serif;
-  text-transform: uppercase;
-  opacity: 0.55;
-  margin-bottom: 4px;
 }
 h2, h3 {
   font-size: 17px;

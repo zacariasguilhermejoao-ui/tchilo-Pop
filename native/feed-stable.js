@@ -148,5 +148,6 @@
     add('native/tchilo-offline.js?v=1');
     add('native/tchilo-push.js?v=1');
     add('native/tchilo-push-wire.js?v=1');
+    add('native/tchilo-video-fix.js?v=2');
   } catch (e) {}
 })();

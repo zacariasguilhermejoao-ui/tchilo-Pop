@@ -18,12 +18,36 @@ a { color: var(--ink); }
 .wrap {
   max-width: 720px;
   margin: 0 auto;
-  padding: 24px 18px 64px;
+  padding: 16px 18px 64px;
 }
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-left: -8px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 0;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.back-btn:active { background: rgba(0,0,0,.06); }
 .brand {
   display: inline-block;
-  margin-bottom: 20px;
-  text-decoration: none;
+  margin: 0;
+  pointer-events: none;
+  user-select: none;
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
@@ -31,16 +55,10 @@ a { color: var(--ink); }
   line-height: 0;
 }
 .brand svg {
-  height: 48px;
+  height: 40px;
   width: auto;
   display: block;
-}
-.brand img {
-  height: 48px;
-  width: auto;
-  display: block;
-  object-fit: contain;
-  background: transparent !important;
+  pointer-events: none;
 }
 nav.links {
   display: flex;

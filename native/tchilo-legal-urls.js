@@ -1,5 +1,5 @@
 /**
- * tchilo-Pop — documentos legais com URL pública
+ * tchilo-Pop — documentos legais com URL limpa (sem .html)
  */
 (function () {
   "use strict";
@@ -8,16 +8,13 @@
     try {
       var origin = location.origin || "";
       var path = location.pathname || "/";
-      // se estiver em /algo/index.html, base = pasta do projeto
       if (path.indexOf("/tchilo-Pop") >= 0) {
         var i = path.indexOf("/tchilo-Pop");
         return origin + path.slice(0, i + "/tchilo-Pop".length) + "/";
       }
-      // site próprio tchilopop.com
       if (/tchilopop\.com$/i.test(location.hostname || "")) {
         return origin + "/";
       }
-      // pasta atual (remove ficheiro)
       if (path.endsWith(".html")) {
         return origin + path.replace(/[^/]+$/, "");
       }
@@ -28,12 +25,12 @@
   }
 
   var PAGES = {
-    terms: "terms.html",
-    privacy: "privacy.html",
-    cookies: "cookies.html",
-    community: "community.html",
-    child: "child-safety.html",
-    about: "about.html"
+    terms: "termos/",
+    privacy: "privacidade/",
+    cookies: "cookies/",
+    community: "comunidade/",
+    child: "menores/",
+    about: "sobre/"
   };
 
   function urlFor(key) {
@@ -43,7 +40,6 @@
   function openLegal(key) {
     var u = urlFor(key);
     try {
-      // app Capacitor / browser: abrir na mesma janela ou nova
       if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
         window.Capacitor.Plugins.Browser.open({ url: u });
         return;
@@ -60,11 +56,11 @@
   window.tchiloOpenLegalPage = openLegal;
 
   function patchOpenLegalFromLogin() {
-    if (typeof window.openLegalFromLogin === "function" && window.openLegalFromLogin.__url) return;
     window.openLegalFromLogin = function (name) {
-      openLegal(name === "privacy" ? "privacy" : name === "terms" ? "terms" : name);
+      if (name === "privacy") openLegal("privacy");
+      else if (name === "terms") openLegal("terms");
+      else openLegal(name);
     };
-    window.openLegalFromLogin.__url = true;
   }
 
   function patchGoTo() {
@@ -80,10 +76,9 @@
     window.goTo.__legalUrl = true;
   }
 
-  function injectUrlHints() {
+  function injectLegalClicks() {
     var list = document.querySelector("#screen-settings-legal .settings-list");
     if (!list) return;
-    // mostrar URL pequena sob cada item legal
     list.querySelectorAll(".settings-item").forEach(function (btn) {
       var sp = btn.querySelector("span");
       if (!sp) return;
@@ -96,17 +91,9 @@
       else if (/menor|csae|child/.test(t)) key = "child";
       else if (/sobre|about/.test(t)) key = "about";
       if (!key) return;
-      btn.setAttribute("data-legal-key", key);
-      if (!btn.querySelector(".legal-url-hint")) {
-        var hint = document.createElement("div");
-        hint.className = "legal-url-hint";
-        hint.style.cssText =
-          "font:600 10px ui-monospace,Menlo,monospace;color:var(--muted,#6b6b70);margin-top:2px;word-break:break-all;max-width:70%";
-        hint.textContent = urlFor(key).replace(/^https?:\/\//, "");
-        // inserir depois do span principal
-        if (sp.nextSibling) btn.insertBefore(hint, sp.nextSibling);
-        else btn.appendChild(hint);
-      }
+      btn.querySelectorAll(".legal-url-hint").forEach(function (h) {
+        try { h.remove(); } catch (e) {}
+      });
       btn.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -115,14 +102,10 @@
     });
   }
 
-  function ensureCookiesInLegal() {
-    // se o botão cookies já foi injectado por outro script, o injectUrlHints cobre
-  }
-
   function boot() {
     patchOpenLegalFromLogin();
     patchGoTo();
-    injectUrlHints();
+    injectLegalClicks();
   }
 
   setInterval(boot, 1500);

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#0B0B0C"/>
 <title>Sobre o Tchilo</title>
-<link rel="stylesheet" href="../legal.css?v=4"/>
+<link rel="stylesheet" href="../legal.css?v=5"/>
 </head>
 <body>
 <div class="wrap">
@@ -18,9 +18,19 @@
 (function(){
   var b=document.getElementById('tchilo-back');
   if(!b)return;
-  b.addEventListener('click',function(){
-    if(window.history.length>1){window.history.back();}
-    else{window.location.href='/';}
+  b.addEventListener('click',function(e){
+    e.preventDefault();
+    var start=location.href;
+    var ref=document.referrer||'';
+    var same=ref && ref.indexOf(location.host)!==-1;
+    if(same || (window.history && window.history.length>1)){
+      window.history.back();
+      setTimeout(function(){
+        if(location.href===start){ location.href='/'; }
+      },250);
+    } else {
+      location.href='/';
+    }
   });
 })();
 </script><div class="brand" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 176 56" width="176" height="56" role="img" aria-label="Tchilo">

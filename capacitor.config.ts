@@ -6,9 +6,13 @@ const config: CapacitorConfig = {
   webDir: 'www',
   bundledWebRuntime: false,
   server: {
+    /* App nativa carrega o site ao vivo — mudanças no GitHub aparecem sem rebuild completo */
+    url: 'https://tchilopop.com',
     androidScheme: 'https',
     cleartext: false,
     allowNavigation: [
+      'tchilopop.com',
+      '*.tchilopop.com',
       'api.deezer.com',
       '*.supabase.co',
       '*.supabase.in',

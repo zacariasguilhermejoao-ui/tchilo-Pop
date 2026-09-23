@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 56" width="200" height="56" role="img" aria-label="Tchilo">
+  <!-- Official mark: black t + three colored dots -->
+  <text x="8" y="42" font-family="Inter,system-ui,sans-serif" font-weight="900" font-size="40" fill="#0B0B0C">t</text>
+  <circle cx="42" cy="14" r="6" fill="#C8F560"/>
+  <circle cx="56" cy="14" r="6" fill="#9EE0FF"/>
+  <circle cx="70" cy="14" r="6" fill="#FF6B9D"/>
+  <text x="82" y="40" font-family="Inter,system-ui,sans-serif" font-weight="800" font-size="28" fill="#0B0B0C">chilo</text>
+</svg>

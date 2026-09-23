@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#0B0B0C"/>
 <title>Eliminar conta · Tchilo</title>
-<link rel="stylesheet" href="../legal.css?v=6"/>
+<link rel="stylesheet" href="../legal.css?v=7"/>
 <style>
   .actions { margin-top: 28px; display: flex; flex-direction: column; gap: 12px; }
   .btn {
@@ -16,15 +16,6 @@
   }
   .btn-danger { background: #ff4d4d; color: #fff; border-color: #0B0B0C; }
   .btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #0B0B0C; }
-  .url-box {
-    margin-top: 20px; padding: 12px 14px; border: 2px solid #0B0B0C; border-radius: 12px;
-    background: #fff; font: 600 13px/1.4 ui-monospace, monospace; word-break: break-all;
-  }
-  .copy-row { display: flex; gap: 8px; margin-top: 10px; }
-  .copy-row button {
-    border: 2px solid #0B0B0C; border-radius: 10px; padding: 10px 14px;
-    font: 800 13px Inter, system-ui, sans-serif; background: #C8F560; cursor: pointer;
-  }
 </style>
 </head>
 <body>
@@ -45,15 +36,10 @@
   </div>
 
   <h1>Eliminar conta</h1>
-  <p>Esta é a página oficial para eliminação de conta no Tchilo. Podes copiar e partilhar este endereço.</p>
-
-  <div class="url-box" id="page-url"></div>
-  <div class="copy-row">
-    <button type="button" id="btn-copy">Copiar link</button>
-  </div>
+  <p>Ao eliminar a conta no Tchilo, os dados associados a esta sessão são removidos. Esta ação é permanente no que respeita aos dados locais da conta neste app.</p>
 
   <h3>O que acontece</h3>
-  <p>Ao eliminar a conta, os dados associados a esta sessão são removidos. A ação é permanente no que respeita aos dados locais da conta neste app.</p>
+  <p>Posts, likes e dados locais desta conta serão apagados neste dispositivo. Não é possível anular a eliminação depois de confirmada.</p>
 
   <div class="actions">
     <a class="btn btn-danger" href="/definicoes/conta">Continuar para eliminar na app</a>
@@ -65,21 +51,6 @@
 </div>
 <script>
 (function(){
-  var u = location.href.replace(/\?.*$/,'').replace(/#.*$/,'');
-  if (u.slice(-1) !== '/') u += '/';
-  var el = document.getElementById('page-url');
-  if (el) el.textContent = u;
-  var b = document.getElementById('btn-copy');
-  if (b) b.onclick = function(){
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(u).then(function(){ b.textContent = 'Copiado'; });
-    } else {
-      var ta = document.createElement('textarea');
-      ta.value = u; document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); b.textContent = 'Copiado'; } catch(e){}
-      document.body.removeChild(ta);
-    }
-  };
   var back = document.getElementById('tchilo-back');
   if (back) back.onclick = function(){
     if (history.length > 1) history.back();

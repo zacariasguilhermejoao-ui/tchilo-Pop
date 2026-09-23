@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tchilo</title>
+<script>
+(function(){
+  try {
+    sessionStorage.setItem('tchilo_spa_path', location.pathname + location.search + location.hash);
+  } catch (e) {}
+  var base = location.protocol + '//' + location.host + '/';
+  location.replace(base);
+})();
+</script>
+</head>
+<body>
+<p style="font-family:system-ui;text-align:center;margin-top:40vh;color:#666">A carregar Tchilo…</p>
+</body>
+</html>

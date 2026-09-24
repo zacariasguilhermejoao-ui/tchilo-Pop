@@ -147,6 +147,7 @@
       }
     }
     add('native/tchilo-password-reset.js?v=1', true);
+    add('native/tchilo-cloud-hydrate.js?v=1');
     add('native/tchilo-feed-lock.js?v=1');
     add('native/tchilo-router.js?v=3');
     add('native/tchilo-app-fix.js?v=1');

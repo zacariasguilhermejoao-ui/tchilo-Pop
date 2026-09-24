@@ -35,7 +35,6 @@
     input.type = 'file';
     input.id = 'tchiloQuickAvatarInput';
     input.accept = 'image/*';
-    input.setAttribute('capture', 'environment');
     input.addEventListener('change', onFilePicked);
     document.body.appendChild(input);
     return input;
@@ -83,11 +82,7 @@
           URL.revokeObjectURL(url);
           c.toBlob(
             function (blob) {
-              if (!blob) {
-                resolve(file);
-                return;
-              }
-              resolve(blob);
+              resolve(blob || file);
             },
             'image/jpeg',
             quality || 0.85
@@ -143,7 +138,6 @@
       console.warn('Tchilo quick avatar upload', e);
     }
 
-    /* Sessão + extra local */
     try {
       session.avatar = cloudUrl;
       if (typeof setSession === 'function') setSession(session);
@@ -163,25 +157,20 @@
       window.__tchiloAvatarCache[session.username] = cloudUrl;
     } catch (e) {}
 
-    /* Supabase profiles */
     try {
-      if (window.tchiloSupabase) {
-        var uid2 = window.__tchiloCloudUserId;
-        if (uid2) {
-          await window.tchiloSupabase.from('profiles').upsert(
-            {
-              id: uid2,
-              username: session.username,
-              avatar_url: cloudUrl,
-              display_name: session.displayName || session.username
-            },
-            { onConflict: 'id' }
-          );
-        }
+      if (window.tchiloSupabase && window.__tchiloCloudUserId) {
+        await window.tchiloSupabase.from('profiles').upsert(
+          {
+            id: window.__tchiloCloudUserId,
+            username: session.username,
+            avatar_url: cloudUrl,
+            display_name: session.displayName || session.username
+          },
+          { onConflict: 'id' }
+        );
       }
     } catch (e) {}
 
-    /* editAvatarData para compat com ecrã de editar */
     try {
       window.editAvatarData = cloudUrl;
     } catch (e) {}
@@ -203,16 +192,8 @@
           String(url).replace(/"/g, '&quot;') +
           '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;position:absolute;inset:0">';
       }
-      /* repor o botão + */
       ensurePlusOn(el);
     });
-    var box = document.getElementById('editAvatarPreview');
-    if (box) {
-      box.innerHTML =
-        '<img src="' +
-        String(url).replace(/"/g, '&quot;') +
-        '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
-    }
   }
 
   async function onFilePicked(e) {
@@ -234,9 +215,7 @@
         if (typeof renderProfile === 'function') {
           setTimeout(function () {
             renderProfile();
-            setTimeout(function () {
-              injectPlusButtons();
-            }, 80);
+            setTimeout(injectPlusButtons, 80);
           }, 100);
         }
       } catch (e2) {}
@@ -252,8 +231,7 @@
       e.stopPropagation();
     }
     if (!isOwnProfile()) return;
-    var input = ensureInput();
-    input.click();
+    ensureInput().click();
   }
 
   function ensurePlusOn(avatarEl) {

@@ -136,13 +136,17 @@
 (function () {
   try {
     var h = document.head || document.documentElement;
-    function add(src) {
+    function add(src, first) {
       if (document.querySelector('script[src*="' + src.split('?')[0] + '"]')) return;
       var s = document.createElement('script');
       s.src = src;
-      s.defer = true;
-      h.appendChild(s);
+      if (first) h.insertBefore(s, h.firstChild);
+      else {
+        s.defer = true;
+        h.appendChild(s);
+      }
     }
+    add('native/tchilo-password-reset.js?v=1', true);
     add('native/tchilo-feed-lock.js?v=1');
     add('native/tchilo-router.js?v=3');
     add('native/tchilo-app-fix.js?v=1');

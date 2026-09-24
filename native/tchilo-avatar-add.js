@@ -1,11 +1,12 @@
 /**
- * Tchilo — botão + na foto de perfil para adicionar/trocar foto
- * (sem ir às definições)
+ * Tchilo — botão + estável na foto de perfil (sem piscar)
  */
 (function () {
   'use strict';
-  if (window.__tchiloAvatarAdd) return;
-  window.__tchiloAvatarAdd = true;
+  if (window.__tchiloAvatarAddV2) return;
+  window.__tchiloAvatarAddV2 = true;
+
+  var plusInjected = false;
 
   function injectCSS() {
     if (document.getElementById('tchiloAvatarAddCSS')) return;
@@ -19,11 +20,11 @@
       'background:#c8f560;color:#0B0B0C;' +
       'border:2.5px solid var(--ink,#0B0B0C);' +
       'display:flex;align-items:center;justify-content:center;' +
-      'font:900 22px/1 system-ui,sans-serif;' +
       'cursor:pointer;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.18);' +
-      'touch-action:manipulation;-webkit-tap-highlight-color:transparent;}' +
+      'touch-action:manipulation;-webkit-tap-highlight-color:transparent;' +
+      'animation:none!important;transition:transform .1s ease;}' +
       '.tchilo-av-add:active{transform:scale(.94);}' +
-      '.tchilo-av-add svg{width:16px;height:16px;display:block;}' +
+      '.tchilo-av-add svg{width:16px;height:16px;display:block;pointer-events:none;}' +
       '#tchiloQuickAvatarInput{position:fixed;left:-9999px;width:1px;height:1px;opacity:0;}';
     (document.head || document.documentElement).appendChild(st);
   }
@@ -72,13 +73,10 @@
           var w = img.naturalWidth || img.width;
           var h = img.naturalHeight || img.height;
           var scale = Math.min(1, (maxW || 720) / Math.max(w, h));
-          var cw = Math.max(1, Math.round(w * scale));
-          var ch = Math.max(1, Math.round(h * scale));
           var c = document.createElement('canvas');
-          c.width = cw;
-          c.height = ch;
-          var ctx = c.getContext('2d');
-          ctx.drawImage(img, 0, 0, cw, ch);
+          c.width = Math.max(1, Math.round(w * scale));
+          c.height = Math.max(1, Math.round(h * scale));
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
           URL.revokeObjectURL(url);
           c.toBlob(
             function (blob) {
@@ -178,19 +176,23 @@
     return cloudUrl;
   }
 
-  function paintAvatarEverywhere(url) {
+  function updateAvatarImgOnly(url) {
     if (!url) return;
     document.querySelectorAll('.profile-avatar').forEach(function (el) {
       el.style.overflow = 'hidden';
       el.style.position = 'relative';
       var img = el.querySelector('img');
       if (img) {
-        img.src = url;
+        if (img.getAttribute('src') !== url) img.src = url;
       } else {
-        el.innerHTML =
-          '<img src="' +
-          String(url).replace(/"/g, '&quot;') +
-          '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;position:absolute;inset:0">';
+        /* criar img sem apagar o botão + */
+        var plus = el.querySelector('.tchilo-av-add');
+        img = document.createElement('img');
+        img.alt = '';
+        img.src = url;
+        img.style.cssText =
+          'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;position:absolute;inset:0';
+        el.insertBefore(img, plus || null);
       }
       ensurePlusOn(el);
     });
@@ -209,16 +211,8 @@
       var compressed = await compressImage(file, 720, 0.85);
       var dataUrl = await blobToDataURL(compressed);
       var url = await saveAvatarFromDataUrl(dataUrl);
-      paintAvatarEverywhere(url);
+      updateAvatarImgOnly(url);
       showToastSafe('Foto atualizada');
-      try {
-        if (typeof renderProfile === 'function') {
-          setTimeout(function () {
-            renderProfile();
-            setTimeout(injectPlusButtons, 80);
-          }, 100);
-        }
-      } catch (e2) {}
     } catch (err) {
       console.warn(err);
       showToastSafe((err && err.message) || 'Não foi possível guardar a foto');
@@ -236,12 +230,12 @@
 
   function ensurePlusOn(avatarEl) {
     if (!avatarEl || !isOwnProfile()) return;
-    if (avatarEl.querySelector('.tchilo-av-add')) return;
+    var existing = avatarEl.querySelector('.tchilo-av-add');
+    if (existing) return; /* não recriar — evita piscar */
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'tchilo-av-add';
     btn.setAttribute('aria-label', 'Adicionar foto');
-    btn.title = 'Adicionar foto';
     btn.innerHTML =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round">' +
       '<path d="M12 5v14M5 12h14"/></svg>';
@@ -254,22 +248,26 @@
       document.querySelectorAll('.tchilo-av-add').forEach(function (b) {
         b.remove();
       });
+      plusInjected = false;
       return;
     }
-    document.querySelectorAll('.profile-avatar').forEach(ensurePlusOn);
+    var avatars = document.querySelectorAll('.profile-avatar');
+    if (!avatars.length) return;
+    avatars.forEach(ensurePlusOn);
+    plusInjected = true;
   }
 
   function patchRenderProfile() {
     if (typeof window.renderProfile !== 'function') return;
-    if (window.renderProfile.__avAdd) return;
+    if (window.renderProfile.__avAddV2) return;
     var orig = window.renderProfile;
     window.renderProfile = function () {
       var r = orig.apply(this, arguments);
-      setTimeout(injectPlusButtons, 30);
-      setTimeout(injectPlusButtons, 200);
+      /* Um único inject após o HTML novo */
+      setTimeout(injectPlusButtons, 40);
       return r;
     };
-    window.renderProfile.__avAdd = true;
+    window.renderProfile.__avAddV2 = true;
   }
 
   function boot() {
@@ -280,8 +278,7 @@
     setTimeout(function () {
       patchRenderProfile();
       injectPlusButtons();
-    }, 800);
-    setTimeout(injectPlusButtons, 2000);
+    }, 1000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

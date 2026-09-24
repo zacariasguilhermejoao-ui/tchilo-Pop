@@ -1,26 +1,24 @@
 /**
- * Tchilo — esconde a barra inferior (Fee, Reels, +…) em ecrãs internos
- * como Definições e Editar perfil.
+ * Tchilo — esconde a barra inferior em Definições e ecrãs internos
  */
 (function () {
   'use strict';
-  if (window.__tchiloHideNav) return;
-  window.__tchiloHideNav = true;
+  if (window.__tchiloHideNavV2) return;
+  window.__tchiloHideNavV2 = true;
 
-  /* Ecrãs sem menu inferior */
-  var HIDE_ON = {
+  var HIDE_EXACT = {
     settings: 1,
     editprofile: 1,
     'edit-profile': 1,
+    terms: 1,
     privacy: 1,
-    support: 1,
-    cookies: 1,
-    legal: 1,
+    community: 1,
+    child: 1,
     about: 1,
-    premium: 1,
-    ads: 1,
-    adsmanager: 1,
-    'ads-manager': 1
+    cookies: 1,
+    saved: 1,
+    blocked: 1,
+    support: 1
   };
 
   function injectCSS() {
@@ -29,52 +27,40 @@
     st.id = 'tchiloHideNavCSS';
     st.textContent =
       'body.tchilo-no-bottom-nav .navbar,' +
-      'body.tchilo-no-bottom-nav #appFrame > .navbar,' +
-      'body.tchilo-no-bottom-nav nav.navbar{' +
-      'display:none!important;visibility:hidden!important;pointer-events:none!important;}' +
-      /* dá espaço ao conteúdo quando a barra some */
-      'body.tchilo-no-bottom-nav .screen.active,' +
+      'body.tchilo-no-bottom-nav nav.navbar,' +
+      'html body.tchilo-no-bottom-nav .navbar{' +
+      'display:none!important;' +
+      'visibility:hidden!important;' +
+      'opacity:0!important;' +
+      'pointer-events:none!important;' +
+      'height:0!important;' +
+      'min-height:0!important;' +
+      'overflow:hidden!important;' +
+      'transform:translateY(120%)!important;}' +
+      'body.tchilo-no-bottom-nav #appFrame.chrome-hidden .navbar{' +
+      'display:none!important;}' +
+      'body.tchilo-no-bottom-nav .screen.active{' +
+      'padding-bottom:0!important;' +
+      'margin-bottom:0!important;}' +
       'body.tchilo-no-bottom-nav #appFrame{' +
-      'padding-bottom:0!important;}' +
-      'body.tchilo-no-bottom-nav .screen-body,' +
-      'body.tchilo-no-bottom-nav .settings-body{' +
-      'padding-bottom:max(16px, env(safe-area-inset-bottom, 0px))!important;}';
+      'padding-bottom:0!important;}';
     (document.head || document.documentElement).appendChild(st);
   }
 
-  function shouldHide(name) {
-    if (!name) return false;
-    var n = String(name).toLowerCase().replace(/^screen-/, '');
-    if (HIDE_ON[n]) return true;
-    /* fallback: id do ecrã ativo */
-    try {
-      var active = document.querySelector('.screen.active');
-      if (active && active.id) {
-        var id = active.id.replace(/^screen-/, '').toLowerCase();
-        if (HIDE_ON[id]) return true;
-      }
-    } catch (e) {}
-    return false;
+  function normalize(name) {
+    return String(name || '')
+      .toLowerCase()
+      .replace(/^screen-/, '')
+      .trim();
   }
 
-  function apply(name) {
-    injectCSS();
-    var hide = shouldHide(name);
-    try {
-      document.body.classList.toggle('tchilo-no-bottom-nav', hide);
-    } catch (e) {}
-    try {
-      var nav = document.querySelector('.navbar');
-      if (nav) {
-        if (hide) {
-          nav.style.setProperty('display', 'none', 'important');
-          nav.setAttribute('aria-hidden', 'true');
-        } else {
-          nav.style.removeProperty('display');
-          nav.setAttribute('aria-hidden', 'false');
-        }
-      }
-    } catch (e) {}
+  function shouldHide(name) {
+    var n = normalize(name);
+    if (!n) return false;
+    if (HIDE_EXACT[n]) return true;
+    if (n.indexOf('settings') === 0) return true; /* settings-account, settings-theme… */
+    if (n.indexOf('edit') === 0 && n.indexOf('profile') >= 0) return true;
+    return false;
   }
 
   function currentScreenName() {
@@ -85,39 +71,80 @@
     return '';
   }
 
+  function apply(name) {
+    injectCSS();
+    var hide = shouldHide(name || currentScreenName());
+    try {
+      document.body.classList.toggle('tchilo-no-bottom-nav', !!hide);
+      document.documentElement.classList.toggle('tchilo-no-bottom-nav', !!hide);
+    } catch (e) {}
+
+    try {
+      document.querySelectorAll('.navbar, nav.navbar').forEach(function (nav) {
+        if (hide) {
+          nav.style.setProperty('display', 'none', 'important');
+          nav.style.setProperty('visibility', 'hidden', 'important');
+          nav.setAttribute('aria-hidden', 'true');
+          nav.setAttribute('data-tchilo-hidden', '1');
+        } else {
+          if (nav.getAttribute('data-tchilo-hidden') === '1') {
+            nav.style.removeProperty('display');
+            nav.style.removeProperty('visibility');
+            nav.removeAttribute('data-tchilo-hidden');
+          }
+          nav.setAttribute('aria-hidden', 'false');
+        }
+      });
+    } catch (e) {}
+  }
+
   function patchGoTo() {
     if (typeof window.goTo !== 'function') return false;
-    if (window.goTo.__hideNav) return true;
+    if (window.goTo.__hideNavV2) return true;
     var orig = window.goTo;
     window.goTo = function (name) {
       var r = orig.apply(this, arguments);
-      try {
-        apply(name);
-        setTimeout(function () {
-          apply(name || currentScreenName());
-        }, 0);
-        setTimeout(function () {
-          apply(currentScreenName());
-        }, 80);
-      } catch (e) {}
+      apply(name);
+      requestAnimationFrame(function () {
+        apply(name || currentScreenName());
+      });
+      setTimeout(function () {
+        apply(currentScreenName());
+      }, 50);
       return r;
     };
-    window.goTo.__hideNav = true;
+    window.goTo.__hideNavV2 = true;
     return true;
+  }
+
+  function watchScreens() {
+    try {
+      var root = document.getElementById('appFrame') || document.body;
+      if (!root || root.__tchiloNavWatch) return;
+      root.__tchiloNavWatch = true;
+      new MutationObserver(function () {
+        apply(currentScreenName());
+      }).observe(root, {
+        attributes: true,
+        attributeFilter: ['class'],
+        subtree: true
+      });
+    } catch (e) {}
   }
 
   function boot() {
     injectCSS();
     patchGoTo();
     apply(currentScreenName());
+    watchScreens();
     setTimeout(function () {
       patchGoTo();
       apply(currentScreenName());
-    }, 600);
+    }, 400);
     setTimeout(function () {
       patchGoTo();
       apply(currentScreenName());
-    }, 2000);
+    }, 1500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

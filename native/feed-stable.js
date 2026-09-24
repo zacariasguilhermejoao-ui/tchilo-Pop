@@ -132,7 +132,7 @@
   else boot();
 })();
 
-/* Tchilo loaders — feed-lock primeiro */
+/* Tchilo loaders */
 (function () {
   try {
     var h = document.head || document.documentElement;
@@ -151,5 +151,6 @@
     add('native/tchilo-push-wire.js?v=1');
     add('native/tchilo-video-fix.js?v=3');
     add('native/tchilo-thumb-upload.js?v=2');
+    add('native/tchilo-avatar-fix.js?v=1');
   } catch (e) {}
 })();

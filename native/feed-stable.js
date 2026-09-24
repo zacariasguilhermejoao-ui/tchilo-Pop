@@ -6,7 +6,7 @@
 
   var injectTimer = null;
   var lastInjectAt = 0;
-  var MIN_GAP = 400;
+  var MIN_GAP = 1500;
 
   function scheduleStableInject() {
     var now = Date.now();
@@ -20,7 +20,7 @@
           window.__tchiloStableMusicInject();
         }
       } catch (e) {}
-    }, wait || 50);
+    }, wait || 80);
   }
 
   function stableMusicInject() {
@@ -125,14 +125,14 @@
     setTimeout(function () {
       neutralizeNoisyHooks();
       scheduleStableInject();
-    }, 900);
+    }, 1200);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
 
-/* Tchilo loaders */
+/* Tchilo loaders — feed-lock primeiro */
 (function () {
   try {
     var h = document.head || document.documentElement;
@@ -143,6 +143,7 @@
       s.defer = true;
       h.appendChild(s);
     }
+    add('native/tchilo-feed-lock.js?v=1');
     add('native/tchilo-router.js?v=3');
     add('native/tchilo-app-fix.js?v=1');
     add('native/tchilo-offline.js?v=1');

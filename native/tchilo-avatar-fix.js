@@ -1,10 +1,15 @@
 /**
- * Tchilo — foto de perfil aparece no perfil, feed e ícones
+ * Tchilo — foto de perfil estável (sem piscar)
  */
 (function () {
   'use strict';
-  if (window.__tchiloAvatarFix) return;
-  window.__tchiloAvatarFix = true;
+  if (window.__tchiloAvatarFixV2) return;
+  window.__tchiloAvatarFixV2 = true;
+
+  var lastCloudUrl = '';
+  var painted = {};
+  var refreshTimer = null;
+  var pulledOnce = false;
 
   function injectCSS() {
     if (document.getElementById('tchiloAvatarFixCSS')) return;
@@ -12,17 +17,16 @@
     st.id = 'tchiloAvatarFixCSS';
     st.textContent =
       '.profile-avatar{overflow:hidden!important;position:relative;}' +
-      '.profile-avatar img,' +
-      '.user-avatar img,' +
-      '.msg-item .user-avatar img,' +
-      '.post-avatar img,' +
-      '.story-ring img,' +
-      '[class*="avatar"] img{' +
+      '.profile-avatar img.tchilo-av,' +
+      '.user-avatar img.tchilo-av,' +
+      '.post-avatar img.tchilo-av,' +
+      '[class*="avatar"] img.tchilo-av{' +
       'width:100%!important;height:100%!important;' +
       'object-fit:cover!important;border-radius:50%!important;' +
-      'display:block!important;position:absolute;inset:0;}' +
-      '.profile-avatar,.user-avatar,.post-avatar{' +
-      'background-size:cover!important;background-position:center!important;}';
+      'display:block!important;position:absolute;inset:0;' +
+      'animation:none!important;transition:none!important;}' +
+      '.profile-avatar img,.user-avatar img,.post-avatar img{' +
+      'animation:none!important;transition:none!important;}';
     (document.head || document.documentElement).appendChild(st);
   }
 
@@ -43,12 +47,40 @@
     }
   }
 
-  function persistLocalAvatar(username, url) {
-    if (!username || !url) return;
-    setCache(username, url);
+  function resolveUrl(username) {
+    if (!username) return null;
+    try {
+      if (window.__tchiloAvatarCache && window.__tchiloAvatarCache[username]) {
+        return window.__tchiloAvatarCache[username];
+      }
+    } catch (e) {}
     try {
       var session = getSessionSafe();
-      if (session && session.username === username) {
+      if (session && session.username === username && session.avatar) return session.avatar;
+    } catch (e) {}
+    try {
+      if (typeof getProfileExtra === 'function') {
+        var extra = getProfileExtra(username);
+        if (extra && extra.avatar) return extra.avatar;
+      }
+    } catch (e) {}
+    try {
+      if (typeof resolveUserAvatarUrl === 'function') {
+        var u = resolveUserAvatarUrl(username);
+        if (u) return u;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function persistLocalAvatar(username, url) {
+    if (!username || !url) return;
+    if (lastCloudUrl === url && painted[username] === url) return;
+    setCache(username, url);
+    lastCloudUrl = url;
+    try {
+      var session = getSessionSafe();
+      if (session && session.username === username && session.avatar !== url) {
         session.avatar = url;
         if (typeof setSession === 'function') setSession(session);
         else localStorage.setItem('tchilo_session', JSON.stringify(session));
@@ -57,35 +89,106 @@
     try {
       if (typeof getProfileExtra === 'function' && typeof saveProfileExtra === 'function') {
         var extra = getProfileExtra(username) || {};
-        extra.avatar = url;
-        saveProfileExtra(username, extra);
-      } else {
-        var all = {};
-        try {
-          all = JSON.parse(localStorage.getItem('tchilo_profiles') || '{}');
-        } catch (e2) {}
-        all[username] = all[username] || {};
-        all[username].avatar = url;
-        localStorage.setItem('tchilo_profiles', JSON.stringify(all));
-      }
-    } catch (e) {}
-    /* Atualiza posts locais do próprio user */
-    try {
-      if (typeof getPosts === 'function' && typeof save === 'function' && typeof KEYS !== 'undefined') {
-        var posts = getPosts() || [];
-        var changed = false;
-        posts.forEach(function (p) {
-          if (p && p.username === username && p.avatar !== url) {
-            p.avatar = url;
-            changed = true;
-          }
-        });
-        if (changed) save(KEYS.posts, posts);
+        if (extra.avatar !== url) {
+          extra.avatar = url;
+          saveProfileExtra(username, extra);
+        }
       }
     } catch (e) {}
   }
 
+  /** Só altera o DOM se a URL mudou — evita piscar */
+  function paintElement(el, url) {
+    if (!el || !url) return false;
+    var key = el.getAttribute('data-av-key') || '';
+    if (!key) {
+      key = 'av-' + Math.random().toString(36).slice(2, 8);
+      el.setAttribute('data-av-key', key);
+    }
+    if (el.getAttribute('data-av-url') === url) {
+      var img0 = el.querySelector('img.tchilo-av');
+      if (img0 && img0.getAttribute('src') === url) return false;
+    }
+
+    var img = el.querySelector('img.tchilo-av');
+    if (img) {
+      if (img.getAttribute('src') === url) {
+        el.setAttribute('data-av-url', url);
+        return false;
+      }
+      /* troca src sem destruir o nó (menos flash) */
+      img.setAttribute('src', url);
+      el.setAttribute('data-av-url', url);
+      return true;
+    }
+
+    el.style.overflow = 'hidden';
+    if (!el.style.position || el.style.position === 'static') el.style.position = 'relative';
+    el.textContent = '';
+    img = document.createElement('img');
+    img.className = 'tchilo-av';
+    img.alt = '';
+    img.decoding = 'async';
+    img.loading = 'eager';
+    img.style.cssText =
+      'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;position:absolute;inset:0;animation:none;transition:none';
+    img.onerror = function () {
+      img.style.display = 'none';
+    };
+    img.src = url;
+    el.appendChild(img);
+    el.setAttribute('data-av-url', url);
+    return true;
+  }
+
+  function refreshAllAvatars() {
+    try {
+      var session = getSessionSafe();
+      if (!session || !session.username) return;
+      var url = resolveUrl(session.username);
+      if (!url) return;
+
+      if (painted[session.username] === url) {
+        /* Já pintámos esta URL — só preenche nós novos sem avatar */
+        document.querySelectorAll('.profile-avatar').forEach(function (el) {
+          if (el.getAttribute('data-av-url') !== url) paintElement(el, url);
+        });
+        return;
+      }
+
+      painted[session.username] = url;
+      setCache(session.username, url);
+
+      document.querySelectorAll('.profile-avatar').forEach(function (el) {
+        paintElement(el, url);
+      });
+
+      var box = document.getElementById('editAvatarPreview');
+      if (box) paintElement(box, url);
+
+      document.querySelectorAll('.post .post-avatar, .post .user-avatar, .post .avatar').forEach(function (av) {
+        var post = av.closest('.post');
+        if (!post) return;
+        var nameEl = post.querySelector('.user-tap, .post-user b, .post-user');
+        var uname = '';
+        if (nameEl) {
+          uname = (nameEl.getAttribute('data-user') || nameEl.textContent || '')
+            .replace(/^@/, '')
+            .trim()
+            .split(/\s|·/)[0];
+        }
+        if (uname === session.username) paintElement(av, url);
+      });
+    } catch (e) {}
+  }
+
+  function scheduleRefresh() {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(refreshAllAvatars, 120);
+  }
+
   async function pullAvatarFromCloud() {
+    if (pulledOnce && lastCloudUrl) return lastCloudUrl;
     try {
       var SB = window.tchiloSupabase;
       if (!SB) return null;
@@ -108,174 +211,79 @@
 
       var url = null;
       if (uid) {
-        var r = await SB.from('profiles')
-          .select('avatar_url,username')
-          .eq('id', uid)
-          .maybeSingle();
+        var r = await SB.from('profiles').select('avatar_url').eq('id', uid).maybeSingle();
         if (r && r.data && r.data.avatar_url) url = r.data.avatar_url;
       }
-      if (!url && session.username) {
+      if (!url) {
         var r2 = await SB.from('profiles')
           .select('avatar_url')
           .ilike('username', session.username)
           .maybeSingle();
         if (r2 && r2.data && r2.data.avatar_url) url = r2.data.avatar_url;
       }
+
+      pulledOnce = true;
       if (url) {
+        if (url === lastCloudUrl) return url;
+        lastCloudUrl = url;
         persistLocalAvatar(session.username, url);
+        scheduleRefresh();
         return url;
       }
-    } catch (e) {
-      console.warn('Tchilo avatar pull', e);
-    }
-    return null;
-  }
-
-  function paintElement(el, url, initials, bg) {
-    if (!el) return;
-    if (url) {
-      el.style.background = bg || 'transparent';
-      el.style.overflow = 'hidden';
-      el.style.position = el.style.position || 'relative';
-      var existing = el.querySelector('img.tchilo-av');
-      if (existing && existing.src === url) return;
-      el.innerHTML =
-        '<img class="tchilo-av" src="' +
-        String(url).replace(/"/g, '&quot;') +
-        '" alt="" loading="lazy" ' +
-        'style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;position:absolute;inset:0" ' +
-        'onerror="this.style.display=\'none\'">';
-    } else if (initials) {
-      if (!el.querySelector('img')) {
-        el.textContent = String(initials).slice(0, 2).toUpperCase();
-      }
-    }
-  }
-
-  function refreshAllAvatars() {
-    try {
-      var session = getSessionSafe();
-      if (!session || !session.username) return;
-      var url =
-        (window.__tchiloAvatarCache && window.__tchiloAvatarCache[session.username]) ||
-        session.avatar ||
-        null;
-      try {
-        var extra =
-          typeof getProfileExtra === 'function'
-            ? getProfileExtra(session.username)
-            : null;
-        if (extra && extra.avatar) url = extra.avatar;
-      } catch (e) {}
-
-      if (!url) return;
-      setCache(session.username, url);
-
-      /* Perfil grande */
-      document.querySelectorAll('.profile-avatar').forEach(function (el) {
-        paintElement(el, url, null, 'transparent');
-      });
-
-      /* Preview editar */
-      var box = document.getElementById('editAvatarPreview');
-      if (box) paintElement(box, url, null, 'transparent');
-
-      /* Feed / posts do próprio user */
-      document.querySelectorAll('.post[data-id]').forEach(function (post) {
-        var uname = post.getAttribute('data-user') || post.getAttribute('data-username');
-        if (!uname) {
-          var nameEl = post.querySelector('.post-user, .user-tap, b.user-tap');
-          if (nameEl) {
-            var t = (nameEl.textContent || '').replace(/^@/, '').trim();
-            if (t) uname = t.split(/\s|·/)[0];
-          }
-        }
-        if (uname && uname === session.username) {
-          var av = post.querySelector('.post-avatar, .user-avatar, .avatar');
-          if (av) paintElement(av, url, null, 'transparent');
-        }
-      });
-
-      /* Navbar perfil */
-      var nav =
-        document.querySelector('.navbar .nav-item[data-screen="profile"]') ||
-        document.querySelector('.navbar .nav-item[onclick*="profile"]');
-      if (nav) {
-        var navAv = nav.querySelector('.user-avatar, .avatar, img');
-        if (navAv && navAv.tagName === 'IMG') navAv.src = url;
-      }
     } catch (e) {}
+    return null;
   }
 
   function patchApplyAvatar() {
     if (typeof window.applyAvatarToElement !== 'function') return;
-    if (window.applyAvatarToElement.__avFix) return;
+    if (window.applyAvatarToElement.__avStable) return;
     var orig = window.applyAvatarToElement;
     window.applyAvatarToElement = function (el, username, initials, bg) {
-      var url = null;
-      try {
-        if (window.__tchiloAvatarCache && window.__tchiloAvatarCache[username]) {
-          url = window.__tchiloAvatarCache[username];
-        }
-      } catch (e) {}
-      if (!url && typeof resolveUserAvatarUrl === 'function') {
-        try {
-          url = resolveUserAvatarUrl(username);
-        } catch (e) {}
-      }
+      var url = resolveUrl(username);
       if (url) {
-        paintElement(el, url, initials, bg);
+        paintElement(el, url);
         return;
       }
       return orig.apply(this, arguments);
     };
-    window.applyAvatarToElement.__avFix = true;
+    window.applyAvatarToElement.__avStable = true;
   }
 
   function patchSaveProfile() {
     if (typeof window.saveProfile !== 'function') return;
-    if (window.saveProfile.__avFix) return;
+    if (window.saveProfile.__avStable) return;
     var orig = window.saveProfile;
     window.saveProfile = async function () {
       var r = await orig.apply(this, arguments);
       try {
+        pulledOnce = false;
+        painted = {};
         var session = getSessionSafe();
         if (session && session.avatar) {
+          lastCloudUrl = session.avatar;
           persistLocalAvatar(session.username, session.avatar);
         }
-        /* se ainda for data: e cloud falhou, mantém local */
-        if (window.editAvatarData && String(window.editAvatarData).indexOf('data:') === 0) {
-          var s = getSessionSafe();
-          if (s && (!s.avatar || String(s.avatar).indexOf('http') !== 0)) {
-            persistLocalAvatar(s.username, window.editAvatarData);
-          }
-        }
-        setTimeout(refreshAllAvatars, 100);
+        scheduleRefresh();
         setTimeout(function () {
-          if (typeof renderProfile === 'function') renderProfile();
-          refreshAllAvatars();
-        }, 400);
-        pullAvatarFromCloud().then(function () {
-          refreshAllAvatars();
-          if (typeof renderProfile === 'function') renderProfile();
-        });
+          pullAvatarFromCloud();
+        }, 500);
       } catch (e) {}
       return r;
     };
-    window.saveProfile.__avFix = true;
+    window.saveProfile.__avStable = true;
   }
 
   function patchRenderProfile() {
     if (typeof window.renderProfile !== 'function') return;
-    if (window.renderProfile.__avFix) return;
+    if (window.renderProfile.__avStable) return;
     var orig = window.renderProfile;
     window.renderProfile = function () {
       var r = orig.apply(this, arguments);
-      setTimeout(refreshAllAvatars, 50);
-      setTimeout(refreshAllAvatars, 400);
+      /* Uma única atualização após o render nativo */
+      scheduleRefresh();
       return r;
     };
-    window.renderProfile.__avFix = true;
+    window.renderProfile.__avStable = true;
   }
 
   function boot() {
@@ -284,30 +292,17 @@
     patchSaveProfile();
     patchRenderProfile();
 
-    /* Hidrata avatar da cloud ao abrir */
-    pullAvatarFromCloud().then(function (url) {
-      if (url) {
-        refreshAllAvatars();
-        if (typeof renderProfile === 'function') {
-          try {
-            renderProfile();
-          } catch (e) {}
-        }
-      } else {
-        refreshAllAvatars();
-      }
-    });
+    /* Local primeiro (sem flash), cloud depois uma vez */
+    scheduleRefresh();
+    setTimeout(function () {
+      pullAvatarFromCloud();
+    }, 600);
 
     setTimeout(function () {
       patchApplyAvatar();
       patchSaveProfile();
       patchRenderProfile();
-      refreshAllAvatars();
-    }, 1200);
-
-    setTimeout(function () {
-      pullAvatarFromCloud().then(refreshAllAvatars);
-    }, 3000);
+    }, 1500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

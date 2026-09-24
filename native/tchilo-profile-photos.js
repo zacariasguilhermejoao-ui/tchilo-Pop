@@ -1,16 +1,16 @@
 /**
- * Tchilo — galeria de perfil: zoom + legendas + swipe
+ * Tchilo — ver foto de perfil (só avatar, sem posts)
+ * Zoom + legenda
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfilePhotosV2) return;
-  window.__tchiloProfilePhotosV2 = true;
+  if (window.__tchiloProfilePhotosV3) return;
+  window.__tchiloProfilePhotosV3 = true;
 
   var state = {
     items: [],
     index: 0,
     username: '',
-    touchX: null,
     scale: 1,
     tx: 0,
     ty: 0,
@@ -55,10 +55,8 @@
       'max-height:35%;overflow:auto;text-align:left;}' +
       '#tchiloPhotoViewer .tpv-caption:empty{display:none;}' +
       '#tchiloPhotoViewer .tpv-caption b{display:block;font-size:13px;opacity:.8;margin-bottom:4px;}' +
-      '#tchiloPhotoViewer .tpv-dots{position:absolute;bottom:calc(8px + env(safe-area-inset-bottom,0px));' +
+      '#tchiloPhotoViewer .tpv-dots{position:absolute;bottom:calc(12px + env(safe-area-inset-bottom,0px));' +
       'left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:4;pointer-events:none;}' +
-      '#tchiloPhotoViewer .tpv-caption ~ .tpv-dots,' +
-      '#tchiloPhotoViewer .tpv-dots{bottom:calc(12px + env(safe-area-inset-bottom,0px));}' +
       '#tchiloPhotoViewer.has-caption .tpv-dots{bottom:calc(72px + env(safe-area-inset-bottom,0px));}' +
       '#tchiloPhotoViewer .tpv-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35);}' +
       '#tchiloPhotoViewer .tpv-dot.on{background:#fff;}' +
@@ -71,8 +69,8 @@
     box.innerHTML =
       '<button type="button" class="tpv-close" aria-label="Fechar">×</button>' +
       '<div class="tpv-counter"></div>' +
-      '<button type="button" class="tpv-nav tpv-prev" aria-label="Anterior">‹</button>' +
-      '<button type="button" class="tpv-nav tpv-next" aria-label="Seguinte">›</button>' +
+      '<button type="button" class="tpv-nav tpv-prev" aria-label="Anterior" hidden>‹</button>' +
+      '<button type="button" class="tpv-nav tpv-next" aria-label="Seguinte" hidden>›</button>' +
       '<div class="tpv-img-wrap"><img class="tpv-img" alt=""></div>' +
       '<div class="tpv-caption"></div>' +
       '<div class="tpv-dots"></div>';
@@ -163,16 +161,14 @@
       function (e) {
         if (!box.classList.contains('open')) return;
         e.preventDefault();
-        var delta = e.deltaY > 0 ? -0.12 : 0.12;
-        setZoom(state.scale + delta);
+        setZoom(state.scale + (e.deltaY > 0 ? -0.12 : 0.12));
       },
       { passive: false }
     );
 
     wrap.addEventListener('dblclick', function (e) {
       e.preventDefault();
-      if (state.scale > 1.2) setZoom(1);
-      else setZoom(2.5);
+      setZoom(state.scale > 1.2 ? 1 : 2.5);
     });
 
     wrap.addEventListener(
@@ -196,16 +192,11 @@
           panOriginTx = state.tx;
           panOriginTy = state.ty;
           swipeActive = state.scale <= 1.05;
-          state.touchX = pts[0].x;
-
           var now = Date.now();
           if (now - state.lastTap < 280) {
-            if (state.scale > 1.2) setZoom(1);
-            else setZoom(2.5);
+            setZoom(state.scale > 1.2 ? 1 : 2.5);
             state.lastTap = 0;
-          } else {
-            state.lastTap = now;
-          }
+          } else state.lastTap = now;
         }
       },
       { passive: true }
@@ -247,9 +238,7 @@
             delete pointers[e.changedTouches[i].identifier];
           }
         }
-        var pts = pointerList();
-        if (pts.length < 2) state.pinching = false;
-
+        if (pointerList().length < 2) state.pinching = false;
         if (swipeActive && state.scale <= 1.05 && e.changedTouches && e.changedTouches[0]) {
           var dx = e.changedTouches[0].clientX - swipeStartX;
           if (Math.abs(dx) > 50) {
@@ -269,8 +258,10 @@
     var seen = {};
     (list || []).forEach(function (it) {
       if (!it || !it.url) return;
-      if (seen[it.url]) return;
-      seen[it.url] = 1;
+      /* normaliza query ?v= para não duplicar a mesma foto */
+      var key = String(it.url).split('?')[0];
+      if (seen[key]) return;
+      seen[key] = 1;
       out.push({
         url: it.url,
         caption: it.caption || '',
@@ -280,32 +271,33 @@
     return out;
   }
 
+  /** Só foto(s) de perfil — nunca imagens de publicações */
   function collectPhotosForUser(username) {
     var items = [];
     if (!username) return items;
 
-    function add(url, caption, label) {
-      if (!url) return;
-      items.push({ url: url, caption: caption || '', label: label || '' });
+    function add(url) {
+      if (!url || typeof url !== 'string') return;
+      if (url.indexOf('data:') !== 0 && url.indexOf('http') !== 0 && url.indexOf('blob:') !== 0) return;
+      items.push({ url: url, caption: '', label: 'Foto de perfil' });
     }
 
     try {
       if (window.__tchiloAvatarCache && window.__tchiloAvatarCache[username]) {
-        add(window.__tchiloAvatarCache[username], '', 'Foto de perfil');
+        add(window.__tchiloAvatarCache[username]);
       }
     } catch (e) {}
 
     try {
       if (typeof resolveUserAvatarUrl === 'function') {
-        var a = resolveUserAvatarUrl(username);
-        if (a) add(a, '', 'Foto de perfil');
+        add(resolveUserAvatarUrl(username));
       }
     } catch (e) {}
 
     try {
       if (typeof getProfileExtra === 'function') {
         var extra = getProfileExtra(username);
-        if (extra && extra.avatar) add(extra.avatar, extra.bio || '', 'Foto de perfil');
+        if (extra && extra.avatar) add(extra.avatar);
       }
     } catch (e) {}
 
@@ -315,36 +307,17 @@
           ? getSession()
           : JSON.parse(localStorage.getItem('tchilo_session') || 'null');
       if (session && session.username === username && session.avatar) {
-        add(session.avatar, '', 'Foto de perfil');
+        add(session.avatar);
       }
     } catch (e) {}
 
     try {
       document.querySelectorAll('.profile-avatar img').forEach(function (im) {
-        if (im.src) add(im.src, '', 'Foto de perfil');
+        if (im && im.src) add(im.src);
       });
     } catch (e) {}
 
-    try {
-      var posts = typeof getPosts === 'function' ? getPosts() : [];
-      (posts || []).forEach(function (p) {
-        if (!p || p.username !== username) return;
-        var cap = (p.caption || p.title || '').trim();
-        var label = '@' + username;
-        if (p.media && p.mediaType !== 'video') add(p.media, cap, label);
-        if (p.thumbnail && p.mediaType === 'video') add(p.thumbnail, cap, label);
-        if (Array.isArray(p.mediaItems)) {
-          p.mediaItems.forEach(function (m) {
-            if (!m) return;
-            if (m.type === 'video') {
-              if (m.thumbnail || m.poster) add(m.thumbnail || m.poster, cap, label);
-            } else if (m.url) {
-              add(m.url, cap, label);
-            }
-          });
-        }
-      });
-    } catch (e) {}
+    /* NÃO incluir posts / media / publicações */
 
     return uniqueItems(items);
   }
@@ -394,9 +367,8 @@
 
     var dots = box.querySelector('.tpv-dots');
     if (dots) {
-      if (!multi) {
-        dots.innerHTML = '';
-      } else {
+      if (!multi) dots.innerHTML = '';
+      else {
         var html = '';
         for (var d = 0; d < n && d < 12; d++) {
           html += '<span class="tpv-dot' + (d === state.index ? ' on' : '') + '"></span>';
@@ -448,8 +420,9 @@
     if (!items.length) return;
     var start = 0;
     if (startUrl) {
+      var base = String(startUrl).split('?')[0];
       for (var i = 0; i < items.length; i++) {
-        if (items[i].url === startUrl) {
+        if (items[i].url === startUrl || String(items[i].url).split('?')[0] === base) {
           start = i;
           break;
         }

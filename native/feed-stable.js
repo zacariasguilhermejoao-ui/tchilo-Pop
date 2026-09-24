@@ -152,6 +152,6 @@
     add('native/tchilo-video-fix.js?v=3');
     add('native/tchilo-thumb-upload.js?v=2');
     add('native/tchilo-avatar-fix.js?v=2');
-    add('native/tchilo-profile-photos.js?v=1');
+    add('native/tchilo-profile-photos.js?v=2');
   } catch (e) {}
 })();

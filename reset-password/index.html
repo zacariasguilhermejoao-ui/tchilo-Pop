@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Redefinir palavra-passe · Tchilo</title>
+  <meta name="robots" content="noindex">
+  <style>
+    body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+      font-family:system-ui,sans-serif;background:#0B0B0C;color:#fff;}
+    .box{text-align:center;padding:24px;max-width:320px;}
+    .box p{opacity:.75;font-size:14px;line-height:1.4;}
+  </style>
+  <script>
+    (function () {
+      try { sessionStorage.setItem('tchilo_password_recovery', '1'); } catch (e) {}
+      var hash = window.location.hash || '';
+      var search = window.location.search || '';
+      /* Reencaminha para a app principal mantendo tokens do Supabase */
+      var target = '/' + (search || '') + (hash || '');
+      if (target === '/') target = '/#type=recovery';
+      window.location.replace(target);
+    })();
+  </script>
+</head>
+<body>
+  <div class="box">
+    <p>A abrir a página para redefinir a palavra-passe…</p>
+  </div>
+</body>
+</html>

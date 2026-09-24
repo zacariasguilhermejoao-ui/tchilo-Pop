@@ -1,62 +1,46 @@
 /**
- * Tchilo — vídeos profissionais: miniatura real, sem ícone de play gigante
+ * Tchilo — vídeos: miniatura real (compressão leve no cliente) + reels
  */
 (function () {
   'use strict';
   if (window.__tchiloVideoFix) return;
   window.__tchiloVideoFix = true;
 
+  var CLIENT_MAX_W = 480;
+  var CLIENT_QUALITY = 0.72;
+
   function injectCSS() {
     if (document.getElementById('tchiloVideoFixCSS')) return;
     var st = document.createElement('style');
     st.id = 'tchiloVideoFixCSS';
     st.textContent =
-      /* Esconde overlays de play amadores */
-      '#feedList .feed-play-icon,' +
-      '.feed-play-icon,' +
-      '.reel-slide .play-overlay,' +
-      '.reel-slide > .big-play{' +
-      'display:none!important;}' +
-      /* Vídeo preenche o ecrã nos reels */
-      '#reelsTrack .reel-slide video,' +
-      '.reel-slide video{' +
-      'position:absolute;inset:0;width:100%!important;height:100%!important;' +
-      'object-fit:cover!important;background:#0a0a0a!important;' +
-      'z-index:0;}' +
-      '#reelsTrack .reel-slide{' +
-      'background:#0a0a0a!important;}' +
-      /* Feed: media estável */
-      '#feedList .feed-video-wrap{' +
-      'background:#0a0a0a;position:relative;overflow:hidden;}' +
-      '#feedList video.feed-video{' +
-      'width:100%;height:100%;object-fit:cover;background:#0a0a0a;display:block;}' +
-      /* Play pequeno e discreto só no feed, se o vídeo estiver pausado */
-      '#feedList .feed-video-wrap .tchilo-play-mini{' +
-      'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);' +
-      'width:48px;height:48px;border-radius:50%;' +
-      'background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.85);' +
-      'display:flex;align-items:center;justify-content:center;' +
-      'pointer-events:none;z-index:3;opacity:.9;}' +
+      '#feedList .feed-play-icon,.feed-play-icon,.reel-slide .play-overlay,.reel-slide > .big-play{display:none!important;}' +
+      '#reelsTrack .reel-slide video,.reel-slide video{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover!important;background:#0a0a0a!important;z-index:0;}' +
+      '#reelsTrack .reel-slide{background:#0a0a0a!important;}' +
+      '#feedList .feed-video-wrap{background:#0a0a0a;position:relative;overflow:hidden;}' +
+      '#feedList video.feed-video{width:100%;height:100%;object-fit:cover;background:#0a0a0a;display:block;}' +
+      '#feedList .feed-video-wrap .tchilo-play-mini{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:3;opacity:.9;}' +
       '#feedList .feed-video-wrap .tchilo-play-mini svg{width:20px;height:20px;margin-left:2px;}' +
       '#feedList .feed-video-wrap.is-playing .tchilo-play-mini{display:none!important;}';
     (document.head || document.documentElement).appendChild(st);
   }
 
-  /** Gera poster a partir do 1º frame do vídeo */
   function capturePoster(video, cb) {
     if (!video || video.dataset.posterDone === '1') return;
     var tryCap = function () {
       try {
         if (video.videoWidth < 2) return false;
-        var w = Math.min(720, video.videoWidth);
+        var w = Math.min(CLIENT_MAX_W, video.videoWidth);
         var h = Math.round(w * (video.videoHeight / video.videoWidth));
         var c = document.createElement('canvas');
         c.width = w;
         c.height = h;
         var ctx = c.getContext('2d');
         if (!ctx) return false;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'medium';
         ctx.drawImage(video, 0, 0, w, h);
-        var url = c.toDataURL('image/jpeg', 0.82);
+        var url = c.toDataURL('image/jpeg', CLIENT_QUALITY);
         if (url && url.length > 200) {
           video.setAttribute('poster', url);
           video.poster = url;
@@ -70,21 +54,17 @@
 
     if (video.readyState >= 2 && tryCap()) return;
 
-    var onMeta = function () {
-      try {
-        if (video.currentTime < 0.05) {
-          video.currentTime = Math.min(0.25, (video.duration || 1) * 0.05);
-        }
-      } catch (e) {}
-    };
-    var onSeek = function () {
-      tryCap();
-    };
     video.addEventListener('loadeddata', function () {
       tryCap();
     }, { once: true });
-    video.addEventListener('loadedmetadata', onMeta, { once: true });
-    video.addEventListener('seeked', onSeek, { once: true });
+    video.addEventListener('loadedmetadata', function () {
+      try {
+        if (video.currentTime < 0.05) video.currentTime = 0.25;
+      } catch (e) {}
+    }, { once: true });
+    video.addEventListener('seeked', function () {
+      tryCap();
+    }, { once: true });
 
     if (video.preload === 'none') video.preload = 'metadata';
     try {
@@ -101,12 +81,8 @@
       v.muted = true;
       v.setAttribute('muted', '');
       v.playsInline = true;
-      if (!v.getAttribute('poster')) {
-        capturePoster(v);
-      } else {
-        v.dataset.posterDone = '1';
-      }
-      /* mini play discreto */
+      if (!v.getAttribute('poster')) capturePoster(v);
+      else v.dataset.posterDone = '1';
       var wrap = v.closest('.feed-video-wrap') || v.parentElement;
       if (wrap) {
         wrap.querySelectorAll('.feed-play-icon').forEach(function (el) {
@@ -115,8 +91,7 @@
         if (!wrap.querySelector('.tchilo-play-mini')) {
           var mini = document.createElement('div');
           mini.className = 'tchilo-play-mini';
-          mini.innerHTML =
-            '<svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>';
+          mini.innerHTML = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>';
           wrap.appendChild(mini);
         }
         v.addEventListener('play', function () {
@@ -140,7 +115,6 @@
       v.playsInline = true;
       v.preload = 'auto';
       v.setAttribute('preload', 'auto');
-      /* remove controlos nativos que mostram play gigante */
       v.removeAttribute('controls');
       v.controls = false;
       if (!v.getAttribute('poster')) capturePoster(v);
@@ -194,7 +168,6 @@
     } catch (e) {}
   }
 
-  /* Patch openReels se existir */
   function patchOpenReels() {
     if (typeof window.openReels !== 'function' || window.openReels.__tvPatch) return;
     var orig = window.openReels;

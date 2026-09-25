@@ -5,57 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Tchilo</title>
 <style>
-html,body{margin:0;min-height:100%;background:#0B0B0C;color:#fff;font-family:system-ui,sans-serif;
-display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
-</style>
-<style id="tchilo-hide-nav-legal">
-body.legal-screen-open .navbar, body.legal-from-login .navbar,
-body.legal-screen-open .topbar, body.legal-from-login .topbar,
-body.legal-screen-open .stories, body.legal-from-login .stories {
-  display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;
-}
-#appFrame:has(#screen-terms.active) .navbar,
-#appFrame:has(#screen-privacy.active) .navbar,
-#appFrame:has(#screen-child.active) .navbar,
-#appFrame:has(#screen-community.active) .navbar,
-#appFrame:has(#screen-about.active) .navbar {
-  display:none!important;visibility:hidden!important;
-}
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0B0B0C;
+  }
+  iframe {
+    border: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    position: fixed;
+    inset: 0;
+  }
 </style>
 </head>
 <body>
-<p id="m">A carregar o Tchilo…</p>
-<script>
-(function(){
-  var N=10, parts=new Array(N), done=0;
-  function fail(e){
-    document.getElementById('m').innerHTML='Erro: '+(e&&e.message?e.message:e)+'<br><br><a style="color:#c8f560" href="https://raw.githack.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html">Abrir versão alternativa</a>';
-  }
-  function go(){
-    if(done<N) return;
-    try{
-      var b64=parts.join('');
-      var bin=atob(b64);
-      var bytes=new Uint8Array(bin.length);
-      for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-      if(!window.DecompressionStream){ fail(new Error('Atualiza o browser')); return; }
-      var ds=new DecompressionStream('gzip');
-      var stream=new Blob([bytes]).stream().pipeThrough(ds);
-      new Response(stream).arrayBuffer().then(function(buf){
-        var html=new TextDecoder('utf-8').decode(buf);
-        document.open(); document.write(html); document.close();
-      }).catch(fail);
-    }catch(e){ fail(e); }
-  }
-  for(var i=0;i<N;i++){(function(idx){
-    fetch('native/app-pack/'+idx+'.txt?v=4',{cache:'no-store'})
-      .then(function(r){ if(!r.ok) throw new Error('pack '+idx+' HTTP '+r.status); return r.text(); })
-      .then(function(t){ parts[idx]=t.trim(); done++; document.getElementById('m').textContent='A carregar o Tchilo… '+done+'/'+N; go(); })
-      .catch(fail);
-  })(i);}
-})();
-</script>
-<script src="native/legal-navbar-fix.js"></script>
-<script src="native/feed-names-fix.js"></script>
+<iframe
+  id="app"
+  title="Tchilo"
+  src="https://raw.githack.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html"
+  allow="camera; microphone; geolocation; autoplay; clipboard-read; clipboard-write; fullscreen"
+  allowfullscreen
+></iframe>
 </body>
 </html>

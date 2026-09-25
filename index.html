@@ -2,44 +2,60 @@
 <html lang="pt-PT">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Tchilo</title>
-<script>
-(function () {
-  var GOOD = "https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@79b2a12409f9465714832fb8f344b1fc37406475/index.html";
-  var ICON = "data:image/png;base64,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";
-  var REELS =
-    '<button class="nav-item" data-screen="reels" aria-label="Reels" onclick="if(typeof openReels===\'function\')openReels();">' +
-    '<img class="nav-reels-icon" src="' + ICON + '" width="26" height="26" alt="Reels" draggable="false">' +
-    '<div class="dot"></div></button>';
-  fetch(GOOD, { cache: "no-store" })
-    .then(function (r) { return r.text(); })
-    .then(function (html) {
-      html = html.replace(
-        /<button class="nav-item" data-screen="messages"[\s\S]*?<\/button>/,
-        REELS
-      );
-      html = html.replace(
-        ".icon-btn svg{ width:18px; height:18px; }",
-        ".icon-btn svg{ width:18px; height:18px; }\n  .nav-item .nav-reels-icon,.nav-item img.nav-reels-icon{ width:26px!important;height:26px!important;display:block;object-fit:contain; }"
-      );
-      if (html.indexOf("tchilo-reels-icon.js") < 0) {
-        html = html.replace(
-          '<script src="native/feed-noflicker.js"><\/script>',
-          '<script src="native/tchilo-reels-icon.js?v=4"><\/script>\n<script src="native/feed-noflicker.js?v=4"><\/script>'
-        );
-      }
-      document.open();
-      document.write(html);
-      document.close();
-    })
-    .catch(function () {
-      document.body.innerHTML = '<p style="font-family:system-ui;padding:24px;text-align:center">Erro ao carregar. <a href="' + GOOD + '">Abrir Tchilo</a></p>';
-    });
-})();
-</script>
+<style>
+  html,body{margin:0;padding:0;height:100%;background:#0B0B0C;color:#fff;font-family:system-ui,sans-serif;}
+  #boot{display:flex;align-items:center;justify-content:center;height:100%;text-align:center;padding:24px;}
+  #boot p{opacity:.8;font-size:15px;}
+  #frame{border:0;width:100%;height:100%;display:none;position:fixed;inset:0;}
+</style>
 </head>
 <body>
-<p style="font-family:system-ui;padding:24px;text-align:center">A carregar o Tchilo…</p>
+<div id="boot"><p>A carregar o Tchilo…</p></div>
+<iframe id="frame" title="Tchilo" allow="camera; microphone; geolocation; autoplay; clipboard-read; clipboard-write"></iframe>
+<script>
+(function () {
+  /* Última versão completa estável do index.html */
+  var SOURCES = [
+    'https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@79b2a12409f9465714832fb8f344b1fc37406475/index.html',
+    'https://raw.githack.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html',
+    'https://gitcdn.link/repo/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html'
+  ];
+
+  function showError() {
+    document.getElementById('boot').innerHTML =
+      '<p>Não foi possível carregar o Tchilo.</p>' +
+      '<p style="margin-top:12px"><a style="color:#c8f560" href="' + SOURCES[0] + '">Abrir versão de emergência</a></p>';
+  }
+
+  function tryFetch(i) {
+    if (i >= SOURCES.length) {
+      showError();
+      return;
+    }
+    var url = SOURCES[i];
+    fetch(url, { cache: 'no-store', mode: 'cors' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      })
+      .then(function (html) {
+        if (!html || html.indexOf('Tchilo') < 0 && html.indexOf('feedList') < 0 && html.indexOf('screen-feed') < 0) {
+          throw new Error('HTML inválido');
+        }
+        /* Reescreve no mesmo documento (melhor que iframe para auth/storage) */
+        document.open();
+        document.write(html);
+        document.close();
+      })
+      .catch(function () {
+        tryFetch(i + 1);
+      });
+  }
+
+  tryFetch(0);
+})();
+</script>
 </body>
 </html>

@@ -1,10 +1,10 @@
 /**
- * Tchilo — vídeos: miniatura real (compressão leve no cliente) + reels
+ * Tchilo — vídeos feed + reels (reels sem forçar mudo)
  */
 (function () {
   'use strict';
-  if (window.__tchiloVideoFix) return;
-  window.__tchiloVideoFix = true;
+  if (window.__tchiloVideoFixV2) return;
+  window.__tchiloVideoFixV2 = true;
 
   var CLIENT_MAX_W = 480;
   var CLIENT_QUALITY = 0.72;
@@ -37,8 +37,6 @@
         c.height = h;
         var ctx = c.getContext('2d');
         if (!ctx) return false;
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'medium';
         ctx.drawImage(video, 0, 0, w, h);
         var url = c.toDataURL('image/jpeg', CLIENT_QUALITY);
         if (url && url.length > 200) {
@@ -51,21 +49,10 @@
       } catch (e) {}
       return false;
     };
-
     if (video.readyState >= 2 && tryCap()) return;
-
     video.addEventListener('loadeddata', function () {
       tryCap();
     }, { once: true });
-    video.addEventListener('loadedmetadata', function () {
-      try {
-        if (video.currentTime < 0.05) video.currentTime = 0.25;
-      } catch (e) {}
-    }, { once: true });
-    video.addEventListener('seeked', function () {
-      tryCap();
-    }, { once: true });
-
     if (video.preload === 'none') video.preload = 'metadata';
     try {
       video.load();
@@ -104,34 +91,20 @@
     } catch (e) {}
   }
 
+  /** Reels: NÃO forçar mudo — o tchilo-reels-sound.js gere o áudio */
   function prepareReelVideo(v) {
     if (!v || v.dataset.tvReel === '1') return;
     v.dataset.tvReel = '1';
     try {
       v.setAttribute('playsinline', '');
       v.setAttribute('webkit-playsinline', '');
-      v.muted = true;
-      v.setAttribute('muted', '');
       v.playsInline = true;
       v.preload = 'auto';
       v.setAttribute('preload', 'auto');
       v.removeAttribute('controls');
       v.controls = false;
       if (!v.getAttribute('poster')) capturePoster(v);
-      var tryPlay = function () {
-        var p = v.play();
-        if (p && p.catch) {
-          p.catch(function () {
-            v.muted = true;
-            v.play().catch(function () {});
-          });
-        }
-      };
-      if (v.readyState >= 2) tryPlay();
-      else v.addEventListener('loadeddata', tryPlay, { once: true });
-      try {
-        v.load();
-      } catch (e) {}
+      /* não definir muted aqui */
     } catch (e) {}
   }
 
@@ -169,16 +142,15 @@
   }
 
   function patchOpenReels() {
-    if (typeof window.openReels !== 'function' || window.openReels.__tvPatch) return;
+    if (typeof window.openReels !== 'function' || window.openReels.__tvPatch2) return;
     var orig = window.openReels;
     window.openReels = function () {
       var r = orig.apply(this, arguments);
       setTimeout(scanReels, 50);
       setTimeout(scanReels, 300);
-      setTimeout(scanReels, 800);
       return r;
     };
-    window.openReels.__tvPatch = true;
+    window.openReels.__tvPatch2 = true;
   }
 
   function boot() {
@@ -189,7 +161,6 @@
       patchOpenReels();
       watch();
     }, 1000);
-    setTimeout(watch, 2500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

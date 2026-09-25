@@ -8,28 +8,14 @@
 html,body{margin:0;min-height:100%;background:#0B0B0C;color:#fff;font-family:system-ui,sans-serif;
 display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
 </style>
-<style id="tchilo-hide-nav-legal">
-body.legal-screen-open .navbar, body.legal-from-login .navbar,
-body.legal-screen-open .topbar, body.legal-from-login .topbar,
-body.legal-screen-open .stories, body.legal-from-login .stories {
-  display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;
-}
-#appFrame:has(#screen-terms.active) .navbar,
-#appFrame:has(#screen-privacy.active) .navbar,
-#appFrame:has(#screen-child.active) .navbar,
-#appFrame:has(#screen-community.active) .navbar,
-#appFrame:has(#screen-about.active) .navbar {
-  display:none!important;visibility:hidden!important;
-}
-</style>
 </head>
 <body>
 <p id="m">A carregar o Tchilo…</p>
 <script>
 (function(){
-  var N=5, parts=new Array(N), done=0;
+  var N=10, parts=new Array(N), done=0;
   function fail(e){
-    document.getElementById('m').textContent='Erro: '+(e&&e.message?e.message:e);
+    document.getElementById('m').innerHTML='Erro: '+(e&&e.message?e.message:e)+'<br><br><a style="color:#c8f560" href="https://raw.githack.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html">Abrir versão alternativa</a>';
   }
   function go(){
     if(done<N) return;
@@ -48,14 +34,12 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
     }catch(e){ fail(e); }
   }
   for(var i=0;i<N;i++){(function(idx){
-    fetch('native/app-pack/'+idx+'.txt?v=3',{cache:'no-store'})
-      .then(function(r){ if(!r.ok) throw new Error('pack '+idx+' '+r.status); return r.text(); })
-      .then(function(t){ parts[idx]=t.trim(); done++; document.getElementById('m').textContent='A carregar… '+done+'/'+N; go(); })
+    fetch('native/app-pack/'+idx+'.txt?v=4',{cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw new Error('pack '+idx+' HTTP '+r.status); return r.text(); })
+      .then(function(t){ parts[idx]=t.trim(); done++; document.getElementById('m').textContent='A carregar o Tchilo… '+done+'/'+N; go(); })
       .catch(fail);
   })(i);}
 })();
 </script>
-<script src="native/legal-navbar-fix.js"></script>
-<script src="native/feed-names-fix.js"></script>
 </body>
 </html>

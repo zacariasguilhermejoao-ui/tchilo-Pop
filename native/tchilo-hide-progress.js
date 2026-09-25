@@ -1,26 +1,36 @@
 /**
- * Tchilo — remover barras finas de progresso (Reels e resto do app)
+ * Tchilo — remover TODAS as barras de progresso (cadastro, stories, reels, vídeos)
  */
 (function () {
   'use strict';
-  if (window.__tchiloHideProgress) return;
-  window.__tchiloHideProgress = true;
+  if (window.__tchiloHideProgressV2) return;
+  window.__tchiloHideProgressV2 = true;
 
   function injectCSS() {
-    if (document.getElementById('tchiloHideProgressCSS')) return;
-    var st = document.createElement('style');
-    st.id = 'tchiloHideProgressCSS';
+    var st = document.getElementById('tchiloHideProgressCSS');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'tchiloHideProgressCSS';
+      (document.head || document.documentElement).appendChild(st);
+    }
     st.textContent =
-      /* Reels: sem scrollbars finos */
+      /* Cadastro / login */
+      '.signup-progress, .login-gate .signup-progress,' +
+      '.signup-progress span, .login-gate .signup-progress span{' +
+      'display:none!important;height:0!important;margin:0!important;padding:0!important;' +
+      'opacity:0!important;visibility:hidden!important;}' +
+      /* Stories */
+      '.story-viewer-progress, #storyProgress, .story-viewer-progress .seg,' +
+      '.story-viewer-progress .seg i{' +
+      'display:none!important;height:0!important;margin:0!important;' +
+      'opacity:0!important;visibility:hidden!important;}' +
+      /* Reels / scrollbars */
       '.reels-viewer, .reels-track, #reelsTrack, .reel-slide{' +
       'scrollbar-width:none!important;-ms-overflow-style:none!important;}' +
       '.reels-viewer::-webkit-scrollbar, .reels-track::-webkit-scrollbar,' +
       '#reelsTrack::-webkit-scrollbar, .reel-slide::-webkit-scrollbar{' +
       'display:none!important;width:0!important;height:0!important;}' +
-      /* Nunca mostrar controlos nativos de vídeo (barra de progresso) */
-      '.reels-viewer video, #reelsTrack video, .reel-slide video,' +
-      '.feed-video, video.feed-video, .post-media video{' +
-      'controls:none!important;}' +
+      /* Controlos nativos de vídeo */
       'video::-webkit-media-controls,' +
       'video::-webkit-media-controls-enclosure,' +
       'video::-webkit-media-controls-panel,' +
@@ -34,16 +44,13 @@
       'video::-moz-range-progress{' +
       'display:none!important;opacity:0!important;height:0!important;' +
       'width:0!important;visibility:hidden!important;pointer-events:none!important;}' +
-      /* Qualquer barra de progresso custom no app */
+      /* Qualquer barra genérica */
       '.reel-progress, .reels-progress, .video-progress, .video-progress-bar,' +
       '.progress-bar, .seek-bar, .scrubber, .media-progress,' +
-      '[class*="video-progress"], [class*="reel-progress"],' +
+      '[class*="progress"], [class*="Progress"],' +
       '[class*="seek-bar"], [data-progress], .tp-progress{' +
-      'display:none!important;opacity:0!important;height:0!important;' +
-      'visibility:hidden!important;pointer-events:none!important;}' +
-      /* story progress só no story viewer — esconder se aparecer fora */
-      '.reels-viewer .story-viewer-progress{display:none!important;}';
-    (document.head || document.documentElement).appendChild(st);
+      'display:none!important;opacity:0!important;height:0!important;margin:0!important;' +
+      'visibility:hidden!important;pointer-events:none!important;}';
   }
 
   function stripVideoControls() {
@@ -52,7 +59,6 @@
         v.controls = false;
         v.removeAttribute('controls');
         v.setAttribute('controlsList', 'nodownload nofullscreen noremoteplayback');
-        v.setAttribute('disablePictureInPicture', 'true');
       } catch (e) {}
     });
   }
@@ -60,7 +66,9 @@
   function removeProgressNodes() {
     document
       .querySelectorAll(
-        '.reel-progress, .reels-progress, .video-progress, .video-progress-bar,' +
+        '.signup-progress, .login-gate .signup-progress,' +
+          '.story-viewer-progress, #storyProgress,' +
+          '.reel-progress, .reels-progress, .video-progress, .video-progress-bar,' +
           '.progress-bar, .seek-bar, .scrubber, .media-progress, [data-progress]'
       )
       .forEach(function (el) {
@@ -80,14 +88,16 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', run);
   }
-  setTimeout(run, 300);
+  setTimeout(run, 100);
+  setTimeout(run, 400);
   setTimeout(run, 1200);
-  setInterval(run, 4000);
+  setInterval(run, 2500);
 
   try {
     new MutationObserver(function () {
-      stripVideoControls();
+      injectCSS();
       removeProgressNodes();
+      stripVideoControls();
     }).observe(document.documentElement, { childList: true, subtree: true });
   } catch (e) {}
 })();

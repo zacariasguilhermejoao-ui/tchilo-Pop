@@ -160,5 +160,6 @@
     add('native/tchilo-profile-photos.js?v=3');
     add('native/tchilo-avatar-add.js?v=2');
     add('native/tchilo-hide-nav.js?v=2');
+    add('native/tchilo-feed-to-reels.js?v=1');
   } catch (e) {}
 })();

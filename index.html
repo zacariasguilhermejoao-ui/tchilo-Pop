@@ -5,76 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>Tchilo</title>
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #0B0B0C;
-  }
-  #boot {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-family: system-ui, sans-serif;
-    font-size: 15px;
-    z-index: 1;
-  }
-  iframe {
-    border: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 2;
-    background: #0B0B0C;
-  }
-</style>
-<style id="tchilo-hide-nav-legal">
-body.legal-screen-open .navbar, body.legal-from-login .navbar,
-body.legal-screen-open .topbar, body.legal-from-login .topbar,
-body.legal-screen-open .stories, body.legal-from-login .stories {
-  display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;
-}
-#appFrame:has(#screen-terms.active) .navbar,
-#appFrame:has(#screen-privacy.active) .navbar,
-#appFrame:has(#screen-child.active) .navbar,
-#appFrame:has(#screen-community.active) .navbar,
-#appFrame:has(#screen-about.active) .navbar {
-  display:none!important;visibility:hidden!important;
-}
+html,body{margin:0;min-height:100%;background:#0B0B0C;color:#fff;font-family:system-ui,sans-serif;
+display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
+a{color:#c8f560;font-weight:700}
 </style>
 </head>
 <body>
-  <div id="boot">A carregar o Tchilo…</div>
-  <iframe
-    id="app"
-    title="Tchilo"
-    src="https://raw.githack.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html"
-    allow="camera; microphone; geolocation; autoplay; clipboard-read; clipboard-write; fullscreen"
-    allowfullscreen
-    referrerpolicy="no-referrer"
-  ></iframe>
-  <script>
-    (function () {
-      var f = document.getElementById('app');
-      var boot = document.getElementById('boot');
-      f.addEventListener('load', function () {
-        if (boot) boot.style.display = 'none';
-      });
-      /* Nunca redirecionar a página principal */
-      window.addEventListener('beforeunload', function () {});
-    })();
-  </script>
-<script src="native/legal-navbar-fix.js"></script>
-<script src="native/feed-names-fix.js"></script>
+<p id="m">A carregar o Tchilo…</p>
+<script>
+(function () {
+  var SRC = 'https://raw.githack.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html';
+  fetch(SRC, { cache: 'no-store', mode: 'cors' })
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(function (html) {
+      if (!html || (html.indexOf('screen-feed') < 0 && html.indexOf('feedList') < 0)) {
+        throw new Error('HTML inválido');
+      }
+      document.open();
+      document.write(html);
+      document.close();
+    })
+    .catch(function (e) {
+      document.getElementById('m').innerHTML =
+        'Erro ao carregar.<br><br><a href="' + SRC + '">Abrir Tchilo</a><br><small>' +
+        (e && e.message ? e.message : e) + '</small>';
+    });
+})();
+</script>
 </body>
 </html>

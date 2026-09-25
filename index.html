@@ -7,39 +7,45 @@
 <script>
 (function () {
   var GOOD = 'https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@79b2a12409f9465714832fb8f344b1fc37406475/index.html';
+  var REELS_BTN =
+    '    <button class="nav-item" data-screen="reels" aria-label="Reels" onclick="if(typeof openReels===\'function\')openReels();">' +
+    '      <img class="nav-reels-icon" src="native/reels-icon.png" width="26" height="26" alt="Reels" draggable="false" onerror="this.style.display=\'none\'">' +
+    '      <div class="dot"></div>' +
+    '    </button>';
+  var OLD_MSG =
+    /<button class="nav-item" data-screen="messages"[\s\S]*?<\/button>/;
   fetch(GOOD, { cache: 'no-store' })
     .then(function (r) { return r.text(); })
     .then(function (html) {
+      html = html.replace(OLD_MSG, REELS_BTN);
+      if (html.indexOf('nav-reels-icon') === -1) {
+        html = html.replace(
+          '<script src="native/feed-stable.js"><\/script>',
+          '<script src="native/tchilo-reels-icon.js?v=3"><\/script>\n<script src="native/feed-stable.js"><\/script>'
+        );
+      } else {
+        html = html.replace(
+          '<script src="native/feed-stable.js"><\/script>',
+          '<script src="native/tchilo-reels-icon.js?v=3"><\/script>\n<script src="native/feed-stable.js"><\/script>'
+        );
+      }
+      if (html.indexOf('nav-reels-icon{') === -1) {
+        html = html.replace(
+          '.icon-btn svg{ width:18px; height:18px; }',
+          '.icon-btn svg{ width:18px; height:18px; }\n  .nav-item .nav-reels-icon{ width:26px; height:26px; display:block; object-fit:contain; }'
+        );
+      }
       document.open();
       document.write(html);
       document.close();
-      var s = document.createElement('script');
-      s.src = 'native/tchilo-reels-icon.js?v=3';
-      document.body.appendChild(s);
     })
     .catch(function () {
       location.href = GOOD;
     });
 })();
 </script>
-<style id="tchilo-hide-nav-legal">
-body.legal-screen-open .navbar, body.legal-from-login .navbar,
-body.legal-screen-open .topbar, body.legal-from-login .topbar,
-body.legal-screen-open .stories, body.legal-from-login .stories {
-  display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;
-}
-#appFrame:has(#screen-terms.active) .navbar,
-#appFrame:has(#screen-privacy.active) .navbar,
-#appFrame:has(#screen-child.active) .navbar,
-#appFrame:has(#screen-community.active) .navbar,
-#appFrame:has(#screen-about.active) .navbar {
-  display:none!important;visibility:hidden!important;
-}
-</style>
 </head>
 <body>
 <p style="font-family:system-ui;padding:24px;text-align:center">A carregar o Tchilo…</p>
-<script src="native/legal-navbar-fix.js"></script>
-<script src="native/feed-names-fix.js"></script>
 </body>
 </html>

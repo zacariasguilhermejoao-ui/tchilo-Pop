@@ -8,6 +8,20 @@
 html,body{margin:0;min-height:100%;background:#0B0B0C;color:#fff;font-family:system-ui,sans-serif;
 display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
 </style>
+<style id="tchilo-hide-nav-legal">
+body.legal-screen-open .navbar, body.legal-from-login .navbar,
+body.legal-screen-open .topbar, body.legal-from-login .topbar,
+body.legal-screen-open .stories, body.legal-from-login .stories {
+  display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;
+}
+#appFrame:has(#screen-terms.active) .navbar,
+#appFrame:has(#screen-privacy.active) .navbar,
+#appFrame:has(#screen-child.active) .navbar,
+#appFrame:has(#screen-community.active) .navbar,
+#appFrame:has(#screen-about.active) .navbar {
+  display:none!important;visibility:hidden!important;
+}
+</style>
 </head>
 <body>
 <p id="m">A carregar o Tchilo…</p>
@@ -41,5 +55,7 @@ display:flex;align-items:center;justify-content:center;text-align:center;padding
   })(i);}
 })();
 </script>
+<script src="native/legal-navbar-fix.js"></script>
+<script src="native/feed-names-fix.js"></script>
 </body>
 </html>

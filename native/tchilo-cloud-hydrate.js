@@ -1,10 +1,10 @@
 /**
  * Tchilo — noutro browser: carregar feed + foto de perfil da Supabase
- * (não depende do localStorage vazio do dispositivo anterior)
  */
 (function () {
   'use strict';
-  if (window.__tchiloCloudHydrate) return;
+  if (window.__tchiloCloudHydrateV3) return;
+  window.__tchiloCloudHydrateV3 = true;
   window.__tchiloCloudHydrate = true;
 
   var hydrating = false;
@@ -105,7 +105,6 @@
   async function hydrateFeed() {
     try {
       if (typeof loadPublicFeedFromSupabase === 'function') {
-        /* force = true */
         await loadPublicFeedFromSupabase(true);
         return true;
       }
@@ -113,7 +112,6 @@
       console.warn('Tchilo hydrate feed fn', e);
     }
 
-    /* Fallback direto se a função nativa falhar */
     var SB = getSB();
     if (!SB) return false;
     try {
@@ -161,14 +159,42 @@
     }
   }
 
+  async function hydrateAvatarsFromPosts() {
+    var SB = getSB();
+    if (!SB) return;
+    var usernames = {};
+    try {
+      var posts = typeof getPosts === 'function' ? getPosts() : [];
+      (posts || []).forEach(function (p) {
+        if (p && p.username) usernames[p.username] = true;
+      });
+    } catch (e) {}
+    var list = Object.keys(usernames);
+    if (!list.length) return;
+    try {
+      var res = await SB.from('profiles')
+        .select('username,avatar_url,display_name')
+        .in('username', list.slice(0, 80));
+      var rows = (res && res.data) || [];
+      rows.forEach(function (row) {
+        if (!row || !row.username || !row.avatar_url) return;
+        setCacheAvatar(row.username, row.avatar_url);
+      });
+      try {
+        if (typeof renderFeed === 'function') renderFeed();
+      } catch (e) {}
+    } catch (e) {
+      console.warn('Tchilo hydrate avatars', e);
+    }
+  }
+
   async function hydrateAll(reason) {
     if (hydrating) return;
     var now = Date.now();
-    if (now - lastHydrate < 2500 && reason !== 'force') return;
+    if (now - lastHydrate < 800 && reason !== 'force') return;
     hydrating = true;
     lastHydrate = now;
     try {
-      /* recovery: não hidratar para a app */
       if (window.__tchiloPasswordRecoveryActive) return;
 
       var session = getSessionSafe();
@@ -176,6 +202,7 @@
 
       await hydrateProfile();
       await hydrateFeed();
+      await hydrateAvatarsFromPosts();
 
       try {
         if (typeof renderFeed === 'function') renderFeed();
@@ -195,10 +222,10 @@
         var r = orig.apply(this, arguments);
         setTimeout(function () {
           hydrateAll('login');
-        }, 200);
+        }, 150);
         setTimeout(function () {
           hydrateAll('login-retry');
-        }, 1500);
+        }, 1000);
         return r;
       };
       window.hideLoginGate.__hydrate = true;
@@ -210,7 +237,7 @@
         var r = await origS.apply(this, arguments);
         setTimeout(function () {
           hydrateAll('sync');
-        }, 300);
+        }, 200);
         return r;
       };
       window.tchiloSyncAuthSession.__hydrate = true;
@@ -223,7 +250,7 @@
         if (name === 'feed' || name === 'profile') {
           setTimeout(function () {
             hydrateAll(name);
-          }, 100);
+          }, 80);
         }
         return r;
       };
@@ -236,10 +263,10 @@
     setTimeout(function () {
       patchLogin();
       hydrateAll('boot');
-    }, 800);
+    }, 100);
     setTimeout(function () {
       hydrateAll('boot2');
-    }, 2500);
+    }, 1200);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

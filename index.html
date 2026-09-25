@@ -4,74 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Tchilo</title>
+<meta http-equiv="refresh" content="0;url=https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@79b2a12409f9465714832fb8f344b1fc37406475/index.html">
+<script>
+  location.replace('https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@79b2a12409f9465714832fb8f344b1fc37406475/index.html');
+</script>
 <style>
-  html,body{margin:0;padding:0;height:100%;background:#0B0B0C;color:#fff;font-family:system-ui,sans-serif;}
-  #boot{display:flex;align-items:center;justify-content:center;height:100%;text-align:center;padding:24px;}
-  #boot p{opacity:.8;font-size:15px;}
-  #frame{border:0;width:100%;height:100%;display:none;position:fixed;inset:0;}
-</style>
-<style id="tchilo-hide-nav-legal">
-body.legal-screen-open .navbar, body.legal-from-login .navbar,
-body.legal-screen-open .topbar, body.legal-from-login .topbar,
-body.legal-screen-open .stories, body.legal-from-login .stories {
-  display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;
-}
-#appFrame:has(#screen-terms.active) .navbar,
-#appFrame:has(#screen-privacy.active) .navbar,
-#appFrame:has(#screen-child.active) .navbar,
-#appFrame:has(#screen-community.active) .navbar,
-#appFrame:has(#screen-about.active) .navbar {
-  display:none!important;visibility:hidden!important;
-}
+  html,body{margin:0;min-height:100%;background:#0B0B0C;color:#fff;font-family:system-ui,sans-serif;
+    display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;}
+  a{color:#c8f560;font-weight:700;}
 </style>
 </head>
 <body>
-<div id="boot"><p>A carregar o Tchilo…</p></div>
-<iframe id="frame" title="Tchilo" allow="camera; microphone; geolocation; autoplay; clipboard-read; clipboard-write"></iframe>
-<script>
-(function () {
-  /* Última versão completa estável do index.html */
-  var SOURCES = [
-    'https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@79b2a12409f9465714832fb8f344b1fc37406475/index.html',
-    'https://raw.githack.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html',
-    'https://gitcdn.link/repo/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html'
-  ];
-
-  function showError() {
-    document.getElementById('boot').innerHTML =
-      '<p>Não foi possível carregar o Tchilo.</p>' +
-      '<p style="margin-top:12px"><a style="color:#c8f560" href="' + SOURCES[0] + '">Abrir versão de emergência</a></p>';
-  }
-
-  function tryFetch(i) {
-    if (i >= SOURCES.length) {
-      showError();
-      return;
-    }
-    var url = SOURCES[i];
-    fetch(url, { cache: 'no-store', mode: 'cors' })
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.text();
-      })
-      .then(function (html) {
-        if (!html || html.indexOf('Tchilo') < 0 && html.indexOf('feedList') < 0 && html.indexOf('screen-feed') < 0) {
-          throw new Error('HTML inválido');
-        }
-        /* Reescreve no mesmo documento (melhor que iframe para auth/storage) */
-        document.open();
-        document.write(html);
-        document.close();
-      })
-      .catch(function () {
-        tryFetch(i + 1);
-      });
-  }
-
-  tryFetch(0);
-})();
-</script>
-<script src="native/legal-navbar-fix.js"></script>
-<script src="native/feed-names-fix.js"></script>
+  <div>
+    <p>A abrir o Tchilo…</p>
+    <p style="margin-top:16px;opacity:.8;font-size:14px">Se não abrir, toca aqui:</p>
+    <p style="margin-top:12px">
+      <a href="https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@79b2a12409f9465714832fb8f344b1fc37406475/index.html">Abrir Tchilo</a>
+    </p>
+  </div>
 </body>
 </html>

@@ -1,12 +1,12 @@
 /**
- * tchilo-Pop — anti-flicker do feed + loaders
+ * tchilo-Pop — loaders
  */
 (function () {
   'use strict';
 
   function add(src) {
     try {
-      if (document.querySelector('script[src="' + src.split('?')[0] + '"]')) return;
+      if (document.querySelector('script[src*="' + src.split('?')[0].split('/').pop() + '"]')) return;
       var s = document.createElement('script');
       s.src = src;
       s.async = true;
@@ -15,6 +15,8 @@
   }
 
   function loadExtras() {
+    add('native/tchilo-login-click-fix.js?v=1');
+    add('native/tchilo-hide-progress.js?v=4');
     add('native/tchilo-password-reset.js?v=2');
     add('native/tchilo-cloud-hydrate.js?v=3');
     add('native/tchilo-feed-lock.js?v=2');
@@ -30,7 +32,6 @@
     add('native/tchilo-profile-photos.js?v=3');
     add('native/tchilo-avatar-add.js?v=3');
     add('native/tchilo-av-plus-out.js?v=2');
-    add('native/tchilo-hide-progress.js?v=3');
     add('native/tchilo-hide-nav.js?v=2');
     add('native/tchilo-feed-to-reels.js?v=2');
     add('native/tchilo-reels-icon.js?v=2');
@@ -41,5 +42,5 @@
   } else {
     loadExtras();
   }
-  setTimeout(loadExtras, 500);
+  setTimeout(loadExtras, 400);
 })();

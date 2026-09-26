@@ -1,10 +1,10 @@
 /**
- * Tchilo — remover TODAS as barras de progresso (cadastro, stories, reels, vídeos)
+ * Tchilo — esconder só barras de progresso (sem bloquear cliques no login)
  */
 (function () {
   'use strict';
-  if (window.__tchiloHideProgressV2) return;
-  window.__tchiloHideProgressV2 = true;
+  if (window.__tchiloHideProgressV3) return;
+  window.__tchiloHideProgressV3 = true;
 
   function injectCSS() {
     var st = document.getElementById('tchiloHideProgressCSS');
@@ -14,90 +14,86 @@
       (document.head || document.documentElement).appendChild(st);
     }
     st.textContent =
-      /* Cadastro / login */
-      '.signup-progress, .login-gate .signup-progress,' +
-      '.signup-progress span, .login-gate .signup-progress span{' +
+      /* Só classes de barra de progresso — NÃO usar [class*="progress"] genérico */
+      '.signup-progress,' +
+      '.login-gate .signup-progress,' +
+      '.signup-progress span,' +
+      '.story-viewer-progress,' +
+      '#storyProgress,' +
+      '.story-viewer-progress .seg,' +
+      '.story-viewer-progress .seg i,' +
+      '.reel-progress,' +
+      '.reels-progress,' +
+      '.video-progress,' +
+      '.video-progress-bar,' +
+      '.media-progress,' +
+      '.seek-bar,' +
+      '.scrubber{' +
       'display:none!important;height:0!important;margin:0!important;padding:0!important;' +
       'opacity:0!important;visibility:hidden!important;}' +
-      /* Stories */
-      '.story-viewer-progress, #storyProgress, .story-viewer-progress .seg,' +
-      '.story-viewer-progress .seg i{' +
-      'display:none!important;height:0!important;margin:0!important;' +
-      'opacity:0!important;visibility:hidden!important;}' +
-      /* Reels / scrollbars */
-      '.reels-viewer, .reels-track, #reelsTrack, .reel-slide{' +
+      /* Scrollbars nos reels */
+      '.reels-viewer,.reels-track,#reelsTrack{' +
       'scrollbar-width:none!important;-ms-overflow-style:none!important;}' +
-      '.reels-viewer::-webkit-scrollbar, .reels-track::-webkit-scrollbar,' +
-      '#reelsTrack::-webkit-scrollbar, .reel-slide::-webkit-scrollbar{' +
+      '.reels-viewer::-webkit-scrollbar,.reels-track::-webkit-scrollbar,#reelsTrack::-webkit-scrollbar{' +
       'display:none!important;width:0!important;height:0!important;}' +
       /* Controlos nativos de vídeo */
-      'video::-webkit-media-controls,' +
-      'video::-webkit-media-controls-enclosure,' +
-      'video::-webkit-media-controls-panel,' +
       'video::-webkit-media-controls-timeline,' +
       'video::-webkit-media-controls-current-time-display,' +
       'video::-webkit-media-controls-time-remaining-display,' +
-      'video::-webkit-media-controls-progress-bar,' +
       'video::-webkit-progress-bar,' +
-      'video::-webkit-progress-value,' +
-      'video::-moz-range-track,' +
-      'video::-moz-range-progress{' +
-      'display:none!important;opacity:0!important;height:0!important;' +
-      'width:0!important;visibility:hidden!important;pointer-events:none!important;}' +
-      /* Qualquer barra genérica */
-      '.reel-progress, .reels-progress, .video-progress, .video-progress-bar,' +
-      '.progress-bar, .seek-bar, .scrubber, .media-progress,' +
-      '[class*="progress"], [class*="Progress"],' +
-      '[class*="seek-bar"], [data-progress], .tp-progress{' +
-      'display:none!important;opacity:0!important;height:0!important;margin:0!important;' +
-      'visibility:hidden!important;pointer-events:none!important;}';
+      'video::-webkit-progress-value{' +
+      'display:none!important;opacity:0!important;height:0!important;}' +
+      /* Garantir que login/signup são clicáveis */
+      '.login-gate,' +
+      '.login-gate *,' +
+      '.login-gate button,' +
+      '.login-gate a,' +
+      '.login-gate input,' +
+      '.login-gate select,' +
+      '.login-home,' +
+      '.login-home button,' +
+      '.login-create,' +
+      '.login-button{' +
+      'pointer-events:auto!important;' +
+      'visibility:visible!important;}' +
+      '.login-gate{' +
+      'z-index:99999!important;' +
+      'pointer-events:auto!important;}';
   }
 
   function stripVideoControls() {
-    document.querySelectorAll('video').forEach(function (v) {
-      try {
+    try {
+      document.querySelectorAll('.reels-viewer video, #reelsTrack video, .reel-slide video').forEach(function (v) {
         v.controls = false;
         v.removeAttribute('controls');
-        v.setAttribute('controlsList', 'nodownload nofullscreen noremoteplayback');
-      } catch (e) {}
-    });
+      });
+    } catch (e) {}
   }
 
-  function removeProgressNodes() {
-    document
-      .querySelectorAll(
-        '.signup-progress, .login-gate .signup-progress,' +
-          '.story-viewer-progress, #storyProgress,' +
-          '.reel-progress, .reels-progress, .video-progress, .video-progress-bar,' +
-          '.progress-bar, .seek-bar, .scrubber, .media-progress, [data-progress]'
-      )
-      .forEach(function (el) {
-        try {
-          el.remove();
-        } catch (e) {}
+  function hideProgressBars() {
+    var sel =
+      '.signup-progress, .story-viewer-progress, #storyProgress,' +
+      '.reel-progress, .reels-progress, .video-progress, .video-progress-bar,' +
+      '.media-progress, .seek-bar, .scrubber';
+    try {
+      document.querySelectorAll(sel).forEach(function (el) {
+        el.style.setProperty('display', 'none', 'important');
+        el.style.setProperty('height', '0', 'important');
+        el.style.setProperty('visibility', 'hidden', 'important');
       });
+    } catch (e) {}
   }
 
   function run() {
     injectCSS();
+    hideProgressBars();
     stripVideoControls();
-    removeProgressNodes();
   }
 
   run();
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', run);
   }
-  setTimeout(run, 100);
-  setTimeout(run, 400);
-  setTimeout(run, 1200);
-  setInterval(run, 2500);
-
-  try {
-    new MutationObserver(function () {
-      injectCSS();
-      removeProgressNodes();
-      stripVideoControls();
-    }).observe(document.documentElement, { childList: true, subtree: true });
-  } catch (e) {}
+  setTimeout(run, 200);
+  setTimeout(run, 1000);
 })();

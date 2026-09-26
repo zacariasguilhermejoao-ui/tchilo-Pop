@@ -15,6 +15,7 @@
   }
 
   function loadExtras() {
+    add('native/tchilo-ui-icons-fix.js?v=1');
     add('native/tchilo-login-click-fix.js?v=2');
     add('native/tchilo-hide-progress.js?v=4');
     add('native/tchilo-password-reset.js?v=2');
@@ -31,7 +32,7 @@
     add('native/tchilo-avatar-fix.js?v=3');
     add('native/tchilo-profile-photos.js?v=3');
     add('native/tchilo-avatar-add.js?v=3');
-    add('native/tchilo-av-plus-out.js?v=2');
+    add('native/tchilo-av-plus-out.js?v=3');
     add('native/tchilo-hide-nav.js?v=2');
     add('native/tchilo-feed-to-reels.js?v=2');
     add('native/tchilo-reels-icon.js?v=2');

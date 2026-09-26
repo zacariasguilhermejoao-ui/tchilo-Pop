@@ -1,10 +1,11 @@
 /**
- * Tchilo — garantir que Entrar / Criar conta respondem ao toque
+ * Tchilo — só o botão da home "Entrar" / "Criar conta"
+ * NÃO intercepta o submit do formulário de login
  */
 (function () {
   'use strict';
-  if (window.__tchiloLoginClickFix) return;
-  window.__tchiloLoginClickFix = true;
+  if (window.__tchiloLoginClickFixV2) return;
+  window.__tchiloLoginClickFixV2 = true;
 
   function injectCSS() {
     if (document.getElementById('tchiloLoginClickCSS')) return;
@@ -12,93 +13,62 @@
     st.id = 'tchiloLoginClickCSS';
     st.textContent =
       '.login-gate{' +
-      'z-index:99999!important;pointer-events:auto!important;' +
-      'position:fixed!important;inset:0!important;}' +
+      'z-index:99999!important;pointer-events:auto!important;}' +
       '.login-gate button, .login-gate a, .login-gate input, .login-gate select,' +
-      '.login-gate .login-create, .login-gate .login-button,' +
-      '.login-home button{' +
-      'pointer-events:auto!important;cursor:pointer!important;' +
-      'position:relative;z-index:100000!important;}' +
-      /* nada por cima do login-gate */
-      'body > *:not(.login-gate):not(script):not(style){' +
-      '}' +
-      '.login-gate ~ .navbar, body.login-open .navbar{' +
-      'pointer-events:none!important;}';
+      '.login-gate .login-create, .login-gate .login-button{' +
+      'pointer-events:auto!important;cursor:pointer!important;}';
     (document.head || document.documentElement).appendChild(st);
   }
 
-  function bindButtons() {
+  function bindHomeButtons() {
     var gate = document.querySelector('.login-gate');
     if (!gate) return;
 
-    /* Entrar */
-    gate.querySelectorAll('button, a.login-create, [onclick]').forEach(function (btn) {
-      if (btn.__tchiloBound) return;
-      var oc = btn.getAttribute('onclick') || '';
-      var text = (btn.textContent || '').trim().toLowerCase();
+    /* Só botões com onclick explícito de navegação — nunca type=submit */
+    gate.querySelectorAll('button[onclick], a[onclick]').forEach(function (btn) {
+      if (btn.__tchiloBoundV2) return;
+      if (btn.type === 'submit') return; /* formulário de login/cadastro */
+      if (btn.classList && btn.classList.contains('login-button')) return;
 
-      if (oc.indexOf("showLoginPanel('access')") >= 0 || oc.indexOf('showLoginPanel("access")') >= 0 || text === 'entrar') {
-        btn.__tchiloBound = true;
+      var oc = btn.getAttribute('onclick') || '';
+
+      if (oc.indexOf("showLoginPanel('access')") >= 0 || oc.indexOf('showLoginPanel("access")') >= 0) {
+        btn.__tchiloBoundV2 = true;
         btn.addEventListener(
           'click',
           function (e) {
-            e.preventDefault();
-            e.stopPropagation();
             try {
               if (typeof showLoginPanel === 'function') showLoginPanel('access');
-              else if (typeof showLoginHome === 'function') showLoginHome();
-            } catch (err) {
-              console.warn(err);
-            }
+            } catch (err) {}
           },
-          true
+          false
         );
       }
 
-      if (
-        oc.indexOf("showLoginPanel('signup')") >= 0 ||
-        oc.indexOf('showLoginPanel("signup")') >= 0 ||
-        text.indexOf('criar conta') >= 0
-      ) {
-        btn.__tchiloBound = true;
+      if (oc.indexOf("showLoginPanel('signup')") >= 0 || oc.indexOf('showLoginPanel("signup")') >= 0) {
+        btn.__tchiloBoundV2 = true;
         btn.addEventListener(
           'click',
           function (e) {
-            e.preventDefault();
-            e.stopPropagation();
             try {
               if (typeof showLoginPanel === 'function') showLoginPanel('signup');
-            } catch (err) {
-              console.warn(err);
-            }
+            } catch (err) {}
           },
-          true
+          false
         );
       }
     });
   }
 
-  function ensureGateOnTop() {
-    var gate = document.querySelector('.login-gate');
-    if (!gate) return;
-    try {
-      gate.style.setProperty('z-index', '99999', 'important');
-      gate.style.setProperty('pointer-events', 'auto', 'important');
-    } catch (e) {}
-  }
-
   function run() {
     injectCSS();
-    ensureGateOnTop();
-    bindButtons();
+    bindHomeButtons();
   }
 
   run();
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', run);
   }
-  setTimeout(run, 100);
-  setTimeout(run, 500);
-  setTimeout(run, 1500);
-  setInterval(run, 3000);
+  setTimeout(run, 300);
+  setTimeout(run, 1200);
 })();

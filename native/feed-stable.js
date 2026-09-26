@@ -15,7 +15,7 @@
   }
 
   function loadExtras() {
-    add('native/tchilo-login-click-fix.js?v=1');
+    add('native/tchilo-login-click-fix.js?v=2');
     add('native/tchilo-hide-progress.js?v=4');
     add('native/tchilo-password-reset.js?v=2');
     add('native/tchilo-cloud-hydrate.js?v=3');

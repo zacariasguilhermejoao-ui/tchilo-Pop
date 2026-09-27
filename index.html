@@ -11,20 +11,6 @@ html,body{margin:0;min-height:100%;background:#0B0B0C;color:#fff;font-family:sys
 display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
 a{color:#c8f560;font-weight:700}
 </style>
-<style id="tchilo-hide-nav-legal">
-body.legal-screen-open .navbar, body.legal-from-login .navbar,
-body.legal-screen-open .topbar, body.legal-from-login .topbar,
-body.legal-screen-open .stories, body.legal-from-login .stories {
-  display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;
-}
-#appFrame:has(#screen-terms.active) .navbar,
-#appFrame:has(#screen-privacy.active) .navbar,
-#appFrame:has(#screen-child.active) .navbar,
-#appFrame:has(#screen-community.active) .navbar,
-#appFrame:has(#screen-about.active) .navbar {
-  display:none!important;visibility:hidden!important;
-}
-</style>
 </head>
 <body>
 <p id="m">A carregar o Tchilo…</p>
@@ -32,11 +18,12 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
 (function () {
   var SRC = 'https://raw.githack.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html';
   var FIXES = [
+    'native/tchilo-cloud-force.js?v=1',
     'native/tchilo-gallery-force.js?v=3',
     'native/tchilo-gallery-video-fix.js?v=2',
     'native/tchilo-camera-gallery-fix.js?v=2',
     'native/tchilo-name-sync.js?v=1',
-    'native/feed-stable.js?v=4'
+    'native/feed-stable.js?v=5'
   ];
   function injectFixes() {
     FIXES.forEach(function (src) {
@@ -74,7 +61,5 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
     });
 })();
 </script>
-<script src="native/legal-navbar-fix.js"></script>
-<script src="native/feed-names-fix.js"></script>
 </body>
 </html>

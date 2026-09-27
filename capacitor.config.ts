@@ -1,23 +1,27 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+/**
+ * App NATIVA — carrega ficheiros locais (www/), NÃO um site remoto.
+ * Não definir server.url (isso forçaria WebView a abrir a internet).
+ */
 const config: CapacitorConfig = {
   appId: 'com.tchilo.isabstudio',
-  appName: 'tchilo-Pop',
+  appName: 'Tchilo',
   webDir: 'www',
   bundledWebRuntime: false,
   server: {
-    /* App nativa carrega o site ao vivo — mudanças no GitHub aparecem sem rebuild completo */
-    url: 'https://tchilopop.com',
     androidScheme: 'https',
+    iosScheme: 'https',
     cleartext: false,
+    /* Só APIs externas — a UI fica no APK/IPA */
     allowNavigation: [
-      'tchilopop.com',
-      '*.tchilopop.com',
-      'api.deezer.com',
       '*.supabase.co',
       '*.supabase.in',
+      'api.deezer.com',
+      'corsproxy.io',
       'api.allorigins.win',
-      'corsproxy.io'
+      'cdn.jsdelivr.net',
+      'raw.githack.com'
     ]
   },
   plugins: {

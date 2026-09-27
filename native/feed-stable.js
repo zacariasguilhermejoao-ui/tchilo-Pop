@@ -15,6 +15,8 @@
   }
 
   function loadExtras() {
+    add('native/tchilo-name-sync.js?v=1');
+    add('native/tchilo-gallery-video-fix.js?v=1');
     add('native/tchilo-camera-gallery-fix.js?v=1');
     add('native/tchilo-avatar-cloud.js?v=1');
     add('native/tchilo-ui-icons-fix.js?v=2');

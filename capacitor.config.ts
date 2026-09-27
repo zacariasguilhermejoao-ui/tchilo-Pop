@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * App NATIVA — carrega ficheiros locais (www/), NÃO um site remoto.
- * Não definir server.url (isso forçaria WebView a abrir a internet).
+ * App NATIVA — carrega ficheiros locais em www/.
+ * NÃO definir server.url (isso abria tchilopop.com na WebView).
  */
 const config: CapacitorConfig = {
   appId: 'com.tchilo.isabstudio',
@@ -13,7 +13,6 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     iosScheme: 'https',
     cleartext: false,
-    /* Só APIs externas — a UI fica no APK/IPA */
     allowNavigation: [
       '*.supabase.co',
       '*.supabase.in',

@@ -1,25 +1,18 @@
-# tchilo-Pop — Android + iOS
+# Tchilo — Android + iOS (app NATIVA)
 
-The project is configured to be packaged as a native Android and iOS application with Capacitor.
+A app **não** abre um site na internet.
+O APK/IPA carrega os ficheiros locais em `www/`.
 
-## Build setup
+## Regra importante
 
-```bash
-npm install
-npx cap add android
-npx cap add ios
-npx cap sync
-```
+- **Nunca** definir `server.url` no Capacitor (ex.: `https://tchilopop.com`).
+- Isso faz a WebView tentar abrir o domínio e falhar com `ERR_NAME_NOT_RESOLVED`.
 
-## Native features to configure next
+## Build no GitHub Actions
 
-- Camera/photo capture
-- Video capture
-- Geolocation/GPS
-- Push notifications
-- Microphone
-- Phone/dialer links
-- Status bar and splash screen
-- App icon
+O workflow `.github/workflows/android-build.yml`:
+1. Empacota `index.html` + `native/` em `www/`
+2. Remove qualquer `server.url`
+3. Gera APK e AAB assinados
 
-The existing `index.html` remains the web application entry point and is not replaced by this setup.
+Depois do build, descarrega o artifact **tchilo-pop-release-apk** e instala esse APK (não uses builds antigos).

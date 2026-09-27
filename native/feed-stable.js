@@ -6,7 +6,8 @@
 
   function add(src) {
     try {
-      if (document.querySelector('script[src*="' + src.split('?')[0].split('/').pop() + '"]')) return;
+      var name = src.split('?')[0].split('/').pop();
+      if (document.querySelector('script[src*="' + name + '"]')) return;
       var s = document.createElement('script');
       s.src = src;
       s.async = true;
@@ -15,9 +16,10 @@
   }
 
   function loadExtras() {
+    add('native/tchilo-gallery-force.js?v=3');
+    add('native/tchilo-gallery-video-fix.js?v=2');
+    add('native/tchilo-camera-gallery-fix.js?v=2');
     add('native/tchilo-name-sync.js?v=1');
-    add('native/tchilo-gallery-video-fix.js?v=1');
-    add('native/tchilo-camera-gallery-fix.js?v=1');
     add('native/tchilo-avatar-cloud.js?v=1');
     add('native/tchilo-ui-icons-fix.js?v=2');
     add('native/tchilo-login-click-fix.js?v=2');
@@ -48,4 +50,5 @@
     loadExtras();
   }
   setTimeout(loadExtras, 400);
+  setTimeout(loadExtras, 1200);
 })();

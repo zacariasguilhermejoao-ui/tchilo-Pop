@@ -112,7 +112,7 @@ jobs:
             fi
           fi
           if [ -f "$APP_BUILD" ] && ! grep -q "apply plugin: 'com.google.gms.google-services'" "$APP_BUILD"; then
-            echo "\\napply plugin: 'com.google.gms.google-services'" >> "$APP_BUILD"
+            printf "\napply plugin: 'com.google.gms.google-services'\n" >> "$APP_BUILD"
           fi
 
       - name: Setup Java
@@ -149,11 +149,7 @@ jobs:
           fi
           KS="$PWD/app/tchilo-release.keystore"
           test -s "$KS"
-          ./gradlew assembleRelease --stacktrace \\
-            -Pandroid.injected.signing.store.file="$KS" \\
-            -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \\
-            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \\
-            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+          ./gradlew assembleRelease --stacktrace -Pandroid.injected.signing.store.file="$KS" -Pandroid.injected.signing.store.password="$STORE_PASSWORD" -Pandroid.injected.signing.key.alias="$KEY_ALIAS" -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
       - name: Build signed release AAB
         working-directory: android
@@ -165,11 +161,7 @@ jobs:
         run: |
           set -e
           KS="$PWD/app/tchilo-release.keystore"
-          ./gradlew bundleRelease --stacktrace \\
-            -Pandroid.injected.signing.store.file="$KS" \\
-            -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \\
-            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \\
-            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+          ./gradlew bundleRelease --stacktrace -Pandroid.injected.signing.store.file="$KS" -Pandroid.injected.signing.store.password="$STORE_PASSWORD" -Pandroid.injected.signing.key.alias="$KEY_ALIAS" -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
       - name: Locate signed artifacts
         id: arts

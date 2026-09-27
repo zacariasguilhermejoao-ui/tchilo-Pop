@@ -16,6 +16,7 @@
   }
 
   function loadExtras() {
+    add('native/tchilo-cloud-force.js?v=1');
     add('native/tchilo-gallery-force.js?v=3');
     add('native/tchilo-gallery-video-fix.js?v=2');
     add('native/tchilo-camera-gallery-fix.js?v=2');

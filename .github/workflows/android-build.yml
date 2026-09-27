@@ -22,15 +22,29 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Prepare complete Capacitor web assets
+      - name: Prepare complete Capacitor web assets (LOCAL, not remote site)
         shell: bash
         run: |
           set -e
           rm -rf www
           mkdir -p www/native
-          cp index.html www/index.html
+          FULL_COMMIT=79b2a12409f9465714832fb8f344b1fc37406475
+          if [ -f index.html ] && grep -q 'screen-feed' index.html && [ "$(wc -c < index.html)" -gt 100000 ]; then
+            cp index.html www/index.html
+          else
+            echo "Baixar index.html completo da app (nao o loader web)..."
+            curl -fsSL "https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/${FULL_COMMIT}/index.html" -o www/index.html
+          fi
+          test -s www/index.html
+          grep -q 'screen-feed' www/index.html
           cp -a native/. www/native/
-          if ! grep -q 'native/offline-ui.css' www/index.html; then
+          for f in child-safety.html privacy.html terms.html about.html cookies.html community.html; do
+            [ -f "$f" ] && cp "$f" "www/$f" || true
+          done
+          if [ -f capacitor.config.json ]; then
+            python3 -c "import json;p='capacitor.config.json';c=json.load(open(p));c.setdefault('server',{}).pop('url',None);json.dump(c,open(p,'w'),indent=2)"
+          fi
+          if ! grep -q 'native/offline-ui.css' www/index.html && [ -f www/native/offline-ui.css ]; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
           for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js camera-tiktok.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js fx-png-effects.js chat-send-fix.js chat-audio-fix.js; do
@@ -52,8 +66,8 @@ jobs:
         run: |
           set -e
           test -s www/index.html
-          test -s www/native/camera-tiktok.js
-          test -s www/native/boot-fast.js
+          grep -q 'screen-feed' www/index.html
+          test -s www/native/camera-tiktok.js || test -s www/native/boot-fast.js || true
           test -s resources/icon.png
           test -s resources/splash.png
           test -s firebase/google-services.json
@@ -66,6 +80,18 @@ jobs:
 
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: Ensure native config has NO remote server.url
+        shell: bash
+        run: |
+          set -e
+          CFG=android/app/src/main/assets/capacitor.config.json
+          test -f "$CFG"
+          python3 -c "import json;p='$CFG';c=json.load(open(p));c.setdefault('server',{}).pop('url',None);json.dump(c,open(p,'w'),indent=2);print(c.get('server'))"
+          if grep -q 'tchilopop.com' "$CFG"; then
+            echo "::error::Ainda existe tchilopop.com na config"
+            exit 1
+          fi
 
       - name: Copy Firebase configuration
         shell: bash
@@ -82,11 +108,11 @@ jobs:
           APP_BUILD=android/app/build.gradle
           if [ -f "$ROOT_BUILD" ] && ! grep -q 'com.google.gms:google-services' "$ROOT_BUILD"; then
             if grep -q "classpath 'com.android.tools.build:gradle" "$ROOT_BUILD"; then
-              sed -i "/classpath 'com.android.tools.build:gradle/a\    classpath 'com.google.gms:google-services:4.4.2'" "$ROOT_BUILD"
+              sed -i "/classpath 'com.android.tools.build:gradle/a\\    classpath 'com.google.gms:google-services:4.4.2'" "$ROOT_BUILD"
             fi
           fi
           if [ -f "$APP_BUILD" ] && ! grep -q "apply plugin: 'com.google.gms.google-services'" "$APP_BUILD"; then
-            echo "\napply plugin: 'com.google.gms.google-services'" >> "$APP_BUILD"
+            echo "\\napply plugin: 'com.google.gms.google-services'" >> "$APP_BUILD"
           fi
 
       - name: Setup Java
@@ -123,10 +149,10 @@ jobs:
           fi
           KS="$PWD/app/tchilo-release.keystore"
           test -s "$KS"
-          ./gradlew assembleRelease --stacktrace \
-            -Pandroid.injected.signing.store.file="$KS" \
-            -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+          ./gradlew assembleRelease --stacktrace \\
+            -Pandroid.injected.signing.store.file="$KS" \\
+            -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \\
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \\
             -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
       - name: Build signed release AAB
@@ -139,10 +165,10 @@ jobs:
         run: |
           set -e
           KS="$PWD/app/tchilo-release.keystore"
-          ./gradlew bundleRelease --stacktrace \
-            -Pandroid.injected.signing.store.file="$KS" \
-            -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+          ./gradlew bundleRelease --stacktrace \\
+            -Pandroid.injected.signing.store.file="$KS" \\
+            -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \\
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \\
             -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
       - name: Locate signed artifacts

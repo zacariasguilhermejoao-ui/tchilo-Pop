@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - feature/share-target
 
 jobs:
   build-android:
@@ -48,7 +49,7 @@ jobs:
           if ! grep -q 'native/offline-ui.css' www/index.html && [ -f www/native/offline-ui.css ]; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
-          for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js camera-tiktok.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js fx-png-effects.js chat-send-fix.js chat-audio-fix.js tchilo-deeplink.js tchilo-password-reset.js; do
+          for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js camera-tiktok.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js fx-png-effects.js chat-send-fix.js chat-audio-fix.js tchilo-deeplink.js tchilo-password-reset.js share-target.js; do
             if [ -f "www/native/$js" ] && ! grep -q "native/$js" www/index.html; then
               sed -i "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
@@ -80,6 +81,61 @@ jobs:
 
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: Configure native Tchilo Share Target
+        shell: bash
+        run: |
+          set -e
+          JAVA_DIR=android/app/src/main/java/com/tchilo/isabstudio
+          mkdir -p "$JAVA_DIR"
+          cp native/android/TchiloShareTargetPlugin.java "$JAVA_DIR/TchiloShareTargetPlugin.java"
+          MAIN=$(find android/app/src/main/java -name MainActivity.java -o -name MainActivity.kt | head -n 1)
+          if [ -z "$MAIN" ]; then echo "MainActivity não encontrada"; exit 1; fi
+          if [[ "$MAIN" == *.java ]]; then
+            if ! grep -q 'TchiloShareTargetPlugin' "$MAIN"; then
+              sed -i '/^package .*;/a\
+import com.tchilo.isabstudio.TchiloShareTargetPlugin;
+' "$MAIN"
+              sed -i '/class MainActivity extends BridgeActivity {/a\
+    @Override\
+    public void onCreate(android.os.Bundle savedInstanceState) {\
+        registerPlugin(TchiloShareTargetPlugin.class);\
+        super.onCreate(savedInstanceState);\
+    }\
+    @Override\
+    protected void onNewIntent(android.content.Intent intent) {\
+        super.onNewIntent(intent);\
+        setIntent(intent);\
+    }\
+' "$MAIN"
+            fi
+          else
+            echo "MainActivity.kt requer registo Kotlin; parar para evitar build inválido"
+            exit 1
+          fi
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          python3 <<'PY'
+          from pathlib import Path
+          p=Path("android/app/src/main/AndroidManifest.xml")
+          s=p.read_text()
+          if "TCHILO_SHARE_TARGET" not in s:
+              block = '''
+                  <!-- TCHILO_SHARE_TARGET: receive photos, videos, files and text from Android share sheet -->
+                  <intent-filter android:label="Tchilo">
+                      <action android:name="android.intent.action.SEND" />
+                      <action android:name="android.intent.action.SEND_MULTIPLE" />
+                      <category android:name="android.intent.category.DEFAULT" />
+                      <data android:mimeType="image/*" />
+                      <data android:mimeType="video/*" />
+                      <data android:mimeType="application/*" />
+                      <data android:mimeType="text/plain" />
+                  </intent-filter>'''
+              i=s.find('</activity>')
+              if i<0: raise SystemExit("Activity closing tag not found")
+              s=s[:i]+block+"\n        "+s[i:]
+              p.write_text(s)
+          PY
+          grep -q 'TCHILO_SHARE_TARGET' "$MANIFEST"
 
       - name: App Links intent-filters + custom scheme tchilo://
         shell: bash

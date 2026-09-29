@@ -1,6 +1,6 @@
 /* Tchilo Service Worker — offline shell + media cache + push */
 /* eslint-disable no-restricted-globals */
-var SW_VERSION = 'tchilo-sw-v4';
+var SW_VERSION = 'tchilo-sw-v5-share-target';
 var SHELL_CACHE = SW_VERSION + '-shell';
 var MEDIA_CACHE = 'tchilo-media-v1';
 var RUNTIME_CACHE = SW_VERSION + '-runtime';
@@ -19,7 +19,8 @@ var PRECACHE = [
   './native/feed-names-fix.js',
   './native/legal-navbar-fix.js',
   './native/tchilo-offline.js',
-  './native/tchilo-push.js'
+  './native/tchilo-push.js',
+  './native/share-target.js'
 ];
 
 function isMediaRequest(url) {

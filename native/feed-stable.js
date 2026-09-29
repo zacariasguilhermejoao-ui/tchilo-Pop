@@ -12,10 +12,12 @@
     } catch (e) {}
   }
   function load() {
+    add('native/tchilo-router.js?v=3');
+    add('native/tchilo-profile-share.js?v=2');
+    add('native/tchilo-profile-boost.js?v=1');
     add('native/tchilo-ads-ui.js?v=5');
     add('native/tchilo-ads-force.js?v=2');
     add('native/tchilo-ads-pro.js?v=2');
-    add('native/tchilo-profile-boost.js?v=1');
     add('native/tchilo-create-buttons.js?v=3');
     add('native/tchilo-video-pick.js?v=5');
     add('native/tchilo-cloud-force.js?v=1');

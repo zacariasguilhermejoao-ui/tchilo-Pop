@@ -4,38 +4,35 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <title>Tchilo</title>
 <style>
-html,body{margin:0;min-height:100%;background:#0B0B0C;color:#fff;font-family:system-ui,sans-serif;
-display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
-a{color:#c8f560;font-weight:700}
-</style>
-<style id="tchilo-hide-nav-legal">
-body.legal-screen-open .navbar, body.legal-from-login .navbar,
-body.legal-screen-open .topbar, body.legal-from-login .topbar,
-body.legal-screen-open .stories, body.legal-from-login .stories {
-  display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;
-}
-#appFrame:has(#screen-terms.active) .navbar,
-#appFrame:has(#screen-privacy.active) .navbar,
-#appFrame:has(#screen-child.active) .navbar,
-#appFrame:has(#screen-community.active) .navbar,
-#appFrame:has(#screen-about.active) .navbar {
-  display:none!important;visibility:hidden!important;
-}
+html,body{margin:0;height:100%;background:#0B0B0C;color:#fff}
+#boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0B0B0C;z-index:99999}
+#boot .mark{width:72px;height:72px;border-radius:18px;background:#c8f560;color:#0B0B0C;font-weight:900;font-size:34px;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;letter-spacing:-1px}
+#boot .err{display:none;text-align:center;padding:24px;font-family:system-ui,sans-serif;font-size:15px;line-height:1.45;max-width:320px}
+#boot .err a{color:#c8f560;font-weight:700}
 </style>
 </head>
 <body>
-<p id="m">A carregar o Tchilo…</p>
+<div id="boot"><div class="mark">T</div><div class="err" id="bootErr"></div></div>
 <script>
 (function () {
-  var SRC = 'https://raw.githack.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html';
+  var SOURCES = [
+    'https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@79b2a12409f9465714832fb8f344b1fc37406475/index.html',
+    'https://raw.githack.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html',
+    'https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@79b2a12409f9465714832fb8f344b1fc37406475/index.html?t=' + Date.now()
+  ];
   var FIXES = [
-    'native/tchilo-create-buttons.js?v=2',
+    'native/tchilo-create-buttons.js?v=3',
     'native/tchilo-video-pick.js?v=5',
     'native/tchilo-cloud-force.js?v=1',
     'native/tchilo-name-sync.js?v=1',
-    'native/feed-stable.js?v=7'
+    'native/feed-stable.js?v=8',
+    'native/tchilo-cloud-hydrate.js?v=3',
+    'native/tchilo-hide-nav.js?v=2',
+    'native/tchilo-feed-to-reels.js?v=2',
+    'native/tchilo-reels-icon.js?v=2'
   ];
   function injectFixes() {
     FIXES.forEach(function (src) {
@@ -46,27 +43,56 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
       } catch (e) {}
     });
   }
-  fetch(SRC, { cache: 'no-store', mode: 'cors' })
-    .then(function (r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.text();
-    })
-    .then(function (html) {
-      if (!html || html.indexOf('screen-feed') < 0) throw new Error('HTML inválido');
-      document.open();
-      document.write(html);
-      document.close();
-      setTimeout(injectFixes, 30);
-      setTimeout(injectFixes, 400);
-      setTimeout(injectFixes, 1200);
-    })
-    .catch(function (e) {
-      var el = document.getElementById('m');
-      if (el) el.innerHTML = 'Erro ao carregar.<br><a href="' + SRC + '">Abrir</a>';
-    });
+  function isApp(html) {
+    return html && (html.indexOf('screen-feed') >= 0 || html.indexOf('feedList') >= 0) && html.indexOf('A carregar o Tchilo') < 0;
+  }
+  function fail(msg) {
+    var boot = document.getElementById('boot');
+    var mark = boot && boot.querySelector('.mark');
+    var err = document.getElementById('bootErr');
+    if (mark) mark.style.display = 'none';
+    if (err) {
+      err.style.display = 'block';
+      err.innerHTML = (msg || 'Não foi possível abrir.') +
+        '<br><br><a href="https://cdn.jsdelivr.net/gh/zacariasguilhermejoao-ui/tchilo-Pop@79b2a12409f9465714832fb8f344b1fc37406475/index.html">Abrir app</a>' +
+        '<br><br><a href="javascript:location.reload()">Tentar de novo</a>';
+    }
+  }
+  function trySource(i) {
+    if (i >= SOURCES.length) {
+      fail('Falha de rede ao abrir o Tchilo.');
+      return;
+    }
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = setTimeout(function () {
+      try { if (ctrl) ctrl.abort(); } catch (e) {}
+      trySource(i + 1);
+    }, 14000);
+    fetch(SOURCES[i], { cache: 'no-store', mode: 'cors', signal: ctrl && ctrl.signal })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      })
+      .then(function (html) {
+        clearTimeout(timer);
+        if (!isApp(html)) {
+          trySource(i + 1);
+          return;
+        }
+        document.open();
+        document.write(html);
+        document.close();
+        setTimeout(injectFixes, 40);
+        setTimeout(injectFixes, 500);
+        setTimeout(injectFixes, 1500);
+      })
+      .catch(function () {
+        clearTimeout(timer);
+        trySource(i + 1);
+      });
+  }
+  trySource(0);
 })();
 </script>
-<script src="native/legal-navbar-fix.js"></script>
-<script src="native/feed-names-fix.js"></script>
 </body>
 </html>

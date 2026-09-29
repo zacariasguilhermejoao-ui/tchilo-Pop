@@ -45,7 +45,7 @@ jobs:
             sed -i '' 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
 
-          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js tchilo-deeplink.js tchilo-password-reset.js; do
+          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js tchilo-deeplink.js tchilo-password-reset.js share-target.js; do
             if [ -f "www/native/$js" ] && ! grep -q "native/$js" www/index.html; then
               sed -i '' "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi

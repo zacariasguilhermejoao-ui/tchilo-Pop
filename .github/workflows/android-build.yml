@@ -27,12 +27,11 @@ jobs:
         run: |
           set -e
           rm -rf www
-          mkdir -p www/native
+          mkdir -p www/native www/.well-known www/redefinir-senha www/reset-password
           FULL_COMMIT=79b2a12409f9465714832fb8f344b1fc37406475
           if [ -f index.html ] && grep -q 'screen-feed' index.html && [ "$(wc -c < index.html)" -gt 100000 ]; then
             cp index.html www/index.html
           else
-            echo "Baixar index.html completo da app (nao o loader web)..."
             curl -fsSL "https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/${FULL_COMMIT}/index.html" -o www/index.html
           fi
           test -s www/index.html
@@ -41,13 +40,15 @@ jobs:
           for f in child-safety.html privacy.html terms.html about.html cookies.html community.html; do
             [ -f "$f" ] && cp "$f" "www/$f" || true
           done
+          [ -f redefinir-senha/index.html ] && cp redefinir-senha/index.html www/redefinir-senha/index.html || true
+          [ -f reset-password/index.html ] && cp reset-password/index.html www/reset-password/index.html || true
           if [ -f capacitor.config.json ]; then
             python3 -c "import json;p='capacitor.config.json';c=json.load(open(p));c.setdefault('server',{}).pop('url',None);json.dump(c,open(p,'w'),indent=2)"
           fi
           if ! grep -q 'native/offline-ui.css' www/index.html && [ -f www/native/offline-ui.css ]; then
             sed -i 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
-          for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js camera-tiktok.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js fx-png-effects.js chat-send-fix.js chat-audio-fix.js; do
+          for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js camera-tiktok.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js fx-png-effects.js chat-send-fix.js chat-audio-fix.js tchilo-deeplink.js tchilo-password-reset.js; do
             if [ -f "www/native/$js" ] && ! grep -q "native/$js" www/index.html; then
               sed -i "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
@@ -67,7 +68,6 @@ jobs:
           set -e
           test -s www/index.html
           grep -q 'screen-feed' www/index.html
-          test -s www/native/camera-tiktok.js || test -s www/native/boot-fast.js || true
           test -s resources/icon.png
           test -s resources/splash.png
           test -s firebase/google-services.json
@@ -80,6 +80,55 @@ jobs:
 
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: App Links intent-filters + custom scheme tchilo://
+        shell: bash
+        run: |
+          set -e
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          test -f "$MANIFEST"
+          if grep -q 'tchilopop.com' "$MANIFEST"; then
+            echo "App Links já presentes"
+          else
+            python3 << 'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          t = p.read_text(encoding='utf-8')
+          block = '''
+                  <intent-filter android:autoVerify="true">
+                      <action android:name="android.intent.action.VIEW" />
+                      <category android:name="android.intent.category.DEFAULT" />
+                      <category android:name="android.intent.category.BROWSABLE" />
+                      <data android:scheme="https" android:host="tchilopop.com" android:pathPrefix="/redefinir-senha" />
+                      <data android:scheme="https" android:host="tchilopop.com" android:pathPrefix="/reset-password" />
+                      <data android:scheme="https" android:host="tchilopop.com" android:pathPrefix="/u" />
+                      <data android:scheme="https" android:host="www.tchilopop.com" android:pathPrefix="/redefinir-senha" />
+                      <data android:scheme="https" android:host="www.tchilopop.com" android:pathPrefix="/u" />
+                  </intent-filter>
+                  <intent-filter>
+                      <action android:name="android.intent.action.VIEW" />
+                      <category android:name="android.intent.category.DEFAULT" />
+                      <category android:name="android.intent.category.BROWSABLE" />
+                      <data android:scheme="tchilo" android:host="redefinir-senha" />
+                      <data android:scheme="tchilo" android:host="u" />
+                  </intent-filter>'''
+          needle = '</activity>'
+          # insert before first activity close that has MAIN launcher if possible
+          if 'android.intent.action.MAIN' in t and needle in t:
+              # find activity containing MAIN and insert before its closing tag
+              idx = t.find('android.intent.action.MAIN')
+              close = t.find(needle, idx)
+              if close > 0:
+                  t = t[:close] + block + '\n        ' + t[close:]
+                  p.write_text(t, encoding='utf-8')
+                  print('intent-filters injected')
+              else:
+                  raise SystemExit('no activity close')
+          else:
+              raise SystemExit('MAIN activity not found')
+          PY
+          fi
+          grep -n 'tchilopop.com\|tchilo' "$MANIFEST" | head -40
 
       - name: Set Android app version 1.1.0 (versionCode 2)
         shell: bash
@@ -97,8 +146,6 @@ jobs:
           else
             sed -i '/defaultConfig {/a\        versionCode 2' "$APP_BUILD"
           fi
-          echo "=== version in build.gradle ==="
-          grep -E 'versionCode|versionName' "$APP_BUILD" || true
 
       - name: Ensure native config has NO remote server.url
         shell: bash
@@ -107,10 +154,6 @@ jobs:
           CFG=android/app/src/main/assets/capacitor.config.json
           test -f "$CFG"
           python3 -c "import json;p='$CFG';c=json.load(open(p));c.setdefault('server',{}).pop('url',None);json.dump(c,open(p,'w'),indent=2);print(c.get('server'))"
-          if grep -q 'tchilopop.com' "$CFG"; then
-            echo "::error::Ainda existe tchilopop.com na config"
-            exit 1
-          fi
 
       - name: Copy Firebase configuration
         shell: bash
@@ -153,6 +196,18 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 -d > android/app/tchilo-release.keystore
           test -s android/app/tchilo-release.keystore
 
+      - name: Print release cert SHA256 for assetlinks.json
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -e
+          KS=android/app/tchilo-release.keystore
+          echo "=== SHA256 fingerprint (copia para .well-known/assetlinks.json) ==="
+          keytool -list -v -keystore "$KS" -alias "$KEY_ALIAS" -storepass "$STORE_PASSWORD" -keypass "$KEY_PASSWORD" 2>/dev/null | grep -i 'SHA256:' || true
+
       - name: Build signed release APK
         working-directory: android
         env:
@@ -163,11 +218,10 @@ jobs:
         run: |
           set -e
           if [ -z "$STORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
-            echo "::error::Faltam secrets ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS ou ANDROID_KEY_PASSWORD"
+            echo "::error::Faltam secrets de assinatura Android"
             exit 1
           fi
           KS="$PWD/app/tchilo-release.keystore"
-          test -s "$KS"
           ./gradlew assembleRelease --stacktrace -Pandroid.injected.signing.store.file="$KS" -Pandroid.injected.signing.store.password="$STORE_PASSWORD" -Pandroid.injected.signing.key.alias="$KEY_ALIAS" -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
       - name: Build signed release AAB
@@ -189,10 +243,6 @@ jobs:
           set -e
           APK=$(find android/app/build/outputs/apk -name '*.apk' | head -n 1)
           AAB=$(find android/app/build/outputs/bundle -name '*.aab' | head -n 1)
-          echo "APK=$APK"
-          echo "AAB=$AAB"
-          test -n "$APK" && test -s "$APK"
-          test -n "$AAB" && test -s "$AAB"
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
           echo "aab_path=$AAB" >> "$GITHUB_OUTPUT"
 

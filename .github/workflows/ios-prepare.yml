@@ -31,16 +31,22 @@ jobs:
         shell: bash
         run: |
           rm -rf www
-          mkdir -p www/native
-          cp index.html www/index.html
+          mkdir -p www/native www/redefinir-senha www/reset-password
+          if [ -f index.html ] && grep -q 'screen-feed' index.html && [ "$(wc -c < index.html)" -gt 100000 ]; then
+            cp index.html www/index.html
+          else
+            curl -fsSL "https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html" -o www/index.html
+          fi
           cp -a native/. www/native/
+          [ -f redefinir-senha/index.html ] && cp redefinir-senha/index.html www/redefinir-senha/ || true
+          [ -f reset-password/index.html ] && cp reset-password/index.html www/reset-password/ || true
 
           if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i '' 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
 
-          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js media-editor.js; do
-            if ! grep -q "native/$js" www/index.html; then
+          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js tchilo-deeplink.js tchilo-password-reset.js; do
+            if [ -f "www/native/$js" ] && ! grep -q "native/$js" www/index.html; then
               sed -i '' "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
           done
@@ -54,12 +60,42 @@ jobs:
       - name: Copy Firebase GoogleService-Info.plist
         run: cp firebase/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
 
-      - name: Configure iOS privacy permissions
+      - name: Configure iOS privacy + Associated Domains + URL scheme
         shell: bash
         run: |
-          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'tchilo-Pop precisa de acesso à câmera para efeitos e fotos.'" ios/App/App/Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'tchilo-Pop usa sua localização quando um recurso solicitar localização.'" ios/App/App/Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :NSUserNotificationUsageDescription string 'tchilo-Pop pode enviar notificações para informar sobre eventos do aplicativo.'" ios/App/App/Info.plist || true
+          PLIST=ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'Tchilo precisa de acesso à câmera para efeitos e fotos.'" "$PLIST" || true
+          /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'Tchilo usa a sua localização quando um recurso solicitar.'" "$PLIST" || true
+          /usr/libexec/PlistBuddy -c "Add :NSUserNotificationUsageDescription string 'Tchilo pode enviar notificações.'" "$PLIST" || true
+
+          # URL scheme tchilo://
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLName string com.tchilo.isabstudio" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string tchilo" "$PLIST" 2>/dev/null || true
+
+          # Associated Domains entitlements
+          ENT=ios/App/App/App.entitlements
+          if [ ! -f "$ENT" ]; then
+            cat > "$ENT" << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>com.apple.developer.associated-domains</key>
+            <array>
+              <string>applinks:tchilopop.com</string>
+              <string>applinks:www.tchilopop.com</string>
+            </array>
+          </dict>
+          </plist>
+          EOF
+          else
+            /usr/libexec/PlistBuddy -c "Add :com.apple.developer.associated-domains array" "$ENT" 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c "Add :com.apple.developer.associated-domains:0 string applinks:tchilopop.com" "$ENT" 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c "Add :com.apple.developer.associated-domains:1 string applinks:www.tchilopop.com" "$ENT" 2>/dev/null || true
+          fi
 
       - name: Set splash image and app icon
         shell: bash

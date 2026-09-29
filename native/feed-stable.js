@@ -12,7 +12,11 @@
     } catch (e) {}
   }
   function load() {
-    add('native/tchilo-create-buttons.js?v=2');
+    add('native/tchilo-ads-ui.js?v=5');
+    add('native/tchilo-ads-force.js?v=2');
+    add('native/tchilo-ads-pro.js?v=2');
+    add('native/tchilo-profile-boost.js?v=1');
+    add('native/tchilo-create-buttons.js?v=3');
     add('native/tchilo-video-pick.js?v=5');
     add('native/tchilo-cloud-force.js?v=1');
     add('native/tchilo-name-sync.js?v=1');
@@ -23,5 +27,6 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
   else load();
-  setTimeout(load, 500);
+  setTimeout(load, 400);
+  setTimeout(load, 1200);
 })();

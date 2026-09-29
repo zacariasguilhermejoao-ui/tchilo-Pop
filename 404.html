@@ -6,12 +6,16 @@
 <title>Tchilo</title>
 <style>html,body{margin:0;height:100%;background:#0B0B0C}</style>
 <script>
-(function(){
+(function () {
   try {
-    sessionStorage.setItem('tchilo_spa_path', location.pathname + location.search + location.hash);
+    var path = location.pathname + location.search + location.hash;
+    sessionStorage.setItem('tchilo_spa_path', path);
   } catch (e) {}
+  /* Preserva hash (tokens Supabase type=recovery) ao voltar ao index */
   var base = location.protocol + '//' + location.host + '/';
-  location.replace(base);
+  var hash = location.hash || '';
+  var search = location.search || '';
+  location.replace(base + search + hash);
 })();
 </script>
 </head>

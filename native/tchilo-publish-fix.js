@@ -1,14 +1,11 @@
 /**
- * Tchilo — corrigir publicação de foto/vídeo + limpar media presa + música no post
- *
- * BUG: native/tchilo-video-pick grava em window.createMediaData,
- * mas publishPostCore lê a variável lexical `createMediaData` (let) — são coisas diferentes.
- * Resultado: escolhes vídeo, o preview mostra, mas publica só o tema/stamp.
+ * Tchilo — publicar foto/vídeo de verdade + limpar media presa + música (só fotos)
+ * v3: substitui publishPostCore (a variável let createMediaData não é partilhável)
  */
 (function () {
   'use strict';
-  if (window.__tchiloPublishFixV2) return;
-  window.__tchiloPublishFixV2 = true;
+  if (window.__tchiloPublishFixV3) return;
+  window.__tchiloPublishFixV3 = true;
 
   function toast(msg) {
     try {
@@ -21,21 +18,18 @@
   function isVideoItem(item) {
     if (!item) return false;
     if (item.type === 'video') return true;
-    var mime = String(item.mime || item.fileType || '').toLowerCase();
+    var mime = String(item.mime || '').toLowerCase();
     if (mime.indexOf('video/') === 0) return true;
-    var url = String(item.url || item.src || '');
+    var url = String(item.url || '');
     if (/\.(mp4|mov|webm|m4v|3gp|mkv)(\?|$)/i.test(url)) return true;
     if (item.file && item.file.type && String(item.file.type).indexOf('video/') === 0) return true;
     return false;
   }
 
   function getMediaData() {
-    /* unificar todas as fontes */
-    var d =
-      (typeof createMediaData !== 'undefined' && createMediaData) ||
-      window.createMediaData ||
-      null;
-    if (d && d.items && d.items.length) return d;
+    if (window.createMediaData && window.createMediaData.items && window.createMediaData.items.length) {
+      return window.createMediaData;
+    }
     if (window.__tchiloPendingMedia) {
       var p = window.__tchiloPendingMedia;
       return { type: p.type || 'image', items: [p] };
@@ -60,25 +54,7 @@
         ]
       };
     }
-    return d;
-  }
-
-  function setMediaData(data) {
-    window.createMediaData = data;
-    try {
-      /* tenta sincronizar a variável lexical do index, se existir no scope global */
-      if (typeof createMediaData !== 'undefined') {
-        /* assignment to lexical via Function may fail; use globalThis trick */
-      }
-    } catch (e) {}
-    try {
-      /* força no scope global do browser (scripts clássicos) */
-      (0, eval)('createMediaData = window.createMediaData');
-    } catch (e2) {
-      try {
-        window['createMediaData'] = data;
-      } catch (e3) {}
-    }
+    return null;
   }
 
   function hardClearMedia() {
@@ -95,9 +71,6 @@
     window.createMediaData = null;
     window.__tchiloPendingMedia = null;
     window.createMediaFiles = null;
-    try {
-      (0, eval)('createMediaData = null');
-    } catch (e2) {}
     var input = document.getElementById('mediaInput');
     if (input) {
       try {
@@ -121,18 +94,19 @@
     try {
       if (typeof setThemeSectionVisible === 'function') setThemeSectionVisible(true);
     } catch (e6) {}
+    try {
+      if (typeof updateStamp === 'function') updateStamp();
+    } catch (e7) {}
     window._pendingMusic = null;
     window._pendingMusicMeta = null;
     updateMusicBtn();
   }
 
-  /* ---------- Música no create (só fotos) ---------- */
   function ensureMusicBtn() {
     var screen = document.getElementById('screen-create');
     if (!screen) return null;
     var btn = document.getElementById('tchiloCreateMusicBtn');
     if (btn) return btn;
-
     btn = document.createElement('button');
     btn.type = 'button';
     btn.id = 'tchiloCreateMusicBtn';
@@ -140,20 +114,16 @@
     btn.textContent = 'Adicionar música';
     btn.style.cssText =
       'margin-top:10px;width:100%;display:none;font-weight:800;border:2px solid currentColor;';
-
     btn.onclick = function (e) {
       e.preventDefault();
       e.stopPropagation();
       openMusicPicker();
     };
-
-    var body = screen.querySelector('.create-body') || screen;
     var pub =
       screen.querySelector('.publish-btn') ||
       screen.querySelector('button[onclick*="publishPost"]');
     if (pub && pub.parentNode) pub.parentNode.insertBefore(btn, pub);
-    else body.appendChild(btn);
-
+    else (screen.querySelector('.create-body') || screen).appendChild(btn);
     return btn;
   }
 
@@ -166,7 +136,6 @@
     var hasImage = hasItems && d.items.some(function (m) {
       return !isVideoItem(m);
     });
-    /* só fotos — vídeos sem música */
     if (hasImage && !hasVideo) {
       btn.style.display = 'block';
       if (window._pendingMusicMeta) {
@@ -189,7 +158,6 @@
   }
 
   function openMusicPicker() {
-    /* reutilizar sheet do app se existir */
     try {
       if (typeof window.openMusicUseSheet === 'function') {
         window.openMusicUseSheet({ mode: 'post' });
@@ -202,14 +170,7 @@
         return;
       }
     } catch (e2) {}
-    try {
-      if (typeof window.showMusicSheet === 'function') {
-        window.showMusicSheet();
-        return;
-      }
-    } catch (e3) {}
 
-    /* fallback mínimo com Deezer search se o sheet nativo não existir */
     var overlay = document.getElementById('tchiloMusicFallback');
     if (overlay) overlay.remove();
     overlay = document.createElement('div');
@@ -230,7 +191,6 @@
     document.getElementById('tchiloMusicClose').onclick = function () {
       overlay.remove();
     };
-
     var list = document.getElementById('tchiloMusicList');
     var q = document.getElementById('tchiloMusicQ');
 
@@ -253,7 +213,7 @@
           };
           window._pendingMusic =
             (t.title || '') +
-            ((t.artist && t.artist.name) ? ' · ' + t.artist.name : '');
+            (t.artist && t.artist.name ? ' · ' + t.artist.name : '');
           updateMusicBtn();
           toast('Música selecionada');
           overlay.remove();
@@ -269,33 +229,22 @@
     function search(term) {
       list.innerHTML =
         '<div style="padding:12px;text-align:center;opacity:.7">A carregar…</div>';
-      var url =
-        'https://api.deezer.com/chart/0/tracks?limit=25' +
-        (term
-          ? ''
-          : '');
-      if (term) {
-        url =
-          'https://api.deezer.com/search/track?q=' +
-          encodeURIComponent(term) +
-          '&limit=25';
-      }
-      var proxy =
-        'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+      var url = term
+        ? 'https://api.deezer.com/search/track?q=' + encodeURIComponent(term) + '&limit=25'
+        : 'https://api.deezer.com/chart/0/tracks?limit=25';
+      var proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
       fetch(proxy)
         .then(function (r) {
           return r.json();
         })
         .then(function (data) {
-          var tracks = (data && data.data) || [];
-          renderTracks(tracks);
+          renderTracks((data && data.data) || []);
         })
         .catch(function () {
           list.innerHTML =
             '<div style="padding:12px;text-align:center;color:#c00">Não foi possível carregar músicas</div>';
         });
     }
-
     var timer = null;
     q.addEventListener('input', function () {
       clearTimeout(timer);
@@ -306,144 +255,225 @@
     search('');
   }
 
-  /* ---------- Patch clearCreateMedia ---------- */
-  function patchClear() {
-    if (typeof window.clearCreateMedia === 'function' && !window.clearCreateMedia.__pubFix) {
-      var orig = window.clearCreateMedia;
-      window.clearCreateMedia = function () {
-        hardClearMedia();
-        try {
-          return orig.apply(this, arguments);
-        } catch (e) {}
-      };
-      window.clearCreateMedia.__pubFix = true;
-    }
-    if (typeof window.removeMedia === 'function' && !window.removeMedia.__pubFix) {
-      window.removeMedia = function () {
-        hardClearMedia();
-        toast('Media removida');
-      };
-      window.removeMedia.__pubFix = true;
-    }
+  function uuid() {
+    try {
+      if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+    } catch (e) {}
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = (Math.random() * 16) | 0;
+      var v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
   }
 
-  /* ---------- Patch publishPostCore ---------- */
-  function patchPublish() {
-    if (typeof window.publishPostCore !== 'function') return false;
-    if (window.publishPostCore.__pubFixV2) return true;
+  async function publishFixed() {
+    var session = typeof getSession === 'function' ? getSession() : null;
+    if (!session || !session.username) {
+      toast('Inicia sessão para publicar');
+      return;
+    }
 
-    var orig = window.publishPostCore;
-    window.publishPostCore = async function () {
-      /* sincronizar media ANTES de publicar */
-      var data = getMediaData();
-      if (data && data.items && data.items.length) {
-        setMediaData(data);
-        /* garantir file nos items */
-        data.items.forEach(function (it) {
-          if (!it.file && window.__tchiloPendingMedia && window.__tchiloPendingMedia.file) {
-            if (it.url === window.__tchiloPendingMedia.url) {
-              it.file = window.__tchiloPendingMedia.file;
-            }
-          }
-        });
-      }
+    var titleEl = document.getElementById('createTitle');
+    var capEl = document.getElementById('createCaption');
+    var title = (titleEl && titleEl.value ? titleEl.value.trim() : '') || 'NOVO POST';
+    var caption = (capEl && capEl.value ? capEl.value.trim() : '') || '';
+    var stamp = title
+      .toUpperCase()
+      .split(/\s+/)
+      .slice(0, 3)
+      .join('\n');
+    var tags = caption.match(/#[\wÀ-ÿ]+/g) || [];
+    var postId = uuid();
+    var data = getMediaData();
+    var items = (data && data.items) || [];
 
+    if (items.some(isVideoItem) && items.length !== 1) {
+      toast('Vídeo só pode ser publicado sozinho');
+      return;
+    }
+
+    var color =
+      typeof currentColor !== 'undefined' && currentColor
+        ? currentColor
+        : window.currentColor || 'm1';
+
+    var post = {
+      id: postId,
+      username: session.username,
+      initials: String(session.username).slice(0, 2).toUpperCase(),
+      avatar:
+        session.avatar ||
+        (typeof getProfileExtra === 'function'
+          ? (getProfileExtra(session.username) || {}).avatar
+          : null) ||
+        null,
+      location: null,
+      time: 'agora',
+      color: color,
+      stamp: stamp,
+      caption: caption.replace(/#[\wÀ-ÿ]+/g, '').trim(),
+      tags: tags,
+      likes: 0,
+      comments: 0,
+      media: null,
+      mediaType: null,
+      mediaItems: null,
+      music: window._pendingMusic || null,
+      musicMeta: window._pendingMusicMeta || null
+    };
+
+    /* Cloud primeiro */
+    if (window.tchiloCloud && typeof window.tchiloCloud.publishPost === 'function') {
       try {
-        var result = await orig.apply(this, arguments);
-        /* limpar depois de sucesso */
-        hardClearMedia();
+        var cloudResult = await window.tchiloCloud.publishPost(post, items);
+        if (!cloudResult || !cloudResult.ok) {
+          throw new Error(
+            (cloudResult && cloudResult.error) || 'Falha ao guardar na Supabase'
+          );
+        }
+        if (cloudResult.mediaItems && cloudResult.mediaItems.length) {
+          post.mediaItems = cloudResult.mediaItems;
+          if (cloudResult.mediaItems.length === 1) {
+            post.media = cloudResult.mediaItems[0].url;
+            post.mediaType = cloudResult.mediaItems[0].type || (isVideoItem(items[0]) ? 'video' : 'image');
+          } else {
+            post.mediaType = 'image';
+          }
+        }
+      } catch (cloudErr) {
+        console.error('[Tchilo] cloud publish', cloudErr);
+        toast('Erro: ' + ((cloudErr && cloudErr.message) || 'não publicou'));
+        return;
+      }
+    } else if (items.length) {
+      /* sem cloud — guarda local com blob (melhor que nada) */
+      if (items.length === 1) {
+        post.media = items[0].url;
+        post.mediaType = isVideoItem(items[0]) ? 'video' : 'image';
+      } else {
+        post.mediaItems = items.map(function (m) {
+          return { url: m.url, type: isVideoItem(m) ? 'video' : 'image' };
+        });
+        post.mediaType = 'image';
+      }
+    }
+
+    /* se tinha media mas cloud não devolveu e local sem media → falhou */
+    if (items.length && !post.media && !(post.mediaItems && post.mediaItems.length)) {
+      toast('Não foi possível enviar a media. Tenta de novo.');
+      return;
+    }
+
+    try {
+      var posts = typeof getPosts === 'function' ? getPosts() : [];
+      posts.unshift(post);
+      if (typeof save === 'function' && typeof KEYS !== 'undefined') {
         try {
-          if (typeof goTo === 'function') goTo('feed');
-        } catch (e) {}
-        return result;
-      } catch (err) {
-        console.error('[Tchilo] publish failed', err);
-        toast('Erro: ' + ((err && err.message) || 'não publicou'));
-        throw err;
+          save(KEYS.posts, posts);
+        } catch (e) {
+          /* storage cheio — tenta versão leve */
+          try {
+            save(KEYS.posts, posts.slice(0, 30));
+          } catch (e2) {}
+        }
       }
-    };
-    window.publishPostCore.__pubFixV2 = true;
-    return true;
+    } catch (e3) {
+      console.warn(e3);
+    }
+
+    window._pendingMusic = null;
+    window._pendingMusicMeta = null;
+    hardClearMedia();
+
+    try {
+      if (titleEl) titleEl.value = '';
+      if (capEl) capEl.value = '';
+    } catch (e4) {}
+
+    toast('Publicado');
+    try {
+      if (typeof renderFeed === 'function') renderFeed();
+    } catch (e5) {}
+    try {
+      if (typeof goTo === 'function') goTo('feed');
+    } catch (e6) {}
   }
 
-  /* ---------- Patch publishPost outer ---------- */
-  function patchPublishOuter() {
-    if (typeof window.publishPost !== 'function') return;
-    if (window.publishPost.__pubFixV2) return;
-    var orig = window.publishPost;
+  function patchPublish() {
+    window.publishPostCore = publishFixed;
+    window.publishPostCore.__pubFixV3 = true;
+
     window.publishPost = async function () {
-      var data = getMediaData();
-      if (data && data.items && data.items.length) {
-        setMediaData(data);
+      var btn =
+        document.querySelector('.publish-btn[onclick="publishPost()"]') ||
+        document.querySelector('#screen-create .publish-btn') ||
+        document.querySelector('.publish-btn');
+      try {
+        if (typeof tchiloSetLoading === 'function') tchiloSetLoading(btn, true);
+      } catch (e) {}
+      try {
+        toast('A enviar…');
+        await publishFixed();
+      } catch (err) {
+        console.error(err);
+        toast('Erro: ' + ((err && err.message) || 'não publicou'));
+      } finally {
+        try {
+          if (typeof tchiloSetLoading === 'function') tchiloSetLoading(btn, false);
+        } catch (e2) {}
+        try {
+          if (typeof tchiloHideBusy === 'function') tchiloHideBusy();
+        } catch (e3) {}
       }
-      return orig.apply(this, arguments);
     };
-    window.publishPost.__pubFixV2 = true;
+    window.publishPost.__pubFixV3 = true;
   }
 
-  /* ---------- Quando escolhe ficheiro, atualizar botão música ---------- */
+  function patchClear() {
+    window.clearCreateMedia = function () {
+      hardClearMedia();
+    };
+    window.clearCreateMedia.__pubFixV3 = true;
+    window.removeMedia = function () {
+      hardClearMedia();
+      toast('Media removida');
+    };
+    window.removeMedia.__pubFixV3 = true;
+  }
+
   function watchMediaInput() {
     var input = document.getElementById('mediaInput');
-    if (!input || input.__pubFixWatch) return;
-    input.__pubFixWatch = true;
+    if (!input || input.__pubFixWatchV3) return;
+    input.__pubFixWatchV3 = true;
     input.addEventListener(
       'change',
       function () {
-        setTimeout(updateMusicBtn, 100);
-        setTimeout(updateMusicBtn, 500);
-        setTimeout(updateMusicBtn, 1200);
+        setTimeout(updateMusicBtn, 80);
+        setTimeout(updateMusicBtn, 400);
+        setTimeout(updateMusicBtn, 1000);
       },
       true
     );
   }
 
-  /* ao sair do create, se publicou ok media já limpa; se cancelar e voltar, limpar stuck blobs opcional */
-  function patchGoTo() {
-    if (typeof window.goTo !== 'function') return;
-    if (window.goTo.__pubFixClear) return;
-    var orig = window.goTo._orig || window.goTo;
-    var wrapped = function (name) {
-      var r = orig.apply(this, arguments);
-      if (name === 'create') {
-        setTimeout(function () {
-          updateMusicBtn();
-          ensureMusicBtn();
-        }, 100);
-      }
-      return r;
-    };
-    wrapped.__pubFixClear = true;
-    wrapped._orig = orig;
-    /* preserve other patches */
-    Object.keys(orig).forEach(function (k) {
-      try {
-        wrapped[k] = orig[k];
-      } catch (e) {}
-    });
-    window.goTo = wrapped;
-  }
-
   function boot() {
     patchClear();
     patchPublish();
-    patchPublishOuter();
     watchMediaInput();
     ensureMusicBtn();
     updateMusicBtn();
-    patchGoTo();
   }
 
   boot();
-  setTimeout(boot, 300);
-  setTimeout(boot, 1000);
-  setTimeout(boot, 2500);
+  setTimeout(boot, 200);
+  setTimeout(boot, 800);
+  setTimeout(boot, 2000);
   setInterval(function () {
     patchPublish();
     patchClear();
     updateMusicBtn();
-  }, 4000);
+  }, 3500);
 
-  /* API pública */
   window.tchiloHardClearCreateMedia = hardClearMedia;
   window.tchiloGetCreateMediaData = getMediaData;
 })();

@@ -6,16 +6,20 @@
       var name = src.split('?')[0].split('/').pop();
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
-        /* permitir atualizar version query forçando reload se mudou */
         var cur = existing.getAttribute('src') || '';
-        if (cur.indexOf(src.split('/').pop()) >= 0 && cur === src) return;
-        if (src.indexOf('profile-share') >= 0 && cur.indexOf('v=4') < 0) {
+        if (name.indexOf('publish-fix') >= 0 && cur.indexOf('v=2') < 0) {
           existing.remove();
-        } else if (cur.split('?')[0] === src.split('?')[0] && cur !== src) {
+        } else if (name.indexOf('video-pick') >= 0 && cur.indexOf('v=6') < 0) {
           existing.remove();
-        } else {
+        } else if (cur === src) {
           return;
-        }
+        } else if (cur.split('?')[0].split('/').pop() === name) {
+          /* same file different query — replace if version bumped */
+          var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
+          var newV = (src.match(/[?&]v=([^&]+)/) || [])[1];
+          if (oldV && newV && oldV !== newV) existing.remove();
+          else return;
+        } else return;
       }
       var s = document.createElement('script');
       s.src = src;
@@ -24,6 +28,8 @@
     } catch (e) {}
   }
   function load() {
+    add('native/tchilo-publish-fix.js?v=2');
+    add('native/tchilo-video-pick.js?v=6');
     add('native/tchilo-deeplink.js?v=1');
     add('native/tchilo-password-reset.js?v=4');
     add('native/tchilo-router.js?v=3');
@@ -33,7 +39,6 @@
     add('native/tchilo-ads-force.js?v=2');
     add('native/tchilo-ads-pro.js?v=2');
     add('native/tchilo-create-buttons.js?v=3');
-    add('native/tchilo-video-pick.js?v=5');
     add('native/tchilo-cloud-force.js?v=1');
     add('native/tchilo-name-sync.js?v=1');
     add('native/tchilo-cloud-hydrate.js?v=3');

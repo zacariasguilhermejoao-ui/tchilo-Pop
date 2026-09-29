@@ -1,0 +1,23 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.tchilo.isabstudio",
+        "paths": [
+          "/redefinir-senha",
+          "/redefinir-senha/*",
+          "/reset-password",
+          "/reset-password/*",
+          "/u/*",
+          "/perfil/*",
+          "/feed",
+          "/perfil"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.com.tchilo.isabstudio"]
+  }
+}

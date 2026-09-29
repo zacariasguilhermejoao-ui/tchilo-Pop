@@ -12,6 +12,7 @@
     } catch (e) {}
   }
   function load() {
+    add('native/tchilo-deeplink.js?v=1');
     add('native/tchilo-password-reset.js?v=4');
     add('native/tchilo-router.js?v=3');
     add('native/tchilo-profile-share.js?v=3');

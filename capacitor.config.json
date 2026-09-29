@@ -14,7 +14,9 @@
       "corsproxy.io",
       "api.allorigins.win",
       "cdn.jsdelivr.net",
-      "raw.githack.com"
+      "raw.githack.com",
+      "tchilopop.com",
+      "www.tchilopop.com"
     ]
   },
   "plugins": {

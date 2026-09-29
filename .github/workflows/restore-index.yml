@@ -1,0 +1,63 @@
+name: Restore full index
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/restore-index.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download full app HTML
+        run: |
+          set -e
+          curl -fsSL -o index.html \
+            "https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html"
+          # Append native fix scripts before </body>
+          python3 << 'PY'
+          html = open('index.html', encoding='utf-8', errors='replace').read()
+          inject = '''
+          <script src="native/tchilo-create-buttons.js?v=3" defer></script>
+          <script src="native/tchilo-video-pick.js?v=5" defer></script>
+          <script src="native/tchilo-cloud-force.js?v=1" defer></script>
+          <script src="native/tchilo-name-sync.js?v=1" defer></script>
+          <script src="native/feed-stable.js?v=8" defer></script>
+          <script src="native/tchilo-cloud-hydrate.js?v=3" defer></script>
+          <script src="native/tchilo-hide-nav.js?v=2" defer></script>
+          <script src="native/tchilo-feed-to-reels.js?v=2" defer></script>
+          <script src="native/tchilo-reels-icon.js?v=2" defer></script>
+          '''
+          if 'screen-feed' not in html:
+              raise SystemExit('Downloaded HTML is not the full app')
+          if 'A carregar o Tchilo' in html and html.count('screen-feed') < 1:
+              raise SystemExit('Got loader instead of full app')
+          if '</body>' in html:
+              html = html.replace('</body>', inject + '\n</body>', 1)
+          else:
+              html += inject
+          open('index.html', 'w', encoding='utf-8').write(html)
+          print('index.html bytes', len(html.encode('utf-8')))
+          PY
+
+      - name: Commit and push
+        run: |
+          set -e
+          git config user.name "tchilo-bot"
+          git config user.email "bot@tchilopop.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Restore full Tchilo app index (no loader)"
+          git push

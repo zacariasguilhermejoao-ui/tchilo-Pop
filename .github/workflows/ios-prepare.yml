@@ -154,7 +154,7 @@ jobs:
                   if s.contains("tchilo://share") || s.contains("pending=1") {
                       TchiloShareBridge.tryInjectFromAppGroup()
                   }
-    }
+                  }
 
               private func tchiloCheckPendingShare() {
                   TchiloShareBridge.tryInjectFromAppGroup()

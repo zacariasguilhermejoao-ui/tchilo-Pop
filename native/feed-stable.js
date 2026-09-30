@@ -40,6 +40,7 @@
     add('native/tchilo-password-reset.js?v=6');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=1');
+    add('native/tchilo-music-sheet.js?v=1');
     add('native/tchilo-publish-fix.js?v=5');
     add('native/tchilo-video-pick.js?v=6');
     add('native/tchilo-deeplink.js?v=2');

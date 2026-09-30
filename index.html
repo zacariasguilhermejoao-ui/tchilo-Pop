@@ -139,6 +139,29 @@
     background:var(--paper);
     cursor:pointer;
   }
+  /* Tchilo topbar: SMS + lupa (interface nativa no index) */
+  .topbar-icons{ display:flex; align-items:center; gap:16px; }
+  .topbar-icons .icon-btn{
+    width:auto; height:auto; min-width:0;
+    border:0; border-radius:0;
+    background:transparent; box-shadow:none;
+    padding:4px; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .topbar-icons .icon-btn svg{ width:28px; height:28px; display:block; }
+  .topbar-icons .nav-sms-text, .topbar-sms .nav-sms-text{
+    display:inline-flex; align-items:center; justify-content:center;
+    font:900 20px Inter,system-ui,sans-serif; letter-spacing:.03em; line-height:1;
+    color:var(--ink,#0B0B0C); border:0; background:none; padding:4px 2px;
+    user-select:none; -webkit-user-select:none;
+  }
+  #tchiloProfileMoreBtn{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    width:44px; height:44px; border-radius:12px; border:2px solid currentColor;
+    background:transparent; color:inherit; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; z-index:20; padding:0;
+  }
+  #screen-profile .screen-header{ position:relative; }
+
   .icon-btn svg{ width:18px; height:18px; }
   .stories{
     display:flex; gap:10px;
@@ -2226,9 +2249,12 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
   <div class="screen active" id="screen-feed">
     <div class="topbar">
       <img class="logo-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC0AAAAgCAYAAACGhPFEAAAEx0lEQVR42s2YX4hUVRzHP79z78zszi67q0ksaIFmJVv0kD6VwhAUWlqh7NJb2YOBEBkiBD3MDlRQihkYVtCTb0MvPvRU4EIaQmr2oFkQUUlZ/mlz3T9z557z62HO4HGcmZ1y//iDw73ce+6539/vfH//DtwqAhh//wbwA/Ab8CmwNJhzR0nkr+8A2jCOAtlAqTtC6mDuAVLABteKB/5Mg3KLBpKGbV/pQamfI3444P7FpkirbRYPuNl8vVPo0Ap4M1l00HGDAlEHfK3PixoUcAulUBxQwQGJfz7Z5psp75i2hUJuIUDXrfMI0O+jxaNt6PIwUPCWtoGVzwGX2/jDnMog8EWTmOxaDG0x/gS2dOArcyKf+Z+mwbbbNqDrsTsciV/jItAXhMh5kytAdRagnYzUA39ovq0de+ss9RnPBPxtFUFcE2dTn97/8nXKvPP6aeDaHHB6Ati2ECm+zrv7gA1AztNkDbDbg5TAwhFwGPjS39ffV4ATGPmZQx9l2LHDwpiBgkVEb2xH2SszrDBqoGQl2JEiagBzDnQIZBSsINppVlwbOKcLYrgC25ur397vlKJp/15bLHDr89gDMkGms8BAm/V7/XexVwrWrhVOnaoO/l4eyg3071J0hTr9SnsmDlyQkelisWikVHIJn2yIyL9ikLsscjQiPiCMJIoaQdwuplf1kt2ltYLt2+uY/R8g44pKaPG4wbm0TbYLHTH19ymqBtB7rxwZojt3TLq7lpAkmO6eTdXxtFAsl7eUhoer02+t2BjZ/OeGrIGUiPxGy/j6k3y8DbBvMr1SyR7vwgwmNZ5utrhNu9FCLQur4IHfflgaGzOIqDNmT5TvWeLGr027qZk0Hb9SyQz0PXW4kH+yxmvztiEyViZnUippytUkIr9lDf1PCOKUeHc3ZnASN53g0gncTB6zLsKOCKLFwLnNbThvTQpjDsCYaJUmiVU0g2rk59nJHlmZAURkOVQdSuZGdBEbka6uLaprErCKZhQi0AhIDdED/6U07bBkLdTWcHqabFeEo6pIVUDU2qhv3H1XrfnTecgZrSWyqmAE0qhKfKbmiHImJ0TUvk1BHBCnpCepZSztpAlox+kQtEVVSCvv2esT30dLB7rj/p5sNNCfsePXD/24fPMxVRVjdY+j8ndMb1dMPhvRm0mpHOzjheNlylGGeN+0cr5XTHcOk+nF5KZwR3qIjxRRM4LY2UBr2+h0c6hTgF/v3vaHuTzzmJuafM0m6V47ce35C8ue3SkKozIqWV7+JmFinWVq1JEcTJnYmuHFVxWVs5zVEnJxCh6vKHscfDiF3Z7DbC0haWmW7Fone6FNnH7dK5u9WZUmcTZ41ixOa7CjreN0+84llEoTmkiQ9t/3SkhgccPwMJR3+meXFLmxpULJ1YB7H+CSCiPBe1FFZTSIEiWwtMiIzRxzue9QtKH6q1dye4Fl/8Mf5rT2aNZxnwDWBTVHyGnju5RfAkV+AvYBZxaqe2lGmZf8jytNKr1qi0rvH+DBhqO1BT1aiIAxD2amSZNQ72Cq/lqn07uz+Mu8nns4YAQ47UtW0wA8PKwMLbtox2Uh33uB/cDVNg1ASI+h+aaHdLATLjjfew5YD6wGlgCZIML8ABSBr+f7/ONfpQQaTkSi3i4AAAAASUVORK5CYII=" alt="logo">
-      <div class="topbar-icons">
-        <div class="icon-btn" onclick="goTo('search')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
+            <div class="topbar-icons">
+        <button type="button" class="icon-btn topbar-sms" data-top-messages="1" aria-label="Mensagens" onclick="goTo('messages')">
+          <span class="nav-sms-text">SMS</span>
+        </button>
+        <div class="icon-btn" onclick="goTo('search')" aria-label="Pesquisar">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
         </div>
       </div>
     </div>
@@ -2410,8 +2436,8 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
       <div class="dot"></div>
     </button>
-    <button class="nav-item" data-screen="messages" onclick="goTo('messages')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
+        <button class="nav-item" data-screen="reels" aria-label="Reels" onclick="if(typeof openReels==='function')openReels();else goTo('reels')">
+      <svg class="nav-reels-icon" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M7 5V3M12 5V3M17 5V3"/><path d="M10 10.5v5l4.5-2.5L10 10.5z" fill="currentColor" stroke="none"/></svg>
       <div class="dot"></div>
     </button>
     <button class="nav-post" onclick="goTo('create')">+</button>
@@ -10769,6 +10795,9 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/tchilo-video-pick.js?v=5" defer></script>
 <script src="native/tchilo-cloud-force.js?v=1" defer></script>
 <script src="native/tchilo-name-sync.js?v=1" defer></script>
+<script src="native/nav-layout.js?v=2"></script>
+<script src="native/tchilo-ui-icons-fix.js?v=2"></script>
+<script src="native/tchilo-profile-share.js?v=5"></script>
 <script src="native/feed-stable.js?v=8" defer></script>
 <script src="native/tchilo-cloud-hydrate.js?v=3" defer></script>
 <script src="native/tchilo-hide-nav.js?v=2" defer></script>

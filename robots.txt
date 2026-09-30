@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Áreas privadas/dinâmicas
+Disallow: /mensagens
+Disallow: /notificacoes
+Disallow: /definicoes
+Disallow: /criar
+Disallow: /editar-perfil
+Disallow: /guardados
+Disallow: /reset-password
+Disallow: /redefinir-senha
+Disallow: /eliminar-conta
+
+Sitemap: https://tchilopop.com/sitemap.xml

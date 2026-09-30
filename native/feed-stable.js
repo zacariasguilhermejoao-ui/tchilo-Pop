@@ -17,7 +17,7 @@
         else if (name.indexOf('video-pick') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
         else if (name.indexOf('share-target') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (name.indexOf('profile-share') >= 0 && cur.indexOf('v=8') < 0) existing.remove();
-        else if (name.indexOf('tchilo-logo-data') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
+        else if (name.indexOf('tchilo-logo-data') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
         else if (name.indexOf('qr-real-logo') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
         else if (name.indexOf('nav-layout') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
         else if (name.indexOf('music-catalog-fix') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
@@ -44,12 +44,13 @@
     add('native/tchilo-deeplink.js?v=2');
     add('native/tchilo-router.js?v=3');
     add('native/tchilo-profile-share.js?v=8');
-    add('native/tchilo-logo-p0.js?v=1');
-    add('native/tchilo-logo-p1.js?v=1');
-    add('native/tchilo-logo-p2.js?v=1');
-    add('native/tchilo-logo-p3.js?v=1');
-    add('native/tchilo-logo-p4.js?v=1');
-    add('native/tchilo-logo-data.js?v=2');
+    add('native/tchilo-logo-p0.js?v=2');
+    add('native/tchilo-logo-p1.js?v=2');
+    add('native/tchilo-logo-p2.js?v=2');
+    add('native/tchilo-logo-p3.js?v=2');
+    add('native/tchilo-logo-p4.js?v=2');
+    add('native/tchilo-logo-p5.js?v=2');
+    add('native/tchilo-logo-data.js?v=3');
     add('native/tchilo-qr-real-logo.js?v=2');
     add('native/tchilo-profile-boost.js?v=1');
     add('native/tchilo-ads-ui.js?v=5');

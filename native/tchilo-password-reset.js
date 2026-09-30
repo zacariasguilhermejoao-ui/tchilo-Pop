@@ -1,24 +1,26 @@
 /**
- * Tchilo — recuperação de senha
- * 1) Link do email abre SEMPRE o ecrã de nova palavra-passe (nunca o feed)
- * 2) Caminho /redefinir-senha
- * 3) No app nativo, o mesmo link pode abrir o APK via App Links (domínio tchilopop.com)
+ * Tchilo — recuperação de senha v5
+ * Email → /redefinir-senha → ecrã "nova palavra-passe" (nunca feed / aviso solto)
  */
 (function () {
   'use strict';
-  if (window.__tchiloPasswordResetV4) return;
+  if (window.__tchiloPasswordResetV5) return;
+  window.__tchiloPasswordResetV5 = true;
   window.__tchiloPasswordResetV4 = true;
 
   var RESET_PATHS = ['/redefinir-senha', '/reset-password', '/recuperar-senha'];
+  var SITE = 'https://tchilopop.com';
+  var REDIRECT = SITE + '/redefinir-senha';
 
   function isRecoveryUrl() {
     try {
       var hash = window.location.hash || '';
       var search = window.location.search || '';
       var path = (window.location.pathname || '').toLowerCase();
-      var full = hash + '&' + search;
-      if (/(?:^|[&#?])type=recovery(?:&|$)/i.test(full)) return true;
+      var full = hash + '&' + search + '&' + path;
       if (/type=recovery/i.test(full)) return true;
+      if (/access_token=/i.test(full) && /type=recovery/i.test(full)) return true;
+      if (/error_code=otp_expired|error=access_denied/i.test(full)) return true;
       for (var i = 0; i < RESET_PATHS.length; i++) {
         if (path.indexOf(RESET_PATHS[i]) === 0) return true;
       }
@@ -40,6 +42,27 @@
       window.__tchiloPasswordRecoveryActive = false;
       sessionStorage.removeItem('tchilo_password_recovery');
     } catch (e) {}
+  }
+
+  function parseHashParams() {
+    var out = {};
+    try {
+      var h = (window.location.hash || '').replace(/^#/, '');
+      h.split('&').forEach(function (part) {
+        var kv = part.split('=');
+        if (kv[0]) out[decodeURIComponent(kv[0])] = decodeURIComponent(kv.slice(1).join('=') || '');
+      });
+    } catch (e) {}
+    try {
+      var q = (window.location.search || '').replace(/^\?/, '');
+      q.split('&').forEach(function (part) {
+        var kv = part.split('=');
+        if (kv[0] && out[kv[0]] == null) {
+          out[decodeURIComponent(kv[0])] = decodeURIComponent(kv.slice(1).join('=') || '');
+        }
+      });
+    } catch (e2) {}
+    return out;
   }
 
   function showResetPage() {
@@ -77,7 +100,6 @@
         }
       }
 
-      /* Impede auto-login / ir ao feed enquanto recupera */
       try {
         if (typeof goTo === 'function' && !goTo.__recoveryBlock) {
           var origGo = goTo._orig || goTo;
@@ -116,7 +138,7 @@
   }
 
   function patchSyncAuth() {
-    if (typeof window.tchiloSyncAuthSession === 'function' && !window.tchiloSyncAuthSession.__resetPatchV4) {
+    if (typeof window.tchiloSyncAuthSession === 'function' && !window.tchiloSyncAuthSession.__resetPatchV5) {
       var orig = window.tchiloSyncAuthSession;
       window.tchiloSyncAuthSession = async function () {
         if (isRecoveryUrl() || window.__tchiloPasswordRecoveryActive) {
@@ -125,15 +147,16 @@
         }
         return orig.apply(this, arguments);
       };
-      window.tchiloSyncAuthSession.__resetPatchV4 = true;
+      window.tchiloSyncAuthSession.__resetPatchV5 = true;
     }
   }
 
   function patchSubmitNewPassword() {
     if (typeof window.submitNewPassword !== 'function') return;
-    if (window.submitNewPassword.__resetPatchV4) return;
+    if (window.submitNewPassword.__resetPatchV5) return;
     var orig = window.submitNewPassword;
     window.submitNewPassword = async function (e) {
+      await ensureRecoverySession();
       var r = await orig.apply(this, arguments);
       clearRecoveryMark();
       try {
@@ -141,19 +164,16 @@
       } catch (err) {}
       try {
         if (window.history && window.history.replaceState) {
-          window.history.replaceState(null, '', window.location.pathname || '/');
+          window.history.replaceState(null, '', '/');
         }
       } catch (err2) {}
       return r;
     };
-    window.submitNewPassword.__resetPatchV4 = true;
+    window.submitNewPassword.__resetPatchV5 = true;
   }
 
-  /** redirectTo do email: página de nova senha */
+  /** Sempre redirectTo = tchilopop.com/redefinir-senha */
   function patchResetEmailRedirect() {
-    if (typeof window.submitPasswordRecovery !== 'function') return;
-    if (window.submitPasswordRecovery.__resetRedirectV4) return;
-    var orig = window.submitPasswordRecovery;
     window.submitPasswordRecovery = async function (e) {
       if (e && e.preventDefault) e.preventDefault();
       var errEl = document.getElementById('recoverError');
@@ -175,14 +195,18 @@
       try {
         var SB = window.tchiloSupabase;
         if (!SB) throw new Error('Auth indisponível');
-        var origin = location.origin || 'https://tchilopop.com';
-        var redirectTo = origin + '/redefinir-senha';
+        var redirectTo = REDIRECT;
+        try {
+          if (location.hostname && location.hostname.indexOf('tchilopop.com') >= 0) {
+            redirectTo = location.origin + '/redefinir-senha';
+          }
+        } catch (e0) {}
         var res = await SB.auth.resetPasswordForEmail(email, { redirectTo: redirectTo });
         if (res.error) throw res.error;
         if (errEl) {
           errEl.style.color = '#2ecc71';
           errEl.textContent =
-            'Enviámos um link para o teu email. Abre o link e define a nova palavra-passe.';
+            'Enviámos um link para o teu email. Abre o link — vais entrar direto no ecrã para definir a nova senha.';
         }
         try {
           if (typeof showToast === 'function') showToast('Email de recuperação enviado');
@@ -196,25 +220,49 @@
         }
       }
     };
-    window.submitPasswordRecovery.__resetRedirectV4 = true;
+    window.submitPasswordRecovery.__resetRedirectV5 = true;
   }
 
   async function ensureRecoverySession() {
     try {
       var SB = window.tchiloSupabase;
-      if (!SB) return;
-      var hash = window.location.hash || '';
-      if (hash.indexOf('access_token') >= 0 || hash.indexOf('type=recovery') >= 0) {
-        await SB.auth.getSession();
+      if (!SB) return false;
+      var params = parseHashParams();
+
+      if (params.error || params.error_code) {
+        markRecovery();
+        showResetPage();
+        var errEl = document.getElementById('recoverNewPassError');
+        if (errEl) {
+          errEl.textContent =
+            'Este link expirou ou já foi usado. Pede um novo link de recuperação.';
+        }
+        return false;
       }
-    } catch (e) {}
+
+      if (params.access_token && params.refresh_token) {
+        try {
+          await SB.auth.setSession({
+            access_token: params.access_token,
+            refresh_token: params.refresh_token
+          });
+        } catch (e) {
+          console.warn('[Tchilo] setSession recovery', e);
+        }
+      }
+
+      var sess = await SB.auth.getSession();
+      return !!(sess && sess.data && sess.data.session);
+    } catch (e) {
+      return false;
+    }
   }
 
   function blockSignedInToFeed() {
     try {
       var SB = window.tchiloSupabase;
-      if (!SB || !SB.auth || SB.auth.__tchiloRecoveryListen) return;
-      SB.auth.__tchiloRecoveryListen = true;
+      if (!SB || !SB.auth || SB.auth.__tchiloRecoveryListenV5) return;
+      SB.auth.__tchiloRecoveryListenV5 = true;
       SB.auth.onAuthStateChange(function (event) {
         if (
           event === 'PASSWORD_RECOVERY' ||
@@ -251,8 +299,11 @@
     }, 400);
 
     setTimeout(function () {
-      if (isRecoveryUrl() || window.__tchiloPasswordRecoveryActive) showResetPage();
-    }, 1500);
+      if (isRecoveryUrl() || window.__tchiloPasswordRecoveryActive) {
+        showResetPage();
+        ensureRecoverySession();
+      }
+    }, 1200);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

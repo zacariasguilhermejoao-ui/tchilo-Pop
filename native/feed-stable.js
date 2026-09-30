@@ -10,6 +10,7 @@
         if (name.indexOf('profile-share') >= 0 && cur.indexOf('v=10') < 0) existing.remove();
         else if (name.indexOf('router') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
         else if (name.indexOf('public-urls') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
+        else if (name.indexOf('og-meta') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -29,6 +30,7 @@
     add('native/tchilo-password-reset.js?v=6');
     add('native/tchilo-router.js?v=3');
     add('native/tchilo-public-urls.js?v=1');
+    add('native/tchilo-og-meta.js?v=1');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=1');
     add('native/tchilo-music-sheet.js?v=1');

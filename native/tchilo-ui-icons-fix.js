@@ -1,38 +1,51 @@
 /**
- * Tchilo — SMS + lupa grande + botão + no perfil
+ * Tchilo — SMS no topbar + lupa grande + botão + no perfil
+ * v2 — SMS garantido (antes da lupa), ícones maiores
  */
 (function () {
   'use strict';
-  if (window.__tchiloUiIconsFixV1) return;
+  if (window.__tchiloUiIconsFixV2) return;
+  window.__tchiloUiIconsFixV2 = true;
   window.__tchiloUiIconsFixV1 = true;
 
   function injectCSS() {
-    if (document.getElementById('tchiloUiIconsCSS')) return;
+    var old = document.getElementById('tchiloUiIconsCSS');
+    if (old) old.remove();
     var st = document.createElement('style');
     st.id = 'tchiloUiIconsCSS';
     st.textContent =
-      /* Topbar: sem caixa, ícones grandes */
       '#screen-feed .topbar-icons,' +
       '.topbar-icons{' +
-      'display:flex!important;align-items:center!important;gap:14px!important;}' +
+      'display:flex!important;align-items:center!important;gap:16px!important;}' +
       '#screen-feed .topbar-icons .icon-btn,' +
       '.topbar-icons .icon-btn{' +
       'width:auto!important;height:auto!important;min-width:0!important;' +
       'border:0!important;border-radius:0!important;' +
       'background:transparent!important;box-shadow:none!important;' +
       'padding:4px!important;display:inline-flex!important;' +
-      'align-items:center!important;justify-content:center!important;}' +
+      'align-items:center!important;justify-content:center!important;' +
+      'cursor:pointer!important;}' +
       '#screen-feed .topbar-icons .icon-btn svg,' +
       '.topbar-icons .icon-btn svg{' +
-      'width:26px!important;height:26px!important;display:block!important;}' +
-      /* SMS texto grande */
+      'width:28px!important;height:28px!important;display:block!important;' +
+      'stroke-width:2.4!important;}' +
+      /* SMS texto grande e visível */
       '.topbar-icons .nav-sms-text,' +
-      '.topbar-sms{' +
+      '.topbar-icons .topbar-sms,' +
+      '.topbar-sms,' +
+      '[data-top-messages] .nav-sms-text{' +
       'display:inline-flex!important;align-items:center!important;justify-content:center!important;' +
-      'font:900 18px Inter,system-ui,sans-serif!important;' +
-      'letter-spacing:.02em!important;color:var(--ink,#0B0B0C)!important;' +
+      'font:900 20px Inter,system-ui,sans-serif!important;' +
+      'letter-spacing:.03em!important;line-height:1!important;' +
+      'color:var(--ink,#0B0B0C)!important;' +
       'border:0!important;background:none!important;box-shadow:none!important;' +
-      'padding:4px 2px!important;cursor:pointer!important;}' +
+      'padding:4px 2px!important;cursor:pointer!important;' +
+      'opacity:1!important;visibility:visible!important;' +
+      'user-select:none;-webkit-user-select:none;}' +
+      '[data-top-messages]{' +
+      'display:inline-flex!important;align-items:center!important;' +
+      'opacity:1!important;visibility:visible!important;' +
+      'pointer-events:auto!important;}' +
       /* Botão + fora do círculo do avatar */
       '.profile-avatar{' +
       'position:relative!important;overflow:visible!important;}' +
@@ -49,49 +62,84 @@
     (document.head || document.documentElement).appendChild(st);
   }
 
+  function openMessages(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    try {
+      if (typeof goTo === 'function') goTo('messages');
+    } catch (err) {}
+  }
+
   function fixTopbarIcons() {
     var bar =
       document.querySelector('#screen-feed .topbar-icons') ||
-      document.querySelector('.topbar .topbar-icons');
+      document.querySelector('.topbar .topbar-icons') ||
+      document.querySelector('.topbar-icons');
     if (!bar) return;
 
-    /* Lupa: garantir SVG 26px */
+    /* Lupa: SVG 28px */
     var searchBtn =
       bar.querySelector('.icon-btn[onclick*="search"]') ||
-      bar.querySelector('.icon-btn');
+      bar.querySelector('[onclick*="search"]') ||
+      null;
+    if (!searchBtn) {
+      var candidates = bar.querySelectorAll('.icon-btn');
+      for (var i = 0; i < candidates.length; i++) {
+        if (candidates[i].querySelector('svg circle') && !candidates[i].getAttribute('data-top-messages')) {
+          searchBtn = candidates[i];
+          break;
+        }
+      }
+    }
     if (searchBtn) {
       searchBtn.querySelectorAll('svg').forEach(function (svg) {
-        svg.setAttribute('width', '26');
-        svg.setAttribute('height', '26');
-        svg.style.width = '26px';
-        svg.style.height = '26px';
+        svg.setAttribute('width', '28');
+        svg.setAttribute('height', '28');
+        svg.style.setProperty('width', '28px', 'important');
+        svg.style.setProperty('height', '28px', 'important');
       });
     }
 
-    /* SMS ao lado da lupa */
-    var sms = bar.querySelector('.topbar-sms, .nav-sms-text');
+    /* SMS — sempre presente, ANTES da lupa */
+    var sms =
+      bar.querySelector('[data-top-messages]') ||
+      bar.querySelector('.topbar-sms');
+
     if (!sms) {
       sms = document.createElement('button');
       sms.type = 'button';
-      sms.className = 'topbar-sms nav-sms-text';
+      sms.className = 'icon-btn topbar-sms';
+      sms.setAttribute('data-top-messages', '1');
       sms.setAttribute('aria-label', 'Mensagens');
-      sms.textContent = 'SMS';
-      sms.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        try {
-          if (typeof goTo === 'function') goTo('messages');
-        } catch (err) {}
+      sms.innerHTML = '<span class="nav-sms-text">SMS</span>';
+      sms.addEventListener('click', openMessages);
+      sms.addEventListener('pointerup', function (e) {
+        if (e.button === 0) openMessages(e);
       });
-      /* inserir antes da lupa se existir, senão no fim */
       if (searchBtn && searchBtn.parentNode === bar) {
         bar.insertBefore(sms, searchBtn);
       } else {
-        bar.appendChild(sms);
+        bar.insertBefore(sms, bar.firstChild);
       }
     } else {
-      sms.style.display = 'inline-flex';
-      sms.textContent = 'SMS';
+      sms.style.setProperty('display', 'inline-flex', 'important');
+      sms.style.setProperty('visibility', 'visible', 'important');
+      sms.style.setProperty('opacity', '1', 'important');
+      if (!sms.querySelector('.nav-sms-text')) {
+        sms.innerHTML = '<span class="nav-sms-text">SMS</span>';
+      } else {
+        sms.querySelector('.nav-sms-text').textContent = 'SMS';
+      }
+      if (!sms.__tchiloSmsBound) {
+        sms.__tchiloSmsBound = true;
+        sms.addEventListener('click', openMessages);
+      }
+      /* ordem: SMS antes da lupa */
+      if (searchBtn && searchBtn.parentNode === bar && sms.nextSibling !== searchBtn) {
+        bar.insertBefore(sms, searchBtn);
+      }
     }
   }
 
@@ -125,8 +173,6 @@
       input.accept = 'image/*';
       input.style.cssText = 'position:fixed;left:-9999px;opacity:0;width:1px;height:1px;';
       document.body.appendChild(input);
-      /* se o avatar-add já tiver handler, o change dele funciona;
-         senão o utilizador usa o fluxo normal de editar perfil */
     }
     input.value = '';
     input.click();
@@ -168,7 +214,7 @@
   }
 
   function patchRenderProfile() {
-    if (typeof window.renderProfile !== 'function' || window.renderProfile.__uiIcons) return;
+    if (typeof window.renderProfile !== 'function' || window.renderProfile.__uiIconsV2) return;
     var orig = window.renderProfile;
     window.renderProfile = function () {
       var r = orig.apply(this, arguments);
@@ -176,7 +222,7 @@
       setTimeout(ensureProfilePlus, 200);
       return r;
     };
-    window.renderProfile.__uiIcons = true;
+    window.renderProfile.__uiIconsV2 = true;
   }
 
   function run() {
@@ -190,11 +236,12 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', run);
   }
-  setTimeout(run, 200);
-  setTimeout(run, 800);
-  setTimeout(run, 2000);
+  setTimeout(run, 150);
+  setTimeout(run, 500);
+  setTimeout(run, 1200);
+  setTimeout(run, 2500);
   setInterval(function () {
     fixTopbarIcons();
     ensureProfilePlus();
-  }, 3500);
+  }, 2000);
 })();

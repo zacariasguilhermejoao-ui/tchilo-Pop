@@ -148,18 +148,18 @@ jobs:
 
           helper = '''
 
-    // MARK: - Tchilo Share Target
-    private func tchiloHandleShareURL(_ url: URL) {
-        let s = url.absoluteString.lowercased()
-        if s.contains("tchilo://share") || s.contains("pending=1") {
-            TchiloShareBridge.tryInjectFromAppGroup()
-        }
+              // MARK: - Tchilo Share Target
+              private func tchiloHandleShareURL(_ url: URL) {
+                  let s = url.absoluteString.lowercased()
+                  if s.contains("tchilo://share") || s.contains("pending=1") {
+                      TchiloShareBridge.tryInjectFromAppGroup()
+                  }
     }
 
-    private func tchiloCheckPendingShare() {
-        TchiloShareBridge.tryInjectFromAppGroup()
-    }
-'''
+              private func tchiloCheckPendingShare() {
+                  TchiloShareBridge.tryInjectFromAppGroup()
+              }
+              '''
 
           # Inserir helpers antes do último }
           last = t.rfind('}')
@@ -197,8 +197,8 @@ jobs:
           if 'applicationDidBecomeActive' not in t:
               insert_at = t.rfind('// MARK: - Tchilo Share Target')
               become = '''
-    func applicationDidBecomeActive(_ application: UIApplication) {
-        tchiloCheckPendingShare()
+              func applicationDidBecomeActive(_ application: UIApplication) {
+                  tchiloCheckPendingShare()
     }
 '''
               t = t[:insert_at] + become + t[insert_at:]

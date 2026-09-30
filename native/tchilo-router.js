@@ -1,10 +1,11 @@
 /**
- * Tchilo — navegação dinâmica com endereços reais (SPA + GitHub Pages)
- * Perfil partilhável: /u/username e /perfil/username
+ * Tchilo — navegação com endereços reais
+ * v3 — perfis /u/user e posts /p/id (estilo TikTok/Facebook)
  */
 (function () {
   'use strict';
-  if (window.__tchiloRouterInstalledV2) return;
+  if (window.__tchiloRouterInstalledV3) return;
+  window.__tchiloRouterInstalledV3 = true;
   window.__tchiloRouterInstalledV2 = true;
   window.__tchiloRouterInstalled = true;
 
@@ -63,7 +64,10 @@
     return p || '/';
   }
 
-  function pathFor(name, user) {
+  function pathFor(name, user, postId) {
+    if (name === 'post' && postId) {
+      return '/p/' + encodeURIComponent(String(postId));
+    }
     if (name === 'profile' && user) {
       return '/u/' + encodeURIComponent(String(user));
     }
@@ -75,21 +79,24 @@
     var p = normalizePath(pathname);
     if (REV[p]) return REV[p];
     if (REV[p + '/']) return REV[p + '/'];
-    var m = p.match(/^\/(?:perfil|u)\/([^\/]+)$/i);
-    if (m) return { screen: 'profile', user: decodeURIComponent(m[1]) };
+    var mUser = p.match(/^\/(?:perfil|u)\/([^\/]+)$/i);
+    if (mUser) return { screen: 'profile', user: decodeURIComponent(mUser[1]) };
+    var mPost = p.match(/^\/(?:p|post)\/([^\/]+)$/i);
+    if (mPost) return { screen: 'post', postId: decodeURIComponent(mPost[1]) };
     var bare = p.replace(/^\//, '');
     if (bare && document.getElementById('screen-' + bare)) return bare;
     return null;
   }
 
-  function setUrl(name, replace, user) {
+  function setUrl(name, replace, user, postId) {
     try {
-      var path = pathFor(name, user);
+      var path = pathFor(name, user, postId);
       if (EXTERNAL[name] && path.slice(-1) !== '/') path += '/';
       if (normalizePath(location.pathname) === normalizePath(path)) return;
       pushing = true;
-      if (replace) history.replaceState({ screen: name, user: user || null }, '', path);
-      else history.pushState({ screen: name, user: user || null }, '', path);
+      var state = { screen: name, user: user || null, postId: postId || null };
+      if (replace) history.replaceState(state, '', path);
+      else history.pushState(state, '', path);
       setTimeout(function () {
         pushing = false;
       }, 0);
@@ -110,9 +117,33 @@
     } catch (e) {}
   }
 
+  function openPostById(postId) {
+    if (!postId) return;
+    window.__tchiloPendingPostId = postId;
+    setUrl('post', false, null, postId);
+    try {
+      if (typeof openProfilePostViewer === 'function') {
+        openProfilePostViewer(postId);
+        return;
+      }
+    } catch (e) {}
+    try {
+      if (typeof openShare === 'function') {
+        /* fallback: scroll feed */
+      }
+    } catch (e2) {}
+    /* tenta ir ao feed e abrir */
+    callGoTo('feed');
+    setTimeout(function () {
+      try {
+        if (typeof openProfilePostViewer === 'function') openProfilePostViewer(postId);
+      } catch (e3) {}
+    }, 400);
+  }
+
   function install() {
     if (typeof window.goTo !== 'function') return false;
-    if (window.goTo.__tchiloRoutedV2) return true;
+    if (window.goTo.__tchiloRoutedV3) return true;
     var orig = window.goTo._orig || window.goTo;
     function routed(name) {
       try {
@@ -127,20 +158,15 @@
         var user = null;
         try {
           if (name === 'profile' && window.viewingProfileUser) user = window.viewingProfileUser;
-          if (name === 'profile' && !user) {
-            var s = typeof getSession === 'function' ? getSession() : null;
-            user = s && s.username ? s.username : null;
-          }
         } catch (e2) {}
         setUrl(name, false, user);
       } catch (e3) {}
       return orig.apply(this, arguments);
     }
-    routed.__tchiloRoutedV2 = true;
-    routed.__tchiloRouted = true;
     routed._orig = orig;
+    routed.__tchiloRoutedV3 = true;
+    routed.__tchiloRoutedV2 = true;
     window.goTo = routed;
-    window.__tchiloSetPath = setUrl;
     return true;
   }
 
@@ -160,11 +186,18 @@
     if (!info) return;
     var name = typeof info === 'string' ? info : info.screen;
     var user = typeof info === 'object' && info.user ? info.user : null;
-    if (!name || name === 'feed') return;
+    var postId = typeof info === 'object' && info.postId ? info.postId : null;
+
+    if (name === 'post' && postId) {
+      openPostById(postId);
+      return;
+    }
+
     if (EXTERNAL[name]) return;
+
     var n = 0;
     var t = setInterval(function () {
-      if (install()) {
+      if (typeof window.goTo === 'function') {
         clearInterval(t);
         if (user) {
           try {
@@ -182,11 +215,18 @@
   window.addEventListener('popstate', function (ev) {
     if (pushing) return;
     var st = ev.state || {};
-    var name = st.screen || screenFromPath(location.pathname) || 'feed';
-    var user = st.user || null;
+    var info = screenFromPath(location.pathname);
+    var name = st.screen || (typeof info === 'string' ? info : info && info.screen) || 'feed';
+    var user = st.user || (info && info.user) || null;
+    var postId = st.postId || (info && info.postId) || null;
     if (typeof name === 'object' && name.screen) {
       user = name.user || user;
+      postId = name.postId || postId;
       name = name.screen;
+    }
+    if (name === 'post' && postId) {
+      openPostById(postId);
+      return;
     }
     if (EXTERNAL[name]) {
       var p = pathFor(name);
@@ -242,4 +282,12 @@
     var u = encodeURIComponent(String(username || '').trim());
     return (location.origin || 'https://tchilopop.com') + (u ? '/u/' + u : '/perfil');
   };
+
+  window.tchiloPostPublicUrl = function (postId) {
+    var id = encodeURIComponent(String(postId || '').trim());
+    return (location.origin || 'https://tchilopop.com') + (id ? '/p/' + id : '/feed');
+  };
+
+  window.tchiloOpenPostUrl = openPostById;
+  window.tchiloSetPublicUrl = setUrl;
 })();

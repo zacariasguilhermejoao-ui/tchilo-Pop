@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 
-# Páginas públicas legais e institucionais (indexáveis)
+# Páginas públicas
 Allow: /sobre/
 Allow: /comunidade/
 Allow: /privacidade/
@@ -9,8 +9,12 @@ Allow: /termos/
 Allow: /cookies/
 Allow: /menores/
 Allow: /eliminar-conta/
+Allow: /u/
+Allow: /p/
+Allow: /post/
+Allow: /perfil/
 
-# Áreas privadas / da app (não indexar)
+# Áreas privadas da app
 Disallow: /mensagens
 Disallow: /notificacoes
 Disallow: /definicoes
@@ -21,8 +25,6 @@ Disallow: /reset-password
 Disallow: /redefinir-senha
 Disallow: /anuncios
 Disallow: /premium
-
-# Ficheiros técnicos
 Disallow: /native/
 Disallow: /.well-known/
 

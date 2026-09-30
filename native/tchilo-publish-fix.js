@@ -1,10 +1,11 @@
 /**
- * Tchilo — publicar foto/vídeo de verdade + limpar media presa + música (só fotos)
- * v3: substitui publishPostCore (a variável let createMediaData não é partilhável)
+ * Tchilo — publicar foto/vídeo + música (só fotos)
+ * v4: media via window; cloud com fallback local; música não some
  */
 (function () {
   'use strict';
-  if (window.__tchiloPublishFixV3) return;
+  if (window.__tchiloPublishFixV4) return;
+  window.__tchiloPublishFixV4 = true;
   window.__tchiloPublishFixV3 = true;
 
   function toast(msg) {
@@ -54,7 +55,34 @@
         ]
       };
     }
+    /* última hipótese: preview no DOM */
+    try {
+      var preview = document.getElementById('createPreview');
+      if (preview) {
+        var vidEl = preview.querySelector('video');
+        var imgEl = preview.querySelector('img');
+        if (vidEl && vidEl.src) {
+          return {
+            type: 'video',
+            items: [{ type: 'video', url: vidEl.src, mime: 'video/mp4' }]
+          };
+        }
+        if (imgEl && imgEl.src && imgEl.src.indexOf('data:') !== 0) {
+          return {
+            type: 'image',
+            items: [{ type: 'image', url: imgEl.src, mime: 'image/jpeg' }]
+          };
+        }
+      }
+    } catch (e) {}
     return null;
+  }
+
+  function syncLexical(data) {
+    window.createMediaData = data;
+    try {
+      (0, eval)('createMediaData = window.createMediaData');
+    } catch (e) {}
   }
 
   function hardClearMedia() {
@@ -71,6 +99,9 @@
     window.createMediaData = null;
     window.__tchiloPendingMedia = null;
     window.createMediaFiles = null;
+    try {
+      (0, eval)('createMediaData = null');
+    } catch (e2) {}
     var input = document.getElementById('mediaInput');
     if (input) {
       try {
@@ -106,24 +137,28 @@
     var screen = document.getElementById('screen-create');
     if (!screen) return null;
     var btn = document.getElementById('tchiloCreateMusicBtn');
-    if (btn) return btn;
-    btn = document.createElement('button');
-    btn.type = 'button';
-    btn.id = 'tchiloCreateMusicBtn';
-    btn.className = 'gallery-btn';
-    btn.textContent = 'Adicionar música';
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'tchiloCreateMusicBtn';
+      btn.className = 'tchilo-music-btn';
+      btn.textContent = 'Adicionar música';
+      btn.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openMusicPicker();
+      };
+      var pub =
+        screen.querySelector('.publish-btn') ||
+        screen.querySelector('button[onclick*="publishPost"]');
+      if (pub && pub.parentNode) pub.parentNode.insertBefore(btn, pub);
+      else (screen.querySelector('.create-body') || screen).appendChild(btn);
+    }
+    btn.className = 'tchilo-music-btn';
     btn.style.cssText =
-      'margin-top:10px;width:100%;display:none;font-weight:800;border:2px solid currentColor;';
-    btn.onclick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      openMusicPicker();
-    };
-    var pub =
-      screen.querySelector('.publish-btn') ||
-      screen.querySelector('button[onclick*="publishPost"]');
-    if (pub && pub.parentNode) pub.parentNode.insertBefore(btn, pub);
-    else (screen.querySelector('.create-body') || screen).appendChild(btn);
+      'margin-top:10px;width:100%;font-weight:800;border:2px solid currentColor;' +
+      'padding:12px;border-radius:14px;background:transparent;cursor:pointer;' +
+      'visibility:visible;opacity:1;pointer-events:auto;display:none';
     return btn;
   }
 
@@ -138,6 +173,8 @@
     });
     if (hasImage && !hasVideo) {
       btn.style.display = 'block';
+      btn.style.visibility = 'visible';
+      btn.style.opacity = '1';
       if (window._pendingMusicMeta) {
         btn.textContent =
           'Música: ' +
@@ -266,6 +303,40 @@
     });
   }
 
+  function finishLocal(post, items) {
+    if (items && items.length) {
+      if (items.length === 1) {
+        post.media = items[0].url;
+        post.mediaType = isVideoItem(items[0]) ? 'video' : 'image';
+      } else {
+        post.mediaItems = items.map(function (m) {
+          return { url: m.url, type: isVideoItem(m) ? 'video' : 'image' };
+        });
+        post.mediaType = 'image';
+      }
+      try {
+        if (!window.__tchiloMedia) window.__tchiloMedia = {};
+        window.__tchiloMedia[post.id] =
+          items.length === 1 ? items[0] : { items: items };
+      } catch (e) {}
+    }
+    try {
+      var posts = typeof getPosts === 'function' ? getPosts() : [];
+      posts.unshift(post);
+      if (typeof save === 'function' && typeof KEYS !== 'undefined') {
+        try {
+          save(KEYS.posts, posts);
+        } catch (e) {
+          try {
+            save(KEYS.posts, posts.slice(0, 20));
+          } catch (e2) {}
+        }
+      }
+    } catch (e3) {
+      console.warn(e3);
+    }
+  }
+
   async function publishFixed() {
     var session = typeof getSession === 'function' ? getSession() : null;
     if (!session || !session.username) {
@@ -285,10 +356,24 @@
     var tags = caption.match(/#[\wÀ-ÿ]+/g) || [];
     var postId = uuid();
     var data = getMediaData();
+    if (data) syncLexical(data);
     var items = (data && data.items) || [];
+
+    /* garantir File em cada item */
+    items = items.map(function (it) {
+      if (it && !it.file && window.createMediaFiles && window.createMediaFiles[0]) {
+        it.file = window.createMediaFiles[0];
+      }
+      return it;
+    });
 
     if (items.some(isVideoItem) && items.length !== 1) {
       toast('Vídeo só pode ser publicado sozinho');
+      return;
+    }
+
+    if (!items.length) {
+      toast('Escolhe uma foto ou vídeo primeiro');
       return;
     }
 
@@ -322,63 +407,66 @@
       musicMeta: window._pendingMusicMeta || null
     };
 
-    /* Cloud primeiro */
+    var cloudOk = false;
     if (window.tchiloCloud && typeof window.tchiloCloud.publishPost === 'function') {
       try {
+        toast('A enviar…');
         var cloudResult = await window.tchiloCloud.publishPost(post, items);
-        if (!cloudResult || !cloudResult.ok) {
-          throw new Error(
-            (cloudResult && cloudResult.error) || 'Falha ao guardar na Supabase'
-          );
-        }
-        if (cloudResult.mediaItems && cloudResult.mediaItems.length) {
-          post.mediaItems = cloudResult.mediaItems;
-          if (cloudResult.mediaItems.length === 1) {
-            post.media = cloudResult.mediaItems[0].url;
-            post.mediaType = cloudResult.mediaItems[0].type || (isVideoItem(items[0]) ? 'video' : 'image');
-          } else {
-            post.mediaType = 'image';
+        if (cloudResult && cloudResult.ok) {
+          cloudOk = true;
+          if (cloudResult.mediaItems && cloudResult.mediaItems.length) {
+            post.mediaItems = cloudResult.mediaItems;
+            if (cloudResult.mediaItems.length === 1) {
+              post.media = cloudResult.mediaItems[0].url;
+              post.mediaType =
+                cloudResult.mediaItems[0].type ||
+                (isVideoItem(items[0]) ? 'video' : 'image');
+            } else {
+              post.mediaType = 'image';
+            }
           }
+        } else {
+          throw new Error(
+            (cloudResult && cloudResult.error) || 'Falha ao guardar na nuvem'
+          );
         }
       } catch (cloudErr) {
         console.error('[Tchilo] cloud publish', cloudErr);
-        toast('Erro: ' + ((cloudErr && cloudErr.message) || 'não publicou'));
-        return;
-      }
-    } else if (items.length) {
-      /* sem cloud — guarda local com blob (melhor que nada) */
-      if (items.length === 1) {
-        post.media = items[0].url;
-        post.mediaType = isVideoItem(items[0]) ? 'video' : 'image';
-      } else {
-        post.mediaItems = items.map(function (m) {
-          return { url: m.url, type: isVideoItem(m) ? 'video' : 'image' };
-        });
-        post.mediaType = 'image';
-      }
-    }
-
-    /* se tinha media mas cloud não devolveu e local sem media → falhou */
-    if (items.length && !post.media && !(post.mediaItems && post.mediaItems.length)) {
-      toast('Não foi possível enviar a media. Tenta de novo.');
-      return;
-    }
-
-    try {
-      var posts = typeof getPosts === 'function' ? getPosts() : [];
-      posts.unshift(post);
-      if (typeof save === 'function' && typeof KEYS !== 'undefined') {
-        try {
-          save(KEYS.posts, posts);
-        } catch (e) {
-          /* storage cheio — tenta versão leve */
-          try {
-            save(KEYS.posts, posts.slice(0, 30));
-          } catch (e2) {}
+        var msg = (cloudErr && cloudErr.message) || 'erro na nuvem';
+        /* se sessão supabase em falta — tenta local mesmo assim */
+        if (/sessão supabase|não encontrada|não está ligado/i.test(msg)) {
+          toast('Sem sessão cloud — a guardar neste aparelho');
+          finishLocal(post, items);
+        } else {
+          toast('Erro: ' + msg);
+          return;
         }
       }
-    } catch (e3) {
-      console.warn(e3);
+    } else {
+      finishLocal(post, items);
+    }
+
+    if (cloudOk) {
+      /* também guarda local para feed imediato */
+      try {
+        var posts2 = typeof getPosts === 'function' ? getPosts() : [];
+        posts2.unshift(post);
+        if (typeof save === 'function' && typeof KEYS !== 'undefined') {
+          try {
+            save(KEYS.posts, posts2);
+          } catch (e) {}
+        }
+      } catch (e) {}
+    }
+
+    if (!post.media && !(post.mediaItems && post.mediaItems.length)) {
+      /* ainda sem media — finishLocal de emergência */
+      finishLocal(post, items);
+    }
+
+    if (!post.media && !(post.mediaItems && post.mediaItems.length)) {
+      toast('Não foi possível enviar a media. Tenta de novo.');
+      return;
     }
 
     window._pendingMusic = null;
@@ -401,7 +489,7 @@
 
   function patchPublish() {
     window.publishPostCore = publishFixed;
-    window.publishPostCore.__pubFixV3 = true;
+    window.publishPostCore.__pubFixV4 = true;
 
     window.publishPost = async function () {
       var btn =
@@ -412,6 +500,12 @@
         if (typeof tchiloSetLoading === 'function') tchiloSetLoading(btn, true);
       } catch (e) {}
       try {
+        var data = getMediaData();
+        if (data) syncLexical(data);
+        if (!data || !data.items || !data.items.length) {
+          toast('Escolhe uma foto ou vídeo primeiro');
+          return;
+        }
         toast('A enviar…');
         await publishFixed();
       } catch (err) {
@@ -426,34 +520,42 @@
         } catch (e3) {}
       }
     };
-    window.publishPost.__pubFixV3 = true;
+    window.publishPost.__pubFixV4 = true;
   }
 
   function patchClear() {
     window.clearCreateMedia = function () {
       hardClearMedia();
     };
-    window.clearCreateMedia.__pubFixV3 = true;
+    window.clearCreateMedia.__pubFixV4 = true;
     window.removeMedia = function () {
       hardClearMedia();
       toast('Media removida');
     };
-    window.removeMedia.__pubFixV3 = true;
+    window.removeMedia.__pubFixV4 = true;
   }
 
   function watchMediaInput() {
     var input = document.getElementById('mediaInput');
-    if (!input || input.__pubFixWatchV3) return;
-    input.__pubFixWatchV3 = true;
-    input.addEventListener(
-      'change',
-      function () {
-        setTimeout(updateMusicBtn, 80);
-        setTimeout(updateMusicBtn, 400);
-        setTimeout(updateMusicBtn, 1000);
-      },
-      true
-    );
+    if (input && !input.__pubFixWatchV4) {
+      input.__pubFixWatchV4 = true;
+      input.addEventListener(
+        'change',
+        function () {
+          setTimeout(updateMusicBtn, 80);
+          setTimeout(updateMusicBtn, 400);
+          setTimeout(updateMusicBtn, 1000);
+        },
+        true
+      );
+    }
+    if (!window.__tchiloMusicMediaListener) {
+      window.__tchiloMusicMediaListener = true;
+      window.addEventListener('tchilo-media-ready', function () {
+        setTimeout(updateMusicBtn, 50);
+        setTimeout(updateMusicBtn, 300);
+      });
+    }
   }
 
   function boot() {
@@ -472,7 +574,7 @@
     patchPublish();
     patchClear();
     updateMusicBtn();
-  }, 3500);
+  }, 2500);
 
   window.tchiloHardClearCreateMedia = hardClearMedia;
   window.tchiloGetCreateMediaData = getMediaData;

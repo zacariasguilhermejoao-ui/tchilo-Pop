@@ -1,11 +1,11 @@
 /**
- * Tchilo — ecrã Criar profissional: só 2 botões
- * 1) Câmara Especial  2) Galeria
- * Sem animação de 3 pontos ao escolher da galeria
+ * Tchilo — ecrã Criar: Câmara + Galeria
+ * v3 — não esconde música; grava File para upload real
  */
 (function () {
   'use strict';
-  if (window.__tchiloCreateBtnsV2) return;
+  if (window.__tchiloCreateBtnsV3) return;
+  window.__tchiloCreateBtnsV3 = true;
   window.__tchiloCreateBtnsV2 = true;
 
   function toast(msg) {
@@ -39,12 +39,17 @@
     };
     window.__tchiloPendingMedia = item;
     window.createMediaFiles = [file];
-    window.createMediaData = {
+    var data = {
       type: item.type,
       items: [item],
       src: url,
       file: file
     };
+    window.createMediaData = data;
+    /* tenta sincronizar a variável lexical do index */
+    try {
+      (0, eval)('createMediaData = window.createMediaData');
+    } catch (e) {}
     return item;
   }
 
@@ -93,11 +98,15 @@
     try {
       if (typeof hideVideoCoverBox === 'function') hideVideoCoverBox();
     } catch (e) {}
+    try {
+      window.dispatchEvent(new CustomEvent('tchilo-media-ready', { detail: item }));
+    } catch (e) {}
   }
 
   function onFiles(files) {
     if (!files || !files.length) return;
     var file = files[0];
+    if (!file) return;
     var item = setMedia(file);
     try {
       if (typeof goTo === 'function') goTo('create');
@@ -106,7 +115,7 @@
     setTimeout(function () {
       paint(item);
     }, 80);
-    /* sem toast pesado / sem loading */
+    toast(item.type === 'video' ? 'Vídeo pronto a publicar' : 'Foto pronta a publicar');
   }
 
   function ensureInput() {
@@ -115,7 +124,7 @@
       input = document.createElement('input');
       input.type = 'file';
       input.id = 'tchiloGalInputPro';
-      input.accept = 'image/*,video/*,.mp4,.mov,.m4v,.webm,.jpg,.jpeg,.png';
+      input.accept = 'image/*,video/*,.mp4,.mov,.m4v,.webm,.jpg,.jpeg,.png,.heic';
       input.multiple = false;
       input.style.cssText = 'position:fixed;left:-9999px;width:1px;height:1px;opacity:0;';
       document.body.appendChild(input);
@@ -131,12 +140,16 @@
   }
 
   function openGallery() {
-    /* abre galeria nativa — sem loading dots */
     try {
       ensureInput().click();
     } catch (e) {
       var mi = document.getElementById('mediaInput');
-      if (mi) mi.click();
+      if (mi) {
+        try {
+          mi.accept = 'image/*,video/*';
+        } catch (err) {}
+        mi.click();
+      }
     }
   }
 
@@ -157,20 +170,27 @@
   }
 
   function injectCSS() {
-    if (document.getElementById('tchiloCreateBtnsCSS')) return;
+    var old = document.getElementById('tchiloCreateBtnsCSS');
+    if (old) old.remove();
     var st = document.createElement('style');
     st.id = 'tchiloCreateBtnsCSS';
     st.textContent =
-      /* esconder botões antigos / extras */
+      /* esconder botões antigos — NÃO esconder música nem publish */
       '#screen-create #faceFxOpenBtn,' +
       '#screen-create #galleryBtn,' +
       '#screen-create #tchiloOpenCamBtn,' +
       '#screen-create #tchiloForceGalBtn,' +
       '#screen-create #tchiloPickVideoBtn,' +
-      '#screen-create #tchiloPickPhotoBtn,' +
-      '#screen-create .gallery-btn:not(#removeMediaBtn):not(#tchiloBtnCam):not(#tchiloBtnGal){' +
+      '#screen-create #tchiloPickPhotoBtn{' +
       'display:none!important;visibility:hidden!important;height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;}' +
-      /* 2 botões profissionais */
+      /* botões antigos gallery-btn genéricos, mas preservar música e remover media */
+      '#screen-create .gallery-btn:not(#removeMediaBtn):not(#tchiloBtnCam):not(#tchiloBtnGal):not(#tchiloCreateMusicBtn):not(.tchilo-music-btn){' +
+      'display:none!important;}' +
+      '#tchiloCreateMusicBtn,.tchilo-music-btn{' +
+      'display:block!important;visibility:visible!important;opacity:1!important;' +
+      'height:auto!important;overflow:visible!important;pointer-events:auto!important;' +
+      'margin-top:10px!important;width:100%!important;font-weight:800!important;' +
+      'border:2px solid currentColor!important;padding:12px!important;border-radius:14px!important;}' +
       '#tchiloCreateActions{' +
       'display:flex!important;flex-direction:column;gap:10px;' +
       'width:calc(100% - 32px);max-width:340px;margin:12px 16px 8px;}' +
@@ -182,7 +202,6 @@
       '#tchiloBtnCam{background:var(--mint,#c8f560);color:var(--ink,#0B0B0C);}' +
       '#tchiloBtnGal{background:var(--paper,#fff);color:var(--ink,#0B0B0C);}' +
       '#tchiloBtnCam svg,#tchiloBtnGal svg{flex:0 0 auto;}' +
-      /* nunca loading nos botões de criar */
       '#tchiloBtnCam.tchilo-btn-loading,#tchiloBtnGal.tchilo-btn-loading,' +
       '#galleryBtn.tchilo-btn-loading{' +
       'pointer-events:auto!important;}' +
@@ -242,7 +261,6 @@
       }
     }
 
-    /* neutralizar loading no galleryBtn antigo */
     var gb = document.getElementById('galleryBtn');
     if (gb) {
       gb.onclick = function (e) {
@@ -252,9 +270,8 @@
     }
   }
 
-  /* onMediaPicked: sem loading dots */
   function patchOnMedia() {
-    if (typeof window.onMediaPicked === 'function' && !window.onMediaPicked.__proBtn) {
+    if (typeof window.onMediaPicked === 'function' && !window.onMediaPicked.__proBtnV3) {
       window.onMediaPicked = function (event) {
         try {
           var files = event && event.target && event.target.files;
@@ -266,10 +283,9 @@
           console.warn(err);
         }
       };
-      window.onMediaPicked.__proBtn = true;
+      window.onMediaPicked.__proBtnV3 = true;
     }
-    /* tchiloSetLoading no create: ignorar para botões de media */
-    if (typeof window.tchiloSetLoading === 'function' && !window.tchiloSetLoading.__proBtn) {
+    if (typeof window.tchiloSetLoading === 'function' && !window.tchiloSetLoading.__proBtnV3) {
       var orig = window.tchiloSetLoading;
       window.tchiloSetLoading = function (btn, on) {
         if (
@@ -279,7 +295,6 @@
             btn.id === 'tchiloBtnCam' ||
             btn.id === 'faceFxOpenBtn')
         ) {
-          /* nunca 3 pontos nestes botões */
           try {
             btn.classList.remove('tchilo-btn-loading');
             btn.disabled = false;
@@ -288,7 +303,7 @@
         }
         return orig.apply(this, arguments);
       };
-      window.tchiloSetLoading.__proBtn = true;
+      window.tchiloSetLoading.__proBtnV3 = true;
     }
   }
 
@@ -305,23 +320,26 @@
           src: it.url,
           file: it.file
         };
+        try {
+          (0, eval)('createMediaData = window.createMediaData');
+        } catch (e) {}
       }
     }
-    if (typeof window.publishPost === 'function' && !window.publishPost.__proBtn) {
+    if (typeof window.publishPost === 'function' && !window.publishPost.__proBtnV3) {
       var op = window.publishPost;
       window.publishPost = function () {
         ensureData();
         return op.apply(this, arguments);
       };
-      window.publishPost.__proBtn = true;
+      window.publishPost.__proBtnV3 = true;
     }
-    if (typeof window.publishPostCore === 'function' && !window.publishPostCore.__proBtn) {
+    if (typeof window.publishPostCore === 'function' && !window.publishPostCore.__proBtnV3) {
       var oc = window.publishPostCore;
       window.publishPostCore = async function () {
         ensureData();
         return oc.apply(this, arguments);
       };
-      window.publishPostCore.__proBtn = true;
+      window.publishPostCore.__proBtnV3 = true;
     }
   }
 

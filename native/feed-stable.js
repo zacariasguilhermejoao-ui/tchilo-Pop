@@ -7,7 +7,7 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('publish-fix') >= 0 && cur.indexOf('v=5') < 0) existing.remove();
+        if (name.indexOf('publish-fix') >= 0 && cur.indexOf('v=4') < 0) existing.remove();
         else if (name.indexOf('create-buttons') >= 0 && cur.indexOf('v=4') < 0) existing.remove();
         else if (name.indexOf('reels-follow') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
         else if (name.indexOf('profile-avatar-plus') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
@@ -18,7 +18,7 @@
         else if (name.indexOf('share-target') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (name.indexOf('profile-share') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
         else if (name.indexOf('nav-layout') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
-        else if (name.indexOf('deezer-fetch') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
+        else if (name.indexOf('music-catalog-fix') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -37,8 +37,8 @@
     /* PRIMEIRO: corrige Site URL github.io → tchilopop.com */
     add('native/tchilo-site-url-fix.js?v=1');
     add('native/tchilo-password-reset.js?v=6');
-    add('native/deezer-fetch.js?v=2');
-    add('native/tchilo-publish-fix.js?v=5');
+    add('native/music-catalog-fix.js?v=1');
+    add('native/tchilo-publish-fix.js?v=4');
     add('native/tchilo-video-pick.js?v=6');
     add('native/tchilo-deeplink.js?v=2');
     add('native/tchilo-router.js?v=3');

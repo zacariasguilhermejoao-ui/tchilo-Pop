@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install xcodeproj gem
+        run: gem install xcodeproj --no-document
+
       - name: Prepare web assets
         shell: bash
         run: |
@@ -40,12 +43,16 @@ jobs:
           cp -a native/. www/native/
           [ -f redefinir-senha/index.html ] && cp redefinir-senha/index.html www/redefinir-senha/ || true
           [ -f reset-password/index.html ] && cp reset-password/index.html www/reset-password/ || true
+          [ -f manifest.webmanifest ] && cp manifest.webmanifest www/manifest.webmanifest || true
 
           if ! grep -q 'native/offline-ui.css' www/index.html; then
             sed -i '' 's#</head>#<link rel="stylesheet" href="native/offline-ui.css"></head>#' www/index.html
           fi
+          if [ -f www/manifest.webmanifest ] && ! grep -q 'manifest.webmanifest' www/index.html; then
+            sed -i '' 's#</head>#<link rel="manifest" href="/manifest.webmanifest"></head>#' www/index.html
+          fi
 
-          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js tchilo-deeplink.js tchilo-password-reset.js; do
+          for js in capacitor-bridge.js legal-navbar-fix.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js tchilo-deeplink.js tchilo-password-reset.js tchilo-share-target.js; do
             if [ -f "www/native/$js" ] && ! grep -q "native/$js" www/index.html; then
               sed -i '' "s#</body>#<script src=\"native/$js\"></script></body>#" www/index.html
             fi
@@ -60,13 +67,14 @@ jobs:
       - name: Copy Firebase GoogleService-Info.plist
         run: cp firebase/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
 
-      - name: Configure iOS privacy + Associated Domains + URL scheme
+      - name: Configure iOS privacy + Associated Domains + URL scheme + App Group
         shell: bash
         run: |
           PLIST=ios/App/App/Info.plist
           /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'Tchilo precisa de acesso à câmera para efeitos e fotos.'" "$PLIST" || true
           /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'Tchilo usa a sua localização quando um recurso solicitar.'" "$PLIST" || true
           /usr/libexec/PlistBuddy -c "Add :NSUserNotificationUsageDescription string 'Tchilo pode enviar notificações.'" "$PLIST" || true
+          /usr/libexec/PlistBuddy -c "Add :NSPhotoLibraryUsageDescription string 'Tchilo precisa de acesso às fotos para publicar e stories.'" "$PLIST" || true
 
           # URL scheme tchilo://
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" "$PLIST" 2>/dev/null || true
@@ -75,10 +83,9 @@ jobs:
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" "$PLIST" 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string tchilo" "$PLIST" 2>/dev/null || true
 
-          # Associated Domains entitlements
+          # Entitlements: Associated Domains + App Group
           ENT=ios/App/App/App.entitlements
-          if [ ! -f "$ENT" ]; then
-            cat > "$ENT" << 'EOF'
+          cat > "$ENT" << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -88,14 +95,223 @@ jobs:
               <string>applinks:tchilopop.com</string>
               <string>applinks:www.tchilopop.com</string>
             </array>
+            <key>com.apple.security.application-groups</key>
+            <array>
+              <string>group.com.tchilo.isabstudio</string>
+            </array>
           </dict>
           </plist>
           EOF
-          else
-            /usr/libexec/PlistBuddy -c "Add :com.apple.developer.associated-domains array" "$ENT" 2>/dev/null || true
-            /usr/libexec/PlistBuddy -c "Add :com.apple.developer.associated-domains:0 string applinks:tchilopop.com" "$ENT" 2>/dev/null || true
-            /usr/libexec/PlistBuddy -c "Add :com.apple.developer.associated-domains:1 string applinks:www.tchilopop.com" "$ENT" 2>/dev/null || true
-          fi
+
+      - name: Install Share Extension sources + bridge
+        shell: bash
+        run: |
+          set -e
+          EXT_SRC=native/ios-share-extension
+          test -d "$EXT_SRC"
+
+          # Bridge na app principal
+          mkdir -p ios/App/App
+          cp "$EXT_SRC/AppDelegate+Share.swift" ios/App/App/TchiloShareBridge.swift
+
+          # Pasta da extension
+          mkdir -p ios/App/ShareExtension
+          cp "$EXT_SRC/ShareViewController.swift" ios/App/ShareExtension/
+          cp "$EXT_SRC/Info.plist" ios/App/ShareExtension/
+          cp "$EXT_SRC/ShareExtension.entitlements" ios/App/ShareExtension/
+
+          echo "Share Extension sources copied"
+
+      - name: Patch AppDelegate for share URL + inject
+        shell: bash
+        run: |
+          set -e
+          AD=$(find ios -name 'AppDelegate.swift' | head -n 1)
+          test -n "$AD"
+          echo "AppDelegate: $AD"
+
+          python3 << 'PY'
+          from pathlib import Path
+          import re
+          paths = list(Path('ios').rglob('AppDelegate.swift'))
+          if not paths:
+              raise SystemExit('AppDelegate.swift not found')
+          p = paths[0]
+          t = p.read_text(encoding='utf-8')
+          if 'TchiloShareBridge' in t:
+              print('AppDelegate already patched')
+              raise SystemExit(0)
+
+          # Garantir import UIKit / WebKit se necessário
+          if 'import WebKit' not in t:
+              t = t.replace('import UIKit', 'import UIKit\nimport WebKit', 1)
+
+          helper = '''
+
+    // MARK: - Tchilo Share Target
+    private func tchiloHandleShareURL(_ url: URL) {
+        let s = url.absoluteString.lowercased()
+        if s.contains("tchilo://share") || s.contains("pending=1") {
+            TchiloShareBridge.tryInjectFromAppGroup()
+        }
+    }
+
+    private func tchiloCheckPendingShare() {
+        TchiloShareBridge.tryInjectFromAppGroup()
+    }
+'''
+
+          # Inserir helpers antes do último }
+          last = t.rfind('}')
+          if last < 0:
+              raise SystemExit('no class end')
+          t = t[:last] + helper + '\n' + t[last:]
+
+          # application didFinishLaunching
+          if 'didFinishLaunchingWithOptions' in t and 'tchiloCheckPendingShare' not in t:
+              # inserir chamada no fim do método (antes do return true tipico)
+              t = re.sub(
+                  r'(func application\([^)]*didFinishLaunchingWithOptions[^{]*\{)',
+                  r'\1\n        tchiloCheckPendingShare()',
+                  t,
+                  count=1
+              )
+
+          # open url handlers
+          open_hooks = [
+              (r'func application\([^)]*open url: URL[^\{]*\{',
+               'tchiloHandleShareURL(url)'),
+              (r'func application\([^)]*continue userActivity: NSUserActivity[^\{]*\{',
+               None),
+          ]
+
+          if 'open url: URL' in t and 'tchiloHandleShareURL' not in t.split('open url')[1][:400]:
+              t = re.sub(
+                  r'(func application\([^)]*open url: URL[^{]*\{)',
+                  r'\1\n        tchiloHandleShareURL(url)',
+                  t,
+                  count=1
+              )
+
+          # SceneDelegate style / Capacitor CAPBridgeViewController — também escutar notification
+          if 'applicationDidBecomeActive' not in t:
+              insert_at = t.rfind('// MARK: - Tchilo Share Target')
+              become = '''
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        tchiloCheckPendingShare()
+    }
+'''
+              t = t[:insert_at] + become + t[insert_at:]
+          elif 'tchiloCheckPendingShare' not in t[t.find('applicationDidBecomeActive'):t.find('applicationDidBecomeActive')+300]:
+              t = re.sub(
+                  r'(func applicationDidBecomeActive\([^{]*\{)',
+                  r'\1\n        tchiloCheckPendingShare()',
+                  t,
+                  count=1
+              )
+
+          p.write_text(t, encoding='utf-8')
+          print('AppDelegate patched for Share Target')
+          PY
+
+      - name: Add ShareExtension target to Xcode project
+        shell: bash
+        run: |
+          set -e
+          ruby << 'RUBY'
+          require 'xcodeproj'
+
+          project_path = Dir.glob('ios/App/*.xcodeproj').first || Dir.glob('ios/**/*.xcodeproj').first
+          abort 'xcodeproj not found' unless project_path
+          puts "Project: #{project_path}"
+
+          project = Xcodeproj::Project.open(project_path)
+
+          # Evitar duplicar
+          if project.targets.any? { |t| t.name == 'ShareExtension' }
+            puts 'ShareExtension target already exists'
+            exit 0
+          end
+
+          main_target = project.targets.find { |t| t.name == 'App' } || project.targets.first
+          abort 'main target not found' unless main_target
+
+          # Grupo ShareExtension
+          group = project.main_group.find_subpath('ShareExtension', true)
+          group.set_source_tree('SOURCE_ROOT')
+          group.set_path('ShareExtension')
+
+          # Ficheiros
+          swift_ref = group.new_file('ShareExtension/ShareViewController.swift')
+          plist_ref = group.new_file('ShareExtension/Info.plist')
+          ent_ref = group.new_file('ShareExtension/ShareExtension.entitlements')
+
+          # Target app extension
+          ext = project.new_target(:app_extension, 'ShareExtension', :ios, '15.0')
+          ext.product_type = 'com.apple.product-type.app-extension'
+
+          ext.add_file_references([swift_ref])
+
+          # Build settings
+          ext.build_configurations.each do |config|
+            config.build_settings['INFOPLIST_FILE'] = 'ShareExtension/Info.plist'
+            config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'ShareExtension/ShareExtension.entitlements'
+            config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.tchilo.isabstudio.ShareExtension'
+            config.build_settings['PRODUCT_NAME'] = 'ShareExtension'
+            config.build_settings['SKIP_INSTALL'] = 'YES'
+            config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2'
+            config.build_settings['SWIFT_VERSION'] = '5.0'
+            config.build_settings['GENERATE_INFOPLIST_FILE'] = 'NO'
+            config.build_settings['LD_RUNPATH_SEARCH_PATHS'] = [
+              '$(inherited)',
+              '@executable_path/Frameworks',
+              '@executable_path/../../Frameworks'
+            ]
+            config.build_settings['CODE_SIGN_STYLE'] = 'Automatic'
+            # alinhar com app principal se existir DEVELOPMENT_TEAM
+            team = main_target.build_configurations.first.build_settings['DEVELOPMENT_TEAM']
+            config.build_settings['DEVELOPMENT_TEAM'] = team if team && !team.empty?
+          end
+
+          # Embed extension na app principal
+          embed = main_target.copy_files_build_phases.find { |p| p.dst_subfolder_spec == '13' }
+          unless embed
+            embed = main_target.new_copy_files_build_phase('Embed App Extensions')
+            embed.dst_subfolder_spec = '13' # plug-ins
+          end
+          embed.add_file_reference(ext.product_reference)
+          embed.files.each do |bf|
+            if bf.file_ref == ext.product_reference
+              bf.settings = { 'ATTRIBUTES' => ['RemoveHeadersOnCopy'] }
+            end
+          end
+
+          # Dependency
+          main_target.add_dependency(ext)
+
+          # Adicionar TchiloShareBridge.swift à app principal se ainda não estiver
+          app_group = project.main_group.find_subpath('App', true)
+          bridge_path = 'App/TchiloShareBridge.swift'
+          unless main_target.source_build_phase.files_references.any? { |f| f && f.path && f.path.include?('TchiloShareBridge') }
+            # procurar ficheiro no filesystem relativo ao project
+            bridge_file = Pathname.new(project_path).dirname + 'App/TchiloShareBridge.swift'
+            if bridge_file.exist?
+              ref = app_group.new_file('App/TchiloShareBridge.swift')
+              main_target.add_file_references([ref])
+              puts 'TchiloShareBridge.swift added to App target'
+            else
+              puts "WARN: #{bridge_file} missing"
+            end
+          end
+
+          # App Group na app principal (CODE_SIGN_ENTITLEMENTS)
+          main_target.build_configurations.each do |config|
+            config.build_settings['CODE_SIGN_ENTITLEMENTS'] ||= 'App/App.entitlements'
+          end
+
+          project.save
+          puts 'ShareExtension target created and embedded'
+          RUBY
 
       - name: Set splash image and app icon
         shell: bash
@@ -154,6 +370,7 @@ jobs:
         shell: bash
         run: |
           cd ios/App
+          # Build da app (a extension fica embutida se o target estiver bem configurado)
           xcodebuild archive \
             $IOS_CONTAINER \
             -scheme App \
@@ -161,7 +378,19 @@ jobs:
             -sdk iphoneos \
             -archivePath "$RUNNER_TEMP/tchilo-pop.xcarchive" \
             CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+            CODE_SIGNING_REQUIRED=NO \
+            || {
+              echo "Archive failed — tentar sem ShareExtension se necessário"
+              # fallback: build só App
+              xcodebuild archive \
+                $IOS_CONTAINER \
+                -scheme App \
+                -configuration Release \
+                -sdk iphoneos \
+                -archivePath "$RUNNER_TEMP/tchilo-pop.xcarchive" \
+                CODE_SIGNING_ALLOWED=NO \
+                CODE_SIGNING_REQUIRED=NO
+            }
 
       - name: Create unsigned IPA
         shell: bash

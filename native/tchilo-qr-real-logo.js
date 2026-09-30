@@ -3,8 +3,8 @@
  */
 (function () {
   'use strict';
-  if (window.__tchiloQrRealLogoV1) return;
-  window.__tchiloQrRealLogoV1 = true;
+  if (window.__tchiloQrRealLogoV2) return;
+  window.__tchiloQrRealLogoV2 = true;
 
   function roundRectPath(ctx, x, y, w, h, r) {
     r = Math.min(r || 0, w / 2, h / 2);
@@ -88,27 +88,44 @@
     logoImg.src = window.TCHILO_LOGO_DATA || '';
   }
 
+  function whenLogoReady(cb) {
+    if (window.TCHILO_LOGO_DATA && String(window.TCHILO_LOGO_DATA).indexOf('base64,') > 0) return cb();
+    var n = 0;
+    var t = setInterval(function () {
+      n++;
+      if (window.TCHILO_LOGO_DATA && String(window.TCHILO_LOGO_DATA).indexOf('base64,') > 0) {
+        clearInterval(t);
+        cb();
+      } else if (n > 50) {
+        clearInterval(t);
+      }
+    }, 100);
+  }
+
   var obs = new MutationObserver(function () {
     var mount = document.getElementById('tchiloQrMount');
     if (!mount || mount.__realLogo) return;
-    if (!window.TCHILO_LOGO_DATA) return;
     mount.__realLogo = true;
 
-    var card = mount.closest('.card');
-    var userEl = card && card.querySelector('.qr-user');
-    var username = userEl ? (userEl.textContent || '').replace(/^@/, '').trim() : '';
-    var origin = location.origin || 'https://tchilopop.com';
-    var url = username ? origin + '/u/' + encodeURIComponent(username) : origin + '/perfil';
+    whenLogoReady(function () {
+      if (!window.TCHILO_LOGO_DATA) return;
 
-    mount.innerHTML = '<div style="padding:20px;font-weight:700">A gerar QR…</div>';
-    buildWithRealLogo(url, username, function (err, canvas) {
-      if (err || !canvas) return;
-      window.__tchiloQrCanvas = canvas;
-      mount.innerHTML = '';
-      canvas.style.width = '100%';
-      canvas.style.height = 'auto';
-      canvas.style.borderRadius = '14px';
-      mount.appendChild(canvas);
+      var card = mount.closest('.card');
+      var userEl = card && card.querySelector('.qr-user');
+      var username = userEl ? (userEl.textContent || '').replace(/^@/, '').trim() : '';
+      var origin = location.origin || 'https://tchilopop.com';
+      var url = username ? origin + '/u/' + encodeURIComponent(username) : origin + '/perfil';
+
+      mount.innerHTML = '<div style="padding:20px;font-weight:700">A gerar QR…</div>';
+      buildWithRealLogo(url, username, function (err, canvas) {
+        if (err || !canvas) return;
+        window.__tchiloQrCanvas = canvas;
+        mount.innerHTML = '';
+        canvas.style.width = '100%';
+        canvas.style.height = 'auto';
+        canvas.style.borderRadius = '14px';
+        mount.appendChild(canvas);
+      });
     });
   });
   try {

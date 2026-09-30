@@ -13,6 +13,7 @@
         else if (name.indexOf('profile-avatar-plus') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (name.indexOf('ui-icons-fix') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
         else if (name.indexOf('password-reset') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
+        else if (name.indexOf('site-url-fix') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (name.indexOf('video-pick') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
         else if (name.indexOf('share-target') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (name.indexOf('profile-share') >= 0 && cur.indexOf('v=5') < 0) existing.remove();
@@ -32,6 +33,8 @@
     } catch (e) {}
   }
   function load() {
+    /* PRIMEIRO: corrige Site URL github.io → tchilopop.com */
+    add('native/tchilo-site-url-fix.js?v=1');
     add('native/tchilo-password-reset.js?v=6');
     add('native/tchilo-publish-fix.js?v=4');
     add('native/tchilo-video-pick.js?v=6');

@@ -1,11 +1,15 @@
 /**
  * Tchilo — menu ⋯ no perfil: copiar link, partilhar, QR, descarregar
- * v4 — abertura fiável ao toque
+ * v5 — fix: no mobile o click sintético fechava o sheet logo a abrir
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV4) return;
+  // permitir upgrade a partir de v4
+  if (window.__tchiloProfileShareV5) return;
+  window.__tchiloProfileShareV5 = true;
   window.__tchiloProfileShareV4 = true;
+
+  var openGuardUntil = 0; // ignora fechos logo após abrir
 
   function toast(msg) {
     try {
@@ -31,6 +35,15 @@
         return String(viewingProfileUser);
       }
     } catch (e) {}
+    try {
+      var el = document.querySelector(
+        '#screen-profile .profile-username, #screen-profile .username, #screen-profile [data-username]'
+      );
+      if (el) {
+        var u = el.getAttribute('data-username') || (el.textContent || '').replace(/^@/, '').trim();
+        if (u) return u;
+      }
+    } catch (e2) {}
     var s = sessionUser();
     return s && s.username ? String(s.username) : '';
   }
@@ -180,18 +193,19 @@
     var st = document.createElement('style');
     st.id = 'tchiloProfileShareCSS';
     st.textContent =
-      '#screen-profile .screen-header{position:relative!important;}' +
-      '#tchiloProfileMoreBtn{' +
+      '#screen-profile .screen-header{position:relative!important;overflow:visible!important;}' +
+      '#tchiloProfileMoreBtn,button#tchiloProfileMoreBtn,.tchilo-profile-more{' +
       'position:absolute!important;right:10px!important;top:50%!important;' +
       'transform:translateY(-50%)!important;width:44px!important;height:44px!important;' +
+      'min-width:44px!important;min-height:44px!important;' +
       'border-radius:12px!important;border:2px solid currentColor!important;' +
       'background:transparent!important;color:inherit!important;' +
       'display:flex!important;align-items:center!important;justify-content:center!important;' +
-      'cursor:pointer!important;z-index:50!important;padding:0!important;' +
+      'cursor:pointer!important;z-index:200!important;padding:0!important;' +
       'pointer-events:auto!important;opacity:1!important;visibility:visible!important;' +
-      '-webkit-tap-highlight-color:transparent;}' +
+      '-webkit-tap-highlight-color:transparent;touch-action:manipulation;}' +
       '#tchiloProfileShareSheet{' +
-      'position:fixed!important;inset:0!important;z-index:2147483000!important;' +
+      'position:fixed!important;inset:0!important;z-index:2147483646!important;' +
       'display:none;align-items:flex-end!important;justify-content:center!important;' +
       'background:rgba(0,0,0,.55)!important;pointer-events:auto!important;}' +
       '#tchiloProfileShareSheet.open{display:flex!important;}' +
@@ -199,7 +213,8 @@
       'width:100%!important;max-width:480px!important;background:#fff!important;color:#0B0B0C!important;' +
       'border-radius:22px 22px 0 0!important;padding:18px 16px 28px!important;' +
       'border:3px solid #0B0B0C!important;border-bottom:none!important;' +
-      'box-shadow:0 -8px 40px rgba(0,0,0,.35)!important;}' +
+      'box-shadow:0 -8px 40px rgba(0,0,0,.35)!important;' +
+      'pointer-events:auto!important;position:relative!important;z-index:1!important;}' +
       '#tchiloProfileShareSheet .sheet h3{' +
       'margin:0 0 14px!important;font-size:18px!important;font-weight:900!important;text-align:center!important;color:#0B0B0C!important;}' +
       '#tchiloProfileShareSheet .opt{' +
@@ -213,7 +228,7 @@
       'color:#0B0B0C!important;display:flex!important;align-items:center!important;justify-content:center!important;' +
       'flex:0 0 auto!important;}' +
       '#tchiloQrModal{' +
-      'position:fixed!important;inset:0!important;z-index:2147483010!important;display:none;' +
+      'position:fixed!important;inset:0!important;z-index:2147483647!important;display:none;' +
       'align-items:center!important;justify-content:center!important;background:rgba(0,0,0,.75)!important;' +
       'padding:20px!important;pointer-events:auto!important;}' +
       '#tchiloQrModal.open{display:flex!important;}' +
@@ -240,6 +255,7 @@
     '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
   function closeSheet() {
+    if (Date.now() < openGuardUntil) return; // protege contra click fantasma
     var el = document.getElementById('tchiloProfileShareSheet');
     if (el) el.classList.remove('open');
   }
@@ -310,6 +326,8 @@
 
   function openSheet() {
     ensureCSS();
+    openGuardUntil = Date.now() + 450; // bloqueia fecho acidental
+
     var user = currentProfileUsername();
     var url = profileUrl(user);
 
@@ -343,10 +361,15 @@
 
     document.body.appendChild(wrap);
 
+    // backdrop: só fecha depois do guard
     wrap.addEventListener(
       'click',
       function (e) {
-        if (e.target === wrap) closeSheet();
+        if (e.target === wrap) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeSheet();
+        }
       },
       true
     );
@@ -357,6 +380,8 @@
         function (e) {
           e.preventDefault();
           e.stopPropagation();
+          // ações do menu podem correr mesmo durante o guard
+          openGuardUntil = 0;
           var act = btn.getAttribute('data-act');
           if (act === 'close') return closeSheet();
           if (act === 'copy') {
@@ -386,6 +411,55 @@
     return profileUrl(username || currentProfileUsername());
   };
 
+  function isMoreButton(el) {
+    if (!el || !el.closest) return null;
+    if (el.id === 'tchiloProfileMoreBtn' || (el.closest && el.closest('#tchiloProfileMoreBtn'))) {
+      return el.id === 'tchiloProfileMoreBtn' ? el : el.closest('#tchiloProfileMoreBtn');
+    }
+    if (el.classList && el.classList.contains('tchilo-profile-more')) return el;
+    var inProfile = el.closest && el.closest('#screen-profile');
+    if (!inProfile) return null;
+    // botões ⋯ genéricos no header do perfil
+    var header = el.closest('.screen-header');
+    if (header && el.tagName === 'BUTTON' && el.id !== '' && el.classList.contains('back-btn') === false) {
+      var label = (el.getAttribute('aria-label') || el.title || '').toLowerCase();
+      if (/mais|more|opç|opcoes|menu|share|partilh/.test(label)) return el;
+    }
+    return null;
+  }
+
+  function bindBtn(btn) {
+    if (!btn || btn.__tchiloShareBoundV5) return;
+    btn.__tchiloShareBoundV5 = true;
+    btn.type = 'button';
+
+    function fire(e) {
+      try {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      } catch (err) {}
+      openSheet();
+    }
+
+    // pointerup cobre rato + toque sem double-fire problemático
+    btn.addEventListener(
+      'pointerup',
+      function (e) {
+        if (e.button != null && e.button !== 0) return;
+        fire(e);
+      },
+      true
+    );
+    btn.addEventListener(
+      'click',
+      function (e) {
+        fire(e);
+      },
+      true
+    );
+  }
+
   function ensureHeaderBtn() {
     ensureCSS();
     var screen = document.getElementById('screen-profile');
@@ -398,6 +472,7 @@
       btn = document.createElement('button');
       btn.type = 'button';
       btn.id = 'tchiloProfileMoreBtn';
+      btn.className = 'tchilo-profile-more';
       btn.setAttribute('aria-label', 'Mais opções');
       btn.innerHTML =
         '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">' +
@@ -405,57 +480,33 @@
         '</svg>';
       header.appendChild(btn);
     }
-
-    /* repor handler sempre (renderProfile pode clonar nós) */
-    btn.onclick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      openSheet();
-    };
-    btn.ontouchend = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      openSheet();
-    };
+    bindBtn(btn);
   }
 
-  /* Delegação global — funciona mesmo se o botão for recriado */
-  if (!window.__tchiloProfileShareClick) {
-    window.__tchiloProfileShareClick = true;
-    document.addEventListener(
-      'click',
-      function (e) {
-        var t = e.target;
-        if (!t) return;
-        var btn =
-          t.id === 'tchiloProfileMoreBtn'
-            ? t
-            : t.closest && t.closest('#tchiloProfileMoreBtn');
-        if (btn) {
-          e.preventDefault();
-          e.stopPropagation();
-          openSheet();
-        }
-      },
-      true
-    );
-    document.addEventListener(
-      'touchend',
-      function (e) {
-        var t = e.target;
-        if (!t) return;
-        var btn =
-          t.id === 'tchiloProfileMoreBtn'
-            ? t
-            : t.closest && t.closest('#tchiloProfileMoreBtn');
-        if (btn) {
-          e.preventDefault();
-          e.stopPropagation();
-          openSheet();
-        }
-      },
-      true
-    );
+  /* Delegação global — captura qualquer ⋯ no perfil */
+  if (!window.__tchiloProfileShareClickV5) {
+    window.__tchiloProfileShareClickV5 = true;
+
+    function onPointer(e) {
+      var t = e.target;
+      if (!t) return;
+      var btn = isMoreButton(t);
+      if (!btn) {
+        // também pelo id direto no path
+        if (t.id === 'tchiloProfileMoreBtn') btn = t;
+        else if (t.closest) btn = t.closest('#tchiloProfileMoreBtn');
+      }
+      if (!btn) return;
+      try {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      } catch (err) {}
+      openSheet();
+    }
+
+    document.addEventListener('pointerup', onPointer, true);
+    document.addEventListener('click', onPointer, true);
   }
 
   function boot() {
@@ -468,7 +519,9 @@
   setTimeout(boot, 2000);
   setInterval(boot, 2500);
 
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__sharePatchV4) {
+  function patchRenderProfile() {
+    if (typeof window.renderProfile !== 'function') return;
+    if (window.renderProfile.__sharePatchV5) return;
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
@@ -477,6 +530,9 @@
       setTimeout(ensureHeaderBtn, 400);
       return r;
     };
-    window.renderProfile.__sharePatchV4 = true;
+    window.renderProfile.__sharePatchV5 = true;
   }
+  patchRenderProfile();
+  setTimeout(patchRenderProfile, 500);
+  setTimeout(patchRenderProfile, 2000);
 })();

@@ -7,7 +7,8 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('publish-fix') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
+        if (name.indexOf('publish-fix') >= 0 && cur.indexOf('v=4') < 0) existing.remove();
+        else if (name.indexOf('create-buttons') >= 0 && cur.indexOf('v=4') < 0) existing.remove();
         else if (name.indexOf('video-pick') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
         else if (name.indexOf('share-target') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (name.indexOf('profile-share') >= 0 && cur.indexOf('v=5') < 0) existing.remove();
@@ -28,7 +29,7 @@
     } catch (e) {}
   }
   function load() {
-    add('native/tchilo-publish-fix.js?v=3');
+    add('native/tchilo-publish-fix.js?v=4');
     add('native/tchilo-video-pick.js?v=6');
     add('native/tchilo-deeplink.js?v=2');
     add('native/tchilo-password-reset.js?v=4');
@@ -38,7 +39,7 @@
     add('native/tchilo-ads-ui.js?v=5');
     add('native/tchilo-ads-force.js?v=2');
     add('native/tchilo-ads-pro.js?v=2');
-    add('native/tchilo-create-buttons.js?v=3');
+    add('native/tchilo-create-buttons.js?v=4');
     add('native/tchilo-cloud-force.js?v=1');
     add('native/tchilo-name-sync.js?v=1');
     add('native/tchilo-cloud-hydrate.js?v=3');
@@ -46,7 +47,6 @@
     add('native/tchilo-feed-to-reels.js?v=2');
     add('native/tchilo-reels-icon.js?v=2');
     add('native/tchilo-share-target.js?v=1');
-    /* Topbar SMS + lupa */
     add('native/nav-layout.js?v=2');
     add('native/tchilo-ui-icons-fix.js?v=2');
   }

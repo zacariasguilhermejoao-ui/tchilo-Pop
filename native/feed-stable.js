@@ -10,6 +10,7 @@
         if (name.indexOf('publish-fix') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
         else if (name.indexOf('video-pick') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
         else if (name.indexOf('share-target') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
+        else if (name.indexOf('profile-share') >= 0 && cur.indexOf('v=5') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -27,10 +28,10 @@
   function load() {
     add('native/tchilo-publish-fix.js?v=3');
     add('native/tchilo-video-pick.js?v=6');
-    add('native/tchilo-deeplink.js?v=1');
+    add('native/tchilo-deeplink.js?v=2');
     add('native/tchilo-password-reset.js?v=4');
     add('native/tchilo-router.js?v=3');
-    add('native/tchilo-profile-share.js?v=4');
+    add('native/tchilo-profile-share.js?v=5');
     add('native/tchilo-profile-boost.js?v=1');
     add('native/tchilo-ads-ui.js?v=5');
     add('native/tchilo-ads-force.js?v=2');

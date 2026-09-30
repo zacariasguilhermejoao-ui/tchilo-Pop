@@ -1,6 +1,6 @@
-/* Tchilo Service Worker — offline shell + media cache + push */
+/* Tchilo Service Worker — offline shell + media cache + push + share target */
 /* eslint-disable no-restricted-globals */
-var SW_VERSION = 'tchilo-sw-v4';
+var SW_VERSION = 'tchilo-sw-v5';
 var SHELL_CACHE = SW_VERSION + '-shell';
 var MEDIA_CACHE = 'tchilo-media-v1';
 var RUNTIME_CACHE = SW_VERSION + '-runtime';
@@ -10,6 +10,7 @@ var PRECACHE = [
   './index.html',
   './logo.svg',
   './legal.css',
+  './manifest.webmanifest',
   './native/feed-stable.js',
   './native/feed-noflicker.js',
   './native/tchilo-router.js',
@@ -19,7 +20,8 @@ var PRECACHE = [
   './native/feed-names-fix.js',
   './native/legal-navbar-fix.js',
   './native/tchilo-offline.js',
-  './native/tchilo-push.js'
+  './native/tchilo-push.js',
+  './native/tchilo-share-target.js'
 ];
 
 function isMediaRequest(url) {
@@ -68,16 +70,86 @@ self.addEventListener('activate', function (event) {
   );
 });
 
+/* Web Share Target: POST multipart → redireciona para app com dados em clients */
+function handleShareTargetPost(event) {
+  event.respondWith(
+    (async function () {
+      try {
+        var formData = await event.request.formData();
+        var title = formData.get('title') || '';
+        var text = formData.get('text') || '';
+        var url = formData.get('url') || '';
+        var media = formData.getAll('media');
+        var filesMeta = [];
+
+        /* Guardar ficheiros em cache temporária para a página ler */
+        var cache = await caches.open('tchilo-share-v1');
+        await cache.delete('pending');
+        var payload = {
+          title: String(title),
+          text: String(text),
+          url: String(url),
+          fileCount: media.length,
+          at: Date.now()
+        };
+
+        for (var i = 0; i < media.length; i++) {
+          var f = media[i];
+          if (!f || typeof f.arrayBuffer !== 'function') continue;
+          var buf = await f.arrayBuffer();
+          var mime = f.type || 'application/octet-stream';
+          var name = f.name || 'shared-' + i;
+          var key = 'file-' + i;
+          await cache.put(
+            key,
+            new Response(buf, {
+              headers: {
+                'Content-Type': mime,
+                'X-Filename': encodeURIComponent(name)
+              }
+            })
+          );
+          filesMeta.push({ key: key, name: name, mime: mime, size: buf.byteLength });
+        }
+        payload.files = filesMeta;
+        await cache.put(
+          'pending',
+          new Response(JSON.stringify(payload), {
+            headers: { 'Content-Type': 'application/json' }
+          })
+        );
+
+        /* Notificar clientes abertos */
+        var list = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (var j = 0; j < list.length; j++) {
+          list[j].postMessage({ type: 'TCHILO_SHARE_TARGET', payload: payload });
+        }
+
+        return Response.redirect('/?share=1', 303);
+      } catch (err) {
+        console.warn('[SW] share target', err);
+        return Response.redirect('/?share=1', 303);
+      }
+    })()
+  );
+}
+
 self.addEventListener('fetch', function (event) {
   var req = event.request;
-  if (req.method !== 'GET') return;
-
   var url;
   try {
     url = new URL(req.url);
   } catch (e) {
     return;
   }
+
+  /* Share Target POST */
+  if (req.method === 'POST' && /\/share-target\/?$/.test(url.pathname)) {
+    handleShareTargetPost(event);
+    return;
+  }
+
+  if (req.method !== 'GET') return;
 
   if (
     /supabase\.co\/(auth|rest|realtime|functions)/i.test(url.href) ||

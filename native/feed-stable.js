@@ -7,10 +7,9 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('profile-share') >= 0 && cur.indexOf('v=10') < 0) existing.remove();
-        else if (name.indexOf('router') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
+        if (name.indexOf('music-feed-fix') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (name.indexOf('avatar-cloud') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
-        else if (name.indexOf('og-meta') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
+        else if (name.indexOf('publish-fix') >= 0 && cur.indexOf('v=5') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -35,6 +34,7 @@
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=1');
     add('native/tchilo-music-sheet.js?v=1');
+    add('native/tchilo-music-feed-fix.js?v=1');
     add('native/tchilo-publish-fix.js?v=5');
     add('native/tchilo-video-pick.js?v=6');
     add('native/tchilo-deeplink.js?v=2');

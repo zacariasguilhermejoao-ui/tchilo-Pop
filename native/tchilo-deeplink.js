@@ -1,6 +1,6 @@
 /**
  * Tchilo — deep links (App Links / Universal Links / tchilo://)
- * Abre recuperação de senha e perfis /u/username dentro da app nativa.
+ * Abre recuperação de senha, perfis /u/username e share target.
  */
 (function () {
   'use strict';
@@ -13,6 +13,21 @@
       var u = String(url);
       var lower = u.toLowerCase();
 
+      /* Share Target — payload nativo já injectado ou a injectar */
+      if (
+        lower.indexOf('tchilo://share') === 0 ||
+        lower.indexOf('share-target') >= 0 ||
+        (lower.indexOf('pending=1') >= 0 && lower.indexOf('share') >= 0)
+      ) {
+        try {
+          if (window.__tchiloSharePayload && window.TchiloShareTarget) {
+            window.TchiloShareTarget.handle(window.__tchiloSharePayload);
+            window.__tchiloSharePayload = null;
+          }
+        } catch (e0) {}
+        return;
+      }
+
       /* Recuperação de senha */
       if (
         lower.indexOf('type=recovery') >= 0 ||
@@ -24,7 +39,6 @@
           window.__tchiloPasswordRecoveryActive = true;
         } catch (e) {}
         try {
-          /* Se a URL trouxe hash com tokens, aplica na location */
           var hashIdx = u.indexOf('#');
           if (hashIdx >= 0) {
             var h = u.slice(hashIdx);
@@ -76,9 +90,11 @@
       });
 
       if (typeof App.getLaunchUrl === 'function') {
-        App.getLaunchUrl().then(function (res) {
-          if (res && res.url) handleUrl(res.url);
-        }).catch(function () {});
+        App.getLaunchUrl()
+          .then(function (res) {
+            if (res && res.url) handleUrl(res.url);
+          })
+          .catch(function () {});
       }
       return true;
     } catch (e) {
@@ -88,7 +104,6 @@
 
   function boot() {
     wireCapacitor();
-    /* URL atual no browser */
     try {
       handleUrl(location.href);
     } catch (e) {}

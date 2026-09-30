@@ -1,0 +1,41 @@
+{
+  "name": "Tchilo",
+  "short_name": "Tchilo",
+  "description": "Tchilo — rede social",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0B0C",
+  "theme_color": "#0B0B0C",
+  "orientation": "portrait",
+  "lang": "pt",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "media",
+          "accept": [
+            "image/*",
+            "video/*",
+            "audio/*",
+            "application/pdf",
+            "*/*"
+          ]
+        }
+      ]
+    }
+  }
+}

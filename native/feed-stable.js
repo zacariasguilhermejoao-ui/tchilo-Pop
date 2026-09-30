@@ -9,6 +9,7 @@
         var cur = existing.getAttribute('src') || '';
         if (name.indexOf('publish-fix') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
         else if (name.indexOf('video-pick') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
+        else if (name.indexOf('share-target') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -41,6 +42,7 @@
     add('native/tchilo-hide-nav.js?v=2');
     add('native/tchilo-feed-to-reels.js?v=2');
     add('native/tchilo-reels-icon.js?v=2');
+    add('native/tchilo-share-target.js?v=1');
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
   else load();

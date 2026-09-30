@@ -9,6 +9,7 @@
         var cur = existing.getAttribute('src') || '';
         if (name.indexOf('publish-fix') >= 0 && cur.indexOf('v=4') < 0) existing.remove();
         else if (name.indexOf('create-buttons') >= 0 && cur.indexOf('v=4') < 0) existing.remove();
+        else if (name.indexOf('reels-follow') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
         else if (name.indexOf('video-pick') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
         else if (name.indexOf('share-target') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (name.indexOf('profile-share') >= 0 && cur.indexOf('v=5') < 0) existing.remove();
@@ -49,6 +50,7 @@
     add('native/tchilo-share-target.js?v=1');
     add('native/nav-layout.js?v=2');
     add('native/tchilo-ui-icons-fix.js?v=2');
+    add('native/reels-follow-fix.js?v=2');
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
   else load();

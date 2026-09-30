@@ -1,0 +1,30 @@
+name: Ensure index UI (SMS, perfil ⋯, Reels)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/patch-index-ui.sh'
+      - '.github/workflows/ensure-index-ui.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index.html UI
+        run: bash scripts/patch-index-ui.sh index.html
+      - name: Commit if changed
+        run: |
+          git config user.name "tchilo-bot"
+          git config user.email "bot@tchilopop.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No index changes"
+          else
+            git commit -m "fix(index): interface no HTML — SMS topbar, ⋯ perfil, Reels na navbar"
+            git push
+          fi

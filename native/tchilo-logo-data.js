@@ -1,11 +1,12 @@
-/** Monta logotipo real Tchilo */
 (function(){
-  function join(){
-    var p=window.__TCHILO_LOGO_P;
-    if(!p)return false;
-    for(var i=0;i<6;i++){if(typeof p[i]!=="string")return false;}
-    window.TCHILO_LOGO_DATA="data:image/png;base64,"+p.join("");
-    return true;
-  }
-  if(!join()){var n=0;var t=setInterval(function(){n++;if(join()||n>50)clearInterval(t);},80);}
+  'use strict';
+  try {
+    var parts = window.__TCHILO_LOGO_B64_PARTS || [];
+    if (!parts.length) return;
+    var b64 = parts.join('');
+    window.__TCHILO_LOGO_DATA_URL = 'data:image/png;base64,' + b64;
+    var im = new Image();
+    im.onload = function(){ window.__tchiloLogoImageCache = im; };
+    im.src = window.__TCHILO_LOGO_DATA_URL;
+  } catch (e) {}
 })();

@@ -22,9 +22,6 @@
   function isVideoMime(m) {
     return String(m || '').toLowerCase().indexOf('video/') === 0;
   }
-  function isMediaMime(m) {
-    return isImageMime(m) || isVideoMime(m);
-  }
   function isVideoName(n) {
     return /\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(String(n || ''));
   }
@@ -212,7 +209,6 @@
   }
 
   function goStoryWithMedia(item) {
-    /* Story: reutiliza create se não houver ecrã dedicado */
     try {
       if (typeof window.openStoryComposer === 'function') {
         setCreateMedia(item);
@@ -226,11 +222,8 @@
         return;
       }
     } catch (e2) {}
-    /* fallback: criar post com legenda a indicar story */
     goCreateWithMedia(item);
     setTimeout(function () {
-      var cap = document.getElementById('createCaption');
-      if (cap && !cap.value) cap.value = '';
       var title = document.getElementById('createTitle');
       if (title && !title.value) title.value = 'STORY';
       toast('Abre como publicação — usa Stories quando disponível');
@@ -248,7 +241,6 @@
       );
     } catch (e2) {}
     toast('Abre uma conversa e envia o anexo');
-    /* tenta preencher composer de mensagem se existir */
     setTimeout(function () {
       tryAttachToChatComposer(payload);
     }, 400);
@@ -362,7 +354,7 @@
       '<p class="sub">O que queres fazer?</p>' +
       previewHtml +
       '<div class="file-name">' +
-      String(label).replace(/</g, '&lt;').slice(0, 120) +
+      String(label).replace(/</g, '<').slice(0, 120) +
       '</div>' +
       opts +
       '</div>';
@@ -414,7 +406,52 @@
     open: openActionSheet
   };
 
-  /* —— Web PWA: /share-target (GET query ou POST via SW/form) —— */
+  /* —— SW cache após POST share_target (?share=1) —— */
+  async function loadFromSwCache() {
+    try {
+      var params = new URLSearchParams(location.search || '');
+      if (params.get('share') !== '1' && !(await caches.has('tchilo-share-v1'))) return false;
+      var cache = await caches.open('tchilo-share-v1');
+      var pendingRes = await cache.match('pending');
+      if (!pendingRes) return false;
+      var meta = await pendingRes.json();
+      var files = [];
+      var list = meta.files || [];
+      for (var i = 0; i < list.length; i++) {
+        var info = list[i];
+        var fr = await cache.match(info.key);
+        if (!fr) continue;
+        var blob = await fr.blob();
+        var name = info.name || 'shared';
+        try {
+          var hdr = fr.headers.get('X-Filename');
+          if (hdr) name = decodeURIComponent(hdr);
+        } catch (e) {}
+        files.push(new File([blob], name, { type: info.mime || blob.type }));
+      }
+      await cache.delete('pending');
+      for (var j = 0; j < list.length; j++) {
+        try {
+          await cache.delete(list[j].key);
+        } catch (e2) {}
+      }
+      try {
+        history.replaceState(null, '', '/');
+      } catch (e3) {}
+      await handleSharePayload({
+        title: meta.title || '',
+        text: meta.text || '',
+        url: meta.url || '',
+        files: files
+      });
+      return true;
+    } catch (err) {
+      console.warn('[Tchilo Share] SW cache', err);
+      return false;
+    }
+  }
+
+  /* —— Web PWA: /share-target —— */
   function checkWebShareTarget() {
     try {
       var path = (location.pathname || '').replace(/\/+$/, '') || '/';
@@ -428,7 +465,6 @@
         files: []
       };
 
-      /* launchQueue (File Handling / share) */
       if (window.launchQueue && typeof window.launchQueue.setConsumer === 'function') {
         window.launchQueue.setConsumer(function (launchParams) {
           try {
@@ -450,14 +486,12 @@
         handleSharePayload(raw);
       }
 
-      /* limpa URL para não reabrir o sheet */
       try {
         history.replaceState(null, '', '/');
       } catch (e2) {}
     } catch (e) {}
   }
 
-  /* —— Android nativo: payload injectado pelo MainActivity —— */
   function checkNativeShare() {
     try {
       if (window.__tchiloSharePayload) {
@@ -470,7 +504,6 @@
     return false;
   }
 
-  /* Capacitor App plugin — alguns builds enviam via URL custom */
   function wireCapacitor() {
     try {
       var Cap = window.Capacitor;
@@ -495,7 +528,15 @@
     } catch (e) {}
   }
 
-  /* polling leve para payload nativo (MainActivity injecta após load) */
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', function (event) {
+      var data = event.data || {};
+      if (data.type === 'TCHILO_SHARE_TARGET') {
+        loadFromSwCache();
+      }
+    });
+  }
+
   var polls = 0;
   var pollIv = setInterval(function () {
     if (checkNativeShare() || ++polls > 40) clearInterval(pollIv);
@@ -509,6 +550,7 @@
     checkWebShareTarget();
     checkNativeShare();
     wireCapacitor();
+    loadFromSwCache();
   }
 
   if (document.readyState === 'loading') {

@@ -11,6 +11,8 @@
         else if (name.indexOf('video-pick') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
         else if (name.indexOf('share-target') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (name.indexOf('profile-share') >= 0 && cur.indexOf('v=5') < 0) existing.remove();
+        else if (name.indexOf('nav-layout') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
+        else if (name.indexOf('ui-icons-fix') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -44,6 +46,9 @@
     add('native/tchilo-feed-to-reels.js?v=2');
     add('native/tchilo-reels-icon.js?v=2');
     add('native/tchilo-share-target.js?v=1');
+    /* Topbar SMS + lupa */
+    add('native/nav-layout.js?v=2');
+    add('native/tchilo-ui-icons-fix.js?v=2');
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
   else load();

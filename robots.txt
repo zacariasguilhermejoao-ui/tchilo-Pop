@@ -1,7 +1,16 @@
 User-agent: *
 Allow: /
 
-# Áreas privadas/dinâmicas
+# Páginas públicas legais e institucionais (indexáveis)
+Allow: /sobre/
+Allow: /comunidade/
+Allow: /privacidade/
+Allow: /termos/
+Allow: /cookies/
+Allow: /menores/
+Allow: /eliminar-conta/
+
+# Áreas privadas / da app (não indexar)
 Disallow: /mensagens
 Disallow: /notificacoes
 Disallow: /definicoes
@@ -10,6 +19,11 @@ Disallow: /editar-perfil
 Disallow: /guardados
 Disallow: /reset-password
 Disallow: /redefinir-senha
-Disallow: /eliminar-conta
+Disallow: /anuncios
+Disallow: /premium
+
+# Ficheiros técnicos
+Disallow: /native/
+Disallow: /.well-known/
 
 Sitemap: https://tchilopop.com/sitemap.xml

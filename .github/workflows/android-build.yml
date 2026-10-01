@@ -65,21 +65,34 @@ jobs:
         shell: bash
         run: |
           set -e
-          # Use preinstalled SDK on GitHub runner
           export ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}
           export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-$ANDROID_HOME}
           echo "ANDROID_HOME=$ANDROID_HOME"
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
 
-          # Accept licenses
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" 2>/dev/null || \
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" 2>/dev/null || true
+          echo "SDK ready"
 
-          # Install required packages (no deprecated 'tools' package)
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" || \
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" || true
+      - name: Prepare Gradle (local.properties + memory)
+        shell: bash
+        run: |
+          set -e
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          cat android/local.properties
 
-          echo "SDK packages ready"
+          # Increase Gradle memory for CI
+          mkdir -p android
+          if [ -f android/gradle.properties ]; then
+            grep -q 'org.gradle.jvmargs' android/gradle.properties || \
+              echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' >> android/gradle.properties
+          else
+            echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' > android/gradle.properties
+          fi
+          echo 'android.useAndroidX=true' >> android/gradle.properties
+          echo 'android.enableJetifier=true' >> android/gradle.properties
 
       - name: Build debug APK
         shell: bash
@@ -87,7 +100,25 @@ jobs:
           set -e
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+
+          set +e
+          ./gradlew assembleDebug --stacktrace --info 2>&1 | tee /tmp/gradle.log
+          EXIT=${PIPESTATUS[0]}
+          set -e
+
+          if [ $EXIT -ne 0 ]; then
+            echo ""
+            echo "===== GRADLE ERRORS ====="
+            grep -iE 'error:|FAILURE:|What went wrong|Could not|FAILED' /tmp/gradle.log | tail -80 || true
+            echo ""
+            echo "===== LAST 100 LINES ====="
+            tail -100 /tmp/gradle.log || true
+            echo "=========================="
+            exit $EXIT
+          fi
+
+          echo "Build OK"
+          find . -name '*.apk' 2>/dev/null || true
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4

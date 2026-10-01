@@ -7,9 +7,11 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('no-busy-select') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
-        else if (name.indexOf('music-feed-fix') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
-        else if (name.indexOf('reels-open-fix') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
+        if (name.indexOf('hide-nav') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
+        else if (name.indexOf('ui-stable') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
+        else if (name.indexOf('music-feed-fix') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
+        else if (name.indexOf('tchilo-verified') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
+        else if (name.indexOf('no-busy-select') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -27,6 +29,8 @@
   function load() {
     add('native/tchilo-site-url-fix.js?v=1');
     add('native/tchilo-no-busy-select.js?v=1');
+    add('native/tchilo-ui-stable.js?v=1');
+    add('native/tchilo-hide-nav.js?v=3');
     add('native/tchilo-password-reset.js?v=6');
     add('native/tchilo-router.js?v=3');
     add('native/tchilo-public-urls.js?v=1');
@@ -34,13 +38,13 @@
     add('native/tchilo-avatar-cloud.js?v=4');
     add('native/tchilo-avatar-viewer.js?v=1');
     add('native/tchilo-premium.js?v=1');
-    add('native/tchilo-verified.js?v=1');
+    add('native/tchilo-verified.js?v=2');
     add('native/tchilo-reels-open-fix.js?v=6');
     add('native/tchilo-feed-video-ui.js?v=1');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=1');
     add('native/tchilo-music-sheet.js?v=1');
-    add('native/tchilo-music-feed-fix.js?v=2');
+    add('native/tchilo-music-feed-fix.js?v=3');
     add('native/tchilo-publish-fix.js?v=5');
     add('native/tchilo-video-pick.js?v=6');
     add('native/tchilo-deeplink.js?v=2');
@@ -53,7 +57,6 @@
     add('native/tchilo-cloud-force.js?v=1');
     add('native/tchilo-name-sync.js?v=1');
     add('native/tchilo-cloud-hydrate.js?v=3');
-    add('native/tchilo-hide-nav.js?v=2');
     add('native/tchilo-feed-to-reels.js?v=2');
     add('native/tchilo-reels-icon.js?v=2');
     add('native/tchilo-share-target.js?v=1');

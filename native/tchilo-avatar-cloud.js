@@ -1,10 +1,11 @@
 /**
- * Tchilo — fotos de perfil só na Supabase (Storage + profiles)
- * v3 — nunca guardar data:image no telemóvel como fonte de verdade
+ * Tchilo — fotos de perfil APENAS na Supabase
+ * v4 — bloqueia data:image no localStorage / sessão / profile_extra
  */
 (function () {
   'use strict';
-  if (window.__tchiloAvatarCloudV3) return;
+  if (window.__tchiloAvatarCloudV4) return;
+  window.__tchiloAvatarCloudV4 = true;
   window.__tchiloAvatarCloudV3 = true;
   window.__tchiloAvatarCloudV2 = true;
 
@@ -28,11 +29,15 @@
   }
 
   function isDataUrl(u) {
-    return typeof u === 'string' && u.indexOf('data:image') === 0;
+    return typeof u === 'string' && /^data:image\//i.test(u);
   }
 
   function isHttpUrl(u) {
     return typeof u === 'string' && /^https?:\/\//i.test(u);
+  }
+
+  function cloudOnly(u) {
+    return isHttpUrl(u) ? u : null;
   }
 
   async function currentUid() {
@@ -75,7 +80,6 @@
     mime = mime || blob.type || 'image/jpeg';
     var ext = mime.indexOf('png') >= 0 ? 'png' : mime.indexOf('webp') >= 0 ? 'webp' : 'jpg';
     var path = pathSuffix || userId + '/avatar.' + ext;
-
     var buckets = ['posts-media', 'avatars', 'media'];
     var lastErr = null;
     for (var i = 0; i < buckets.length; i++) {
@@ -103,225 +107,200 @@
     return null;
   }
 
-  async function uploadFromDataUrl(dataUrl, pathSuffix) {
-    if (!isDataUrl(dataUrl)) return isHttpUrl(dataUrl) ? dataUrl : null;
+  async function uploadFile(file) {
     var uid = await currentUid();
-    if (!uid) return null;
+    if (!uid || !file) return null;
+    return uploadBlob(uid, file, file.type || 'image/jpeg');
+  }
+
+  async function uploadDataUrl(dataUrl) {
+    var uid = await currentUid();
+    if (!uid || !isDataUrl(dataUrl)) return isHttpUrl(dataUrl) ? dataUrl : null;
     var blob = dataUrlToBlob(dataUrl);
     if (!blob) return null;
-    return uploadBlob(uid, blob, blob.type, pathSuffix);
+    return uploadBlob(uid, blob, blob.type);
   }
 
-  async function uploadFromFile(file, pathSuffix) {
-    if (!file) return null;
-    var uid = await currentUid();
-    if (!uid) return null;
-    return uploadBlob(uid, file, file.type || 'image/jpeg', pathSuffix);
-  }
-
-  async function persistProfileAvatar(publicUrl, gallery) {
+  async function persistAvatarUrl(publicUrl) {
     var s = SB();
     var sess = sessionUser();
     var uid = await currentUid();
-    if (!s || !uid || !publicUrl) return false;
-
-    var payload = {
-      id: uid,
-      avatar_url: publicUrl,
-      updated_at: new Date().toISOString()
-    };
+    if (!s || !uid || !isHttpUrl(publicUrl)) return false;
+    var payload = { id: uid, avatar_url: publicUrl };
     if (sess && sess.username) payload.username = sess.username;
     if (sess && (sess.displayName || sess.display_name))
       payload.display_name = sess.displayName || sess.display_name;
-    if (gallery && gallery.length) {
-      payload.avatar_gallery = gallery;
-      payload.photos = gallery;
-    }
-
     try {
       var r = await s.from('profiles').upsert(payload, { onConflict: 'id' });
       if (r.error) {
-        /* tenta só avatar_url se colunas extra não existirem */
-        var r2 = await s
-          .from('profiles')
-          .update({ avatar_url: publicUrl })
-          .eq('id', uid);
-        if (r2.error) {
-          console.warn('[Tchilo avatar] profiles', r2.error);
-          return false;
-        }
+        var r2 = await s.from('profiles').update({ avatar_url: publicUrl }).eq('id', uid);
+        if (r2.error) return false;
       }
     } catch (e) {
-      console.warn('[Tchilo avatar] profiles', e);
       return false;
     }
-
     try {
       await s.from('posts').update({ avatar_url: publicUrl }).eq('user_id', uid);
     } catch (e2) {}
-
     return true;
   }
 
-  function applyLocalHttpOnly(publicUrl) {
-    if (!isHttpUrl(publicUrl)) return;
+  function applySessionHttp(url) {
+    if (!isHttpUrl(url)) return;
     var sess = sessionUser();
     if (!sess) return;
-
+    sess.avatar = url;
     try {
-      sess.avatar = publicUrl;
-      delete sess.avatarData;
       if (typeof setSession === 'function') setSession(sess);
-      else localStorage.setItem('tchilo_session', JSON.stringify(sess));
+      else {
+        var clean = JSON.parse(JSON.stringify(sess));
+        if (isDataUrl(clean.avatar)) clean.avatar = url;
+        localStorage.setItem('tchilo_session', JSON.stringify(clean));
+      }
     } catch (e) {}
-
+    try {
+      if (!window.__tchiloAvatarCache) window.__tchiloAvatarCache = {};
+      window.__tchiloAvatarCache[sess.username] = url;
+    } catch (e2) {}
     try {
       if (typeof getProfileExtra === 'function' && typeof setProfileExtra === 'function') {
         var ex = getProfileExtra(sess.username) || {};
-        ex.avatar = publicUrl;
-        /* remover data URLs antigas */
-        if (isDataUrl(ex.avatar)) ex.avatar = publicUrl;
-        if (Array.isArray(ex.photos)) {
-          ex.photos = ex.photos
-            .map(function (ph) {
-              if (typeof ph === 'string') return isHttpUrl(ph) ? ph : null;
-              if (ph && isHttpUrl(ph.url)) return ph;
-              return null;
-            })
-            .filter(Boolean);
-        }
+        ex.avatar = url;
         setProfileExtra(sess.username, ex);
-      } else if (typeof saveProfileExtra === 'function') {
-        saveProfileExtra(sess.username, { avatar: publicUrl });
       }
-    } catch (e2) {}
-
-    try {
-      if (!window.__tchiloAvatarCache) window.__tchiloAvatarCache = {};
-      window.__tchiloAvatarCache[sess.username] = publicUrl;
     } catch (e3) {}
-
     try {
       if (typeof cacheUserProfile === 'function') {
-        cacheUserProfile(sess.username, { avatar: publicUrl, avatar_url: publicUrl });
+        cacheUserProfile(sess.username, { avatar: url, avatar_url: url });
       }
     } catch (e4) {}
-
     try {
       if (typeof renderProfile === 'function') renderProfile();
     } catch (e5) {}
-
-    try {
-      if (typeof renderFeed === 'function') renderFeed();
-    } catch (e6) {}
   }
 
-  /** Limpa data URLs da sessão (ocupam espaço e não sincronizam) */
-  function scrubLocalDataUrls() {
+  /** Remove data:image de localStorage */
+  function purgeLocalImageStorage() {
     try {
-      var sess = sessionUser();
-      if (sess && isDataUrl(sess.avatar)) {
-        sess.avatar = null;
-        if (typeof setSession === 'function') setSession(sess);
-        else localStorage.setItem('tchilo_session', JSON.stringify(sess));
+      var raw = localStorage.getItem('tchilo_session');
+      if (raw && raw.indexOf('data:image') >= 0) {
+        var s = JSON.parse(raw);
+        if (s && isDataUrl(s.avatar)) {
+          s.avatar = null;
+          localStorage.setItem('tchilo_session', JSON.stringify(s));
+        }
       }
     } catch (e) {}
     try {
-      var all = JSON.parse(localStorage.getItem('tchilo_profiles') || '{}');
-      var changed = false;
-      Object.keys(all).forEach(function (u) {
-        if (all[u] && isDataUrl(all[u].avatar)) {
-          all[u].avatar = null;
-          changed = true;
-        }
-      });
-      if (changed) localStorage.setItem('tchilo_profiles', JSON.stringify(all));
+      var pr = localStorage.getItem('tchilo_profiles');
+      if (pr && pr.indexOf('data:image') >= 0) {
+        var all = JSON.parse(pr);
+        Object.keys(all || {}).forEach(function (k) {
+          if (all[k] && isDataUrl(all[k].avatar)) all[k].avatar = null;
+          if (all[k] && Array.isArray(all[k].photos)) {
+            all[k].photos = all[k].photos.filter(function (p) {
+              var u = typeof p === 'string' ? p : p && p.url;
+              return isHttpUrl(u);
+            });
+          }
+        });
+        localStorage.setItem('tchilo_profiles', JSON.stringify(all));
+      }
     } catch (e2) {}
+    try {
+      /* editAvatarData global do index — não deixar data URL permanente */
+      if (typeof window.editAvatarData === 'string' && isDataUrl(window.editAvatarData)) {
+        /* mantém só se upload a decorrer; limpa se já há URL http em sessão */
+        var sess = sessionUser();
+        if (sess && isHttpUrl(sess.avatar)) {
+          try {
+            (0, eval)('editAvatarData = null');
+          } catch (e3) {
+            window.editAvatarData = null;
+          }
+        }
+      }
+    } catch (e4) {}
   }
 
   window.tchiloSaveAvatarToCloud = async function (fileOrDataUrl) {
-    try {
-      if (!SB()) {
-        toast('Sem ligação à nuvem');
-        return null;
-      }
-      toast('A guardar foto na nuvem…');
-      var url = null;
-      if (typeof fileOrDataUrl === 'string') {
-        url = await uploadFromDataUrl(fileOrDataUrl);
-      } else if (fileOrDataUrl && fileOrDataUrl.size) {
-        url = await uploadFromFile(fileOrDataUrl);
-      }
-      if (!url || !isHttpUrl(url)) {
-        toast('Não foi possível guardar na Supabase');
-        return null;
-      }
-      var ok = await persistProfileAvatar(url);
-      applyLocalHttpOnly(url);
-      scrubLocalDataUrls();
-      toast(ok ? 'Foto guardada na nuvem' : 'Foto enviada (a sincronizar perfil…)');
-      return url;
-    } catch (e) {
-      console.warn('[Tchilo avatar]', e);
-      toast('Erro ao guardar foto na nuvem');
+    if (!SB()) {
+      toast('Sem ligação à nuvem — foto não guardada');
       return null;
     }
-  };
-
-  /** Adicionar foto extra à galeria do perfil (também na Supabase Storage) */
-  window.tchiloAddProfilePhotoToCloud = async function (fileOrDataUrl, caption) {
-    var uid = await currentUid();
-    if (!uid) {
-      toast('Inicia sessão');
-      return null;
-    }
-    var path =
-      uid +
-      '/gallery/' +
-      Date.now().toString(36) +
-      '_' +
-      Math.floor(Math.random() * 1e5) +
-      '.jpg';
+    toast('A enviar foto para a nuvem…');
     var url = null;
-    if (typeof fileOrDataUrl === 'string') url = await uploadFromDataUrl(fileOrDataUrl, path);
-    else url = await uploadFromFile(fileOrDataUrl, path);
-    if (!url) {
-      toast('Falha no upload');
+    try {
+      if (fileOrDataUrl && fileOrDataUrl.size) url = await uploadFile(fileOrDataUrl);
+      else if (typeof fileOrDataUrl === 'string') url = await uploadDataUrl(fileOrDataUrl);
+    } catch (e) {
+      console.warn(e);
+    }
+    if (!isHttpUrl(url)) {
+      toast('Falha no upload (Supabase)');
       return null;
     }
-
-    var sess = sessionUser();
-    var photos = [];
+    await persistAvatarUrl(url);
+    applySessionHttp(url);
+    /* limpar qualquer data URL pendente no editor */
     try {
-      if (typeof getProfileExtra === 'function') {
-        var ex = getProfileExtra(sess.username) || {};
-        photos = Array.isArray(ex.photos) ? ex.photos.slice() : [];
-      }
-    } catch (e) {}
-    photos.unshift({ url: url, caption: caption || '' });
-    photos = photos.filter(function (p) {
-      return p && isHttpUrl(typeof p === 'string' ? p : p.url);
-    }).slice(0, 12);
-
-    try {
-      if (typeof setProfileExtra === 'function') {
-        var ex2 = (typeof getProfileExtra === 'function' && getProfileExtra(sess.username)) || {};
-        ex2.photos = photos;
-        if (!ex2.avatar) ex2.avatar = url;
-        setProfileExtra(sess.username, ex2);
-      }
-    } catch (e2) {}
-
-    await persistProfileAvatar(url, photos);
-    applyLocalHttpOnly(url);
-    toast('Foto adicionada');
+      (0, eval)('editAvatarData = ' + JSON.stringify(url));
+    } catch (e2) {
+      try {
+        window.editAvatarData = url;
+      } catch (e3) {}
+    }
+    purgeLocalImageStorage();
+    toast('Foto na nuvem');
     return url;
   };
 
+  window.tchiloUploadAvatar = async function (userId, dataUrl) {
+    if (isHttpUrl(dataUrl)) return dataUrl;
+    if (!isDataUrl(dataUrl)) return null;
+    var url = await uploadDataUrl(dataUrl);
+    if (isHttpUrl(url)) await persistAvatarUrl(url);
+    return url;
+  };
+
+  /* onAvatarPicked: NÃO guardar data URL — upload imediato */
+  function patchOnAvatarPicked() {
+    window.onAvatarPicked = async function (event) {
+      var file = event && event.target && event.target.files && event.target.files[0];
+      if (!file) return;
+      var btn = document.querySelector('#screen-editprofile .gallery-btn');
+      try {
+        if (typeof tchiloSetLoading === 'function') tchiloSetLoading(btn, true);
+      } catch (e) {}
+      /* preview leve com object URL (não vai para localStorage) */
+      try {
+        var previewUrl = URL.createObjectURL(file);
+        try {
+          (0, eval)('editAvatarData = ' + JSON.stringify(previewUrl));
+        } catch (e2) {
+          window.editAvatarData = previewUrl;
+        }
+        if (typeof refreshEditAvatarPreview === 'function') refreshEditAvatarPreview();
+      } catch (e3) {}
+      var cloud = await window.tchiloSaveAvatarToCloud(file);
+      if (cloud) {
+        try {
+          (0, eval)('editAvatarData = ' + JSON.stringify(cloud));
+        } catch (e4) {
+          window.editAvatarData = cloud;
+        }
+        if (typeof refreshEditAvatarPreview === 'function') refreshEditAvatarPreview();
+      }
+      try {
+        if (typeof tchiloSetLoading === 'function') tchiloSetLoading(btn, false);
+      } catch (e5) {}
+    };
+  }
+
   function patchQuickInput() {
     var input = document.getElementById('tchiloQuickAvatarInput');
-    if (!input || input.__cloudBoundV3) return;
-    input.__cloudBoundV3 = true;
+    if (!input || input.__cloudV4) return;
+    input.__cloudV4 = true;
     input.addEventListener(
       'change',
       function (ev) {
@@ -338,71 +317,74 @@
     );
   }
 
-  function patchOnAvatarPicked() {
-    if (typeof window.onAvatarPicked !== 'function') return;
-    if (window.onAvatarPicked.__cloudV3) return;
-    var orig = window.onAvatarPicked;
-    window.onAvatarPicked = function (event) {
-      var file = event && event.target && event.target.files && event.target.files[0];
-      var r = orig.apply(this, arguments);
-      if (file) window.tchiloSaveAvatarToCloud(file);
-      return r;
+  /* setSession: nunca gravar data:image */
+  function patchSetSession() {
+    if (typeof window.setSession !== 'function' || window.setSession.__avatarV4) return;
+    var orig = window.setSession;
+    window.setSession = function (sess) {
+      if (sess && isDataUrl(sess.avatar)) {
+        sess = Object.assign({}, sess, { avatar: null });
+      }
+      return orig.call(this, sess);
     };
-    window.onAvatarPicked.__cloudV3 = true;
+    window.setSession.__avatarV4 = true;
   }
 
-  window.tchiloUploadAvatar = async function (userId, dataUrl) {
-    if (!dataUrl) return null;
-    if (isHttpUrl(dataUrl)) return dataUrl;
-    var uid = userId || (await currentUid());
-    if (isDataUrl(dataUrl)) return uploadFromDataUrl(dataUrl);
-    return null;
-  };
+  /* saveProfileExtra: strip data urls */
+  function patchSaveProfileExtra() {
+    if (typeof window.saveProfileExtra !== 'function' || window.saveProfileExtra.__avatarV4) return;
+    var orig = window.saveProfileExtra;
+    window.saveProfileExtra = function (username, data) {
+      data = data ? Object.assign({}, data) : {};
+      if (isDataUrl(data.avatar)) data.avatar = null;
+      if (Array.isArray(data.photos)) {
+        data.photos = data.photos.filter(function (p) {
+          var u = typeof p === 'string' ? p : p && p.url;
+          return isHttpUrl(u);
+        });
+      }
+      return orig.call(this, username, data);
+    };
+    window.saveProfileExtra.__avatarV4 = true;
+  }
+
+  function patchSetProfileExtra() {
+    if (typeof window.setProfileExtra !== 'function' || window.setProfileExtra.__avatarV4) return;
+    var orig = window.setProfileExtra;
+    window.setProfileExtra = function (username, data) {
+      data = data ? Object.assign({}, data) : {};
+      if (isDataUrl(data.avatar)) data.avatar = null;
+      return orig.call(this, username, data);
+    };
+    window.setProfileExtra.__avatarV4 = true;
+  }
 
   async function hydrateFromCloud() {
     var s = SB();
     var uid = await currentUid();
     if (!s || !uid) return;
     try {
-      var r = await s
-        .from('profiles')
-        .select('avatar_url,username,display_name,avatar_gallery,photos')
-        .eq('id', uid)
-        .maybeSingle();
-      if (r.data && r.data.avatar_url && isHttpUrl(r.data.avatar_url)) {
-        applyLocalHttpOnly(r.data.avatar_url);
-        var gallery = r.data.avatar_gallery || r.data.photos;
-        if (gallery && Array.isArray(gallery)) {
-          try {
-            var sess = sessionUser();
-            if (sess && typeof setProfileExtra === 'function') {
-              var ex = (typeof getProfileExtra === 'function' && getProfileExtra(sess.username)) || {};
-              ex.photos = gallery;
-              ex.avatar = r.data.avatar_url;
-              setProfileExtra(sess.username, ex);
-            }
-          } catch (e2) {}
-        }
-      }
-    } catch (e) {
-      /* select com colunas extra pode falhar — tenta só avatar_url */
-      try {
-        var r2 = await s.from('profiles').select('avatar_url').eq('id', uid).maybeSingle();
-        if (r2.data && r2.data.avatar_url) applyLocalHttpOnly(r2.data.avatar_url);
-      } catch (e3) {}
-    }
+      var r = await s.from('profiles').select('avatar_url').eq('id', uid).maybeSingle();
+      if (r.data && isHttpUrl(r.data.avatar_url)) applySessionHttp(r.data.avatar_url);
+    } catch (e) {}
   }
 
   function boot() {
-    scrubLocalDataUrls();
-    patchQuickInput();
+    purgeLocalImageStorage();
     patchOnAvatarPicked();
+    patchQuickInput();
+    patchSetSession();
+    patchSaveProfileExtra();
+    patchSetProfileExtra();
     hydrateFromCloud();
   }
 
   boot();
-  setTimeout(boot, 500);
-  setTimeout(boot, 1500);
-  setTimeout(hydrateFromCloud, 2500);
-  setInterval(patchQuickInput, 4000);
+  setTimeout(boot, 400);
+  setTimeout(boot, 1200);
+  setTimeout(hydrateFromCloud, 2000);
+  setInterval(function () {
+    purgeLocalImageStorage();
+    patchQuickInput();
+  }, 5000);
 })();

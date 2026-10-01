@@ -67,7 +67,7 @@ jobs:
       - name: Copy Firebase GoogleService-Info.plist
         run: cp firebase/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
 
-      - name: Configure iOS privacy + URL scheme (no entitlements for unsigned CI)
+      - name: Configure iOS privacy + Associated Domains + URL scheme + App Group
         shell: bash
         run: |
           PLIST=ios/App/App/Info.plist
@@ -76,20 +76,28 @@ jobs:
           /usr/libexec/PlistBuddy -c "Add :NSUserNotificationUsageDescription string 'Tchilo pode enviar notificações.'" "$PLIST" || true
           /usr/libexec/PlistBuddy -c "Add :NSPhotoLibraryUsageDescription string 'Tchilo precisa de acesso às fotos para publicar e stories.'" "$PLIST" || true
 
-          # URL scheme tchilo://
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" "$PLIST" 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" "$PLIST" 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLName string com.tchilo.isabstudio" "$PLIST" 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" "$PLIST" 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string tchilo" "$PLIST" 2>/dev/null || true
 
-          # Empty entitlements for unsigned CI (App Groups / Associated Domains force signing → exit 65)
           ENT=ios/App/App/App.entitlements
           cat > "$ENT" << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
-          <dict/>
+          <dict>
+            <key>com.apple.developer.associated-domains</key>
+            <array>
+              <string>applinks:tchilopop.com</string>
+              <string>applinks:www.tchilopop.com</string>
+            </array>
+            <key>com.apple.security.application-groups</key>
+            <array>
+              <string>group.com.tchilo.isabstudio</string>
+            </array>
+          </dict>
           </plist>
           EOF
 
@@ -104,20 +112,15 @@ jobs:
           cp "$EXT_SRC/AppDelegate+Share.swift" ios/App/App/TchiloShareBridge.swift
 
           mkdir -p ios/App/ShareExtension
-          cp "$EXT_SRC/ShareViewController.swift" ios/App/ShareExtension/
-          cp "$EXT_SRC/Info.plist" ios/App/ShareExtension/
+          cp "$EXT_SRC/ShareViewController.swift" ios/App/ShareExtension/ShareViewController.swift
+          cp "$EXT_SRC/Info.plist" ios/App/ShareExtension/Info.plist
+          cp "$EXT_SRC/ShareExtension.entitlements" ios/App/ShareExtension/ShareExtension.entitlements
 
-          # Empty entitlements for Share Extension (unsigned CI)
-          cat > ios/App/ShareExtension/ShareExtension.entitlements << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict/>
-          </plist>
-          EOF
-
-          echo "Share Extension sources copied (empty entitlements for unsigned)"
+          echo "=== ShareExtension files ==="
           ls -la ios/App/ShareExtension/
+          test -f ios/App/ShareExtension/ShareViewController.swift
+          test -f ios/App/ShareExtension/Info.plist
+          test -f ios/App/ShareExtension/ShareExtension.entitlements
 
       - name: Patch AppDelegate for share URL + inject
         shell: bash
@@ -211,75 +214,96 @@ jobs:
           puts "Project: #{project_path}"
 
           project = Xcodeproj::Project.open(project_path)
+          proj_dir = Pathname.new(project_path).dirname
 
-          if project.targets.any? { |t| t.name == 'ShareExtension' }
-            puts 'ShareExtension target already exists — updating settings'
-            ext = project.targets.find { |t| t.name == 'ShareExtension' }
-          else
-            main_target = project.targets.find { |t| t.name == 'App' } || project.targets.first
-            abort 'main target not found' unless main_target
+          # Remove existing ShareExtension target if present (clean recreate)
+          if (old = project.targets.find { |t| t.name == 'ShareExtension' })
+            puts 'Removing existing ShareExtension target to recreate cleanly'
+            project.targets.delete(old)
+          end
 
-            group = project.main_group.find_subpath('ShareExtension', true)
-            group.set_source_tree('SOURCE_ROOT')
-            group.set_path('ShareExtension')
+          main_target = project.targets.find { |t| t.name == 'App' } || project.targets.first
+          abort 'main target not found' unless main_target
 
-            swift_ref = group.new_file('ShareExtension/ShareViewController.swift')
-            group.new_file('ShareExtension/Info.plist')
-            group.new_file('ShareExtension/ShareExtension.entitlements')
+          # Group with correct path (relative to project)
+          group = project.main_group.find_subpath('ShareExtension', true)
+          group.clear  # remove old file refs
+          group.set_source_tree('SOURCE_ROOT')
+          group.set_path('ShareExtension')
 
-            ext = project.new_target(:app_extension, 'ShareExtension', :ios, '15.0')
-            ext.product_type = 'com.apple.product-type.app-extension'
-            ext.add_file_references([swift_ref])
+          # Add files with just the filename (group already has path ShareExtension)
+          swift_ref = group.new_file('ShareViewController.swift')
+          plist_ref = group.new_file('Info.plist')
+          ent_ref   = group.new_file('ShareExtension.entitlements')
 
-            embed = main_target.copy_files_build_phases.find { |p| p.dst_subfolder_spec == '13' }
-            unless embed
-              embed = main_target.new_copy_files_build_phase('Embed App Extensions')
-              embed.dst_subfolder_spec = '13'
-            end
+          # Verify files exist on disk
+          %w[ShareViewController.swift Info.plist ShareExtension.entitlements].each do |f|
+            full = proj_dir + 'ShareExtension' + f
+            abort "Missing file: #{full}" unless full.exist?
+            puts "OK: #{full}"
+          end
+
+          # Create extension target
+          ext = project.new_target(:app_extension, 'ShareExtension', :ios, '15.0')
+          ext.product_type = 'com.apple.product-type.app-extension'
+
+          # Explicitly add to Sources build phase
+          ext.source_build_phase.clear
+          ext.add_file_references([swift_ref])
+
+          puts "Sources in ShareExtension: #{ext.source_build_phase.files.map { |f| f.file_ref&.path }}"
+
+          # Embed in main app
+          embed = main_target.copy_files_build_phases.find { |p| p.dst_subfolder_spec == '13' }
+          unless embed
+            embed = main_target.new_copy_files_build_phase('Embed App Extensions')
+            embed.dst_subfolder_spec = '13'
+          end
+          # Avoid duplicate embed
+          already = embed.files.any? { |bf| bf.file_ref == ext.product_reference }
+          unless already
             embed.add_file_reference(ext.product_reference)
             embed.files.each do |bf|
               if bf.file_ref == ext.product_reference
                 bf.settings = { 'ATTRIBUTES' => ['RemoveHeadersOnCopy'] }
               end
             end
+          end
 
-            main_target.add_dependency(ext)
+          main_target.add_dependency(ext) unless main_target.dependencies.any? { |d| d.target == ext }
 
-            app_group = project.main_group.find_subpath('App', true)
-            unless main_target.source_build_phase.files_references.any? { |f| f && f.path && f.path.include?('TchiloShareBridge') }
-              bridge_file = Pathname.new(project_path).dirname + 'App/TchiloShareBridge.swift'
-              if bridge_file.exist?
-                ref = app_group.new_file('App/TchiloShareBridge.swift')
-                main_target.add_file_references([ref])
-                puts 'TchiloShareBridge.swift added to App target'
-              else
-                puts "WARN: #{bridge_file} missing"
-              end
+          # Add TchiloShareBridge to App
+          app_group = project.main_group.find_subpath('App', true)
+          unless main_target.source_build_phase.files_references.any? { |f| f && f.path && f.path.include?('TchiloShareBridge') }
+            bridge_file = proj_dir + 'App/TchiloShareBridge.swift'
+            if bridge_file.exist?
+              ref = app_group.new_file('TchiloShareBridge.swift')
+              main_target.add_file_references([ref])
+              puts 'TchiloShareBridge.swift added to App target'
+            else
+              puts "WARN: #{bridge_file} missing"
             end
           end
 
-          main_target = project.targets.find { |t| t.name == 'App' } || project.targets.first
-
-          [ext, main_target].compact.each do |target|
+          # Build settings for ALL configs of both targets
+          [main_target, ext].each do |target|
             target.build_configurations.each do |config|
               config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
               config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
               config.build_settings['CODE_SIGN_IDENTITY'] = ''
-              config.build_settings['EXPANDED_CODE_SIGN_IDENTITY'] = ''
               config.build_settings['CODE_SIGN_STYLE'] = 'Manual'
               config.build_settings['DEVELOPMENT_TEAM'] = ''
               config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = ''
               config.build_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Onone'
               config.build_settings['SWIFT_COMPILATION_MODE'] = 'singlefile'
+              config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
             end
           end
 
-          # App target
           main_target.build_configurations.each do |config|
             config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'App/App.entitlements'
           end
 
-          # ShareExtension specific
           ext.build_configurations.each do |config|
             config.build_settings['INFOPLIST_FILE'] = 'ShareExtension/Info.plist'
             config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'ShareExtension/ShareExtension.entitlements'
@@ -289,15 +313,12 @@ jobs:
             config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2'
             config.build_settings['SWIFT_VERSION'] = '5.0'
             config.build_settings['GENERATE_INFOPLIST_FILE'] = 'NO'
-            config.build_settings['LD_RUNPATH_SEARCH_PATHS'] = [
-              '$(inherited)',
-              '@executable_path/Frameworks',
-              '@executable_path/../../Frameworks'
-            ]
+            config.build_settings['LD_RUNPATH_SEARCH_PATHS'] = '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks'
+            config.build_settings['ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES'] = 'NO'
           end
 
           project.save
-          puts 'ShareExtension target configured for unsigned archive (empty entitlements)'
+          puts 'ShareExtension target created cleanly with correct source paths'
           RUBY
 
       - name: Set splash image and app icon
@@ -358,8 +379,12 @@ jobs:
         run: |
           cd ios/App
 
-          echo "=== Available schemes ==="
+          echo "=== Schemes ==="
           xcodebuild -list $IOS_CONTAINER || true
+
+          # Verify ShareExtension sources on disk
+          echo "=== ShareExtension on disk ==="
+          ls -la ShareExtension/ || true
 
           xcodebuild clean $IOS_CONTAINER -scheme App -configuration Release || true
 
@@ -383,21 +408,16 @@ jobs:
 
           if [ $EXIT_CODE -ne 0 ]; then
             echo ""
-            echo "===== ERROS (grep error:) ====="
-            grep -i "error:" /tmp/xcodebuild.log | tail -50 || true
+            echo "===== ERROS (error:) ====="
+            grep -i "error:" /tmp/xcodebuild.log | tail -60 || true
             echo ""
-            echo "===== ÚLTIMAS 120 LINHAS DO LOG ====="
-            tail -120 /tmp/xcodebuild.log || true
+            echo "===== ÚLTIMAS 150 LINHAS ====="
+            tail -150 /tmp/xcodebuild.log || true
             echo "===================================="
-            echo "❌ Archive falhou com código $EXIT_CODE"
             exit $EXIT_CODE
           fi
 
-          if [ ! -d "$RUNNER_TEMP/tchilo-pop.xcarchive" ]; then
-            echo "❌ Archive não foi gerado"
-            exit 1
-          fi
-
+          test -d "$RUNNER_TEMP/tchilo-pop.xcarchive" || { echo "Archive missing"; exit 1; }
           echo "✅ Archive criado com sucesso"
 
       - name: Create unsigned IPA

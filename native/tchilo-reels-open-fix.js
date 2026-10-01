@@ -1,13 +1,11 @@
 /**
- * Tchilo — Reels estáveis
- * v4: URLs de vídeo corretas, sem ficar em "A carregar", nav sem bloquear
+ * Tchilo — Reels: usa a interface ORIGINAL (botões like, seguir, etc.)
+ * v5 — não substitui o HTML dos slides; só garante abertura estável
  */
 (function () {
   'use strict';
-  if (window.__tchiloReelsOpenFixV4) return;
-  window.__tchiloReelsOpenFixV4 = true;
-
-  var opening = false;
+  if (window.__tchiloReelsOpenFixV5) return;
+  window.__tchiloReelsOpenFixV5 = true;
 
   function toast(msg) {
     try {
@@ -22,47 +20,29 @@
       st.id = 'tchiloReelsOpenCSS';
       document.head.appendChild(st);
     }
+    /* Só reforça visibilidade — não remove estilos do index */
     st.textContent =
-      '#reelsViewer{position:fixed;inset:0;z-index:2147483000;background:#000;display:none;}' +
-      '#reelsViewer.open{display:block!important;}' +
-      '#reelsTrack{height:100%;height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;' +
-      '-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}' +
-      '#reelsTrack .reel-slide{height:100%;height:100dvh;min-height:100%;scroll-snap-align:start;' +
-      'position:relative;background:#000;}' +
-      '#reelsTrack .reel-slide video{width:100%;height:100%;object-fit:contain;background:#000;}' +
-      '#reelsViewer .reels-close{position:fixed;top:max(12px,env(safe-area-inset-top,0px)+8px);' +
-      'left:max(12px,env(safe-area-inset-left,0px)+8px);z-index:50;width:44px;height:44px;' +
-      'border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:28px;' +
-      'line-height:1;cursor:pointer;}' +
-      '#reelsTrack .reel-meta{position:absolute;left:14px;right:72px;' +
-      'bottom:max(24px,env(safe-area-inset-bottom,0px)+16px);color:#fff;' +
-      'text-shadow:0 1px 4px #000;z-index:20;pointer-events:none;}' +
-      '#reelsTrack .reel-meta b{pointer-events:auto;cursor:pointer;}' +
-      '#reelsTrack .reel-empty{color:#fff;padding:48px 24px;text-align:center;font-weight:700;}';
+      '#reelsViewer.open{display:block!important;visibility:visible!important;opacity:1!important;' +
+      'pointer-events:auto!important;z-index:2147483000!important;}' +
+      '#reelsViewer .reels-close{z-index:50!important;pointer-events:auto!important;}' +
+      '#reelsTrack .reel-follow{z-index:30!important;pointer-events:auto!important;}' +
+      '#reelsTrack .reel-actions, #reelsTrack .reel-main-actions, #reelsTrack .reel-side{' +
+      'z-index:25!important;pointer-events:auto!important;}';
   }
 
-  function ensureViewer() {
-    injectCSS();
+  function ensureDom() {
     var viewer = document.getElementById('reelsViewer');
+    var track = document.getElementById('reelsTrack');
     if (!viewer) {
       viewer = document.createElement('div');
       viewer.id = 'reelsViewer';
       viewer.className = 'reels-viewer';
       viewer.innerHTML =
-        '<button type="button" class="reels-close" aria-label="Fechar">×</button>' +
-        '<div id="reelsTrack" class="reels-track"></div>';
+        '<button class="reels-close" type="button" onclick="closeReels()">×</button>' +
+        '<div class="reels-track" id="reelsTrack"></div>';
       document.body.appendChild(viewer);
+      track = document.getElementById('reelsTrack');
     }
-    var closeBtn = viewer.querySelector('.reels-close');
-    if (closeBtn && !closeBtn.__bound) {
-      closeBtn.__bound = true;
-      closeBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        closeSafe();
-      });
-    }
-    var track = document.getElementById('reelsTrack');
     if (!track) {
       track = document.createElement('div');
       track.id = 'reelsTrack';
@@ -75,15 +55,7 @@
   function pickUrl(obj) {
     if (!obj) return '';
     if (typeof obj === 'string') return obj;
-    return (
-      obj.url ||
-      obj.src ||
-      obj.media ||
-      obj.media_url ||
-      obj.publicUrl ||
-      obj.public_url ||
-      ''
-    );
+    return obj.url || obj.src || obj.media || obj.media_url || obj.publicUrl || '';
   }
 
   function mediaUrl(p) {
@@ -94,61 +66,35 @@
         if (m && m.url) return m.url;
       }
     } catch (e) {}
-    if (Array.isArray(p.mediaItems) && p.mediaItems[0]) {
-      var u = pickUrl(p.mediaItems[0]);
-      if (u) return u;
-    }
-    if (Array.isArray(p.media) && p.media[0]) {
-      var u2 = pickUrl(p.media[0]);
-      if (u2) return u2;
-    }
-    return pickUrl(p.media) || p.media_url || p.video_url || p.thumbnail_url || p.thumbnail || '';
-  }
-
-  function isVideoUrl(u) {
-    u = String(u || '').toLowerCase();
-    if (!u) return false;
-    if (/\.(mp4|mov|webm|m4v|3gp|mkv)(\?|$)/i.test(u)) return true;
-    if (u.indexOf('video') >= 0) return true;
-    if (u.indexOf('/object/public/') >= 0 && u.indexOf('image') < 0) return true;
-    return false;
+    if (Array.isArray(p.mediaItems) && p.mediaItems[0]) return pickUrl(p.mediaItems[0]);
+    if (Array.isArray(p.media) && p.media[0]) return pickUrl(p.media[0]);
+    return pickUrl(p.media) || p.media_url || p.video_url || '';
   }
 
   function isVideoPost(p) {
     if (!p) return false;
     var t = String(p.mediaType || p.media_type || '').toLowerCase();
-    if (t === 'video' || t.indexOf('video') === 0) return true;
+    if (t.indexOf('video') === 0) return true;
     try {
       if (typeof resolveMedia === 'function') {
         var m = resolveMedia(p);
-        if (m && m.url && (m.type === 'video' || isVideoUrl(m.url))) return true;
+        if (m && m.url && (m.type === 'video' || /\.(mp4|mov|webm|m4v)(\?|$)/i.test(m.url))) return true;
       }
     } catch (e) {}
-    if (Array.isArray(p.mediaItems)) {
-      for (var i = 0; i < p.mediaItems.length; i++) {
-        var it = p.mediaItems[i];
-        if (!it) continue;
-        if (String(it.type || '').toLowerCase() === 'video') return true;
-        if (isVideoUrl(pickUrl(it))) return true;
-      }
-    }
-    return isVideoUrl(mediaUrl(p));
+    var u = mediaUrl(p);
+    return /\.(mp4|mov|webm|m4v|3gp)(\?|$)/i.test(u) || /video/i.test(u);
   }
 
-  function allPosts() {
+  function collectVideos(startId, maxN) {
+    maxN = maxN || 20;
+    var all = [];
     try {
-      if (typeof getPosts === 'function') return getPosts() || [];
+      all = typeof getPosts === 'function' ? getPosts() || [] : [];
     } catch (e) {}
-    return [];
-  }
-
-  function videoPostsLimited(startId, maxN) {
-    maxN = maxN || 15;
-    var all = allPosts();
     var vids = [];
     for (var i = 0; i < all.length; i++) {
       if (isVideoPost(all[i]) && mediaUrl(all[i])) vids.push(all[i]);
-      if (vids.length >= 60) break;
+      if (vids.length >= 80) break;
     }
     if (startId) {
       var idx = vids.findIndex(function (p) {
@@ -161,191 +107,217 @@
         var found = all.find(function (p) {
           return String(p.id) === String(startId);
         });
-        if (found && mediaUrl(found)) vids.unshift(found);
+        if (found) vids.unshift(found);
       }
     }
     return vids.slice(0, maxN);
   }
 
-  function esc(s) {
-    return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/"/g, '&quot;');
+  /* Guardar openReels original do index (antes de qualquer patch) */
+  function captureOriginal() {
+    if (window.__tchiloOpenReelsOriginal) return window.__tchiloOpenReelsOriginal;
+    if (typeof window.openReels === 'function' && !window.openReels.__fast && !window.openReels.__patchedV4) {
+      window.__tchiloOpenReelsOriginal = window.openReels;
+      return window.openReels;
+    }
+    if (window.openReels && window.openReels.__isOriginal) {
+      window.__tchiloOpenReelsOriginal = window.openReels.__isOriginal;
+      return window.openReels.__isOriginal;
+    }
+    return null;
   }
 
-  function buildSlide(p) {
-    var src = mediaUrl(p);
-    if (!src) return '';
-    var user = esc(p.username || 'user');
-    var cap = esc(String(p.caption || '').slice(0, 140));
-    var id = esc(p.id);
-    return (
-      '<div class="reel-slide" data-id="' +
-      id +
-      '">' +
-      '<video src="' +
-      esc(src) +
-      '" playsinline webkit-playsinline loop preload="auto" ' +
-      'muted ' +
-      'onclick="try{this.paused?this.play():this.pause()}catch(e){}"></video>' +
-      '<div class="reel-meta">' +
-      '<b onclick="event.stopPropagation();try{openUserProfile&&openUserProfile(\'' +
-      user +
-      '\')}catch(e){}">@' +
-      user +
-      '</b>' +
-      (cap ? '<div style="font-size:13px;margin-top:6px;font-weight:600">' + cap + '</div>' : '') +
-      '</div></div>'
-    );
-  }
-
-  function setupObserver(track) {
-    try {
-      if (window._reelsObs) window._reelsObs.disconnect();
-    } catch (e) {}
-    if (!('IntersectionObserver' in window) || !track) return;
-    window._reelsObs = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (en) {
-          var vid = en.target.querySelector('video');
-          if (!vid) return;
-          if (en.isIntersecting && en.intersectionRatio > 0.55) {
-            vid.muted = false;
-            vid.play().catch(function () {
-              vid.muted = true;
-              vid.play().catch(function () {});
-            });
-          } else {
-            try {
-              vid.pause();
-            } catch (e2) {}
-          }
-        });
-      },
-      { root: track, threshold: [0.55] }
-    );
-    track.querySelectorAll('.reel-slide').forEach(function (slide) {
-      window._reelsObs.observe(slide);
-    });
-  }
-
-  function openReelsFast(startId, startTime) {
-    if (opening) return;
-    opening = true;
-
-    var box = ensureViewer();
-    var posts = videoPostsLimited(startId, 15);
-
-    box.viewer.classList.add('open');
-    box.viewer.style.display = 'block';
-
-    if (!posts.length) {
-      box.track.innerHTML =
-        '<div class="reel-empty">Sem vídeos para Reels.<br><br>Publica um vídeo no feed e volta aqui.</div>';
-      opening = false;
-      return;
+  function callOriginal(startId, startTime) {
+    var orig = captureOriginal();
+    if (!orig) return false;
+    var box = ensureDom();
+    var vids = collectVideos(startId, 20);
+    if (!vids.length) {
+      toast('Sem vídeos');
+      return true;
     }
 
+    /* Limitar getVideoPosts só durante a chamada */
+    var prevGet = window.getVideoPosts;
+    window.getVideoPosts = function () {
+      return vids.slice();
+    };
     try {
-      window.reelsPosts = posts;
-    } catch (e) {}
-
-    var html = posts.map(buildSlide).filter(Boolean).join('');
-    if (!html) {
-      box.track.innerHTML =
-        '<div class="reel-empty">Os vídeos não têm URL válida.</div>';
-      opening = false;
-      return;
-    }
-
-    box.track.innerHTML = html;
-    setupObserver(box.track);
-
-    var first = box.track.querySelector('video');
-    if (first) {
-      var play = function () {
+      window.reelsPosts = vids.slice();
+      orig.call(window, startId, startTime);
+      /* Garantir classe open */
+      box.viewer.classList.add('open');
+      return true;
+    } catch (err) {
+      console.warn('[Tchilo Reels original]', err);
+      return false;
+    } finally {
+      if (typeof prevGet === 'function') window.getVideoPosts = prevGet;
+      else
         try {
-          if (typeof startTime === 'number' && startTime > 0.2) {
-            first.currentTime = startTime;
-          }
-        } catch (e2) {}
-        first.muted = false;
-        first.play().catch(function () {
-          first.muted = true;
-          first.play().catch(function () {});
-        });
-      };
-      if (first.readyState >= 2) play();
-      else {
-        first.addEventListener('loadeddata', play, { once: true });
-        first.load();
+          delete window.getVideoPosts;
+        } catch (e) {
+          window.getVideoPosts = prevGet;
+        }
+    }
+  }
+
+  function openSafe(startId, startTime) {
+    injectCSS();
+    ensureDom();
+
+    /* 1) Tentar interface original completa */
+    if (callOriginal(startId, startTime)) {
+      /* Se o track ficou vazio, falhou */
+      var track = document.getElementById('reelsTrack');
+      var viewer = document.getElementById('reelsViewer');
+      if (track && track.children.length > 0 && viewer && viewer.classList.contains('open')) {
+        return;
       }
     }
 
-    opening = false;
-  }
-
-  function closeSafe() {
-    var viewer = document.getElementById('reelsViewer');
-    if (viewer) {
-      viewer.classList.remove('open');
-      viewer.style.display = 'none';
+    /* 2) Fallback mínimo SÓ se original falhar — mas com estrutura de botões básica */
+    var vids = collectVideos(startId, 15);
+    var box = ensureDom();
+    if (!vids.length) {
+      toast('Sem vídeos');
+      return;
     }
+
+    var likes = {};
     try {
-      document.querySelectorAll('#reelsTrack video').forEach(function (v) {
+      if (typeof getLikes === 'function') likes = getLikes() || {};
+    } catch (e) {}
+
+    box.track.innerHTML = vids
+      .map(function (p) {
+        var src = mediaUrl(p);
+        if (!src) return '';
+        var user = String(p.username || 'user').replace(/</g, '');
+        var cap = String(p.caption || '').replace(/</g, '').slice(0, 120);
+        var id = String(p.id).replace(/"/g, '');
+        var isLiked = !!likes[id];
+        var sess = null;
         try {
-          v.pause();
-        } catch (e) {}
-      });
-    } catch (e2) {}
-    opening = false;
-  }
+          sess = typeof getSession === 'function' ? getSession() : null;
+        } catch (e2) {}
+        var followBtn =
+          sess && sess.username === user
+            ? ''
+            : '<button class="reel-follow" data-username="' +
+              user +
+              '" onclick="event.stopPropagation();try{toggleReelFollow(this)}catch(e){}">Seguir</button>';
 
-  /* Substituir openReels */
-  window.openReels = function (startId, startTime) {
+        return (
+          '<div class="reel-slide" data-id="' +
+          id +
+          '">' +
+          followBtn +
+          '<video src="' +
+          src.replace(/"/g, '&quot;') +
+          '" loop playsinline onclick="try{toggleReelPlayback(this)}catch(e){this.paused?this.play():this.pause()}"></video>' +
+          '<div class="reel-meta">' +
+          '<b class="user-tap" data-user="' +
+          user +
+          '" onclick="event.stopPropagation();try{openUserProfile(this.getAttribute(\'data-user\'))}catch(e){}">@' +
+          user +
+          '</b>' +
+          (cap ? '<span>' + cap + '</span>' : '') +
+          '</div>' +
+          '<div class="reel-actions" style="position:absolute;right:12px;bottom:120px;display:flex;flex-direction:column;gap:16px;z-index:25">' +
+          '<button type="button" class="reel-main-action' +
+          (isLiked ? ' liked' : '') +
+          '" onclick="event.stopPropagation();try{toggleReelLike(\'' +
+          id +
+          '\')}catch(e){}" style="background:none;border:none;color:#fff;cursor:pointer">♥</button>' +
+          '<button type="button" class="reel-main-action" onclick="event.stopPropagation();try{openComments(\'' +
+          id +
+          '\')}catch(e){}" style="background:none;border:none;color:#fff;cursor:pointer">💬</button>' +
+          '<button type="button" class="reel-main-action" onclick="event.stopPropagation();try{openShare(\'' +
+          id +
+          '\')}catch(e){}" style="background:none;border:none;color:#fff;cursor:pointer">↗</button>' +
+          '</div></div>'
+        );
+      })
+      .filter(Boolean)
+      .join('');
+
+    box.viewer.classList.add('open');
+    window.reelsPosts = vids;
+
     try {
-      openReelsFast(startId, startTime);
-    } catch (err) {
-      console.warn('[Tchilo Reels]', err);
-      toast('Erro ao abrir Reels');
-      opening = false;
-    }
-  };
-  window.openReels.__patchedV4 = true;
-  window.openReels.__fast = true;
+      if (typeof setupReelsObserver === 'function') setupReelsObserver();
+    } catch (e3) {}
 
-  if (typeof window.closeReels !== 'function' || !window.closeReels.__patchedV4) {
-    var prevClose = window.closeReels;
-    window.closeReels = function () {
-      try {
-        if (typeof prevClose === 'function' && !prevClose.__patchedV4) prevClose();
-      } catch (e) {}
-      closeSafe();
-    };
-    window.closeReels.__patchedV4 = true;
+    var first = box.track.querySelector('video');
+    if (first) {
+      first.play().catch(function () {
+        first.muted = true;
+        first.play().catch(function () {});
+      });
+    }
   }
 
-  function bindNav() {
+  function install() {
+    injectCSS();
+    ensureDom();
+    captureOriginal();
+
+    if (typeof window.openReels === 'function' && !window.openReels.__patchedV5) {
+      if (!window.__tchiloOpenReelsOriginal && !window.openReels.__fast && !window.openReels.__patchedV4) {
+        window.__tchiloOpenReelsOriginal = window.openReels;
+      }
+      window.openReels = function (startId, startTime) {
+        openSafe(startId, startTime);
+      };
+      window.openReels.__patchedV5 = true;
+    } else if (typeof window.openReels !== 'function') {
+      window.openReels = openSafe;
+      window.openReels.__patchedV5 = true;
+    }
+
+    /* Nav Reels */
     var btn =
       document.querySelector('.navbar .nav-item[data-screen="reels"]') ||
       document.querySelector('.navbar .nav-item[aria-label="Reels"]');
-    if (!btn || btn.__reelsNavBoundV4) return;
-    btn.__reelsNavBoundV4 = true;
-    /* Não usar capture+stopImmediatePropagation (colava outros ícones) */
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      openReelsFast();
-    });
+    if (btn && !btn.__reelsNavV5) {
+      btn.__reelsNavV5 = true;
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        openSafe();
+      });
+    }
   }
 
-  function boot() {
-    ensureViewer();
-    bindNav();
+  /* Capturar original o mais cedo possível, depois de o index definir openReels */
+  function waitOriginal() {
+    if (typeof window.openReels === 'function' && !window.openReels.__patchedV5 && !window.openReels.__fast) {
+      window.__tchiloOpenReelsOriginal = window.openReels;
+      install();
+      return;
+    }
+    if (window.__tchiloOpenReelsOriginal) {
+      install();
+      return;
+    }
+    /* index ainda não carregou */
+    var n = 0;
+    var t = setInterval(function () {
+      if (typeof window.openReels === 'function' && !window.openReels.__patchedV5 && !window.openReels.__fast) {
+        window.__tchiloOpenReelsOriginal = window.openReels;
+        clearInterval(t);
+        install();
+      } else if (++n > 80) {
+        clearInterval(t);
+        install();
+      }
+    }, 50);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-  setTimeout(boot, 500);
-  setTimeout(boot, 1500);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', waitOriginal);
+  } else {
+    waitOriginal();
+  }
+  setTimeout(install, 2000);
 })();

@@ -37,11 +37,11 @@ const clean = v => String(v || '').replace(/\s+/g, ' ').trim();
 const truncate = (v,n=160) => clean(v).slice(0,n) + (clean(v).length > n ? '…' : '');
 const slug = v => encodeURIComponent(String(v || '').trim());
 
-const profiles = await fetchAll('profiles', 'id,username,display_name,avatar_url,bio,is_private,created_at,updated_at', 'updated_at');
+const profiles = await fetchAll('profiles', '*', 'id');
 const publicProfiles = profiles.filter(p => p.username && !p.is_private);
 const profileById = new Map(publicProfiles.map(p => [p.id, p]));
 
-const posts = await fetchAll('posts', 'id,user_id,username,display_name,caption,media_url,media_type,thumbnail_url,created_at', 'created_at');
+const posts = await fetchAll('posts', '*', 'id');
 const publicPosts = posts.filter(p => p.user_id && profileById.has(p.user_id));
 
 await rm('u', { recursive: true, force: true });

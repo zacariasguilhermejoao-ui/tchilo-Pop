@@ -92,7 +92,7 @@ jobs:
           grep -q 'android.useAndroidX' android/gradle.properties || echo 'android.useAndroidX=true' >> android/gradle.properties
           grep -q 'android.enableJetifier' android/gradle.properties || echo 'android.enableJetifier=true' >> android/gradle.properties
 
-      - name: Build debug APK
+      - name: Build debug APK + AAB
         shell: bash
         run: |
           set -e
@@ -100,7 +100,7 @@ jobs:
           chmod +x gradlew
 
           set +e
-          ./gradlew assembleDebug --stacktrace 2>&1 | tee /tmp/gradle.log
+          ./gradlew assembleDebug bundleDebug --stacktrace 2>&1 | tee /tmp/gradle.log
           EXIT=${PIPESTATUS[0]}
           set -e
 
@@ -116,11 +116,21 @@ jobs:
           fi
 
           echo "Build OK"
+          echo "=== APKs ==="
           find . -name '*.apk' 2>/dev/null || true
+          echo "=== AABs ==="
+          find . -name '*.aab' 2>/dev/null || true
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: tchilo-pop-android-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload debug AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: tchilo-pop-android-debug-aab
+          path: android/app/build/outputs/bundle/debug/*.aab
           if-no-files-found: error

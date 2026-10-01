@@ -370,27 +370,52 @@ jobs:
         shell: bash
         run: |
           cd ios/App
-          # Build da app (a extension fica embutida se o target estiver bem configurado)
+
+          # Limpar builds anteriores
+          xcodebuild clean $IOS_CONTAINER -scheme App -configuration Release || true
+
+          # Tentar archive completo (com Share Extension)
+          set +e
           xcodebuild archive \
             $IOS_CONTAINER \
             -scheme App \
             -configuration Release \
             -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/tchilo-pop.xcarchive" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            || {
-              echo "Archive failed — tentar sem ShareExtension se necessário"
-              # fallback: build só App
-              xcodebuild archive \
-                $IOS_CONTAINER \
-                -scheme App \
-                -configuration Release \
-                -sdk iphoneos \
-                -archivePath "$RUNNER_TEMP/tchilo-pop.xcarchive" \
-                CODE_SIGNING_ALLOWED=NO \
-                CODE_SIGNING_REQUIRED=NO
-            }
+            CODE_SIGN_IDENTITY="" \
+            ONLY_ACTIVE_ARCH=NO \
+            SWIFT_COMPILATION_MODE=wholemodule
+
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "⚠️ Archive com Share Extension falhou (código $EXIT_CODE). Tentando fallback..."
+
+            # Fallback: tentar de novo com flags mínimas
+            xcodebuild archive \
+              $IOS_CONTAINER \
+              -scheme App \
+              -configuration Release \
+              -sdk iphoneos \
+              -destination 'generic/platform=iOS' \
+              -archivePath "$RUNNER_TEMP/tchilo-pop.xcarchive" \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY="" \
+              ONLY_ACTIVE_ARCH=NO
+          fi
+
+          # Verificar se o archive foi criado
+          if [ ! -d "$RUNNER_TEMP/tchilo-pop.xcarchive" ]; then
+            echo "❌ Archive não foi gerado"
+            exit 1
+          fi
+
+          echo "✅ Archive criado com sucesso"
 
       - name: Create unsigned IPA
         shell: bash

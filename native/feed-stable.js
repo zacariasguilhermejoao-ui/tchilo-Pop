@@ -7,9 +7,8 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('reels-open-fix') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
-        else if (name.indexOf('music-feed-fix') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
-        else if (name.indexOf('avatar-cloud') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
+        if (name.indexOf('reels-open-fix') >= 0 && cur.indexOf('v=4') < 0) existing.remove();
+        else if (name.indexOf('feed-video-ui') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -31,7 +30,8 @@
     add('native/tchilo-public-urls.js?v=1');
     add('native/tchilo-og-meta.js?v=1');
     add('native/tchilo-avatar-cloud.js?v=2');
-    add('native/tchilo-reels-open-fix.js?v=2');
+    add('native/tchilo-reels-open-fix.js?v=4');
+    add('native/tchilo-feed-video-ui.js?v=1');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=1');
     add('native/tchilo-music-sheet.js?v=1');

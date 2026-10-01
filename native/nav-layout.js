@@ -266,6 +266,8 @@
   function loadExtras() {
     loadScriptOnce('native/tchilo-nav-click-fix.js', 'data-tchilo-navclick', 'v=20261001navclick');
     loadScriptOnce('native/tchilo-ui-icons-fix.js', 'data-tchilo-uiicons', 'v=20261001uiicons');
+    loadScriptOnce('native/tchilo-reels-open-fix.js', 'data-tchilo-reelsopen', 'v=20261001reelsv3');
+    loadScriptOnce('native/reels-follow-fix.js', 'data-tchilo-reelsfollow', 'v=20261001follow');
     loadScriptOnce('native/profile-name-cooldown.js', 'data-tchilo-namecd', 'v=20260922namecd');
     loadScriptOnce('native/tchilo-support.js', 'data-tchilo-support', 'v=20260922support');
     loadScriptOnce('native/tchilo-cookies-policy.js', 'data-tchilo-cookies', 'v=20260922cookies');

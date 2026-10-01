@@ -7,8 +7,8 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('reels-open-fix') >= 0 && cur.indexOf('v=5') < 0) existing.remove();
-        else if (name.indexOf('feed-video-ui') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
+        if (name.indexOf('tchilo-premium') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
+        else if (name.indexOf('reels-open-fix') >= 0 && cur.indexOf('v=5') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -30,7 +30,7 @@
     add('native/tchilo-public-urls.js?v=1');
     add('native/tchilo-og-meta.js?v=1');
     add('native/tchilo-avatar-cloud.js?v=2');
-    /* Reels: carregar cedo mas depois do index definir openReels — feed-stable corre no fim do body */
+    add('native/tchilo-premium.js?v=1');
     add('native/tchilo-reels-open-fix.js?v=5');
     add('native/tchilo-feed-video-ui.js?v=1');
     add('native/music-catalog-fix.js?v=1');

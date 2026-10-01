@@ -55,6 +55,107 @@ jobs:
             cp firebase/google-services.json android/app/google-services.json
           fi
 
+      - name: Enable ProGuard/R8 (minify + shrink)
+        shell: bash
+        run: |
+          set -e
+          APP_BUILD=android/app/build.gradle
+          test -f "$APP_BUILD"
+
+          # ProGuard rules for Capacitor / WebView / reflection
+          mkdir -p android/app
+          cat > android/app/proguard-rules.pro << 'EOF'
+          # Capacitor
+          -keep class com.getcapacitor.** { *; }
+          -keep class com.capacitorjs.** { *; }
+          -keepclassmembers class * {
+              @com.getcapacitor.PluginMethod <methods>;
+          }
+          -keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
+
+          # WebView / JS bridge
+          -keepclassmembers class * {
+              @android.webkit.JavascriptInterface <methods>;
+          }
+          -keepattributes JavascriptInterface
+          -keepattributes *Annotation*
+          -keepattributes Signature
+          -keepattributes InnerClasses
+          -keepattributes EnclosingMethod
+
+          # Cordova / plugins (if any)
+          -keep class org.apache.cordova.** { *; }
+
+          # Keep native methods
+          -keepclasseswithmembernames class * {
+              native <methods>;
+          }
+
+          # Don't warn about missing optional classes
+          -dontwarn com.getcapacitor.**
+          -dontwarn org.apache.cordova.**
+          EOF
+
+          python3 << 'PY'
+          from pathlib import Path
+          import re
+          p = Path('android/app/build.gradle')
+          t = p.read_text(encoding='utf-8')
+
+          # Ensure proguardFiles points to our rules
+          if 'proguard-rules.pro' not in t:
+              # will be set in buildTypes below
+              pass
+
+          # Patch release buildType: minifyEnabled true, shrinkResources true
+          if 'minifyEnabled' in t:
+              t = re.sub(r'minifyEnabled\s+false', 'minifyEnabled true', t)
+              t = re.sub(r'minifyEnabled\s+true', 'minifyEnabled true', t)
+          else:
+              # Insert into release { block if present
+              if re.search(r'release\s*\{', t):
+                  t = re.sub(
+                      r'(release\s*\{)',
+                      r'''\1
+              minifyEnabled true
+              shrinkResources true
+              proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+''',
+                      t,
+                      count=1
+                  )
+
+          # Ensure shrinkResources
+          if 'shrinkResources' not in t:
+              t = re.sub(
+                  r'(minifyEnabled\s+true)',
+                  r'''minifyEnabled true
+              shrinkResources true''',
+                  t,
+                  count=1
+              )
+          else:
+              t = re.sub(r'shrinkResources\s+false', 'shrinkResources true', t)
+
+          # Use debug signing for release in CI (so bundleRelease works without keystore)
+          if 'signingConfig' not in t or 'signingConfigs.debug' not in t:
+              t = re.sub(
+                  r'(release\s*\{)',
+                  r'''\1
+              signingConfig signingConfigs.debug
+''',
+                  t,
+                  count=1
+              )
+
+          p.write_text(t, encoding='utf-8')
+          print('ProGuard/R8 enabled in app/build.gradle')
+          # show buildTypes section
+          for i, line in enumerate(t.splitlines()):
+              if 'buildTypes' in line or 'minify' in line or 'shrink' in line or 'proguard' in line.lower() or 'signingConfig' in line:
+                  print(f'{i+1}: {line}')
+          PY
+
       - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
@@ -92,7 +193,7 @@ jobs:
           grep -q 'android.useAndroidX' android/gradle.properties || echo 'android.useAndroidX=true' >> android/gradle.properties
           grep -q 'android.enableJetifier' android/gradle.properties || echo 'android.enableJetifier=true' >> android/gradle.properties
 
-      - name: Build debug APK + AAB
+      - name: Build APK (debug) + AAB (release com ProGuard)
         shell: bash
         run: |
           set -e
@@ -100,26 +201,31 @@ jobs:
           chmod +x gradlew
 
           set +e
-          ./gradlew assembleDebug bundleDebug --stacktrace 2>&1 | tee /tmp/gradle.log
+          # APK debug (rápido) + AAB release com R8/ProGuard
+          ./gradlew assembleDebug bundleRelease --stacktrace 2>&1 | tee /tmp/gradle.log
           EXIT=${PIPESTATUS[0]}
           set -e
 
           if [ $EXIT -ne 0 ]; then
             echo ""
             echo "===== GRADLE ERRORS ====="
-            grep -iE 'error:|FAILURE:|What went wrong|Could not|FAILED' /tmp/gradle.log | tail -80 || true
+            grep -iE 'error:|FAILURE:|What went wrong|Could not|FAILED|Missing class|R8' /tmp/gradle.log | tail -100 || true
             echo ""
-            echo "===== LAST 80 LINES ====="
-            tail -80 /tmp/gradle.log || true
+            echo "===== LAST 100 LINES ====="
+            tail -100 /tmp/gradle.log || true
             echo "=========================="
             exit $EXIT
           fi
 
           echo "Build OK"
           echo "=== APKs ==="
-          find . -name '*.apk' 2>/dev/null || true
+          find app/build/outputs -name '*.apk' 2>/dev/null || true
           echo "=== AABs ==="
-          find . -name '*.aab' 2>/dev/null || true
+          find app/build/outputs -name '*.aab' 2>/dev/null || true
+          echo "=== Sizes ==="
+          find app/build/outputs -name '*.apk' -o -name '*.aab' 2>/dev/null | while read f; do
+            ls -lh "$f"
+          done
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -128,9 +234,9 @@ jobs:
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
-      - name: Upload debug AAB
+      - name: Upload release AAB (ProGuard)
         uses: actions/upload-artifact@v4
         with:
-          name: tchilo-pop-android-debug-aab
-          path: android/app/build/outputs/bundle/debug/*.aab
+          name: tchilo-pop-android-release-aab
+          path: android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error

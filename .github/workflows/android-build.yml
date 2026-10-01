@@ -1,5 +1,4 @@
 name: Android app build
-# Rebuild triggered 2026-10-01
 
 on:
   workflow_dispatch:
@@ -23,274 +22,36 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Prepare complete Capacitor web assets (LOCAL, not remote site)
+      - name: Prepare web assets
         shell: bash
         run: |
           set -e
           rm -rf www
-          mkdir -p www/native www/.well-known www/redefinir-senha www/reset-password
-          FULL_COMMIT=79b2a12409f9465714832fb8f344b1fc37406475
+          mkdir -p www/native www/redefinir-senha www/reset-password
           if [ -f index.html ] && grep -q 'screen-feed' index.html && [ "$(wc -c < index.html)" -gt 100000 ]; then
             cp index.html www/index.html
           else
-            curl -fsSL "https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/${FULL_COMMIT}/index.html" -o www/index.html
+            curl -fsSL "https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html" -o www/index.html
           fi
           test -s www/index.html
-          grep -q 'screen-feed' www/index.html
-          cp -a native/. www/native/
-          for f in child-safety.html privacy.html terms.html about.html cookies.html community.html; do
-            [ -f "$f" ] && cp "$f" "www/$f" || true
-          done
-          [ -f redefinir-senha/index.html ] && cp redefinir-senha/index.html www/redefinir-senha/index.html || true
-          [ -f reset-password/index.html ] && cp reset-password/index.html www/reset-password/index.html || true
-          [ -f manifest.webmanifest ] && cp manifest.webmanifest www/manifest.webmanifest || true
-          if [ -f capacitor.config.json ]; then
-            python3 -c "import json;p='capacitor.config.json';c=json.load(open(p));c.setdefault('server',{}).pop('url',None);json.dump(c,open(p,'w'),indent=2)"
-          fi
-          if ! grep -q 'native/offline-ui.css' www/index.html && [ -f www/native/offline-ui.css ]; then
-            sed -i 's#</head>#<link rel=\"stylesheet\" href=\"native/offline-ui.css\"></head>#' www/index.html
-          fi
-          if [ -f www/manifest.webmanifest ] && ! grep -q 'manifest.webmanifest' www/index.html; then
-            sed -i 's#</head>#<link rel=\"manifest\" href=\"/manifest.webmanifest\"></head>#' www/index.html
-          fi
-          for js in capacitor-bridge.js deezer-fetch.js music-android-patch.js boot-fast.js android-media-fix.js camera-tiktok.js legal-navbar-fix.js feed-noflicker.js feed-names-fix.js face-effects.js media-editor.js feed-stable.js post-music-feed.js feed-music-play.js story-music.js feed-stories-scroll.js music-use-sheet.js music-silence.js nav-layout.js video-preview.js password-toggle.js offline-cache.js reels-fast.js reels-follow-fix.js face-fx-pro.js feed-music-fix.js face-fx-deliver.js fx-png-effects.js chat-send-fix.js chat-audio-fix.js tchilo-deeplink.js tchilo-password-reset.js tchilo-share-target.js; do
-            if [ -f \"www/native/$js\" ] && ! grep -q \"native/$js\" www/index.html; then
-              sed -i \"s#</body>#<script src=\\\"native/$js\\\"></script></body>#\" www/index.html
-            fi
-          done
-          if [ -d www/native/fx-one ]; then
-            for js in www/native/fx-one/*.js; do
-              bn=$(basename \"$js\")
-              if ! grep -q \"native/fx-one/$bn\" www/index.html; then
-                sed -i \"s#</body>#<script src=\\\"native/fx-one/$bn\\\"></script></body>#\" www/index.html
-              fi
-            done
-          fi
-
-      - name: Verify complete web payload
-        shell: bash
-        run: |
-          set -e
-          test -s www/index.html
-          grep -q 'screen-feed' www/index.html
-          test -s resources/icon.png
-          test -s resources/splash.png
-          test -s firebase/google-services.json
+          cp -a native/. www/native/ || true
+          [ -f redefinir-senha/index.html ] && cp redefinir-senha/index.html www/redefinir-senha/ || true
+          [ -f reset-password/index.html ] && cp reset-password/index.html www/reset-password/ || true
+          [ -f manifest.webmanifest ] && cp manifest.webmanifest www/ || true
 
       - name: Add Android platform
         run: npx cap add android
 
-      - name: Generate Android app icon and splash
-        run: npx @capacitor/assets generate --android --assetPath resources --splashBackgroundColor '#000000' --iconBackgroundColor '#000000' --iconBackgroundColorDark '#000000'
+      - name: Generate icons
+        run: npx @capacitor/assets generate --android --assetPath resources --splashBackgroundColor '#000000' --iconBackgroundColor '#000000' || true
 
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: App Links + Share Target (SEND) intent-filters
-        shell: bash
+      - name: Copy Firebase config
         run: |
-          set -e
-          MANIFEST=android/app/src/main/AndroidManifest.xml
-          test -f \"$MANIFEST\"
-          python3 << 'PY'
-          from pathlib import Path
-          p = Path('android/app/src/main/AndroidManifest.xml')
-          t = p.read_text(encoding='utf-8')
-          share_block = '''
-                  <!-- Share Target -->
-                  <intent-filter>
-                      <action android:name=\"android.intent.action.SEND\" />
-                      <category android:name=\"android.intent.category.DEFAULT\" />
-                      <data android:mimeType=\"image/*\" />
-                  </intent-filter>
-                  <intent-filter>
-                      <action android:name=\"android.intent.action.SEND\" />
-                      <category android:name=\"android.intent.category.DEFAULT\" />
-                      <data android:mimeType=\"video/*\" />
-                  </intent-filter>
-                  <intent-filter>
-                      <action android:name=\"android.intent.action.SEND\" />
-                      <category android:name=\"android.intent.category.DEFAULT\" />
-                      <data android:mimeType=\"*/*\" />
-                  </intent-filter>
-                  <intent-filter>
-                      <action android:name=\"android.intent.action.SEND_MULTIPLE\" />
-                      <category android:name=\"android.intent.category.DEFAULT\" />
-                      <data android:mimeType=\"image/*\" />
-                  </intent-filter>
-                  <intent-filter>
-                      <action android:name=\"android.intent.action.SEND_MULTIPLE\" />
-                      <category android:name=\"android.intent.category.DEFAULT\" />
-                      <data android:mimeType=\"video/*\" />
-                  </intent-filter>
-                  <intent-filter>
-                      <action android:name=\"android.intent.action.SEND_MULTIPLE\" />
-                      <category android:name=\"android.intent.category.DEFAULT\" />
-                      <data android:mimeType=\"*/*\" />
-                  </intent-filter>'''
-          links_block = '''
-                  <intent-filter android:autoVerify=\"true\">
-                      <action android:name=\"android.intent.action.VIEW\" />
-                      <category android:name=\"android.intent.category.DEFAULT\" />
-                      <category android:name=\"android.intent.category.BROWSABLE\" />
-                      <data android:scheme=\"https\" android:host=\"tchilopop.com\" android:pathPrefix=\"/redefinir-senha\" />
-                      <data android:scheme=\"https\" android:host=\"tchilopop.com\" android:pathPrefix=\"/reset-password\" />
-                      <data android:scheme=\"https\" android:host=\"tchilopop.com\" android:pathPrefix=\"/u\" />
-                      <data android:scheme=\"https\" android:host=\"www.tchilopop.com\" android:pathPrefix=\"/redefinir-senha\" />
-                      <data android:scheme=\"https\" android:host=\"www.tchilopop.com\" android:pathPrefix=\"/u\" />
-                  </intent-filter>
-                  <intent-filter>
-                      <action android:name=\"android.intent.action.VIEW\" />
-                      <category android:name=\"android.intent.category.DEFAULT\" />
-                      <category android:name=\"android.intent.category.BROWSABLE\" />
-                      <data android:scheme=\"tchilo\" android:host=\"redefinir-senha\" />
-                      <data android:scheme=\"tchilo\" android:host=\"u\" />
-                  </intent-filter>'''
-          needle = '</activity>'
-          if 'android.intent.action.MAIN' not in t:
-              raise SystemExit('MAIN activity not found')
-          idx = t.find('android.intent.action.MAIN')
-          close = t.find(needle, idx)
-          if close < 0:
-              raise SystemExit('no activity close')
-          inject = ''
-          if 'android.intent.action.SEND' not in t:
-              inject += share_block
-          if 'tchilopop.com' not in t:
-              inject += links_block
-          if inject:
-              t = t[:close] + inject + '\\n        ' + t[close:]
-              p.write_text(t, encoding='utf-8')
-              print('manifest patched')
-          else:
-              print('no manifest changes needed')
-          PY
-
-      - name: Patch MainActivity for Share Target bridge
-        shell: bash
-        run: |
-          set -e
-          MA=$(find android -name 'MainActivity.java' | head -n 1)
-          test -n \"$MA\"
-          echo \"MainActivity: $MA\"
-          export MA
-          python3 << 'PY'
-          from pathlib import Path
-          import re, base64, os
-          p = Path(os.environ[\"MA\"])
-          t = p.read_text(encoding=\"utf-8\")
-          if \"handleShareIntent\" in t:
-              print(\"Share bridge already present\")
-              raise SystemExit(0)
-          imports = [
-              \"import android.content.Intent;\",
-              \"import android.net.Uri;\",
-              \"import android.os.Bundle;\",
-              \"import android.util.Base64;\",
-              \"import android.webkit.WebView;\",
-              \"import java.io.InputStream;\",
-              \"import java.io.ByteArrayOutputStream;\",
-              \"import org.json.JSONArray;\",
-              \"import org.json.JSONObject;\",
-          ]
-          for imp in imports:
-              if imp not in t:
-                  m = re.search(r\"(package\\s+[\\w.]+;\\s*)\", t)
-                  if m:
-                      t = t[:m.end()] + \"\\n\" + imp + t[m.end():]
-          # Minimal bridge - inject handleShareIntent stub that logs
-          bridge = '''
-    // --- Tchilo Share Target bridge ---
-    private String pendingShareJson = null;
-
-    private void handleShareIntent(Intent intent) {
-        if (intent == null) return;
-        String action = intent.getAction();
-        if (action == null) return;
-        boolean isSend = Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action);
-        if (!isSend) return;
-        try {
-            org.json.JSONObject payload = new org.json.JSONObject();
-            String title = intent.getStringExtra(Intent.EXTRA_TITLE);
-            String text = intent.getStringExtra(Intent.EXTRA_TEXT);
-            String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
-            if (title != null) payload.put(\"title\", title);
-            else if (subject != null) payload.put(\"title\", subject);
-            else payload.put(\"title\", \"\");
-            payload.put(\"text\", text != null ? text : \"\");
-            payload.put(\"url\", \"\");
-            payload.put(\"files\", new org.json.JSONArray());
-            pendingShareJson = payload.toString();
-            android.util.Log.i(\"TchiloShare\", \"share received: \" + pendingShareJson);
-        } catch (Exception e) {
-            android.util.Log.e(\"TchiloShare\", \"handleShareIntent\", e);
-        }
-    }
-'''
-          pos = None
-          for i in range(len(t) - 1, -1, -1):
-              if t[i] == chr(125):
-                  pos = i
-                  break
-          if pos is None:
-              raise SystemExit(\"no class end\")
-          t = t[:pos] + bridge + \"\\n\" + t[pos:]
-          if \"super.onCreate\" in t and \"handleShareIntent(getIntent())\" not in t:
-              t = t.replace(
-                  \"super.onCreate(savedInstanceState);\",
-                  \"super.onCreate(savedInstanceState);\\n        handleShareIntent(getIntent());\",
-                  1,
-              )
-          p.write_text(t, encoding=\"utf-8\")
-          print(\"MainActivity patched for Share Target\")
-          PY
-
-      - name: Set Android app version 1.1.0 (versionCode 2)
-        shell: bash
-        run: |
-          set -e
-          APP_BUILD=android/app/build.gradle
-          test -f \"$APP_BUILD\"
-          if grep -q 'versionName' \"$APP_BUILD\"; then
-            sed -i 's/versionName \"[^\"]*\"/versionName \"1.1.0\"/' \"$APP_BUILD\"
-          else
-            sed -i '/defaultConfig {/a\\        versionName \"1.1.0\"' \"$APP_BUILD\"
-          fi
-          if grep -q 'versionCode' \"$APP_BUILD\"; then
-            sed -i 's/versionCode [0-9]*/versionCode 2/' \"$APP_BUILD\"
-          else
-            sed -i '/defaultConfig {/a\\        versionCode 2' \"$APP_BUILD\"
-          fi
-
-      - name: Ensure native config has NO remote server.url
-        shell: bash
-        run: |
-          set -e
-          CFG=android/app/src/main/assets/capacitor.config.json
-          test -f \"$CFG\"
-          python3 -c \"import json;p='$CFG';c=json.load(open(p));c.setdefault('server',{}).pop('url',None);json.dump(c,open(p,'w'),indent=2);print(c.get('server'))\"
-
-      - name: Copy Firebase configuration
-        shell: bash
-        run: |
-          set -e
           mkdir -p android/app
           cp firebase/google-services.json android/app/google-services.json
-
-      - name: Configure Google Services
-        shell: bash
-        run: |
-          set -e
-          ROOT_BUILD=android/build.gradle
-          APP_BUILD=android/app/build.gradle
-          if [ -f \"$ROOT_BUILD\" ] && ! grep -q 'com.google.gms:google-services' \"$ROOT_BUILD\"; then
-            if grep -q \"classpath 'com.android.tools.build:gradle\" \"$ROOT_BUILD\"; then
-              sed -i \"/classpath 'com.android.tools.build:gradle/a\\\\    classpath 'com.google.gms:google-services:4.4.2'\" \"$ROOT_BUILD\"
-            fi
-          fi
-          if [ -f \"$APP_BUILD\" ] && ! grep -q \"apply plugin: 'com.google.gms.google-services'\" \"$APP_BUILD\"; then
-            printf \"\\napply plugin: 'com.google.gms.google-services'\\n\" >> \"$APP_BUILD\"
-          fi
 
       - name: Setup Java
         uses: actions/setup-java@v4

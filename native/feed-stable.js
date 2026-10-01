@@ -7,11 +7,9 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('hide-nav') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
+        if (name.indexOf('chat-composer') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
+        else if (name.indexOf('hide-nav') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
         else if (name.indexOf('ui-stable') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
-        else if (name.indexOf('music-feed-fix') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
-        else if (name.indexOf('tchilo-verified') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
-        else if (name.indexOf('no-busy-select') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -31,6 +29,7 @@
     add('native/tchilo-no-busy-select.js?v=1');
     add('native/tchilo-ui-stable.js?v=1');
     add('native/tchilo-hide-nav.js?v=3');
+    add('native/tchilo-chat-composer.js?v=1');
     add('native/tchilo-password-reset.js?v=6');
     add('native/tchilo-router.js?v=3');
     add('native/tchilo-public-urls.js?v=1');

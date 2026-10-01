@@ -7,9 +7,9 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('music-feed-fix') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
+        if (name.indexOf('no-busy-select') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
+        else if (name.indexOf('music-feed-fix') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
         else if (name.indexOf('reels-open-fix') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
-        else if (name.indexOf('tchilo-verified') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -26,6 +26,7 @@
   }
   function load() {
     add('native/tchilo-site-url-fix.js?v=1');
+    add('native/tchilo-no-busy-select.js?v=1');
     add('native/tchilo-password-reset.js?v=6');
     add('native/tchilo-router.js?v=3');
     add('native/tchilo-public-urls.js?v=1');

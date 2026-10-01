@@ -67,7 +67,7 @@ jobs:
       - name: Copy Firebase GoogleService-Info.plist
         run: cp firebase/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
 
-      - name: Configure iOS privacy + Associated Domains + URL scheme + App Group
+      - name: Configure iOS privacy + URL scheme (no entitlements for unsigned CI)
         shell: bash
         run: |
           PLIST=ios/App/App/Info.plist
@@ -83,23 +83,13 @@ jobs:
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" "$PLIST" 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string tchilo" "$PLIST" 2>/dev/null || true
 
-          # Entitlements: Associated Domains + App Group
+          # Empty entitlements for unsigned CI (App Groups / Associated Domains force signing → exit 65)
           ENT=ios/App/App/App.entitlements
           cat > "$ENT" << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
-          <dict>
-            <key>com.apple.developer.associated-domains</key>
-            <array>
-              <string>applinks:tchilopop.com</string>
-              <string>applinks:www.tchilopop.com</string>
-            </array>
-            <key>com.apple.security.application-groups</key>
-            <array>
-              <string>group.com.tchilo.isabstudio</string>
-            </array>
-          </dict>
+          <dict/>
           </plist>
           EOF
 
@@ -116,9 +106,17 @@ jobs:
           mkdir -p ios/App/ShareExtension
           cp "$EXT_SRC/ShareViewController.swift" ios/App/ShareExtension/
           cp "$EXT_SRC/Info.plist" ios/App/ShareExtension/
-          cp "$EXT_SRC/ShareExtension.entitlements" ios/App/ShareExtension/
 
-          echo "Share Extension sources copied"
+          # Empty entitlements for Share Extension (unsigned CI)
+          cat > ios/App/ShareExtension/ShareExtension.entitlements << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict/>
+          </plist>
+          EOF
+
+          echo "Share Extension sources copied (empty entitlements for unsigned)"
           ls -la ios/App/ShareExtension/
 
       - name: Patch AppDelegate for share URL + inject
@@ -233,7 +231,6 @@ jobs:
             ext.product_type = 'com.apple.product-type.app-extension'
             ext.add_file_references([swift_ref])
 
-            # Embed extension
             embed = main_target.copy_files_build_phases.find { |p| p.dst_subfolder_spec == '13' }
             unless embed
               embed = main_target.new_copy_files_build_phase('Embed App Extensions')
@@ -248,7 +245,6 @@ jobs:
 
             main_target.add_dependency(ext)
 
-            # Add TchiloShareBridge to App target
             app_group = project.main_group.find_subpath('App', true)
             unless main_target.source_build_phase.files_references.any? { |f| f && f.path && f.path.include?('TchiloShareBridge') }
               bridge_file = Pathname.new(project_path).dirname + 'App/TchiloShareBridge.swift'
@@ -260,13 +256,8 @@ jobs:
                 puts "WARN: #{bridge_file} missing"
               end
             end
-
-            main_target.build_configurations.each do |config|
-              config.build_settings['CODE_SIGN_ENTITLEMENTS'] ||= 'App/App.entitlements'
-            end
           end
 
-          # Critical settings for unsigned CI builds (both new and existing target)
           main_target = project.targets.find { |t| t.name == 'App' } || project.targets.first
 
           [ext, main_target].compact.each do |target|
@@ -275,12 +266,20 @@ jobs:
               config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
               config.build_settings['CODE_SIGN_IDENTITY'] = ''
               config.build_settings['EXPANDED_CODE_SIGN_IDENTITY'] = ''
+              config.build_settings['CODE_SIGN_STYLE'] = 'Manual'
+              config.build_settings['DEVELOPMENT_TEAM'] = ''
+              config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = ''
               config.build_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Onone'
               config.build_settings['SWIFT_COMPILATION_MODE'] = 'singlefile'
             end
           end
 
-          # Specific ShareExtension settings
+          # App target
+          main_target.build_configurations.each do |config|
+            config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'App/App.entitlements'
+          end
+
+          # ShareExtension specific
           ext.build_configurations.each do |config|
             config.build_settings['INFOPLIST_FILE'] = 'ShareExtension/Info.plist'
             config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'ShareExtension/ShareExtension.entitlements'
@@ -295,13 +294,10 @@ jobs:
               '@executable_path/Frameworks',
               '@executable_path/../../Frameworks'
             ]
-            config.build_settings['CODE_SIGN_STYLE'] = 'Manual'
-            config.build_settings['DEVELOPMENT_TEAM'] = ''
-            config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = ''
           end
 
           project.save
-          puts 'ShareExtension target configured for unsigned archive'
+          puts 'ShareExtension target configured for unsigned archive (empty entitlements)'
           RUBY
 
       - name: Set splash image and app icon
@@ -365,10 +361,6 @@ jobs:
           echo "=== Available schemes ==="
           xcodebuild -list $IOS_CONTAINER || true
 
-          echo "=== Targets ==="
-          xcodebuild -list $IOS_CONTAINER 2>/dev/null | grep -A 20 Targets || true
-
-          # Limpar
           xcodebuild clean $IOS_CONTAINER -scheme App -configuration Release || true
 
           set +e
@@ -392,10 +384,10 @@ jobs:
           if [ $EXIT_CODE -ne 0 ]; then
             echo ""
             echo "===== ERROS (grep error:) ====="
-            grep -i "error:" /tmp/xcodebuild.log | tail -40 || true
+            grep -i "error:" /tmp/xcodebuild.log | tail -50 || true
             echo ""
-            echo "===== ÚLTIMAS 100 LINHAS DO LOG ====="
-            tail -100 /tmp/xcodebuild.log || true
+            echo "===== ÚLTIMAS 120 LINHAS DO LOG ====="
+            tail -120 /tmp/xcodebuild.log || true
             echo "===================================="
             echo "❌ Archive falhou com código $EXIT_CODE"
             exit $EXIT_CODE

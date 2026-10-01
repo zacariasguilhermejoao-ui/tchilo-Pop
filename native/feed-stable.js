@@ -7,7 +7,7 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('avatar-cloud') >= 0 && cur.indexOf('v=4') < 0) existing.remove();
+        if (name.indexOf('reels-open-fix') >= 0 && cur.indexOf('v=6') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -31,7 +31,7 @@
     add('native/tchilo-avatar-cloud.js?v=4');
     add('native/tchilo-avatar-viewer.js?v=1');
     add('native/tchilo-premium.js?v=1');
-    add('native/tchilo-reels-open-fix.js?v=5');
+    add('native/tchilo-reels-open-fix.js?v=6');
     add('native/tchilo-feed-video-ui.js?v=1');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=1');

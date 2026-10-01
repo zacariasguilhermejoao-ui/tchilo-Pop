@@ -103,18 +103,21 @@ jobs:
           </plist>
           EOF
 
+      # Share Extension desativado temporariamente no CI
+      # (estava a causar exit code 65 no archive unsigned)
+      # Para reativar: remover o "if: false" dos 3 steps abaixo
+
       - name: Install Share Extension sources + bridge
+        if: false
         shell: bash
         run: |
           set -e
           EXT_SRC=native/ios-share-extension
           test -d "$EXT_SRC"
 
-          # Bridge na app principal
           mkdir -p ios/App/App
           cp "$EXT_SRC/AppDelegate+Share.swift" ios/App/App/TchiloShareBridge.swift
 
-          # Pasta da extension
           mkdir -p ios/App/ShareExtension
           cp "$EXT_SRC/ShareViewController.swift" ios/App/ShareExtension/
           cp "$EXT_SRC/Info.plist" ios/App/ShareExtension/
@@ -123,6 +126,7 @@ jobs:
           echo "Share Extension sources copied"
 
       - name: Patch AppDelegate for share URL + inject
+        if: false
         shell: bash
         run: |
           set -e
@@ -142,7 +146,6 @@ jobs:
               print('AppDelegate already patched')
               raise SystemExit(0)
 
-          # Garantir import UIKit / WebKit se necessário
           if 'import WebKit' not in t:
               t = t.replace('import UIKit', 'import UIKit\nimport WebKit', 1)
 
@@ -161,29 +164,18 @@ jobs:
               }
               '''
 
-          # Inserir helpers antes do último }
           last = t.rfind('}')
           if last < 0:
               raise SystemExit('no class end')
           t = t[:last] + helper + '\n' + t[last:]
 
-          # application didFinishLaunching
           if 'didFinishLaunchingWithOptions' in t and 'tchiloCheckPendingShare' not in t:
-              # inserir chamada no fim do método (antes do return true tipico)
               t = re.sub(
                   r'(func application\([^)]*didFinishLaunchingWithOptions[^{]*\{)',
                   r'\1\n        tchiloCheckPendingShare()',
                   t,
                   count=1
               )
-
-          # open url handlers
-          open_hooks = [
-              (r'func application\([^)]*open url: URL[^\{]*\{',
-               'tchiloHandleShareURL(url)'),
-              (r'func application\([^)]*continue userActivity: NSUserActivity[^\{]*\{',
-               None),
-          ]
 
           if 'open url: URL' in t and 'tchiloHandleShareURL' not in t.split('open url')[1][:400]:
               t = re.sub(
@@ -193,7 +185,6 @@ jobs:
                   count=1
               )
 
-          # SceneDelegate style / Capacitor CAPBridgeViewController — também escutar notification
           if 'applicationDidBecomeActive' not in t:
               insert_at = t.rfind('// MARK: - Tchilo Share Target')
               become = '''
@@ -215,6 +206,7 @@ jobs:
           PY
 
       - name: Add ShareExtension target to Xcode project
+        if: false
         shell: bash
         run: |
           set -e
@@ -227,7 +219,6 @@ jobs:
 
           project = Xcodeproj::Project.open(project_path)
 
-          # Evitar duplicar
           if project.targets.any? { |t| t.name == 'ShareExtension' }
             puts 'ShareExtension target already exists'
             exit 0
@@ -236,23 +227,19 @@ jobs:
           main_target = project.targets.find { |t| t.name == 'App' } || project.targets.first
           abort 'main target not found' unless main_target
 
-          # Grupo ShareExtension
           group = project.main_group.find_subpath('ShareExtension', true)
           group.set_source_tree('SOURCE_ROOT')
           group.set_path('ShareExtension')
 
-          # Ficheiros
           swift_ref = group.new_file('ShareExtension/ShareViewController.swift')
           plist_ref = group.new_file('ShareExtension/Info.plist')
           ent_ref = group.new_file('ShareExtension/ShareExtension.entitlements')
 
-          # Target app extension
           ext = project.new_target(:app_extension, 'ShareExtension', :ios, '15.0')
           ext.product_type = 'com.apple.product-type.app-extension'
 
           ext.add_file_references([swift_ref])
 
-          # Build settings
           ext.build_configurations.each do |config|
             config.build_settings['INFOPLIST_FILE'] = 'ShareExtension/Info.plist'
             config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'ShareExtension/ShareExtension.entitlements'
@@ -262,22 +249,21 @@ jobs:
             config.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2'
             config.build_settings['SWIFT_VERSION'] = '5.0'
             config.build_settings['GENERATE_INFOPLIST_FILE'] = 'NO'
+            config.build_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Onone'
             config.build_settings['LD_RUNPATH_SEARCH_PATHS'] = [
               '$(inherited)',
               '@executable_path/Frameworks',
               '@executable_path/../../Frameworks'
             ]
             config.build_settings['CODE_SIGN_STYLE'] = 'Automatic'
-            # alinhar com app principal se existir DEVELOPMENT_TEAM
             team = main_target.build_configurations.first.build_settings['DEVELOPMENT_TEAM']
             config.build_settings['DEVELOPMENT_TEAM'] = team if team && !team.empty?
           end
 
-          # Embed extension na app principal
           embed = main_target.copy_files_build_phases.find { |p| p.dst_subfolder_spec == '13' }
           unless embed
             embed = main_target.new_copy_files_build_phase('Embed App Extensions')
-            embed.dst_subfolder_spec = '13' # plug-ins
+            embed.dst_subfolder_spec = '13'
           end
           embed.add_file_reference(ext.product_reference)
           embed.files.each do |bf|
@@ -286,14 +272,10 @@ jobs:
             end
           end
 
-          # Dependency
           main_target.add_dependency(ext)
 
-          # Adicionar TchiloShareBridge.swift à app principal se ainda não estiver
           app_group = project.main_group.find_subpath('App', true)
-          bridge_path = 'App/TchiloShareBridge.swift'
           unless main_target.source_build_phase.files_references.any? { |f| f && f.path && f.path.include?('TchiloShareBridge') }
-            # procurar ficheiro no filesystem relativo ao project
             bridge_file = Pathname.new(project_path).dirname + 'App/TchiloShareBridge.swift'
             if bridge_file.exist?
               ref = app_group.new_file('App/TchiloShareBridge.swift')
@@ -304,7 +286,6 @@ jobs:
             end
           end
 
-          # App Group na app principal (CODE_SIGN_ENTITLEMENTS)
           main_target.build_configurations.each do |config|
             config.build_settings['CODE_SIGN_ENTITLEMENTS'] ||= 'App/App.entitlements'
           end
@@ -371,10 +352,13 @@ jobs:
         run: |
           cd ios/App
 
-          # Limpar builds anteriores
+          echo "=== Available schemes ==="
+          xcodebuild -list $IOS_CONTAINER || true
+
+          # Limpar
           xcodebuild clean $IOS_CONTAINER -scheme App -configuration Release || true
 
-          # Tentar archive completo (com Share Extension)
+          # Archive da app principal (sem Share Extension)
           set +e
           xcodebuild archive \
             $IOS_CONTAINER \
@@ -387,29 +371,20 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             ONLY_ACTIVE_ARCH=NO \
-            SWIFT_COMPILATION_MODE=wholemodule
+            2>&1 | tee /tmp/xcodebuild.log
 
-          EXIT_CODE=$?
+          EXIT_CODE=${PIPESTATUS[0]}
           set -e
 
           if [ $EXIT_CODE -ne 0 ]; then
-            echo "⚠️ Archive com Share Extension falhou (código $EXIT_CODE). Tentando fallback..."
-
-            # Fallback: tentar de novo com flags mínimas
-            xcodebuild archive \
-              $IOS_CONTAINER \
-              -scheme App \
-              -configuration Release \
-              -sdk iphoneos \
-              -destination 'generic/platform=iOS' \
-              -archivePath "$RUNNER_TEMP/tchilo-pop.xcarchive" \
-              CODE_SIGNING_ALLOWED=NO \
-              CODE_SIGNING_REQUIRED=NO \
-              CODE_SIGN_IDENTITY="" \
-              ONLY_ACTIVE_ARCH=NO
+            echo ""
+            echo "===== ÚLTIMAS 80 LINHAS DO LOG ====="
+            tail -80 /tmp/xcodebuild.log || true
+            echo "===================================="
+            echo "❌ Archive falhou com código $EXIT_CODE"
+            exit $EXIT_CODE
           fi
 
-          # Verificar se o archive foi criado
           if [ ! -d "$RUNNER_TEMP/tchilo-pop.xcarchive" ]; then
             echo "❌ Archive não foi gerado"
             exit 1

@@ -51,16 +51,35 @@ jobs:
       - name: Copy Firebase config
         run: |
           mkdir -p android/app
-          cp firebase/google-services.json android/app/google-services.json
+          if [ -f firebase/google-services.json ]; then
+            cp firebase/google-services.json android/app/google-services.json
+          fi
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 17
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        shell: bash
+        run: |
+          set -e
+          # Use preinstalled SDK on GitHub runner
+          export ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}
+          export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-$ANDROID_HOME}
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+
+          # Accept licenses
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+
+          # Install required packages (no deprecated 'tools' package)
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" || \
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" || true
+
+          echo "SDK packages ready"
 
       - name: Build debug APK
         shell: bash

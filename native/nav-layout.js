@@ -1,9 +1,12 @@
 /**
- * tchilo-Pop — layout de navegação
- * Fee | SMS no topbar | Reels na barra de baixo (não mensagens)
+ * tchilo-Pop — layout de navegacao
+ * Fee | SMS no topbar | Reels na barra de baixo
+ * v2 — sem setInterval agressivo (evita icones a saltar)
  */
 (function () {
   'use strict';
+  if (window.__tchiloNavLayoutV2) return;
+  window.__tchiloNavLayoutV2 = true;
 
   var ICON_FEE =
     '<span class="nav-text-icon nav-fee" aria-hidden="true">Fee</span>';
@@ -52,12 +55,15 @@
       'border-radius:0!important;' +
       'background:transparent!important;background-color:transparent!important;' +
       'box-shadow:none!important;-webkit-box-shadow:none!important;' +
-      'padding:4px!important;margin:0!important;}' +
+      'padding:4px!important;margin:0!important;' +
+      'position:static!important;transform:none!important;' +
+      'transition:none!important;animation:none!important;}' +
 
       '#screen-feed .topbar-icons .icon-btn svg,' +
       '.topbar-icons .icon-btn svg{' +
       'width:26px!important;height:26px!important;' +
-      'stroke-width:2.4!important;}' +
+      'stroke-width:2.4!important;' +
+      'transform:none!important;transition:none!important;animation:none!important;}' +
 
       '#reelsViewer .reels-close,.reels-viewer .reels-close{' +
       'position:absolute!important;top:max(12px, env(safe-area-inset-top, 0px) + 8px)!important;' +
@@ -82,10 +88,12 @@
     el.style.setProperty('width', 'auto', 'important');
     el.style.setProperty('height', 'auto', 'important');
     el.style.setProperty('padding', '4px', 'important');
+    el.style.setProperty('transform', 'none', 'important');
   }
 
   function setNavIcon(btn, html) {
     if (!btn) return;
+    if (btn.__tchiloIconSet) return;
     var dot = btn.querySelector('.dot');
     var badge = btn.querySelector('.badge');
     btn.querySelectorAll('svg, .nav-text-icon, .nav-sms-icon, .nav-sms-text, .nav-sms-circle, .nav-reels-icon').forEach(function (n) {
@@ -104,6 +112,7 @@
       d.className = 'dot';
       btn.appendChild(d);
     }
+    btn.__tchiloIconSet = true;
   }
 
   function applyFeedFee() {
@@ -119,11 +128,11 @@
   function applySmsIcon(el) {
     if (!el) return;
     stripIconBtnBox(el);
+    if (el.querySelector('.nav-sms-text') && !el.querySelector('.nav-sms-circle')) return;
     var old =
       el.querySelector('.nav-sms-circle') ||
       el.querySelector('.nav-sms-icon') ||
       el.querySelector('svg');
-    if (el.querySelector('.nav-sms-text') && !el.querySelector('.nav-sms-circle')) return;
     if (old) {
       var wrap = document.createElement('div');
       wrap.innerHTML = ICON_SMS;
@@ -144,6 +153,7 @@
       if (svg) {
         svg.style.setProperty('width', '26px', 'important');
         svg.style.setProperty('height', '26px', 'important');
+        svg.style.setProperty('transform', 'none', 'important');
       }
     });
   }
@@ -162,6 +172,7 @@
         e.stopPropagation();
         if (typeof goTo === 'function') goTo('messages');
       };
+      // Nao forcar ordem: deixa tchilo-ui-icons-fix posicionar se existir
       icons.appendChild(btn);
     }
     applySmsIcon(btn);
@@ -182,6 +193,7 @@
   function replaceNavMessagesWithReels() {
     var msgBtn = findMessagesNavSlot();
     if (!msgBtn) return;
+    if (msgBtn.__tchiloReelsBound) return;
 
     msgBtn.setAttribute('data-screen', 'reels');
     msgBtn.setAttribute('aria-label', 'Reels');
@@ -198,6 +210,7 @@
         console.warn('Tchilo reels nav', err);
       }
     };
+    msgBtn.__tchiloReelsBound = true;
 
     if (!msgBtn.querySelector('.nav-reels-icon')) {
       setNavIcon(msgBtn, SVG_REELS);
@@ -259,6 +272,7 @@
     loadScriptOnce('native/tchilo-legal-urls.js', 'data-tchilo-legal-urls', 'v=20260923legal');
   }
 
+  var booted = false;
   function boot() {
     loadExtras();
     injectNavIconCSS();
@@ -269,18 +283,21 @@
     placeFollowButtons();
     watchReelsDom();
     patchOpenReels();
+    booted = true;
   }
 
-  setInterval(function () {
-    applyFeedFee();
-    ensureTopbarMessages();
-    stripAllTopbarBoxes();
-    replaceNavMessagesWithReels();
-  }, 800);
-
+  // SEM setInterval — so boot inicial + poucas tentativas
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
   setTimeout(boot, 200);
-  setTimeout(boot, 600);
-  setTimeout(boot, 1500);
+  setTimeout(boot, 800);
+  setTimeout(function () {
+    if (!booted) boot();
+    else {
+      // Soft refresh sem reordenar topbar agressivamente
+      applyFeedFee();
+      replaceNavMessagesWithReels();
+      placeFollowButtons();
+    }
+  }, 2000);
 })();

@@ -172,7 +172,6 @@
         e.stopPropagation();
         if (typeof goTo === 'function') goTo('messages');
       };
-      // Nao forcar ordem: deixa tchilo-ui-icons-fix posicionar se existir
       icons.appendChild(btn);
     }
     applySmsIcon(btn);
@@ -265,6 +264,8 @@
   }
 
   function loadExtras() {
+    loadScriptOnce('native/tchilo-nav-click-fix.js', 'data-tchilo-navclick', 'v=20261001navclick');
+    loadScriptOnce('native/tchilo-ui-icons-fix.js', 'data-tchilo-uiicons', 'v=20261001uiicons');
     loadScriptOnce('native/profile-name-cooldown.js', 'data-tchilo-namecd', 'v=20260922namecd');
     loadScriptOnce('native/tchilo-support.js', 'data-tchilo-support', 'v=20260922support');
     loadScriptOnce('native/tchilo-cookies-policy.js', 'data-tchilo-cookies', 'v=20260922cookies');
@@ -286,7 +287,6 @@
     booted = true;
   }
 
-  // SEM setInterval — so boot inicial + poucas tentativas
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
   setTimeout(boot, 200);
@@ -294,7 +294,6 @@
   setTimeout(function () {
     if (!booted) boot();
     else {
-      // Soft refresh sem reordenar topbar agressivamente
       applyFeedFee();
       replaceNavMessagesWithReels();
       placeFollowButtons();

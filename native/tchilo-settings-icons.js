@@ -1,13 +1,11 @@
 /**
  * Tchilo — ícones PNG nas definições (pack Drive)
- * v2
+ * v3
  */
 (function () {
   'use strict';
-  if (window.__tchiloSettingsIconsV2) return;
-  window.__tchiloSettingsIconsV2 = true;
-
-  var KEYS = ['conta','notificacoes','stories','guardados','privacidade','legal','idioma','tema','avancado','premium','selo','anuncios','suporte'];
+  if (window.__tchiloSettingsIconsV3) return;
+  window.__tchiloSettingsIconsV3 = true;
 
   function loadScript(src) {
     return new Promise(function (resolve) {
@@ -20,10 +18,23 @@
   }
 
   function loadAllIcons() {
-    var base = 'native/settings-icons/';
-    return Promise.all(KEYS.map(function (k) {
-      return loadScript(base + k + '.js?v=1');
-    }));
+    return Promise.all([
+      loadScript('native/settings-icons/conta.js?v=1'),
+      loadScript('native/settings-icons/legal.js?v=1'),
+      loadScript('native/settings-icons/rest-a.js?v=1'),
+      loadScript('native/settings-icons/rest-b.js?v=1'),
+      loadScript('native/settings-icons/notificacoes.js?v=1'),
+      loadScript('native/settings-icons/stories.js?v=1'),
+      loadScript('native/settings-icons/guardados.js?v=1'),
+      loadScript('native/settings-icons/privacidade.js?v=1'),
+      loadScript('native/settings-icons/idioma.js?v=1'),
+      loadScript('native/settings-icons/tema.js?v=1'),
+      loadScript('native/settings-icons/avancado.js?v=1'),
+      loadScript('native/settings-icons/premium.js?v=1'),
+      loadScript('native/settings-icons/selo.js?v=1'),
+      loadScript('native/settings-icons/anuncios.js?v=1'),
+      loadScript('native/settings-icons/suporte.js?v=1')
+    ]);
   }
 
   var LABELS = {
@@ -129,14 +140,14 @@
     loadAllIcons().then(function () {
       applyAll();
       setTimeout(applyAll, 200);
-      setTimeout(applyAll, 800);
+      setTimeout(applyAll, 1000);
     });
   }
 
   boot();
-  setTimeout(boot, 500);
+  setTimeout(boot, 600);
 
-  if (typeof window.goTo === 'function' && !window.goTo.__settingsIconsV2) {
+  if (typeof window.goTo === 'function' && !window.goTo.__settingsIconsV3) {
     var g = window.goTo;
     window.goTo = function () {
       var r = g.apply(this, arguments);
@@ -144,6 +155,6 @@
       setTimeout(applyAll, 300);
       return r;
     };
-    window.goTo.__settingsIconsV2 = true;
+    window.goTo.__settingsIconsV3 = true;
   }
 })();

@@ -1,11 +1,11 @@
 /**
  * Tchilo — ícones PNG nas definições (pack Drive)
- * v3
+ * v4
  */
 (function () {
   'use strict';
-  if (window.__tchiloSettingsIconsV3) return;
-  window.__tchiloSettingsIconsV3 = true;
+  if (window.__tchiloSettingsIconsV4) return;
+  window.__tchiloSettingsIconsV4 = true;
 
   function loadScript(src) {
     return new Promise(function (resolve) {
@@ -18,23 +18,14 @@
   }
 
   function loadAllIcons() {
-    return Promise.all([
-      loadScript('native/settings-icons/conta.js?v=1'),
-      loadScript('native/settings-icons/legal.js?v=1'),
-      loadScript('native/settings-icons/rest-a.js?v=1'),
-      loadScript('native/settings-icons/rest-b.js?v=1'),
-      loadScript('native/settings-icons/notificacoes.js?v=1'),
-      loadScript('native/settings-icons/stories.js?v=1'),
-      loadScript('native/settings-icons/guardados.js?v=1'),
-      loadScript('native/settings-icons/privacidade.js?v=1'),
-      loadScript('native/settings-icons/idioma.js?v=1'),
-      loadScript('native/settings-icons/tema.js?v=1'),
-      loadScript('native/settings-icons/avancado.js?v=1'),
-      loadScript('native/settings-icons/premium.js?v=1'),
-      loadScript('native/settings-icons/selo.js?v=1'),
-      loadScript('native/settings-icons/anuncios.js?v=1'),
-      loadScript('native/settings-icons/suporte.js?v=1')
-    ]);
+    var keys = [
+      'conta', 'legal', 'notificacoes', 'stories', 'guardados',
+      'privacidade', 'idioma', 'tema', 'avancado', 'premium',
+      'selo', 'anuncios', 'suporte'
+    ];
+    return Promise.all(keys.map(function (k) {
+      return loadScript('native/settings-icons/' + k + '.js?v=2');
+    }));
   }
 
   var LABELS = {
@@ -147,7 +138,7 @@
   boot();
   setTimeout(boot, 600);
 
-  if (typeof window.goTo === 'function' && !window.goTo.__settingsIconsV3) {
+  if (typeof window.goTo === 'function' && !window.goTo.__settingsIconsV4) {
     var g = window.goTo;
     window.goTo = function () {
       var r = g.apply(this, arguments);
@@ -155,6 +146,6 @@
       setTimeout(applyAll, 300);
       return r;
     };
-    window.goTo.__settingsIconsV3 = true;
+    window.goTo.__settingsIconsV4 = true;
   }
 })();

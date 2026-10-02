@@ -1,17 +1,29 @@
 /**
- * Tchilo — aplica ícones PNG nas definições
- * v1 — dados em tchilo-settings-icons-data.js
+ * Tchilo — ícones PNG nas definições (pack Drive)
+ * v2
  */
 (function () {
   'use strict';
-  if (window.__tchiloSettingsIconsV1) return;
-  window.__tchiloSettingsIconsV1 = true;
+  if (window.__tchiloSettingsIconsV2) return;
+  window.__tchiloSettingsIconsV2 = true;
 
-  function waitIcons(cb, n) {
-    n = n || 0;
-    if (window.__TCHILO_SETTINGS_ICONS) return cb();
-    if (n > 50) return;
-    setTimeout(function () { waitIcons(cb, n + 1); }, 100);
+  var KEYS = ['conta','notificacoes','stories','guardados','privacidade','legal','idioma','tema','avancado','premium','selo','anuncios','suporte'];
+
+  function loadScript(src) {
+    return new Promise(function (resolve) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = function () { resolve(); };
+      s.onerror = function () { resolve(); };
+      (document.head || document.documentElement).appendChild(s);
+    });
+  }
+
+  function loadAllIcons() {
+    var base = 'native/settings-icons/';
+    return Promise.all(KEYS.map(function (k) {
+      return loadScript(base + k + '.js?v=1');
+    }));
   }
 
   var LABELS = {
@@ -114,20 +126,24 @@
   }
 
   function boot() {
-    waitIcons(applyAll);
+    loadAllIcons().then(function () {
+      applyAll();
+      setTimeout(applyAll, 200);
+      setTimeout(applyAll, 800);
+    });
   }
 
   boot();
-  setTimeout(boot, 400);
-  setTimeout(boot, 1200);
+  setTimeout(boot, 500);
 
-  if (typeof window.goTo === 'function' && !window.goTo.__settingsIcons) {
+  if (typeof window.goTo === 'function' && !window.goTo.__settingsIconsV2) {
     var g = window.goTo;
     window.goTo = function () {
       var r = g.apply(this, arguments);
-      setTimeout(boot, 40);
+      setTimeout(applyAll, 50);
+      setTimeout(applyAll, 300);
       return r;
     };
-    window.goTo.__settingsIcons = true;
+    window.goTo.__settingsIconsV2 = true;
   }
 })();

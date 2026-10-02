@@ -1,10 +1,11 @@
 /**
- * Tchilo — copy de produto real (remove texto de protótipo/demo na UI)
- * v1
+ * Tchilo — copy de produto real (remove protótipo/demo/localStorage na UI)
+ * v2
  */
 (function () {
   'use strict';
-  if (window.__tchiloProductCopyV1) return;
+  if (window.__tchiloProductCopyV2) return;
+  window.__tchiloProductCopyV2 = true;
   window.__tchiloProductCopyV1 = true;
 
   function setMeta() {
@@ -25,42 +26,53 @@
       ensure('property', 'og:description', 'Partilha fotos, vídeos, stories e mensagens no Tchilo.');
       ensure('property', 'og:site_name', 'Tchilo');
       ensure('property', 'og:url', 'https://tchilopop.com/');
-      ensure('name', 'twitter:title', 'Tchilo');
-      ensure('name', 'twitter:description', 'Rede social para fotos, vídeos, stories, reels e mensagens.');
+    } catch (e) {}
+  }
+
+  function replaceBadText(root) {
+    if (!root) return;
+    try {
+      var walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      var nodes = [];
+      while (walk.nextNode()) nodes.push(walk.currentNode);
+      nodes.forEach(function (n) {
+        var t = n.nodeValue;
+        if (!t) return;
+        if (!/protótipo|prototipo|demonstração|demonstracao|localStorage/i.test(t)) return;
+        var next = t
+          .replace(/Protótipo web com feed, stories, reels, mensagens, explorar e definições completas\.?/gi,
+            'Tchilo é a rede social com feed, stories, reels, mensagens, explorar e definições de conta.')
+          .replace(/Nesta versão de demonstração, os dados ficam guardados localmente no teu dispositivo \(localStorage\)\.?/gi,
+            'Os dados de conta e o conteúdo são guardados nos nossos serviços na nuvem, para sincronizar entre dispositivos.')
+          .replace(/versão de demonstração/gi, 'serviço')
+          .replace(/\(localStorage\)/gi, '')
+          .replace(/localStorage/gi, 'armazenamento do dispositivo')
+          .replace(/protótipo/gi, 'produto')
+          .replace(/Protótipo/g, 'Tchilo');
+        if (next !== t) n.nodeValue = next;
+      });
     } catch (e) {}
   }
 
   function fixLegalBodies() {
     try {
-      document.querySelectorAll('.legal-body, #screen-about .legal-body, [id*="about"] .legal-body').forEach(function (el) {
+      document.querySelectorAll('.legal-body').forEach(function (el) {
         var h = el.innerHTML || '';
-        if (h.indexOf('Protótipo') >= 0 || h.indexOf('protótipo') >= 0 || h.indexOf('demonstração') >= 0) {
-          el.innerHTML =
-            '<h3>Tchilo</h3>' +
-            '<p>Rede social para partilhar fotos, vídeos, stories, reels e mensagens.</p>' +
-            '<p>As contas e o conteúdo são guardados na nuvem, para poderes usar a mesma conta noutro dispositivo.</p>' +
-            '<h3>Funcionalidades</h3>' +
-            '<p>Feed, stories, reels, mensagens, perfil, privacidade e Tchilo Premium.</p>' +
-            '<h3>Contacto</h3>' +
-            '<p>suporte@tchilopop.com · parcerias@tchilopop.com · privacidade@tchilopop.com</p>';
-        }
-      });
-    } catch (e) {}
-
-    try {
-      document.querySelectorAll('p, .legal-body p, #screen-privacy p').forEach(function (p) {
-        var t = p.textContent || '';
-        if (/versão de demonstração|localStorage|Protótipo web/i.test(t)) {
-          if (/localStorage|demonstração/i.test(t)) {
-            p.textContent =
-              'Recolhemos dados de conta (como nome de utilizador e email) e o conteúdo que publicas (posts, comentários, mensagens). Os dados de conta e conteúdo são guardados nos nossos serviços na nuvem para sincronizar entre dispositivos.';
-          } else if (/Protótipo/i.test(t)) {
-            p.textContent =
-              'Tchilo é a rede social com feed, stories, reels, mensagens, explorar e definições de conta.';
+        if (/Protótipo|protótipo|demonstração|localStorage/i.test(h)) {
+          if (/App social|Sobre/i.test(h) || el.closest('#screen-about')) {
+            el.innerHTML =
+              '<h3>Tchilo</h3>' +
+              '<p>Rede social para partilhar fotos, vídeos, stories, reels e mensagens.</p>' +
+              '<p>As contas e o conteúdo são guardados na nuvem, para poderes usar a mesma conta noutro dispositivo.</p>' +
+              '<h3>Contacto</h3>' +
+              '<p>suporte@tchilopop.com · privacidade@tchilopop.com</p>';
+          } else {
+            replaceBadText(el);
           }
         }
       });
-    } catch (e2) {}
+    } catch (e) {}
+    replaceBadText(document.body);
   }
 
   function boot() {
@@ -69,16 +81,16 @@
   }
 
   boot();
-  setTimeout(boot, 500);
-  setTimeout(boot, 2000);
+  setTimeout(boot, 400);
+  setTimeout(boot, 1500);
 
-  if (typeof window.goTo === 'function' && !window.goTo.__productCopy) {
+  if (typeof window.goTo === 'function' && !window.goTo.__productCopyV2) {
     var g = window.goTo;
     window.goTo = function (name) {
       var r = g.apply(this, arguments);
-      setTimeout(fixLegalBodies, 50);
+      setTimeout(fixLegalBodies, 40);
       return r;
     };
-    window.goTo.__productCopy = true;
+    window.goTo.__productCopyV2 = true;
   }
 })();

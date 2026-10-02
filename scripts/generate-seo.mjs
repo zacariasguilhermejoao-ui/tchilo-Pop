@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Tchilo — SEO public pages generator
- * Generates crawlable profile/post HTML pages and sitemap.xml from Supabase.
+ * Gera páginas para bots (Google) mas HUMANOS são redirecionados imediatamente para a app.
  * Required env: SUPABASE_URL, SUPABASE_ANON_KEY
  */
 import { mkdir, rm, writeFile } from 'node:fs/promises';
@@ -65,8 +65,14 @@ function page({title, description, canonical, image, body, schema, noindex=false
     '<meta name="twitter:card" content="' + (image ? 'summary_large_image' : 'summary') + '"><meta name="twitter:title" content="' + esc(title) + '">' +
     '<meta name="twitter:description" content="' + esc(description) + '">' +
     '<script type="application/ld+json">' + json(schema) + '</script>' +
-    '<style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:0;background:#0b0b0c;color:#fff}main{max-width:760px;margin:0 auto;padding:32px 20px}a{color:#7dd3fc;text-decoration:none}.card{background:#151518;border:1px solid #29292e;border-radius:18px;padding:22px;margin-top:20px}.avatar{width:88px;height:88px;border-radius:50%;object-fit:cover}.media{max-width:100%;max-height:620px;border-radius:14px;display:block;margin-top:18px}h1{font-size:28px;margin:14px 0 6px}p{line-height:1.55;white-space:pre-wrap}.muted{color:#a1a1aa}</style></head><body><main>' +
-    '<a href="' + base + '/">Abrir Tchilo</a>' + body + '</main></body></html>';
+    '<style>html,body{margin:0;height:100%;background:#0B0B0C}</style>' +
+    '<script>(function(){var ua=navigator.userAgent||"";' +
+    'if(/bot|googlebot|bingbot|crawler|spider|slurp|facebookexternalhit|twitterbot|linkedinbot|embedly|quora|pinterest|redditbot|applebot|semrush|ahrefs|duckduckbot|yandex|baiduspider/i.test(ua))return;' +
+    'try{sessionStorage.setItem("tchilo_spa_path",location.pathname+location.search+location.hash);}catch(e){}' +
+    'location.replace("' + base + '/"+(location.search||"")+(location.hash||""));})();</script>' +
+    '</head><body>' +
+    '<!-- conteúdo só para bots de pesquisa -->' +
+    '<main style="display:none">' + body + '</main></body></html>';
 }
 
 for (const p of publicProfiles) {

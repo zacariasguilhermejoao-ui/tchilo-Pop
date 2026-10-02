@@ -7,7 +7,8 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('product-copy') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
+        if (name.indexOf('legal-links') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
+        else if (name.indexOf('product-copy') >= 0 && cur.indexOf('v=2') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -24,6 +25,7 @@
   }
   function load() {
     add('native/tchilo-product-copy.js?v=2');
+    add('native/tchilo-legal-links.js?v=1');
     add('native/tchilo-session-lock.js?v=1');
     add('native/tchilo-public-profile-bridge.js?v=1');
     add('native/tchilo-site-url-fix.js?v=1');

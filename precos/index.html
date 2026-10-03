@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0B0B0C"/>
+<title>Preços · Tchilo Premium</title>
+<meta name="description" content="Preços do Tchilo Premium e produtos digitais em tchilopop.com. Subscrição processada pelo Paddle."/>
+<meta name="robots" content="index,follow"/>
+<link rel="canonical" href="https://tchilopop.com/precos/"/>
+<meta property="og:title" content="Preços · Tchilo Premium"/>
+<meta property="og:description" content="Tchilo Premium e produtos digitais — preços claros."/>
+<meta property="og:url" content="https://tchilopop.com/precos/"/>
+<link rel="stylesheet" href="../legal.css?v=7"/>
+<style>
+  .price-card {
+    border: 2.5px solid #0B0B0C;
+    border-radius: 18px;
+    padding: 22px 20px;
+    margin: 20px 0;
+    background: #fff;
+    box-shadow: 4px 4px 0 #0B0B0C;
+  }
+  .price-card h2 { margin: 0 0 8px; font-size: 1.35rem; }
+  .price-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 8px 0 4px;
+  }
+  .price-amount span { font-size: 1rem; font-weight: 500; color: #6B6B70; }
+  .price-card ul { margin: 14px 0 0; padding-left: 1.15em; }
+  .price-card li { margin: 6px 0; }
+  .note { color: #6B6B70; font-size: 0.95rem; }
+  .cta {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 12px 18px;
+    border: 2.5px solid #0B0B0C;
+    border-radius: 14px;
+    background: #C8F560;
+    color: #0B0B0C;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 3px 3px 0 #0B0B0C;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar"><button type="button" class="back-btn" id="tchilo-back" aria-label="Voltar">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M15 4L7 12l8 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+<script>
+(function(){
+  var b=document.getElementById('tchilo-back');
+  if(!b)return;
+  b.addEventListener('click',function(e){
+    e.preventDefault();
+    var start=location.href;
+    var ref=document.referrer||'';
+    var same=ref && ref.indexOf(location.host)!==-1;
+    if(same || (window.history && window.history.length>1)){
+      window.history.back();
+      setTimeout(function(){ if(location.href===start) location.href='/'; },250);
+    } else location.href='/';
+  });
+})();
+</script>
+<div class="brand" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 176 56" width="176" height="56" role="img" aria-label="Tchilo">
+  <circle cx="28" cy="28" r="24" fill="#18E8B0"/>
+  <circle cx="88" cy="28" r="24" fill="#F800A0"/>
+  <circle cx="148" cy="28" r="24" fill="#7800F8"/>
+</svg></div></div>
+
+<h1>Preços</h1>
+<p>Produtos digitais do <strong>Tchilo</strong> (tchilopop.com e aplicações móveis). Os pagamentos são processados pelo <strong>Paddle</strong>, que atua como Merchant of Record.</p>
+
+<div class="price-card">
+  <h2>Tchilo Premium</h2>
+  <p class="note">Subscrição digital — temas e funcionalidades extra na conta</p>
+  <div class="price-amount">3 USD <span>/ mês</span></div>
+  <ul>
+    <li>Acesso a temas e opções Premium na app</li>
+    <li>Funcionalidades extra da conta Premium</li>
+    <li>Ativação após confirmação do pagamento</li>
+  </ul>
+  <p class="note" style="margin-top:12px">Podes cancelar a renovação a qualquer momento. Ver <a href="/reembolso/">política de reembolso</a>.</p>
+  <a class="cta" href="https://tchilopop.com">Abrir o Tchilo</a>
+</div>
+
+<div class="price-card">
+  <h2>Promoção de conteúdo (anúncios)</h2>
+  <p class="note">Pagamento por dias de alcance — preço conforme o número de dias escolhido no Gestor de Anúncios</p>
+  <ul>
+    <li>Promoção de publicações ou perfil</li>
+    <li>Duração e alcance definidos no momento da compra</li>
+    <li>Preço final mostrado antes de confirmares o pagamento no checkout Paddle</li>
+  </ul>
+</div>
+
+<div class="price-card">
+  <h2>Selo verificado</h2>
+  <p class="note">Produto digital opcional — preço e disponibilidade mostrados na app no momento da compra</p>
+</div>
+
+<h3>Como comprar</h3>
+<p>As compras são feitas dentro da app ou no site <a href="https://tchilopop.com">tchilopop.com</a>, através do checkout seguro do Paddle. Antes de pagar, vês o valor, o produto e as condições aplicáveis.</p>
+
+<h3>Documentos</h3>
+<ul>
+  <li><a href="/termos/">Termos de uso</a></li>
+  <li><a href="/reembolso/">Política de reembolso</a></li>
+  <li><a href="/privacidade/">Política de privacidade</a></li>
+  <li>Suporte: <a href="mailto:suporte@tchilopop.com">suporte@tchilopop.com</a></li>
+</ul>
+
+<p class="meta">Última atualização: outubro 2026 · Tchilo · tchilopop.com</p>
+<div class="footer">© Tchilo · VENDOZA - COMÉRCIO GERAL E PRESTAÇÃO DE SERVIÇOS, LDA</div>
+</div>
+</body>
+</html>

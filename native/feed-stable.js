@@ -7,7 +7,7 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('settings-icons') >= 0 && cur.indexOf('v=4') < 0) existing.remove();
+        if (name.indexOf('settings-icons') >= 0 && cur.indexOf('v=5') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -23,7 +23,7 @@
     } catch (e) {}
   }
   function load() {
-    add('native/tchilo-settings-icons.js?v=4');
+    add('native/tchilo-settings-icons.js?v=5');
     add('native/tchilo-product-copy.js?v=2');
     add('native/tchilo-legal-links.js?v=1');
     add('native/tchilo-session-lock.js?v=1');

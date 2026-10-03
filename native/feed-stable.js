@@ -1,4 +1,4 @@
-/** tchilo-Pop loaders v12 — full + settings icons */
+/** tchilo-Pop loaders v12 — full modules + safe settings icons */
 (function () {
   'use strict';
   function add(src) {
@@ -7,7 +7,7 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('settings-icons') >= 0 && cur.indexOf('v=11') < 0) existing.remove();
+        if (name.indexOf('settings-icons') >= 0 && cur.indexOf('v=12') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -23,7 +23,7 @@
     } catch (e) {}
   }
   function load() {
-    add('native/tchilo-settings-icons.js?v=11');
+    add('native/tchilo-settings-icons.js?v=12');
     add('native/tchilo-product-copy.js?v=2');
     add('native/tchilo-legal-links.js?v=1');
     add('native/tchilo-session-lock.js?v=1');

@@ -1,4 +1,4 @@
-/** tchilo-Pop loaders v11 */
+/** tchilo-Pop loaders v12 — full + settings icons */
 (function () {
   'use strict';
   function add(src) {
@@ -7,7 +7,7 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('tchilo-settings-icons') >= 0 && cur.indexOf('v=11') < 0) existing.remove();
+        if (name.indexOf('settings-icons') >= 0 && cur.indexOf('v=11') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -23,14 +23,33 @@
     } catch (e) {}
   }
   function load() {
+    add('native/tchilo-settings-icons.js?v=11');
+    add('native/tchilo-product-copy.js?v=2');
+    add('native/tchilo-legal-links.js?v=1');
+    add('native/tchilo-session-lock.js?v=1');
+    add('native/tchilo-public-profile-bridge.js?v=1');
     add('native/tchilo-site-url-fix.js?v=1');
+    add('native/tchilo-no-busy-select.js?v=1');
+    add('native/tchilo-ui-stable.js?v=1');
+    add('native/tchilo-hide-nav.js?v=3');
+    add('native/tchilo-chat-composer.js?v=1');
     add('native/tchilo-password-reset.js?v=6');
     add('native/tchilo-router.js?v=3');
     add('native/tchilo-public-urls.js?v=1');
     add('native/tchilo-og-meta.js?v=1');
+    add('native/tchilo-avatar-cloud.js?v=4');
+    add('native/tchilo-avatar-viewer.js?v=1');
+    add('native/tchilo-premium.js?v=1');
+    add('native/paddle-premium.js?v=1');
+    add('native/paddle-ad-guard.js?v=1');
+    add('native/tchilo-theme-premium-gate.js?v=1');
+    add('native/tchilo-verified.js?v=2');
+    add('native/tchilo-reels-open-fix.js?v=6');
+    add('native/tchilo-feed-video-ui.js?v=1');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=1');
     add('native/tchilo-music-sheet.js?v=1');
+    add('native/tchilo-music-feed-fix.js?v=3');
     add('native/tchilo-publish-fix.js?v=5');
     add('native/tchilo-video-pick.js?v=6');
     add('native/tchilo-deeplink.js?v=2');
@@ -43,7 +62,6 @@
     add('native/tchilo-cloud-force.js?v=1');
     add('native/tchilo-name-sync.js?v=1');
     add('native/tchilo-cloud-hydrate.js?v=3');
-    add('native/tchilo-hide-nav.js?v=2');
     add('native/tchilo-feed-to-reels.js?v=2');
     add('native/tchilo-reels-icon.js?v=2');
     add('native/tchilo-share-target.js?v=1');
@@ -51,7 +69,6 @@
     add('native/tchilo-ui-icons-fix.js?v=3');
     add('native/reels-follow-fix.js?v=2');
     add('native/tchilo-profile-avatar-plus.js?v=1');
-    add('native/tchilo-settings-icons.js?v=11');
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
   else load();

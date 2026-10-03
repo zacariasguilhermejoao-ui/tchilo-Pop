@@ -1,4 +1,4 @@
-/** tchilo-Pop loaders v10 */
+/** tchilo-Pop loaders v11 */
 (function () {
   'use strict';
   function add(src) {
@@ -7,10 +7,7 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('profile-share') >= 0 && cur.indexOf('v=10') < 0) existing.remove();
-        else if (name.indexOf('router') >= 0 && cur.indexOf('v=3') < 0) existing.remove();
-        else if (name.indexOf('public-urls') >= 0 && cur.indexOf('v=1') < 0) existing.remove();
-        else if (name.indexOf('tchilo-settings-icons') >= 0 && cur.indexOf('v=10') < 0) existing.remove();
+        if (name.indexOf('tchilo-settings-icons') >= 0 && cur.indexOf('v=11') < 0) existing.remove();
         else if (cur === src) return;
         else if (cur.split('?')[0].split('/').pop() === name) {
           var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
@@ -54,7 +51,7 @@
     add('native/tchilo-ui-icons-fix.js?v=3');
     add('native/reels-follow-fix.js?v=2');
     add('native/tchilo-profile-avatar-plus.js?v=1');
-    add('native/tchilo-settings-icons.js?v=10');
+    add('native/tchilo-settings-icons.js?v=11');
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
   else load();

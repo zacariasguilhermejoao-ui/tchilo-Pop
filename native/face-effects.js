@@ -25,6 +25,17 @@
   else boot();
 })();
 
+/* Bloquear seleção / zoom indesejados */
+;(function () {
+  try {
+    if (document.querySelector('script[data-tchilo-touch-lock]')) return;
+    var s = document.createElement('script');
+    s.src = 'native/tchilo-touch-lock.js?v=1';
+    s.setAttribute('data-tchilo-touch-lock', '1');
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) {}
+})();
+
 /* Idioma automático do telefone */
 ;(function () {
   try {

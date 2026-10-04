@@ -25,6 +25,17 @@
   else boot();
 })();
 
+/* Ícone custom do Feed */
+;(function () {
+  try {
+    if (document.querySelector('script[data-tchilo-feed-icon]')) return;
+    var s = document.createElement('script');
+    s.src = 'native/tchilo-feed-icon.js?v=1';
+    s.setAttribute('data-tchilo-feed-icon', '1');
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) {}
+})();
+
 /* Bloquear seleção / zoom indesejados */
 ;(function () {
   try {

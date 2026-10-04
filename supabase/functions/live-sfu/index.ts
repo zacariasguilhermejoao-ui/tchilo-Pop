@@ -1,5 +1,5 @@
 // Supabase Edge Function: live-sfu
-// Proxy autenticado para Cloudflare Realtime SFU (broadcast 1→muitos)
+// Proxy autenticado para Cloudflare Realtime SFU + Calls 1-1
 // Secrets: CF_SFU_APP_ID, CF_SFU_APP_SECRET
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -55,7 +55,6 @@ async function sfuFetch(
   return data;
 }
 
-/** Notifica seguidores: insere em notifications + tenta send-push */
 async function notifyFollowers(
   sbAdmin: any,
   hostUserId: string,
@@ -90,7 +89,6 @@ async function notifyFollowers(
       created_at: new Date().toISOString(),
     }));
 
-    // inserir notificações em lotes
     for (let i = 0; i < rows.length; i += 50) {
       const batch = rows.slice(i, i + 50);
       try {
@@ -100,7 +98,6 @@ async function notifyFollowers(
       }
     }
 
-    // Push (best-effort) via function send-push já existente
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const serviceKey =
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
@@ -130,9 +127,7 @@ async function notifyFollowers(
               actor_name: who,
             }),
           });
-        } catch (e) {
-          /* ignore individual push failures */
-        }
+        } catch (e) {}
       }
     }
 
@@ -315,7 +310,6 @@ serve(async (req) => {
         return json({ error: insErr.message }, 500);
       }
 
-      // Notificar seguidores (não bloqueia a resposta)
       const notif = await notifyFollowers(
         sbAdmin,
         user.id,
@@ -379,10 +373,189 @@ serve(async (req) => {
       return json({ ok: true });
     }
 
+    // ---------- CALLS 1-1 ----------
+    if (action === "start_call") {
+      const calleeUsername = String(
+        body.callee_username || body.calleeUsername || ""
+      ).slice(0, 64);
+      const callerUsername = String(
+        body.caller_username || body.callerUsername || ""
+      ).slice(0, 64);
+      const callType =
+        String(body.call_type || body.callType || "video") === "audio"
+          ? "audio"
+          : "video";
+      const callerSessionId = String(
+        body.caller_session_id || body.callerSessionId || ""
+      );
+
+      if (!calleeUsername || !callerSessionId) {
+        return json(
+          { error: "callee_username and caller_session_id required" },
+          400
+        );
+      }
+
+      const sbAdmin = createClient(supabaseUrl, serviceKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+
+      const { data: calleeProf } = await sbAdmin
+        .from("profiles")
+        .select("id, username")
+        .ilike("username", calleeUsername)
+        .maybeSingle();
+
+      if (!calleeProf?.id) {
+        return json({ error: "Utilizador não encontrado" }, 404);
+      }
+
+      await sbAdmin
+        .from("calls")
+        .update({
+          status: "ended",
+          ended_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("caller_id", user.id)
+        .in("status", ["ringing", "active"]);
+
+      const { data: row, error: insErr } = await sbAdmin
+        .from("calls")
+        .insert({
+          caller_id: user.id,
+          callee_id: calleeProf.id,
+          caller_username: callerUsername || "user",
+          callee_username: calleeProf.username || calleeUsername,
+          call_type: callType,
+          status: "ringing",
+          caller_session_id: callerSessionId,
+        })
+        .select("*")
+        .single();
+
+      if (insErr) return json({ error: insErr.message }, 500);
+
+      try {
+        const msg = `${callerUsername || "Alguém"} está a ligar-te`;
+        await sbAdmin.from("notifications").insert({
+          user_id: calleeProf.id,
+          type: "call",
+          message: msg,
+          content: msg,
+          created_at: new Date().toISOString(),
+        });
+        await fetch(`${supabaseUrl}/functions/v1/send-push`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${serviceKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "custom",
+            recipient_user_id: calleeProf.id,
+            title: "Chamada Tchilo",
+            body: msg,
+            data: { type: "call", call_id: row.id },
+            actor_username: callerUsername,
+          }),
+        });
+      } catch (e) {
+        console.warn("call notify", e);
+      }
+
+      return json({ ok: true, call: row });
+    }
+
+    if (action === "accept_call") {
+      const callId = body.call_id || body.callId;
+      const calleeSessionId = String(
+        body.callee_session_id || body.calleeSessionId || ""
+      );
+      if (!callId || !calleeSessionId) {
+        return json(
+          { error: "call_id and callee_session_id required" },
+          400
+        );
+      }
+
+      const sbAdmin = createClient(supabaseUrl, serviceKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+
+      const { data: call } = await sbAdmin
+        .from("calls")
+        .select("*")
+        .eq("id", callId)
+        .eq("callee_id", user.id)
+        .eq("status", "ringing")
+        .maybeSingle();
+
+      if (!call) return json({ error: "Chamada não encontrada" }, 404);
+
+      const { data: updated, error } = await sbAdmin
+        .from("calls")
+        .update({
+          status: "active",
+          callee_session_id: calleeSessionId,
+          answered_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", callId)
+        .select("*")
+        .single();
+
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true, call: updated });
+    }
+
+    if (action === "decline_call") {
+      const callId = body.call_id || body.callId;
+      if (!callId) return json({ error: "call_id required" }, 400);
+
+      const sbAdmin = createClient(supabaseUrl, serviceKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+
+      await sbAdmin
+        .from("calls")
+        .update({
+          status: "declined",
+          ended_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", callId)
+        .eq("callee_id", user.id)
+        .eq("status", "ringing");
+
+      return json({ ok: true });
+    }
+
+    if (action === "end_call") {
+      const callId = body.call_id || body.callId;
+      if (!callId) return json({ error: "call_id required" }, 400);
+
+      const sbAdmin = createClient(supabaseUrl, serviceKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+
+      await sbAdmin
+        .from("calls")
+        .update({
+          status: "ended",
+          ended_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", callId)
+        .or(`caller_id.eq.${user.id},callee_id.eq.${user.id}`);
+
+      return json({ ok: true });
+    }
+
     return json(
       {
         error:
-          "Unknown action. Use: create_session, publish, subscribe, renegotiate, close_tracks, start_live, end_live",
+          "Unknown action. Use: create_session, publish, subscribe, renegotiate, close_tracks, start_live, end_live, start_call, accept_call, decline_call, end_call",
       },
       400
     );

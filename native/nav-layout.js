@@ -116,12 +116,15 @@
   }
 
   function applyFeedFee() {
+    // O Feed usa apenas o ícone oficial da barra inferior.
+    // Não injetar o texto "Fee" e remover qualquer instância antiga.
     var feedBtn =
       document.querySelector('.navbar .nav-item[data-screen="feed"]') ||
       document.querySelector('.navbar .nav-item[onclick*="onNavFeed"]');
     if (!feedBtn) return;
-    if (feedBtn.querySelector('.nav-fee')) return;
-    setNavIcon(feedBtn, ICON_FEE);
+    feedBtn.querySelectorAll('.nav-fee').forEach(function (n) {
+      try { n.remove(); } catch (e) {}
+    });
     feedBtn.setAttribute('aria-label', 'Feed');
   }
 

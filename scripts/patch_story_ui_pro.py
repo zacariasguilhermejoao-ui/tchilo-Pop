@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Load story-ui-pro.js + harden story media CSS in index.html"""
+"""Load story-ui-pro.js only. CSS hide rules live in patch_story_remove_dup_css.py"""
 from pathlib import Path
 import re
 
@@ -10,7 +10,7 @@ changed = False
 if "story-ui-pro.js" not in html:
     html2, n = re.subn(
         r'(<script src="native/copy-ux-refresh\.js[^"]*"></script>)',
-        r'\1\n<script src="native/story-ui-pro.js?v=1"></script>',
+        r'\1\n<script src="native/story-ui-pro.js?v=2"></script>',
         html,
         count=1,
     )
@@ -21,7 +21,7 @@ if "story-ui-pro.js" not in html:
     else:
         html2, n = re.subn(
             r'(<script src="native/story-music\.js[^"]*"></script>)',
-            r'\1\n<script src="native/story-ui-pro.js?v=1"></script>',
+            r'\1\n<script src="native/story-ui-pro.js?v=2"></script>',
             html,
             count=1,
         )
@@ -32,30 +32,19 @@ if "story-ui-pro.js" not in html:
         elif "</body>" in html:
             html = html.replace(
                 "</body>",
-                '<script src="native/story-ui-pro.js?v=1"></script>\n</body>',
+                '<script src="native/story-ui-pro.js?v=2"></script>\n</body>',
                 1,
             )
             changed = True
             print("script before body")
-
-# Inline CSS reinforce full-bleed (no FOUC)
-marker = "/* tchilo-story-ui-pro-inline */"
-if marker not in html:
-    css = (
-        "<style id=\"tchilo-story-ui-pro-inline\">"
-        + marker
-        + "#storyViewer.story-viewer{position:fixed!important;inset:0!important;z-index:200;background:#000;}"
-        + "#storyViewer .story-viewer-body{position:absolute!important;inset:0!important;padding:0!important;}"
-        + "#storyViewer .story-viewer-body .story-media,"
-        + "#storyViewer .story-viewer-body.has-media .story-media{"
-        + "position:absolute!important;inset:0!important;width:100%!important;height:100%!important;"
-        + "object-fit:cover!important;border-radius:0!important;}"
-        + "</style>"
-    )
-    if "</head>" in html:
-        html = html.replace("</head>", css + "\n</head>", 1)
+else:
+    # ensure cache bust v2+
+    if "story-ui-pro.js?v=1" in html:
+        html = html.replace("story-ui-pro.js?v=1", "story-ui-pro.js?v=2")
         changed = True
-        print("inline css")
+        print("bump to v2")
+
+# DO NOT inject inline CSS here (causes duplicates / covering the feed)
 
 if changed:
     p.write_text(html, encoding="utf-8")

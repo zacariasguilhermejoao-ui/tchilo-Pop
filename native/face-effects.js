@@ -30,7 +30,7 @@
   try {
     if (document.querySelector('script[data-tchilo-feed-icon]')) return;
     var s = document.createElement('script');
-    s.src = 'native/tchilo-feed-icon.js?v=1';
+    s.src = 'native/tchilo-feed-icon.js?v=2';
     s.setAttribute('data-tchilo-feed-icon', '1');
     (document.head || document.documentElement).appendChild(s);
   } catch (e) {}
@@ -88,7 +88,7 @@
   try {
     if (document.querySelector('script[data-tchilo-chat-ux]')) return;
     var s = document.createElement('script');
-    s.src = 'native/tchilo-chat-ux.js?v=1';
+    s.src = 'native/tchilo-chat-ux.js?v=2';
     s.setAttribute('data-tchilo-chat-ux', '1');
     s.defer = true;
     (document.head || document.documentElement).appendChild(s);

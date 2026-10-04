@@ -1,13 +1,14 @@
 /**
  * Tchilo — Story viewer UI (nível Instagram)
- * - Media a ecrã inteiro (cover)
+ * v2 — closed state NUNCA cobre a app
+ * - Media a ecrã inteiro (cover) só com .open
  * - Música: chip fino no topo
  * - Reply bar + coração profissional
- * - Enviar reply como mensagem ao autor
  */
 (function () {
   'use strict';
-  if (window.__tchiloStoryUiPro) return;
+  if (window.__tchiloStoryUiProV2) return;
+  window.__tchiloStoryUiProV2 = true;
   window.__tchiloStoryUiPro = true;
 
   var HEART_OUT =
@@ -21,12 +22,17 @@
     var st = document.createElement('style');
     st.id = 'tchiloStoryUiProCSS';
     st.textContent = [
-      /* Full-bleed stage */
+      /* CRITICAL: never cover the app when closed */',
       '#storyViewer.story-viewer{',
-      '  position:fixed!important;inset:0!important;z-index:200!important;',
-      '  background:#000!important;display:none;flex-direction:column;',
+      '  position:fixed!important;inset:0!important;',
+      '  background:#000!important;flex-direction:column;',
+      '  display:none!important;visibility:hidden!important;pointer-events:none!important;',
+      '  z-index:-1!important;opacity:0!important;',
       '}',
-      '#storyViewer.story-viewer.open{display:flex!important;}',
+      '#storyViewer.story-viewer.open{',
+      '  display:flex!important;visibility:visible!important;pointer-events:auto!important;',
+      '  z-index:200!important;opacity:1!important;',
+      '}',
       '#storyViewer .story-viewer-progress{',
       '  position:absolute;left:10px;right:10px;top:calc(8px + env(safe-area-inset-top));',
       '  z-index:20;display:flex;gap:3px;height:2.5px;margin:0!important;',
@@ -52,7 +58,6 @@
       '#storyViewer .story-viewer-close,#storyViewer .story-viewer-more{',
       '  color:#fff!important;text-shadow:0 1px 3px rgba(0,0,0,.4);',
       '}',
-      /* Media full screen */
       '#storyViewer .story-viewer-body{',
       '  position:absolute!important;inset:0!important;padding:0!important;',
       '  margin:0!important;width:100%!important;height:100%!important;',
@@ -79,7 +84,6 @@
       '  line-height:1.35;color:#fff!important;',
       '  text-shadow:0 1px 8px rgba(0,0,0,.55);',
       '}',
-      /* Music chip — thin, top */
       '#storyMusicChip{',
       '  display:none;align-items:center;gap:6px;',
       '  position:absolute;left:14px;right:14px;',
@@ -98,7 +102,6 @@
       '  text-shadow:0 1px 4px rgba(0,0,0,.5);',
       '  line-height:1.2;',
       '}',
-      /* Bottom reply bar */
       '#storyReplyBar{',
       '  position:absolute;left:0;right:0;bottom:0;z-index:25;',
       '  display:flex;align-items:center;gap:10px;',
@@ -140,7 +143,6 @@
       '  color:#FF3B5C!important;',
       '}',
       '#storyLikeBtn.story-viewer-like.liked svg{fill:#FF3B5C!important;stroke:#FF3B5C!important;}',
-      /* Hit zones above chrome */
       '#storyViewer .story-hit-left,#storyViewer .story-hit-right{z-index:4;}'
     ].join('');
     document.head.appendChild(st);
@@ -168,7 +170,6 @@
         '<button type="button" id="storyReplySend" aria-label="Enviar">Enviar</button>';
       viewer.appendChild(bar);
 
-      // Move like button into bar (professional placement)
       var like = document.getElementById('storyLikeBtn');
       if (like && like.parentNode !== bar) {
         bar.appendChild(like);
@@ -195,11 +196,12 @@
           }
         });
       }
-      if (send) send.onclick = function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        sendStoryReply();
-      };
+      if (send)
+        send.onclick = function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          sendStoryReply();
+        };
     } else {
       var like2 = document.getElementById('storyLikeBtn');
       var bar2 = document.getElementById('storyReplyBar');
@@ -241,7 +243,6 @@
       txt.textContent = '';
       return;
     }
-    // Short & thin: title only, or title · artist if short
     var line = m.title;
     if (m.artist && (m.title + m.artist).length < 36) {
       line = m.title + ' · ' + m.artist;
@@ -273,7 +274,6 @@
       return;
     }
 
-    // Persist chat message (compatible with existing local + cloud patterns)
     try {
       var key = 'tchilo_chat_' + String(s.name).toLowerCase();
       var list = [];
@@ -300,7 +300,6 @@
 
     if (typeof showToast === 'function') showToast('Mensagem enviada');
 
-    // Open chat with author (optional soft handoff)
     try {
       if (typeof closeStory === 'function') closeStory();
       setTimeout(function () {
@@ -315,7 +314,6 @@
     var orig = window.toggleStoryLike;
     window.toggleStoryLike = function () {
       var r = orig.apply(this, arguments);
-      // Force professional red (no random pastel)
       var btn = document.getElementById('storyLikeBtn');
       if (btn) {
         btn.style.removeProperty('--story-like-color');
@@ -339,7 +337,6 @@
           window.activeStoryItems[window.activeStoryIndex];
         updateMusicChip(s);
       } catch (e) {}
-      // Ensure media full bleed after render inserts nodes
       try {
         var body = document.getElementById('storyViewerBody');
         if (body) {
@@ -357,16 +354,52 @@
     window.renderActiveStory.__pro = true;
   }
 
+  function patchCloseStory() {
+    if (typeof window.closeStory !== 'function' || window.closeStory.__proHide) return;
+    var orig = window.closeStory;
+    window.closeStory = function () {
+      var r = orig.apply(this, arguments);
+      try {
+        var v = document.getElementById('storyViewer');
+        if (v) {
+          v.classList.remove('open');
+          v.style.display = 'none';
+          v.style.visibility = 'hidden';
+          v.style.pointerEvents = 'none';
+          v.style.zIndex = '-1';
+          v.style.opacity = '0';
+        }
+      } catch (e) {}
+      return r;
+    };
+    window.closeStory.__proHide = true;
+  }
+
+  function forceHideIfClosed() {
+    try {
+      var v = document.getElementById('storyViewer');
+      if (v && !v.classList.contains('open')) {
+        v.style.display = 'none';
+        v.style.visibility = 'hidden';
+        v.style.pointerEvents = 'none';
+        v.style.zIndex = '-1';
+        v.style.opacity = '0';
+      }
+    } catch (e) {}
+  }
+
   function boot() {
     injectCSS();
     ensureChrome();
     paintHeart();
     patchToggleLike();
     patchRenderActiveStory();
+    patchCloseStory();
+    forceHideIfClosed();
   }
 
   boot();
-  [200, 800, 2000].forEach(function (ms) {
+  [100, 400, 1200].forEach(function (ms) {
     setTimeout(boot, ms);
   });
 })();

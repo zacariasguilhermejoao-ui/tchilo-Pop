@@ -2281,7 +2281,7 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
     </div>
     <div class="search-box">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
-      <input type="text" id="searchInput" placeholder="Procurar pessoas, tags ou posts…" oninput="onExploreInput(this.value)">
+      <input type="text" id="searchInput" placeholder="Pesquisar" oninput="onExploreInput(this.value)">
     </div>
     <div class="notif-tabs" style="border-bottom:2px solid #e8e6de;flex-shrink:0">
       <button type="button" class="notif-tab active" id="tabExplore" onclick="showExploreTab('explore')" data-i18n="Para ti">Para ti</button>
@@ -2372,9 +2372,9 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
         <div class="color-pick" style="background:#17171A" data-color="m11" onclick="pickColor(this,'m11')"></div>
         <div class="color-pick" style="background:#D8C3A5" data-color="m12" onclick="pickColor(this,'m12')"></div>
       </div>
-      <input class="create-input" id="createTitle" type="text" placeholder="Texto grande (ex: EPIC NIGHT)" maxlength="24" oninput="updateStamp()">
+      <input class="create-input" id="createTitle" type="text" placeholder="Título (opcional)" maxlength="24" oninput="updateStamp()">
       </div>
-      <textarea class="create-input" id="createCaption" rows="3" placeholder="Escreve a legenda… usa #hashtags"></textarea>
+      <textarea class="create-input" id="createCaption" rows="3" placeholder="Escreve uma legenda…"></textarea>
       <button class="publish-btn" onclick="publishPost()">Publicar</button>
     </div>
   </div>
@@ -2394,8 +2394,8 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
     <div style="padding:18px">
       <div id="storyThemePreview" class="create-preview m1"><div class="stamp" id="storyThemeStamp">NOVO<br>STORY</div></div>
       <div class="color-picks" id="storyThemeColors" style="flex-wrap:wrap"></div>
-      <input class="create-input" id="storyThemeTitle" type="text" placeholder="Texto grande (ex: BOA VIBE)" maxlength="24" oninput="updateStoryThemePreview()">
-      <textarea class="create-input" id="storyThemeText" rows="3" placeholder="Escreve algo para o teu Story…"></textarea>
+      <input class="create-input" id="storyThemeTitle" type="text" placeholder="Título (opcional)" maxlength="24" oninput="updateStoryThemePreview()">
+      <textarea class="create-input" id="storyThemeText" rows="3" placeholder="O que queres partilhar?"></textarea>
       <button class="publish-btn" onclick="publishThemedStory()">Publicar Story</button>
     </div>
   </div>
@@ -2480,13 +2480,13 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
       <label>Nome de utilizador</label>
       <input id="editUsername" type="text" maxlength="20" autocomplete="username">
       <label>Nome de apresentação</label>
-      <input id="editDisplayName" type="text" maxlength="40" placeholder="Como apareces no perfil">
+      <input id="editDisplayName" type="text" maxlength="40" placeholder="Nome de apresentação">
       <label>Bio</label>
-      <textarea id="editBio" maxlength="150" placeholder="Conta algo sobre ti"></textarea>
+      <textarea id="editBio" maxlength="150" placeholder="Bio"></textarea>
       <label>Email</label>
       <input id="editEmail" type="email" autocomplete="email">
       <label>Localização</label>
-      <input id="editLocation" type="text" maxlength="40" placeholder="ex: Lisboa">
+      <input id="editLocation" type="text" maxlength="40" placeholder="Cidade">
       <label>Nova palavra-passe (opcional)</label>
       <input id="editNewPassword" type="password" autocomplete="new-password" placeholder="Mín. 8 caracteres" maxlength="72">
       <label>Confirmar nova palavra-passe</label>
@@ -2836,7 +2836,7 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
       <h3>5. Propriedade intelectual</h3>
       <p>Manténs os direitos sobre o teu conteúdo. Concedes-nos uma licença não exclusiva para o mostrar na app. A marca, design e código da app pertencem aos seus autores.</p>
       <h3>6. Limitação de responsabilidade</h3>
-      <p>A app é fornecida “tal como está”. Não garantimos disponibilidade ininterrupta. Não somos responsáveis por danos indiretos resultantes do uso da plataforma.</p>
+      <p>Fazemos o possível para manter o Tchilo estável e disponível. Na medida permitida por lei, a responsabilidade por danos indiretos está limitada.</p>
       <h3>7. Alterações</h3>
       <p>Podemos atualizar estes termos. O uso continuado após alterações constitui aceitação da nova versão.</p>
       <h3>8. Contacto</h3>
@@ -2859,13 +2859,13 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
       <h3>2. Como usamos</h3>
       <p>Usamos os dados para autenticar a tua sessão, mostrar o teu perfil e feed, e permitir interações (likes, comentários, mensagens).</p>
       <h3>3. Partilha</h3>
-      <p>Não vendemos os teus dados. Em versões futuras com servidor, o conteúdo público do perfil e posts pode ser visível a outros utilizadores.</p>
+      <p>Não vendemos os teus dados. O conteúdo que defines como público (perfil e publicações) pode ser visto por outros utilizadores do Tchilo.</p>
       <h3>4. Armazenamento</h3>
-      <p>Nesta demo, tudo permanece no browser. Podes apagar os dados limpando o armazenamento do site ou terminando sessão e removendo dados do browser.</p>
+      <p>Os dados da conta e o conteúdo principal ficam associados à tua sessão e sincronizam de forma segura. Podes eliminar a conta ou o conteúdo nas definições, ou contactar privacidade@tchilopop.com.</p>
       <h3>5. Os teus direitos</h3>
-      <p>Podes pedir acesso, correção ou eliminação dos teus dados. Para eliminar a conta nesta demo, limpa os dados do browser ou contacta o suporte.</p>
+      <p>Podes pedir acesso, correção ou eliminação dos teus dados. Para eliminar a conta, usa as definições ou contacta suporte@tchilopop.com.</p>
       <h3>6. Cookies e armazenamento local</h3>
-      <p>Usamos localStorage para sessão, posts e preferências. Não usamos cookies de tracking de terceiros nesta versão.</p>
+      <p>Usamos armazenamento no dispositivo para manter a sessão e as tuas preferências. Não usamos cookies de publicidade de terceiros para te seguir noutros sites.</p>
       <h3>7. Menores</h3>
       <p>A app não se destina a menores de 13 anos. Não recolhemos intencionalmente dados de crianças abaixo dessa idade.</p>
       <h3>8. Contacto</h3>
@@ -2960,7 +2960,7 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
     </div>
     <div class="chat-input-bar">
       <button type="button" class="chat-attach-btn" id="chatAttachBtn" onclick="openChatAttachMenu()" aria-label="Anexar" title="Anexar"></button>
-      <input type="text" id="chatInput" placeholder="Mensagem…" onkeydown="if(event.key==='Enter')sendChat()" oninput="window.__tchiloToggleSend&&window.__tchiloToggleSend()">
+      <input type="text" id="chatInput" placeholder="Mensagem" onkeydown="if(event.key==='Enter')sendChat()" oninput="window.__tchiloToggleSend&&window.__tchiloToggleSend()">
       <button type="button" id="chatMicBtn" aria-label="Gravar áudio" title="Gravar áudio" onclick="if(window.startChatAudioRecord)startChatAudioRecord();">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3M8 21h8"/></svg>
       </button>
@@ -2992,7 +2992,7 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
       <div class="sheet-title">Comentários</div>
       <div class="sheet-list" id="commentList"></div>
       <div class="sheet-input-bar">
-        <input type="text" id="commentInput" placeholder="Escreve um comentário…" onkeydown="if(event.key==='Enter')sendComment()">
+        <input type="text" id="commentInput" placeholder="Adiciona um comentário…" onkeydown="if(event.key==='Enter')sendComment()">
         <button onclick="sendComment()">Enviar</button>
       </div>
     </div>
@@ -6587,7 +6587,7 @@ function renderMessages() {
   const chats = getChats();
   const names = Object.keys(chats).filter(function(name){ return Array.isArray(chats[name]) && chats[name].length; });
   if (!names.length) {
-    list.innerHTML = '<div class="empty"><b>' + t('Sem mensagens') + '</b>' + t('As tuas conversas aparecerão aqui quando pessoas reais te enviarem mensagens.') + '</div>';
+    list.innerHTML = '<div class="empty"><b>' + t('Sem mensagens') + '</b>' + t('Quando alguém te enviar uma mensagem, a conversa aparece aqui.') + '</div>';
     return;
   }
   list.innerHTML = names.map(function(name) {
@@ -7086,7 +7086,7 @@ function renderSuggestPanel() {
 
 function renderNotifs() {
   const list = document.getElementById('notifList');
-  list.innerHTML = '<div class="empty"><b>' + t('Sem notificações') + '</b>' + t('As notificações aparecerão aqui quando houver atividade real na tua conta.') + '</div>';
+  list.innerHTML = '<div class="empty"><b>' + t('Sem notificações') + '</b>' + t('Likes, comentários e novos seguidores aparecem aqui.') + '</div>';
 }
 
 function handleNotif(action, name, initials, color) {
@@ -8768,8 +8768,8 @@ const LANGUAGE_PACKS = {
     'O teu feed está vazio':'Your feed is empty','Segue pessoas em Notificações → Sugestões ou publica algo!':'Follow people in Notifications → Suggestions or publish something!',
     'Perfil':'Profile','Feed':'Feed','Mensagens':'Messages','Pesquisa':'Search','Guardar alterações':'Save changes',
     'Em alta':'Trending','Explorar':'Explore','Para ti':'For you','Sugestões para seguir':'Suggestions to follow',
-    'Sem mensagens':'No messages','As tuas conversas aparecerão aqui quando pessoas reais te enviarem mensagens.':'Your conversations will appear here when people message you.',
-    'Sem notificações':'No notifications','As notificações aparecerão aqui quando houver atividade real na tua conta.':'Notifications will appear here when there is activity on your account.',
+    'Sem mensagens':'No messages','Quando alguém te enviar uma mensagem, a conversa aparece aqui.':'Your conversations will appear here when people message you.',
+    'Sem notificações':'No notifications','Likes, comentários e novos seguidores aparecem aqui.':'Notifications will appear here when there is activity on your account.',
     'Sem comentários':'No comments','Escreve um comentário…':'Write a comment…','Mensagem…':'Message…',
     'Partilhar':'Share','Guardar':'Save','Publicar':'Publish','Publicar Story':'Publish Story','Cancelar':'Cancel',
     'Gostar':'Like','Comentar':'Comment','Editar perfil':'Edit profile','Definições':'Settings',
@@ -8802,8 +8802,8 @@ const LANGUAGE_PACKS = {
     'O teu feed está vazio':'Ton fil est vide','Segue pessoas em Notificações → Sugestões ou publica algo!':'Suis des gens dans Notifications → Suggestions ou publie quelque chose !',
     'Perfil':'Profil','Feed':'Fil','Mensagens':'Messages','Pesquisa':'Recherche','Guardar alterações':'Enregistrer',
     'Em alta':'Tendances','Explorar':'Explorer','Para ti':'Pour toi','Sugestões para seguir':'Suggestions à suivre',
-    'Sem mensagens':'Aucun message','As tuas conversas aparecerão aqui quando pessoas reais te enviarem mensagens.':'Tes conversations apparaîtront ici.',
-    'Sem notificações':'Aucune notification','As notificações aparecerão aqui quando houver atividade real na tua conta.':'Les notifications apparaîtront ici.',
+    'Sem mensagens':'Aucun message','Quando alguém te enviar uma mensagem, a conversa aparece aqui.':'Tes conversations apparaîtront ici.',
+    'Sem notificações':'Aucune notification','Likes, comentários e novos seguidores aparecem aqui.':'Les notifications apparaîtront ici.',
     'Sem comentários':'Aucun commentaire','Escreve um comentário…':'Écrire un commentaire…','Mensagem…':'Message…',
     'Partilhar':'Partager','Guardar':'Enregistrer','Publicar':'Publier','Publicar Story':'Publier la story','Cancelar':'Annuler',
     'Gostar':'J\'aime','Comentar':'Commenter',
@@ -8834,8 +8834,8 @@ const LANGUAGE_PACKS = {
     'O teu feed está vazio':'Il tuo feed è vuoto','Segue pessoas em Notificações → Sugestões ou publica algo!':'Segui persone in Notifiche → Suggerimenti o pubblica qualcosa!',
     'Perfil':'Profilo','Feed':'Feed','Mensagens':'Messaggi','Pesquisa':'Cerca','Guardar alterações':'Salva modifiche',
     'Em alta':'Di tendenza','Explorar':'Esplora','Para ti':'Per te','Sugestões para seguir':'Suggerimenti da seguire',
-    'Sem mensagens':'Nessun messaggio','As tuas conversas aparecerão aqui quando pessoas reais te enviarem mensagens.':'Le conversazioni appariranno qui.',
-    'Sem notificações':'Nessuna notifica','As notificações aparecerão aqui quando houver atividade real na tua conta.':'Le notifiche appariranno qui.',
+    'Sem mensagens':'Nessun messaggio','Quando alguém te enviar uma mensagem, a conversa aparece aqui.':'Le conversazioni appariranno qui.',
+    'Sem notificações':'Nessuna notifica','Likes, comentários e novos seguidores aparecem aqui.':'Le notifiche appariranno qui.',
     'Sem comentários':'Nessun commento','Escreve um comentário…':'Scrivi un commento…','Mensagem…':'Messaggio…',
     'Partilhar':'Condividi','Guardar':'Salva','Publicar':'Pubblica','Publicar Story':'Pubblica storia','Cancelar':'Annulla',
     'Gostar':'Mi piace','Comentar':'Commenta',
@@ -8866,8 +8866,8 @@ const LANGUAGE_PACKS = {
     'O teu feed está vazio':'动态为空','Segue pessoas em Notificações → Sugestões ou publica algo!':'在通知→推荐中关注他人，或发布内容！',
     'Perfil':'个人主页','Feed':'动态','Mensagens':'消息','Pesquisa':'搜索','Guardar alterações':'保存更改',
     'Em alta':'热门','Explorar':'探索','Para ti':'为你推荐','Sugestões para seguir':'推荐关注',
-    'Sem mensagens':'暂无消息','As tuas conversas aparecerão aqui quando pessoas reais te enviarem mensagens.':'有人给你发消息时会显示在这里。',
-    'Sem notificações':'暂无通知','As notificações aparecerão aqui quando houver atividade real na tua conta.':'有活动时通知会显示在这里。',
+    'Sem mensagens':'暂无消息','Quando alguém te enviar uma mensagem, a conversa aparece aqui.':'有人给你发消息时会显示在这里。',
+    'Sem notificações':'暂无通知','Likes, comentários e novos seguidores aparecem aqui.':'有活动时通知会显示在这里。',
     'Sem comentários':'暂无评论','Escreve um comentário…':'写评论…','Mensagem…':'消息…',
     'Partilhar':'分享','Guardar':'收藏','Publicar':'发布','Publicar Story':'发布快拍','Cancelar':'取消',
     'Gostar':'赞','Comentar':'评论',
@@ -10822,6 +10822,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
+
+
 <script src="native/media-editor.js"></script>
 <script src="native/post-music-feed.js"></script>
 <script src="native/feed-music-play.js"></script>
@@ -10836,6 +10838,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/chat-call-webrtc.js?v=3"></script>
 <script src="native/profile-menu-fix.js?v=1"></script>
 <script src="native/sheets-full-fix.js?v=1"></script>
+<script src="native/copy-ux-refresh.js?v=1"></script>
 
 <script src="native/tchilo-create-buttons.js?v=3" defer></script>
 <script src="native/tchilo-video-pick.js?v=5" defer></script>

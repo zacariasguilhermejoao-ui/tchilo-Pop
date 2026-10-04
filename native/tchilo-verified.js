@@ -1,10 +1,11 @@
 /**
  * Tchilo — Selo verificado (mensal, $2 via Paddle)
- * v2 — menos refresh (evita piscar o feed)
+ * v3 — ecrã completo + copy profissional
  */
 (function () {
   'use strict';
-  if (window.__tchiloVerifiedV2) return;
+  if (window.__tchiloVerifiedV3) return;
+  window.__tchiloVerifiedV3 = true;
   window.__tchiloVerifiedV2 = true;
   window.__tchiloVerifiedV1 = true;
 
@@ -112,24 +113,41 @@
     );
   }
   function injectCSS() {
-    if (document.getElementById('tchiloVerifiedCSS')) return;
+    var old = document.getElementById('tchiloVerifiedCSS');
+    if (old) old.remove();
     var st = document.createElement('style');
     st.id = 'tchiloVerifiedCSS';
     st.textContent =
       '.tchilo-verif-badge{display:inline-block;vertical-align:middle;margin-left:4px;flex-shrink:0;}' +
       '.tchilo-name-with-badge{display:inline-flex;align-items:center;gap:2px;}' +
-      '#tchiloVerifiedSheet{position:fixed;inset:0;z-index:2147483640;display:none;align-items:flex-end;justify-content:center;background:rgba(11,11,12,.55);}' +
+      '#tchiloVerifiedSheet{position:fixed;inset:0;z-index:2147483640;display:none;flex-direction:column;background:var(--paper,#F6F1E7);color:var(--ink,#0B0B0C);overflow:hidden;}' +
       '#tchiloVerifiedSheet.open{display:flex!important;}' +
-      '#tchiloVerifiedSheet .panel{width:100%;max-width:480px;background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);border-radius:22px 22px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom));border:3px solid var(--ink,#0B0B0C);border-bottom:0;}' +
-      '#tchiloVerifiedSheet h2{margin:0 0 6px;font-family:Anton,Impact,sans-serif;font-size:24px;text-align:center;}' +
-      '#tchiloVerifiedSheet .sub{text-align:center;opacity:.7;font-size:13px;margin:0 0 14px;font-weight:600;}' +
-      '#tchiloVerifiedSheet .benefits{list-style:none;padding:0;margin:0 0 16px;}' +
-      '#tchiloVerifiedSheet .benefits li{padding:10px 12px;margin:0 0 8px;border-radius:14px;border:2px solid var(--ink,#0B0B0C);background:#fff;font-weight:700;font-size:14px;}' +
-      '#tchiloVerifiedSheet .price{text-align:center;font-size:26px;font-weight:900;margin:0 0 4px;}' +
-      '#tchiloVerifiedSheet .price-note{text-align:center;font-size:12px;opacity:.6;margin:0 0 16px;}' +
-      '#tchiloVerifiedSheet .pay{width:100%;padding:14px;border-radius:14px;font-weight:900;font-size:16px;border:2.5px solid var(--ink,#0B0B0C);background:#1D9BF0;color:#fff;box-shadow:3px 3px 0 var(--ink,#0B0B0C);cursor:pointer;}' +
-      '#tchiloVerifiedSheet .close{width:100%;margin-top:10px;padding:12px;border-radius:14px;font-weight:800;border:2px solid var(--ink,#0B0B0C);background:transparent;cursor:pointer;}' +
-      '#tchiloVerifiedSheet .active-badge{text-align:center;padding:12px;border-radius:14px;font-weight:800;background:#D6F0FF;border:2px solid var(--ink,#0B0B0C);margin-bottom:12px;}';
+      '#tchiloVerifiedSheet .tv-top{display:flex;align-items:center;gap:10px;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));border-bottom:2.5px solid var(--ink,#0B0B0C);background:var(--paper,#F6F1E7);flex-shrink:0;}' +
+      '#tchiloVerifiedSheet .tv-back{width:40px;height:40px;border-radius:12px;border:2.5px solid var(--ink,#0B0B0C);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}' +
+      '#tchiloVerifiedSheet .tv-top h1{margin:0;font-family:Anton,Impact,sans-serif;font-size:22px;letter-spacing:.02em;flex:1;}' +
+      '#tchiloVerifiedSheet .tv-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 18px calc(28px + env(safe-area-inset-bottom));}' +
+      '#tchiloVerifiedSheet .tv-hero{text-align:center;padding:8px 0 20px;}' +
+      '#tchiloVerifiedSheet .tv-hero-badge{width:72px;height:72px;margin:0 auto 14px;border-radius:50%;background:#1D9BF0;display:flex;align-items:center;justify-content:center;border:3px solid var(--ink,#0B0B0C);box-shadow:4px 4px 0 var(--ink,#0B0B0C);}' +
+      '#tchiloVerifiedSheet .tv-hero h2{margin:0 0 8px;font-family:Anton,Impact,sans-serif;font-size:28px;line-height:1.1;}' +
+      '#tchiloVerifiedSheet .tv-hero p{margin:0 auto;max-width:320px;font-size:14.5px;line-height:1.45;font-weight:600;opacity:.75;}' +
+      '#tchiloVerifiedSheet .tv-card{background:#fff;border:2.5px solid var(--ink,#0B0B0C);border-radius:18px;padding:16px;margin:0 0 14px;box-shadow:3px 3px 0 rgba(11,11,12,.08);}' +
+      '#tchiloVerifiedSheet .tv-card h3{margin:0 0 12px;font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;opacity:.55;}' +
+      '#tchiloVerifiedSheet .tv-row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1.5px solid #ebe8e0;}' +
+      '#tchiloVerifiedSheet .tv-row:first-of-type{border-top:0;padding-top:0;}' +
+      '#tchiloVerifiedSheet .tv-row:last-child{padding-bottom:0;}' +
+      '#tchiloVerifiedSheet .tv-ico{width:40px;height:40px;border-radius:12px;background:#E8F5FE;border:2px solid var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}' +
+      '#tchiloVerifiedSheet .tv-row b{display:block;font-size:14.5px;font-weight:800;margin-bottom:3px;}' +
+      '#tchiloVerifiedSheet .tv-row span{display:block;font-size:13px;line-height:1.4;font-weight:600;opacity:.7;}' +
+      '#tchiloVerifiedSheet .tv-price-box{text-align:center;padding:18px 16px;background:linear-gradient(180deg,#E8F5FE 0%,#fff 100%);border:2.5px solid var(--ink,#0B0B0C);border-radius:18px;margin:0 0 14px;}' +
+      '#tchiloVerifiedSheet .tv-price-box .amt{font-size:32px;font-weight:900;letter-spacing:-.02em;}' +
+      '#tchiloVerifiedSheet .tv-price-box .amt small{font-size:15px;font-weight:700;opacity:.65;}' +
+      '#tchiloVerifiedSheet .tv-price-box .note{margin:8px 0 0;font-size:12.5px;font-weight:600;opacity:.65;line-height:1.4;}' +
+      '#tchiloVerifiedSheet .tv-trust{font-size:12px;font-weight:600;opacity:.55;text-align:center;margin:0 0 16px;line-height:1.4;}' +
+      '#tchiloVerifiedSheet .tv-actions{display:flex;flex-direction:column;gap:10px;}' +
+      '#tchiloVerifiedSheet .pay{width:100%;padding:16px;border-radius:16px;font-weight:900;font-size:16px;border:2.5px solid var(--ink,#0B0B0C);background:#1D9BF0;color:#fff;box-shadow:3px 3px 0 var(--ink,#0B0B0C);cursor:pointer;}' +
+      '#tchiloVerifiedSheet .pay:active{transform:scale(.98);}' +
+      '#tchiloVerifiedSheet .close{width:100%;padding:14px;border-radius:16px;font-weight:800;font-size:15px;border:2.5px solid var(--ink,#0B0B0C);background:#fff;cursor:pointer;color:var(--ink,#0B0B0C);}' +
+      '#tchiloVerifiedSheet .active-badge{text-align:center;padding:14px;border-radius:14px;font-weight:800;background:#D6F0FF;border:2.5px solid var(--ink,#0B0B0C);margin-bottom:14px;font-size:15px;}';
     document.head.appendChild(st);
   }
   function loadPaddle() {
@@ -185,31 +203,67 @@
       sheet.id = 'tchiloVerifiedSheet';
       document.body.appendChild(sheet);
     }
-    var on = await isMeVerified();
-    sheet.innerHTML =
-      '<div class="panel"><h2>Selo verificado ' +
-      badgeSvg(22) +
-      '</h2><p class="sub">Mostra autenticidade no perfil e no feed</p>' +
-      (on ? '<div class="active-badge">Selo ativo nesta conta</div>' : '') +
-      '<ul class="benefits"><li>Selo azul junto ao nome</li><li>Visível no perfil e no feed</li><li>Renovação mensal</li></ul>' +
-      '<div class="price">' +
-      PRICE_AMOUNT +
-      '</div><p class="price-note">' +
-      PRICE_LABEL +
-      ' · mensal via Paddle</p>' +
-      (on
-        ? '<button type="button" class="close" data-a="close">Fechar</button>'
-        : '<button type="button" class="pay" data-a="pay">Obter selo verificado</button><button type="button" class="close" data-a="close">Agora não</button>') +
+    var meOk = false;
+    try {
+      meOk = await isMeVerified();
+    } catch (e) {}
+
+    var heroBadge =
+      '<div class="tv-hero-badge">' +
+      '<svg width="36" height="36" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#fff"/><path d="M7.5 12.2l2.8 2.8 6.2-6.4" fill="none" stroke="#1D9BF0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
       '</div>';
+
+    sheet.innerHTML =
+      '<div class="tv-top">' +
+      '<button type="button" class="tv-back" data-a="close" aria-label="Voltar">' +
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '</button>' +
+      '<h1>Selo verificado</h1>' +
+      '</div>' +
+      '<div class="tv-scroll">' +
+      '<div class="tv-hero">' +
+      heroBadge +
+      '<h2>Mostra que és tu</h2>' +
+      '<p>O selo azul confirma a autenticidade da tua conta no perfil e em todas as publicações do feed.</p>' +
+      '</div>' +
+      (meOk ? '<div class="active-badge">O teu selo verificado está ativo</div>' : '') +
+      '<div class="tv-card">' +
+      '<h3>O que ganhas</h3>' +
+      '<div class="tv-row"><div class="tv-ico">✓</div><div><b>Selo azul junto ao nome</b><span>Identificação clara no perfil, no feed e nas conversas — os outros reconhecem a conta oficial.</span></div></div>' +
+      '<div class="tv-row"><div class="tv-ico">👁</div><div><b>Mais confiança</b><span>Reduz confusão com contas semelhantes e ajuda a comunidade a saber com quem está a interagir.</span></div></div>' +
+      '<div class="tv-row"><div class="tv-ico">⬆</div><div><b>Presença profissional</b><span>Ideal para criadores, marcas e perfis públicos que querem uma imagem consistente no Tchilo.</span></div></div>' +
+      '<div class="tv-row"><div class="tv-ico">🔄</div><div><b>Renovação mensal</b><span>Mantém o selo ativo enquanto a subscrição estiver válida. Podes cancelar quando quiseres.</span></div></div>' +
+      '</div>' +
+      (meOk
+        ? '<div class="tv-actions"><button type="button" class="close" data-a="close">Voltar às definições</button></div>'
+        : '<div class="tv-price-box">' +
+          '<div class="amt">2 USD <small>/ mês</small></div>' +
+          '<p class="note">Subscrição mensal · pagamento seguro via Paddle<br>Merchant of Record · fatura e apoio ao pagamento pelo Paddle</p>' +
+          '</div>' +
+          '<p class="tv-trust">Ao continuares, aceitas os Termos de uso e a política de reembolso aplicável às compras digitais.</p>' +
+          '<div class="tv-actions">' +
+          '<button type="button" class="pay" data-a="pay">Obter selo verificado</button>' +
+          '<button type="button" class="close" data-a="close">Agora não</button>' +
+          '</div>') +
+      '</div>';
+
     sheet.classList.add('open');
-    sheet.onclick = function (e) {
-      if (e.target === sheet) sheet.classList.remove('open');
-    };
+    try {
+      document.body.style.overflow = 'hidden';
+    } catch (e) {}
+    function closeSheet() {
+      sheet.classList.remove('open');
+      try {
+        document.body.style.overflow = '';
+      } catch (e2) {}
+    }
     sheet.querySelectorAll('[data-a]').forEach(function (b) {
       b.onclick = function (e) {
         e.preventDefault();
-        if (b.getAttribute('data-a') === 'close') sheet.classList.remove('open');
-        if (b.getAttribute('data-a') === 'pay') openCheckout();
+        e.stopPropagation();
+        var a = b.getAttribute('data-a');
+        if (a === 'close') closeSheet();
+        if (a === 'pay') openCheckout();
       };
     });
   }
@@ -280,18 +334,17 @@
   }
   boot();
   setTimeout(boot, 800);
-  /* SEM setInterval de 4s — causava piscar */
 
-  if (typeof window.renderFeed === 'function' && !window.renderFeed.__verifiedV2) {
+  if (typeof window.renderFeed === 'function' && !window.renderFeed.__verifiedV3) {
     var rf = window.renderFeed;
     window.renderFeed = function () {
       var r = rf.apply(this, arguments);
       setTimeout(paintBadges, 100);
       return r;
     };
-    window.renderFeed.__verifiedV2 = true;
+    window.renderFeed.__verifiedV3 = true;
   }
-  if (typeof window.goTo === 'function' && !window.goTo.__verifiedV2) {
+  if (typeof window.goTo === 'function' && !window.goTo.__verifiedV3) {
     var g = window.goTo;
     window.goTo = function (name) {
       var r = g.apply(this, arguments);
@@ -299,6 +352,6 @@
       if (name === 'profile' || name === 'feed') setTimeout(paintBadges, 80);
       return r;
     };
-    window.goTo.__verifiedV2 = true;
+    window.goTo.__verifiedV3 = true;
   }
 })();

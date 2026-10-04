@@ -82,3 +82,6 @@
 })();
 
 ;(function(){try{if(!document.querySelector('script[data-tchilo-flash]')){var s=document.createElement('script');s.src='native/cam-flash-svg.js?v=1';s.setAttribute('data-tchilo-flash','1');(document.head||document.documentElement).appendChild(s);}}catch(e){}})();
+
+/* Live (Realtime SFU) */
+;(function(){try{if(!document.querySelector('script[data-tchilo-live]')){var s=document.createElement('script');s.src='native/tchilo-live.js?v=1';s.setAttribute('data-tchilo-live','1');s.defer=true;(document.head||document.documentElement).appendChild(s);}}catch(e){}})();

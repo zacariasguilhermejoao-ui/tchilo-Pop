@@ -25,13 +25,25 @@
   else boot();
 })();
 
-/* Live (Realtime SFU) — carrega o cliente de transmissão */
+/* Live (Realtime SFU) */
 ;(function () {
   try {
     if (document.querySelector('script[data-tchilo-live]')) return;
     var s = document.createElement('script');
     s.src = 'native/tchilo-live.js?v=3';
     s.setAttribute('data-tchilo-live', '1');
+    s.defer = true;
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) {}
+})();
+
+/* Calls 1-1 no chat */
+;(function () {
+  try {
+    if (document.querySelector('script[data-tchilo-call]')) return;
+    var s = document.createElement('script');
+    s.src = 'native/tchilo-call.js?v=1';
+    s.setAttribute('data-tchilo-call', '1');
     s.defer = true;
     (document.head || document.documentElement).appendChild(s);
   } catch (e) {}

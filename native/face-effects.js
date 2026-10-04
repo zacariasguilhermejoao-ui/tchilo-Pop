@@ -65,8 +65,20 @@
   try {
     if (document.querySelector('script[data-tchilo-call]')) return;
     var s = document.createElement('script');
-    s.src = 'native/tchilo-call.js?v=1';
+    s.src = 'native/tchilo-call.js?v=2';
     s.setAttribute('data-tchilo-call', '1');
+    s.defer = true;
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) {}
+})();
+
+/* Chat UX: mic/send, GIF, figurinhas, + */
+;(function () {
+  try {
+    if (document.querySelector('script[data-tchilo-chat-ux]')) return;
+    var s = document.createElement('script');
+    s.src = 'native/tchilo-chat-ux.js?v=1';
+    s.setAttribute('data-tchilo-chat-ux', '1');
     s.defer = true;
     (document.head || document.documentElement).appendChild(s);
   } catch (e) {}

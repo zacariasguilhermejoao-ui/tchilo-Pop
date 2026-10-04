@@ -1,0 +1,31 @@
+name: Embed compose into index
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/patch_index_compose_inline.py'
+      - '.github/workflows/embed-compose.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  embed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index.html
+        run: python3 scripts/patch_index_compose_inline.py
+      - name: Commit
+        run: |
+          git config user.name "tchilo-bot"
+          git config user.email "bot@tchilopop.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "fix(index): embed feed icon, + button, calls, mic/send (no UI flash)"
+            git push
+          fi

@@ -25,6 +25,18 @@
   else boot();
 })();
 
+/* Idioma automático do telefone */
+;(function () {
+  try {
+    if (document.querySelector('script[data-tchilo-auto-lang]')) return;
+    var s = document.createElement('script');
+    s.src = 'native/tchilo-auto-lang.js?v=1';
+    s.setAttribute('data-tchilo-auto-lang', '1');
+    s.defer = true;
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) {}
+})();
+
 /* Live (Realtime SFU) */
 ;(function () {
   try {

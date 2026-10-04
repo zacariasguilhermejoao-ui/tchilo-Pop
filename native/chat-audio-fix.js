@@ -496,15 +496,19 @@
     }
   }
 
-  // Load chat-ui-fix (feed icon, calls, mic/send toggle, + menu)
-  (function loadChatUiFix() {
-    if (document.querySelector('script[src*="chat-ui-fix"]')) return;
-    var s = document.createElement('script');
-    s.src = 'native/chat-ui-fix.js?v=1';
-    s.async = false;
-    document.head.appendChild(s);
-  })();
-
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
+
+  // Load chat-ui-fix + WebRTC calls
+  (function loadChatExtras() {
+    function add(src) {
+      if (document.querySelector('script[src*="' + src.split('/').pop().split('?')[0] + '"]')) return;
+      var s = document.createElement('script');
+      s.src = src;
+      s.async = false;
+      document.head.appendChild(s);
+    }
+    add('native/chat-ui-fix.js?v=1');
+    add('native/chat-call-webrtc.js?v=1');
+  })();
 })();

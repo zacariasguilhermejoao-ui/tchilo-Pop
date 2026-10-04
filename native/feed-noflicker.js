@@ -60,22 +60,14 @@
   }
 
   function setFee() {
+    // Não criar o texto "Fee". O Feed deve mostrar somente o ícone correto.
     var feedBtn =
       document.querySelector('.navbar .nav-item[data-screen="feed"]') ||
       document.querySelector('.navbar .nav-item[onclick*="onNavFeed"]');
     if (!feedBtn) return;
-    if (!feedBtn.querySelector('.nav-fee')) {
-      feedBtn.querySelectorAll('svg').forEach(function (n) {
-        try { n.remove(); } catch (e) {}
-      });
-      var fee = document.createElement('span');
-      fee.className = 'nav-text-icon nav-fee';
-      fee.setAttribute('aria-hidden', 'true');
-      fee.textContent = 'Fee';
-      var dot = feedBtn.querySelector('.dot');
-      if (dot) feedBtn.insertBefore(fee, dot);
-      else feedBtn.insertBefore(fee, feedBtn.firstChild);
-    }
+    feedBtn.querySelectorAll('.nav-fee').forEach(function (n) {
+      try { n.remove(); } catch (e) {}
+    });
   }
 
   function bootUI() {

@@ -7330,9 +7330,7 @@ function renderProfile() {
         ? ('<button class="profile-btn" type="button" onclick="toggleFollow(\'' + String(username).replace(/'/g, '\\\'') + '\');renderProfile();renderFeed();">' +
            (isFriend(username) ? 'Amigos' : (isFollowing(username) ? 'A seguir' : 'Seguir')) + '</button>' +
            '<button class="profile-btn" type="button" onclick="startChatWith(\'' + String(username).replace(/'/g, '\\\'') + '\')">Mensagem</button>')
-        : ('<button class="profile-btn" onclick="goTo(\'editprofile\')">Editar perfil</button>' +
-           '<button class="profile-btn" onclick="goTo(\'create\')">Nova publicação</button>' +
-           '<button class="profile-btn" onclick="goTo(\'settings\')">Definições</button>')
+        : ('<button class="profile-btn" onclick="goTo(\'create\')">Nova publicação</button>')
       ) +
       '</div>' + grid;
 
@@ -10803,6 +10801,8 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/fx-png-effects.js"></script>
 <script src="native/face-fx-pro.js"></script>
 <!-- tchilo-png-fx-end -->
+
+
 
 
 

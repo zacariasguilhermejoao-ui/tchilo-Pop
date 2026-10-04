@@ -1,10 +1,11 @@
 /**
  * Tchilo Premium — definições + pagamento Paddle
- * v1
+ * v2 — ecrã completo + copy profissional
  */
 (function () {
   'use strict';
-  if (window.__tchiloPremiumV1) return;
+  if (window.__tchiloPremiumV2) return;
+  window.__tchiloPremiumV2 = true;
   window.__tchiloPremiumV1 = true;
 
   var PADDLE_TOKEN = 'live_05be77c7629150c894e94e62559';
@@ -18,7 +19,6 @@
       else alert(String(msg));
     } catch (e) {}
   }
-
   function sessionUser() {
     try {
       if (typeof getSession === 'function') return getSession();
@@ -27,11 +27,9 @@
       return null;
     }
   }
-
   function SB() {
     return window.tchiloSupabase || window.supabaseClient || null;
   }
-
   async function currentUid() {
     if (window.__tchiloCloudUserId) return window.__tchiloCloudUserId;
     var s = SB();
@@ -39,18 +37,13 @@
     try {
       var auth = await s.auth.getSession();
       var uid =
-        auth &&
-        auth.data &&
-        auth.data.session &&
-        auth.data.session.user &&
-        auth.data.session.user.id;
+        auth && auth.data && auth.data.session && auth.data.session.user && auth.data.session.user.id;
       if (uid) window.__tchiloCloudUserId = uid;
       return uid || null;
     } catch (e) {
       return null;
     }
   }
-
   async function isPremium() {
     try {
       var sess = sessionUser();
@@ -63,24 +56,15 @@
     var uid = await currentUid();
     if (!s || !uid) return false;
     try {
-      var r = await s
-        .from('profiles')
-        .select('is_premium,premium')
-        .eq('id', uid)
-        .maybeSingle();
+      var r = await s.from('profiles').select('is_premium,premium').eq('id', uid).maybeSingle();
       if (r.data && (r.data.is_premium || r.data.premium)) return true;
     } catch (e3) {}
     try {
-      var r2 = await s
-        .from('user_settings')
-        .select('is_premium,premium')
-        .eq('user_id', uid)
-        .maybeSingle();
+      var r2 = await s.from('user_settings').select('is_premium,premium').eq('user_id', uid).maybeSingle();
       if (r2.data && (r2.data.is_premium || r2.data.premium)) return true;
     } catch (e4) {}
     return false;
   }
-
   function markPremiumLocal(on) {
     try {
       localStorage.setItem('tchilo_premium', on ? '1' : '0');
@@ -95,7 +79,6 @@
       }
     } catch (e2) {}
   }
-
   function loadPaddle() {
     return new Promise(function (resolve, reject) {
       if (window.Paddle && window.Paddle.Checkout) {
@@ -123,7 +106,6 @@
       document.head.appendChild(s);
     });
   }
-
   async function openCheckout() {
     var sess = sessionUser();
     if (!sess) {
@@ -165,36 +147,40 @@
       toast('Erro ao abrir o pagamento');
     }
   }
-
   function ensureCSS() {
-    if (document.getElementById('tchiloPremiumCSS')) return;
+    var old = document.getElementById('tchiloPremiumCSS');
+    if (old) old.remove();
     var st = document.createElement('style');
     st.id = 'tchiloPremiumCSS';
     st.textContent =
-      '#tchiloPremiumSheet{position:fixed;inset:0;z-index:2147483640;display:none;' +
-      'align-items:flex-end;justify-content:center;background:rgba(11,11,12,.55);}' +
+      '#tchiloPremiumSheet{position:fixed;inset:0;z-index:2147483640;display:none;flex-direction:column;background:var(--paper,#F6F1E7);color:var(--ink,#0B0B0C);overflow:hidden;}' +
       '#tchiloPremiumSheet.open{display:flex!important;}' +
-      '#tchiloPremiumSheet .panel{width:100%;max-width:480px;background:var(--paper,#F3F1E9);' +
-      'color:var(--ink,#0B0B0C);border-radius:22px 22px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom));' +
-      'border:3px solid var(--ink,#0B0B0C);border-bottom:0;box-shadow:0 -10px 40px rgba(0,0,0,.28);}' +
-      '#tchiloPremiumSheet h2{margin:0 0 6px;font-family:Anton,Impact,sans-serif;font-size:26px;text-align:center;}' +
-      '#tchiloPremiumSheet .sub{text-align:center;opacity:.7;font-size:13px;margin:0 0 14px;font-weight:600;}' +
-      '#tchiloPremiumSheet .benefits{list-style:none;padding:0;margin:0 0 16px;}' +
-      '#tchiloPremiumSheet .benefits li{padding:10px 12px;margin:0 0 8px;border-radius:14px;' +
-      'border:2px solid var(--ink,#0B0B0C);background:#fff;font-weight:700;font-size:14px;}' +
-      '#tchiloPremiumSheet .price{text-align:center;font-size:28px;font-weight:900;margin:0 0 4px;}' +
-      '#tchiloPremiumSheet .price-note{text-align:center;font-size:12px;opacity:.6;margin:0 0 16px;}' +
-      '#tchiloPremiumSheet .pay{width:100%;padding:14px;border-radius:14px;font-weight:900;font-size:16px;' +
-      'border:2.5px solid var(--ink,#0B0B0C);background:var(--yellow,#C8F560);color:var(--ink,#0B0B0C);' +
-      'box-shadow:3px 3px 0 var(--ink,#0B0B0C);cursor:pointer;}' +
-      '#tchiloPremiumSheet .close{width:100%;margin-top:10px;padding:12px;border-radius:14px;font-weight:800;' +
-      'border:2px solid var(--ink,#0B0B0C);background:transparent;cursor:pointer;}' +
-      '#tchiloPremiumSheet .active-badge{text-align:center;padding:12px;border-radius:14px;font-weight:800;' +
-      'background:var(--mint,#7DFFB3);border:2px solid var(--ink,#0B0B0C);margin-bottom:12px;}' +
+      '#tchiloPremiumSheet .tp-top{display:flex;align-items:center;gap:10px;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));border-bottom:2.5px solid var(--ink,#0B0B0C);background:var(--paper,#F6F1E7);flex-shrink:0;}' +
+      '#tchiloPremiumSheet .tp-back{width:40px;height:40px;border-radius:12px;border:2.5px solid var(--ink,#0B0B0C);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}' +
+      '#tchiloPremiumSheet .tp-top h1{margin:0;font-family:Anton,Impact,sans-serif;font-size:22px;flex:1;}' +
+      '#tchiloPremiumSheet .tp-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 18px calc(28px + env(safe-area-inset-bottom));}' +
+      '#tchiloPremiumSheet .tp-hero{text-align:center;padding:8px 0 20px;}' +
+      '#tchiloPremiumSheet .tp-hero-icon{width:72px;height:72px;margin:0 auto 14px;border-radius:18px;background:var(--yellow,#C8F560);display:flex;align-items:center;justify-content:center;border:3px solid var(--ink,#0B0B0C);box-shadow:4px 4px 0 var(--ink,#0B0B0C);font-size:32px;}' +
+      '#tchiloPremiumSheet .tp-hero h2{margin:0 0 8px;font-family:Anton,Impact,sans-serif;font-size:28px;}' +
+      '#tchiloPremiumSheet .tp-hero p{margin:0 auto;max-width:320px;font-size:14.5px;line-height:1.45;font-weight:600;opacity:.75;}' +
+      '#tchiloPremiumSheet .tp-card{background:#fff;border:2.5px solid var(--ink,#0B0B0C);border-radius:18px;padding:16px;margin:0 0 14px;box-shadow:3px 3px 0 rgba(11,11,12,.08);}' +
+      '#tchiloPremiumSheet .tp-card h3{margin:0 0 12px;font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;opacity:.55;}' +
+      '#tchiloPremiumSheet .tp-row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1.5px solid #ebe8e0;}' +
+      '#tchiloPremiumSheet .tp-row:first-of-type{border-top:0;padding-top:0;}' +
+      '#tchiloPremiumSheet .tp-ico{width:40px;height:40px;border-radius:12px;background:#F5FFD6;border:2px solid var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}' +
+      '#tchiloPremiumSheet .tp-row b{display:block;font-size:14.5px;font-weight:800;margin-bottom:3px;}' +
+      '#tchiloPremiumSheet .tp-row span{display:block;font-size:13px;line-height:1.4;font-weight:600;opacity:.7;}' +
+      '#tchiloPremiumSheet .tp-price{text-align:center;padding:18px 16px;background:linear-gradient(180deg,#F5FFD6 0%,#fff 100%);border:2.5px solid var(--ink,#0B0B0C);border-radius:18px;margin:0 0 14px;}' +
+      '#tchiloPremiumSheet .tp-price .amt{font-size:32px;font-weight:900;}' +
+      '#tchiloPremiumSheet .tp-price .amt small{font-size:15px;font-weight:700;opacity:.65;}' +
+      '#tchiloPremiumSheet .tp-price .note{margin:8px 0 0;font-size:12.5px;font-weight:600;opacity:.65;line-height:1.4;}' +
+      '#tchiloPremiumSheet .tp-trust{font-size:12px;font-weight:600;opacity:.55;text-align:center;margin:0 0 16px;}' +
+      '#tchiloPremiumSheet .pay{width:100%;padding:16px;border-radius:16px;font-weight:900;font-size:16px;border:2.5px solid var(--ink,#0B0B0C);background:var(--yellow,#C8F560);color:var(--ink,#0B0B0C);box-shadow:3px 3px 0 var(--ink,#0B0B0C);cursor:pointer;margin-bottom:10px;}' +
+      '#tchiloPremiumSheet .close{width:100%;padding:14px;border-radius:16px;font-weight:800;border:2.5px solid var(--ink,#0B0B0C);background:#fff;cursor:pointer;}' +
+      '#tchiloPremiumSheet .active-badge{text-align:center;padding:14px;border-radius:14px;font-weight:800;background:var(--mint,#7DFFB3);border:2.5px solid var(--ink,#0B0B0C);margin-bottom:14px;}' +
       '#settings-premium-item{display:flex!important;}';
     document.head.appendChild(st);
   }
-
   async function openPremiumSheet() {
     ensureCSS();
     var sheet = document.getElementById('tchiloPremiumSheet');
@@ -203,46 +189,61 @@
       sheet.id = 'tchiloPremiumSheet';
       document.body.appendChild(sheet);
     }
-    var prem = await isPremium();
+    var prem = false;
+    try {
+      prem = await isPremium();
+    } catch (e) {}
+
     sheet.innerHTML =
-      '<div class="panel" role="dialog" aria-label="Tchilo Premium">' +
-      '<h2>Tchilo Premium</h2>' +
-      '<p class="sub">Mais temas, figurinhas e recursos exclusivos</p>' +
-      (prem
-        ? '<div class="active-badge">Plano ativo</div>'
-        : '') +
-      '<ul class="benefits">' +
-      '<li>Temas exclusivos (Neon, Retro, Halloween, Gótico…)</li>' +
-      '<li>Criar figurinhas nas conversas</li>' +
-      '<li>Mais opções de personalização</li>' +
-      '<li>Apoias o desenvolvimento do Tchilo</li>' +
-      '</ul>' +
-      '<div class="price">' +
-      PRICE_AMOUNT +
+      '<div class="tp-top">' +
+      '<button type="button" class="tp-back" data-a="close" aria-label="Voltar">' +
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '</button>' +
+      '<h1>Tchilo Premium</h1>' +
       '</div>' +
-      '<p class="price-note">Pagamento único · ' +
-      PRICE_LABEL +
-      '</p>' +
+      '<div class="tp-scroll">' +
+      '<div class="tp-hero">' +
+      '<div class="tp-hero-icon">★</div>' +
+      '<h2>Desbloqueia o Tchilo completo</h2>' +
+      '<p>Temas exclusivos, figurinhas e personalização avançada para a tua conta.</p>' +
+      '</div>' +
+      (prem ? '<div class="active-badge">Premium ativo na tua conta</div>' : '') +
+      '<div class="tp-card">' +
+      '<h3>Incluído no Premium</h3>' +
+      '<div class="tp-row"><div class="tp-ico">🎨</div><div><b>Temas exclusivos</b><span>Neon, Retro, Halloween, Gótico e outros estilos que não estão no plano gratuito.</span></div></div>' +
+      '<div class="tp-row"><div class="tp-ico">✨</div><div><b>Figurinhas nas conversas</b><span>Cria e usa figurinhas personalizadas nas mensagens.</span></div></div>' +
+      '<div class="tp-row"><div class="tp-ico">⚙</div><div><b>Mais personalização</b><span>Opções extra para deixar o Tchilo com a tua cara.</span></div></div>' +
+      '<div class="tp-row"><div class="tp-ico">♥</div><div><b>Apoias o produto</b><span>A tua assinatura ajuda a manter e evoluir a rede.</span></div></div>' +
+      '</div>' +
       (prem
-        ? '<button type="button" class="close" data-a="close">Fechar</button>'
-        : '<button type="button" class="pay" data-a="pay">Pagar Premium</button>' +
+        ? '<button type="button" class="close" data-a="close">Voltar às definições</button>'
+        : '<div class="tp-price"><div class="amt">3 USD <small>· pagamento único</small></div>' +
+          '<p class="note">Pagamento seguro via Paddle · Merchant of Record</p></div>' +
+          '<p class="tp-trust">Ao continuares, aceitas os Termos de uso e a política de reembolso das compras digitais.</p>' +
+          '<button type="button" class="pay" data-a="pay">Ativar Premium</button>' +
           '<button type="button" class="close" data-a="close">Agora não</button>') +
       '</div>';
+
     sheet.classList.add('open');
-    sheet.onclick = function (e) {
-      if (e.target === sheet) sheet.classList.remove('open');
-    };
+    try {
+      document.body.style.overflow = 'hidden';
+    } catch (e) {}
+    function closeSheet() {
+      sheet.classList.remove('open');
+      try {
+        document.body.style.overflow = '';
+      } catch (e2) {}
+    }
     sheet.querySelectorAll('[data-a]').forEach(function (b) {
       b.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
         var a = b.getAttribute('data-a');
-        if (a === 'close') sheet.classList.remove('open');
+        if (a === 'close') closeSheet();
         if (a === 'pay') openCheckout();
       };
     });
   }
-
   window.tchiloOpenPremium = openPremiumSheet;
   window.tchiloIsPremium = isPremium;
 
@@ -252,7 +253,6 @@
       document.querySelector('#screen-settings .settings-body');
     if (!list) return;
     if (document.getElementById('settings-premium-item')) return;
-
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'settings-item';
@@ -268,12 +268,9 @@
       e.preventDefault();
       openPremiumSheet();
     });
-
-    /* Inserir no topo da lista */
     if (list.firstChild) list.insertBefore(btn, list.firstChild);
     else list.appendChild(btn);
   }
-
   function handleSuccessQuery() {
     try {
       var q = location.search || '';
@@ -286,19 +283,15 @@
       }
     } catch (e2) {}
   }
-
   function boot() {
     ensureCSS();
     injectSettingsItem();
     handleSuccessQuery();
   }
-
   boot();
   setTimeout(boot, 400);
   setTimeout(boot, 1200);
   setInterval(injectSettingsItem, 4000);
-
-  /* Ao abrir definições */
   if (typeof window.goTo === 'function' && !window.goTo.__premiumHook) {
     var g = window.goTo;
     window.goTo = function (name) {

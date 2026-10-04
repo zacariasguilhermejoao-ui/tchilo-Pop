@@ -5,7 +5,8 @@
 (function () {
   "use strict";
 
-  if (window.__tchiloLiveV2) return;
+  if (window.__tchiloLiveV3) return;
+  window.__tchiloLiveV3 = true;
   window.__tchiloLiveV2 = true;
   window.__tchiloLiveV1 = true;
 
@@ -83,6 +84,29 @@
     } catch (e) {}
   }
 
+  function iconSvg(name) {
+    var common = 'width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+    if (name === 'flip') {
+      return '<svg ' + common + '><path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/><path d="M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/><circle cx="12" cy="12" r="3"/><path d="m18 22-3-3 3-3"/><path d="m6 2 3 3-3 3"/></svg>';
+    }
+    if (name === 'share') {
+      return '<svg ' + common + '><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51 15.42 17.49"/><path d="M15.41 6.51 8.59 10.49"/></svg>';
+    }
+    if (name === 'link') {
+      return '<svg ' + common + '><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+    }
+    if (name === 'eye') {
+      return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    }
+    if (name === 'back') {
+      return '<svg ' + common + '><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>';
+    }
+    if (name === 'close') {
+      return '<svg ' + common + '><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+    }
+    return '';
+  }
+
   function liveShareUrl(username) {
     var u = (username || "").replace(/^@/, "");
     return "https://tchilopop.com/?live=" + encodeURIComponent(u);
@@ -96,22 +120,22 @@
       "#tchiloLiveOverlay.open{display:flex}" +
       "#tchiloLiveOverlay .lv-top{display:flex;align-items:center;gap:10px;padding:max(12px,env(safe-area-inset-top)) 14px 12px;position:absolute;top:0;left:0;right:0;z-index:5;background:linear-gradient(180deg,rgba(0,0,0,.6),transparent)}" +
       "#tchiloLiveOverlay .lv-badge{background:#e11d48;color:#fff;font:800 11px Inter,sans-serif;padding:4px 8px;border-radius:8px;letter-spacing:.04em}" +
-      "#tchiloLiveOverlay .lv-viewers{font:700 13px Inter,sans-serif;opacity:.9}" +
+      "#tchiloLiveOverlay .lv-viewers{font:700 13px Inter,sans-serif;opacity:.9;display:inline-flex;align-items:center;gap:5px}" +
+      "#tchiloLiveOverlay .lv-eye{display:inline-flex;align-items:center}" +
       "#tchiloLiveOverlay .lv-title{font:800 14px Inter,sans-serif;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
-      "#tchiloLiveOverlay .lv-close{width:40px;height:40px;border:2px solid #fff;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;font-size:22px;line-height:1;cursor:pointer;flex-shrink:0}" +
+      "#tchiloLiveOverlay .lv-close{width:40px;height:40px;border:2px solid #fff;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}" +
       "#tchiloLiveOverlay video{width:100%;height:100%;object-fit:cover;background:#000}" +
       "#tchiloLiveOverlay .lv-bottom{position:absolute;left:0;right:0;bottom:0;padding:16px 14px max(20px,env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center;flex-wrap:wrap;background:linear-gradient(0deg,rgba(0,0,0,.65),transparent)}" +
       "#tchiloLiveOverlay .lv-btn{border:2.5px solid #fff;background:rgba(0,0,0,.45);color:#fff;border-radius:999px;padding:12px 18px;font:800 13px Inter,sans-serif;cursor:pointer}" +
       "#tchiloLiveOverlay .lv-btn.danger{background:#e11d48;border-color:#e11d48}" +
-      "#tchiloLiveOverlay .lv-btn.icon{width:48px;height:48px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px}" +
-      /* SETUP full screen */ +
+      "#tchiloLiveOverlay .lv-btn.icon{width:48px;height:48px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center}" +
+      "#tchiloLiveOverlay .lv-btn.icon svg,#tchiloLiveSetup .su-flip svg,#tchiloLiveSetup .su-back svg,#tchiloLiveOverlay .lv-close svg{display:block}" +
       "#tchiloLiveSetup{position:fixed;inset:0;z-index:1999;background:#0b0b0c;display:none;flex-direction:column;color:#fff}" +
       "#tchiloLiveSetup.open{display:flex}" +
       "#tchiloLiveSetup .su-video-wrap{flex:1;position:relative;min-height:0;background:#111}" +
       "#tchiloLiveSetup #lvPreviewVideo{width:100%;height:100%;object-fit:cover;background:#000}" +
       "#tchiloLiveSetup .su-top{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:max(12px,env(safe-area-inset-top)) 14px 10px;background:linear-gradient(180deg,rgba(0,0,0,.55),transparent)}" +
-      "#tchiloLiveSetup .su-back{width:42px;height:42px;border:2px solid #fff;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;font-size:22px;cursor:pointer}" +
-      "#tchiloLiveSetup .su-flip{width:42px;height:42px;border:2px solid #fff;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;font-size:18px;cursor:pointer}" +
+      "#tchiloLiveSetup .su-back,#tchiloLiveSetup .su-flip{width:42px;height:42px;border:2px solid #fff;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}" +
       "#tchiloLiveSetup .su-panel{padding:16px 16px max(22px,env(safe-area-inset-bottom));background:linear-gradient(0deg,#0b0b0c 70%,transparent)}" +
       "#tchiloLiveSetup .su-label{font:800 12px Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;opacity:.7;margin-bottom:8px}" +
       "#tchiloLiveSetup #lvTitleInput{width:100%;box-sizing:border-box;border:2.5px solid rgba(255,255,255,.35);border-radius:14px;padding:14px 16px;font:600 16px Inter,sans-serif;background:rgba(255,255,255,.08);color:#fff;margin-bottom:14px}" +
@@ -124,36 +148,34 @@
     st.textContent = css;
     document.head.appendChild(st);
 
-    /* Overlay transmissão / viewer */
     var overlay = document.createElement("div");
     overlay.id = "tchiloLiveOverlay";
     overlay.innerHTML =
       '<div class="lv-top">' +
       '<span class="lv-badge">AO VIVO</span>' +
-      '<span class="lv-viewers" id="lvViewers">👁 0</span>' +
+      '<span class="lv-viewers" id="lvViewers"><span class="lv-eye">' + iconSvg("eye") + '</span> <span id="lvViewersN">0</span></span>' +
       '<span class="lv-title" id="lvTitle"></span>' +
-      '<button type="button" class="lv-close" id="lvCloseBtn" aria-label="Fechar">×</button>' +
-      "</div>" +
+      '<button type="button" class="lv-close" id="lvCloseBtn" aria-label="Fechar">' + iconSvg("close") + '</button>' +
+      '</div>' +
       '<video id="lvVideo" playsinline autoplay muted></video>' +
       '<div class="lv-bottom" id="lvBottom"></div>';
     document.body.appendChild(overlay);
 
-    /* Setup ecrã completo */
     var setup = document.createElement("div");
     setup.id = "tchiloLiveSetup";
     setup.innerHTML =
       '<div class="su-video-wrap">' +
       '<video id="lvPreviewVideo" playsinline autoplay muted></video>' +
       '<div class="su-top">' +
-      '<button type="button" class="su-back" id="lvSetupBack" aria-label="Voltar">←</button>' +
+      '<button type="button" class="su-back" id="lvSetupBack" aria-label="Voltar">' + iconSvg("back") + '</button>' +
       '<b style="font:800 16px Inter,sans-serif">Nova Live</b>' +
-      '<button type="button" class="su-flip" id="lvSetupFlip" aria-label="Inverter câmara">🔄</button>' +
-      "</div></div>" +
+      '<button type="button" class="su-flip" id="lvSetupFlip" aria-label="Inverter câmara">' + iconSvg("flip") + '</button>' +
+      '</div></div>' +
       '<div class="su-panel">' +
       '<div class="su-label">Título</div>' +
       '<input id="lvTitleInput" maxlength="120" placeholder="O que vais transmitir?" />' +
       '<button type="button" class="su-go" id="lvStartBtn">Iniciar Live</button>' +
-      "</div>";
+      '</div>';
     document.body.appendChild(setup);
 
     document.getElementById("lvSetupBack").onclick = function () {
@@ -310,9 +332,9 @@
     var bottom = document.getElementById("lvBottom");
     if (!bottom) return;
     bottom.innerHTML =
-      '<button type="button" class="lv-btn icon" id="lvFlipBtn" title="Inverter câmara">🔄</button>' +
-      '<button type="button" class="lv-btn icon" id="lvShareBtn" title="Partilhar">↗</button>' +
-      '<button type="button" class="lv-btn icon" id="lvCopyBtn" title="Copiar link">🔗</button>' +
+      '<button type="button" class="lv-btn icon" id="lvFlipBtn" title="Inverter câmara">' + iconSvg("flip") + '</button>' +
+      '<button type="button" class="lv-btn icon" id="lvShareBtn" title="Partilhar">' + iconSvg("share") + '</button>' +
+      '<button type="button" class="lv-btn icon" id="lvCopyBtn" title="Copiar link">' + iconSvg("link") + '</button>' +
       '<button type="button" class="lv-btn danger" id="lvEndBtn">Terminar</button>';
 
     document.getElementById("lvFlipBtn").onclick = function () {
@@ -387,7 +409,6 @@
     try {
       showToast("A preparar live…");
 
-      // Reutilizar preview se existir; senão pedir câmara+mic
       var stream;
       if (previewStream && previewStream.getVideoTracks().length) {
         var audioOnly = await navigator.mediaDevices.getUserMedia({
@@ -465,7 +486,8 @@
 
       document.getElementById("lvTitle").textContent =
         title || "@" + session.username;
-      document.getElementById("lvViewers").textContent = "👁 0";
+      var n0 = document.getElementById("lvViewersN");
+      if (n0) n0.textContent = "0";
       buildHostControls();
 
       document.getElementById("tchiloLiveOverlay").classList.add("open");
@@ -491,9 +513,9 @@
         .select("viewer_count")
         .eq("id", host.liveId)
         .maybeSingle();
-      if (r.data && document.getElementById("lvViewers")) {
-        document.getElementById("lvViewers").textContent =
-          "👁 " + String(r.data.viewer_count || 0);
+      if (r.data) {
+        var n = document.getElementById("lvViewersN");
+        if (n) n.textContent = String(r.data.viewer_count || 0);
       }
     } catch (e) {}
   }
@@ -531,7 +553,6 @@
     if (v) v.srcObject = null;
   }
 
-  /* ---------- VIEWER ---------- */
   async function watchLive(liveRow) {
     ensureLiveUI();
     stopViewer();
@@ -603,13 +624,13 @@
 
       document.getElementById("lvTitle").textContent =
         liveRow.title || "@" + (liveRow.username || "");
-      document.getElementById("lvViewers").textContent =
-        "👁 " + String(liveRow.viewer_count || 0);
+      var nv = document.getElementById("lvViewersN");
+      if (nv) nv.textContent = String(liveRow.viewer_count || 0);
 
       var bottom = document.getElementById("lvBottom");
       bottom.innerHTML =
-        '<button type="button" class="lv-btn icon" id="lvShareBtnV" title="Partilhar">↗</button>' +
-        '<button type="button" class="lv-btn icon" id="lvCopyBtnV" title="Copiar link">🔗</button>' +
+        '<button type="button" class="lv-btn icon" id="lvShareBtnV" title="Partilhar">' + iconSvg("share") + '</button>' +
+        '<button type="button" class="lv-btn icon" id="lvCopyBtnV" title="Copiar link">' + iconSvg("link") + '</button>' +
         '<button type="button" class="lv-btn" id="lvLeaveBtn">Sair</button>';
       document.getElementById("lvShareBtnV").onclick = function () {
         shareLive(liveRow.username, liveRow.title);
@@ -655,7 +676,6 @@
     if (v && !host.liveId) v.srcObject = null;
   }
 
-  /* Deep link ?live=username */
   function tryOpenLiveFromUrl() {
     try {
       var params = new URLSearchParams(window.location.search || "");

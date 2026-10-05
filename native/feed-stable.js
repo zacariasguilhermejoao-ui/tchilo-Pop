@@ -27,9 +27,7 @@
   }
 
   function load() {
-    // Settings icons — only paints inside settings screen (strict)
     add('native/tchilo-settings-icons.js?v=24');
-
     add('native/tchilo-product-copy.js?v=2');
     add('native/tchilo-legal-links.js?v=1');
     add('native/tchilo-session-lock.js?v=1');
@@ -71,8 +69,9 @@
     add('native/tchilo-feed-to-reels.js?v=2');
     add('native/tchilo-reels-icon.js?v=2');
     add('native/tchilo-share-target.js?v=1');
-    add('native/nav-layout.js?v=3');
-    add('native/tchilo-ui-icons-fix.js?v=5');
+    add('native/nav-layout.js?v=4');
+    add('native/tchilo-feed-icon.js?v=4');
+    add('native/tchilo-ui-icons-fix.js?v=6');
     add('native/reels-follow-fix.js?v=2');
     add('native/tchilo-profile-avatar-plus.js?v=1');
     add('native/topbar-border-thin.js?v=2');

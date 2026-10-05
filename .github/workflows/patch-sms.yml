@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - 'scripts/write_sms_icon.py'
       - 'scripts/patch_sms_icon.py'
-      - 'sms-icon.svg'
 
 jobs:
   patch:
@@ -14,13 +14,14 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Apply SMS icon
+      - name: Write full SMS icon + patch index
         run: |
+          python3 scripts/write_sms_icon.py
           python3 scripts/patch_sms_icon.py
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html sms-icon.svg
+          git add sms-icon.svg index.html
           if ! git diff --cached --quiet; then
-            git commit -m "SMS: put user-provided icon in topbar + messages nav (remove old)"
+            git commit -m "SMS: exact user icon in topbar + messages (remove old)"
             git push
           fi

@@ -1,49 +1,46 @@
 #!/usr/bin/env python3
-"""Topbar border 3px -> 1px only. Does not touch .stories, .post, navbar, etc."""
+"""Topbar: remove border. Navbar: thin 1px top border. Leave stories alone."""
 from pathlib import Path
-import re
 
 INDEX = Path("index.html")
 html = INDEX.read_text(encoding="utf-8")
+changed = False
 
-# Only the main .topbar rule that has padding + border-bottom:3px
-pattern = re.compile(
-    r"(\.topbar\{"
-    r"(?:(?!\.topbar\{)[^}])*?"
-    r")border-bottom:3px solid var\(--line\);",
-    re.DOTALL,
-)
-
-def repl(m):
-    block = m.group(0)
-    # safety: must look like the feed topbar (padding + max-height or flex space-between)
-    if "padding:16px 18px 12px" in block or "justify-content:space-between" in block:
-        return m.group(1) + "border-bottom:1px solid var(--line);"
-    return block
-
-new_html, n = pattern.subn(repl, html, count=1)
-if n == 0:
-    # fallback exact string
+# topbar border -> none
+for old in (
+    "border-bottom:1px solid var(--line);",
+    "border-bottom:3px solid var(--line);",
+):
     idx = html.find(".topbar{\n    display:flex; align-items:center; justify-content:space-between;")
     if idx < 0:
         idx = html.find(".topbar{")
     if idx >= 0:
-        sub = html[idx:idx+400]
-        if "border-bottom:3px solid var(--line);" in sub:
-            new_sub = sub.replace("border-bottom:3px solid var(--line);", "border-bottom:1px solid var(--line);", 1)
-            new_html = html[:idx] + new_sub + html[idx+len(sub):]
-            n = 1
-        else:
-            n = 0
-    else:
-        n = 0
+        sub = html[idx:idx+450]
+        if old in sub:
+            new_sub = sub.replace(old, "border-bottom:none;", 1)
+            html = html[:idx] + new_sub + html[idx+len(sub):]
+            changed = True
+            print("OK: topbar border removed")
+            break
 
-if n:
-    INDEX.write_text(new_html, encoding="utf-8")
-    print(f"OK: topbar border -> 1px ({n})")
-else:
-    if "border-bottom:1px solid var(--line);" in html and html.count("border-bottom:3px solid var(--line);") >= 1:
-        print("Already patched or topbar already 1px")
+# navbar border-top 3px -> 1px
+idx = html.find(".navbar{\n    position:absolute;")
+if idx < 0:
+    idx = html.find(".navbar{")
+if idx >= 0:
+    sub = html[idx:idx+400]
+    if "border-top:3px solid var(--line);" in sub:
+        new_sub = sub.replace("border-top:3px solid var(--line);", "border-top:1px solid var(--line);", 1)
+        html = html[:idx] + new_sub + html[idx+len(sub):]
+        changed = True
+        print("OK: navbar border-top -> 1px")
+    elif "border-top:1px solid var(--line);" in sub:
+        print("navbar already 1px")
     else:
-        print("WARN: pattern not found")
-# trigger workflow
+        print("WARN: navbar border not found in expected form")
+
+if changed:
+    INDEX.write_text(html, encoding="utf-8")
+    print("Wrote index.html")
+else:
+    print("No changes (already applied?)")

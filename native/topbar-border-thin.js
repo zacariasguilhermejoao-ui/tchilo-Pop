@@ -1,25 +1,34 @@
 /**
- * Tchilo — borda do topbar fina (1px), sem mexer nas stories/posts/nav
- * v1
+ * Tchilo — topbar SEM borda; navbar com borda fina (1px)
+ * Não mexe em stories, posts, cartões
+ * v2
  */
 (function () {
   'use strict';
-  if (window.__tchiloTopbarBorderThin) return;
-  window.__tchiloTopbarBorderThin = true;
+  if (window.__tchiloTopbarBorderV2) return;
+  window.__tchiloTopbarBorderV2 = true;
 
   function inject() {
-    if (document.getElementById('tchiloTopbarBorderThinCSS')) return;
-    var st = document.createElement('style');
-    st.id = 'tchiloTopbarBorderThinCSS';
+    var st = document.getElementById('tchiloTopbarBorderThinCSS');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'tchiloTopbarBorderThinCSS';
+      (document.head || document.documentElement).appendChild(st);
+    }
     st.textContent =
+      /* remove completely the line under the top header */
       '#screen-feed .topbar,' +
       '.screen#screen-feed .topbar,' +
       '.topbar{' +
-      'border-bottom-width:1px!important;' +
-      'border-bottom-style:solid!important;' +
-      'border-bottom-color:var(--line)!important;' +
+      'border-bottom:none!important;' +
+      'border-bottom-width:0!important;' +
+      '}' +
+      /* thin line above bottom nav (Feed, Reels, +, heart, profile) */
+      '.navbar{' +
+      'border-top-width:1px!important;' +
+      'border-top-style:solid!important;' +
+      'border-top-color:var(--line)!important;' +
       '}';
-    (document.head || document.documentElement).appendChild(st);
   }
 
   inject();

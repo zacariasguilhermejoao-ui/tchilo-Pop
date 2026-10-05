@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Wire Instagram-style media picker into index; strip neo-brutalist create chrome."""
+"""Wire Instagram-style media picker into index."""
 from pathlib import Path
 import re
 
@@ -11,10 +11,8 @@ if not p.exists():
 html = p.read_text(encoding="utf-8", errors="replace")
 orig = html
 
-# Load script near other native scripts
-SCRIPT = '<script src="native/tchilo-media-picker.js?v=1" defer></script>'
+SCRIPT = '<script src="native/tchilo-media-picker.js?v=2" defer></script>'
 if "tchilo-media-picker.js" not in html:
-    # prefer after settings-icons or before </body>
     if "tchilo-settings-icons.js" in html:
         html = re.sub(
             r'(<script src="native/tchilo-settings-icons\.js[^>]+></script>)',
@@ -24,25 +22,12 @@ if "tchilo-media-picker.js" not in html:
         )
     else:
         html = html.replace("</body>", SCRIPT + "\n</body>", 1)
-    print("script tag added")
 else:
-    # bump cache
     html = re.sub(
-        r"native/tchilo-media-picker\.js\?v=\d+",
-        "native/tchilo-media-picker.js?v=1",
+        r'native/tchilo-media-picker\.js\?v=\d+',
+        'native/tchilo-media-picker.js?v=2',
         html,
     )
-    print("script already present")
-
-# Soften create screen neo-brutalist leftovers
-html = re.sub(
-    r"\.create-preview\{[^}]*border:\s*3px solid[^;]+;",
-    ".create-preview{border:0;",
-    html,
-    count=1,
-)
-
-# Ensure publish already flat from prior patches
 
 BLOCK = """
 /* tchilo-media-picker-flat */
@@ -61,7 +46,6 @@ if "/* tchilo-media-picker-flat */" not in html:
         html = html.replace("/* tchilo-flat-all-v3", BLOCK + "\n/* tchilo-flat-all-v3", 1)
     else:
         html = html.replace("</style>", BLOCK + "\n</style>", 1)
-    print("flat create css injected")
 
 if html != orig:
     p.write_text(html, encoding="utf-8")

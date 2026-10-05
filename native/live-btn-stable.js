@@ -1,10 +1,32 @@
 /**
- * Stop Live button from blinking — dedupe + no re-inject loops
+ * Stop Live button from blinking
+ * - dedupe buttons
+ * - block setInterval that re-injects Live
  */
 (function () {
   'use strict';
-  if (window.__tchiloLiveBtnStable) return;
+  if (window.__tchiloLiveBtnStableV2) return;
+  window.__tchiloLiveBtnStableV2 = true;
   window.__tchiloLiveBtnStable = true;
+
+  /* Intercept setInterval used by old live.js inject loop */
+  var _si = window.setInterval;
+  window.setInterval = function (fn, ms) {
+    try {
+      var src = fn && fn.toString ? fn.toString() : '';
+      if (
+        ms &&
+        ms <= 2000 &&
+        (/injectProfileButton/.test(src) ||
+          (/data-tchilo-live/.test(src) && /Iniciar Live/.test(src)) ||
+          (/profile-actions/.test(src) && /Iniciar Live/.test(src)))
+      ) {
+        console.log('[live-stable] blocked inject interval', ms);
+        return 0;
+      }
+    } catch (e) {}
+    return _si.apply(this, arguments);
+  };
 
   function ensureOnce() {
     try {
@@ -16,11 +38,11 @@
           existing[i].remove();
         } catch (e) {}
       }
-    } catch (e) {}
+    } catch (e2) {}
   }
 
   ensureOnce();
-  [200, 800, 2000].forEach(function (ms) {
+  [300, 1000, 2500].forEach(function (ms) {
     setTimeout(ensureOnce, ms);
   });
 

@@ -1446,6 +1446,21 @@
   .settings-item span{ flex:1; min-width:0; }
   .settings-item .chev{ color:var(--muted); font-size:20px; font-weight:300; opacity:.65; line-height:1; }
   .settings-item.danger{ color:var(--pink); }
+
+  /* settings mono icons visible (IG-style) */
+  #screen-settings .settings-item .si-icon{
+    width:24px!important;height:24px!important;min-width:24px!important;
+    border:0!important;border-radius:0!important;background:transparent!important;
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    flex-shrink:0!important;color:var(--ink)!important;overflow:visible!important;
+  }
+  #screen-settings .settings-item .si-icon svg{
+    display:block!important;visibility:visible!important;opacity:1!important;
+    width:22px!important;height:22px!important;
+    stroke:currentColor!important;
+  }
+  #screen-settings .settings-item .si-icon img{display:none!important;}
+
   .settings-item.danger .si-icon{ color:var(--pink); }
   .legal-body{
     flex:1; overflow-y:auto; padding:18px 18px 100px;
@@ -10930,6 +10945,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
+
+
 <script src="native/media-editor.js"></script>
 <script src="native/post-music-feed.js"></script>
 <script src="native/feed-music-play.js"></script>
@@ -10950,7 +10967,8 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/profile-avatar-cloud.js?v=2"></script>
 <script src="native/tchilo-profile-avatar-plus.js?v=3"></script>
 <script src="native/tchilo-legal-urls.js?v=2"></script>
-<script src="native/tchilo-profile-share.js?v=3"></script>
+<script src="native/tchilo-settings-icons.js?v=25"></script>
+<script src="native/tchilo-profile-share.js?v=4"></script>
 <script src="native/live-btn-stable.js?v=2"></script>
 <script src="native/tchilo-live.js?v=2"></script>
 <script src="native/tchilo-verified.js?v=4"></script>

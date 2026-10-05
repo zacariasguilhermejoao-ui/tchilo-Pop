@@ -15,7 +15,8 @@
     "@capacitor/camera": "latest",
     "@capacitor/geolocation": "latest",
     "@capacitor/push-notifications": "latest",
-    "@capacitor/splash-screen": "latest"
+    "@capacitor/splash-screen": "latest",
+    "tchilo-media-gallery": "file:plugins/tchilo-media-gallery"
   },
   "devDependencies": {
     "@capacitor/cli": "latest",

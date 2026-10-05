@@ -56,3 +56,46 @@
     window.renderProfile.__liveStable = true;
   }
 })();
+
+/* Also replace topbar logo with LIVE pill icon (user request) */
+(function () {
+  'use strict';
+  if (window.__tchiloLiveLogoV1) return;
+  window.__tchiloLiveLogoV1 = true;
+
+  function applyLiveLogo() {
+    try {
+      var img = document.querySelector('.topbar .logo-img, .topbar img.logo-img');
+      if (!img) return;
+      img.src = 'live-icon.svg';
+      img.alt = 'LIVE';
+      img.title = 'Lives';
+      img.style.cursor = 'pointer';
+      img.style.height = '28px';
+      img.style.width = 'auto';
+      img.setAttribute('role', 'button');
+      img.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof window.tchiloOpenLiveSetup === 'function') {
+          window.tchiloOpenLiveSetup();
+        } else if (typeof window.openLiveScreen === 'function') {
+          window.openLiveScreen();
+        } else if (typeof window.openSetup === 'function') {
+          window.openSetup();
+        } else {
+          alert('Lives — em breve. (botão CRIAR LIVE aparece após entrar)');
+        }
+      };
+    } catch (err) {}
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyLiveLogo);
+  } else {
+    applyLiveLogo();
+  }
+  [150, 600, 1500, 3000].forEach(function (ms) {
+    setTimeout(applyLiveLogo, ms);
+  });
+})();

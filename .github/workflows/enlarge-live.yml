@@ -1,0 +1,27 @@
+name: Enlarge LIVE icon
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/patch_live_logo_big.py'
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make LIVE logo big
+        run: |
+          python3 scripts/patch_live_logo_big.py
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "LIVE topbar icon → 52px (bem grande e visível)"
+            git push
+          fi

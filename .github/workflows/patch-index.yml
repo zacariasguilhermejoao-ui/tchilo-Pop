@@ -8,6 +8,10 @@ on:
       - 'scripts/**'
       - '.github/workflows/patch-index.yml'
 
+concurrency:
+  group: patch-index-main
+  cancel-in-progress: false
+
 jobs:
   patch:
     runs-on: ubuntu-latest
@@ -15,22 +19,37 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run all patch scripts
         run: |
+          set -e
           for f in scripts/patch_*.py; do
             echo "=== $f ==="
-            python3 "$f" || true
+            python3 "$f" || echo "WARN: $f failed"
           done
 
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html native/ 2>/dev/null || git add index.html
+          git add -A
           if git diff --cached --quiet; then
             echo "No changes"
           else
             git commit -m "fix: index + native patches"
-            git push
+            # retry push with rebase in case of race
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main || true
+              if git push origin HEAD:main; then
+                echo "Push OK"
+                exit 0
+              fi
+              echo "Push failed, retry $i"
+              sleep 3
+            done
+            echo "Push failed after retries"
+            exit 1
           fi

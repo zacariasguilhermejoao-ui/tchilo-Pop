@@ -291,9 +291,20 @@
   window.tchiloOpenVerified = openVerifiedSheet;
 
   function injectSettings() {
+    var btn = document.getElementById('settings-verified-item');
+    if (btn) {
+      if (!btn.__tchiloBound) {
+        btn.__tchiloBound = true;
+        btn.onclick = function (e) {
+          e.preventDefault();
+          openVerifiedSheet();
+        };
+      }
+      return;
+    }
     var list = document.querySelector('#screen-settings .settings-list');
-    if (!list || document.getElementById('settings-verified-item')) return;
-    var btn = document.createElement('button');
+    if (!list) return;
+    btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'settings-item';
     btn.id = 'settings-verified-item';
@@ -301,6 +312,7 @@
       '<div class="si-icon" style="background:#1D9BF0;color:#fff">' +
       badgeSvg(18) +
       '</div><span>Selo verificado</span><div class="chev">›</div>';
+    btn.__tchiloBound = true;
     btn.onclick = function (e) {
       e.preventDefault();
       openVerifiedSheet();

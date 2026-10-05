@@ -2243,6 +2243,9 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
     <div class="topbar">
       <img class="logo-img" src="live-icon.svg" alt="LIVE" style="cursor:pointer;height:68px;width:auto;object-fit:contain;" onclick="if(typeof tchiloOpenLiveSetup==='function'){tchiloOpenLiveSetup()}else if(typeof openLiveScreen==='function'){openLiveScreen()}else if(typeof openSetup==='function'){openSetup()}else{alert('Lives em breve')}" role="button" title="Lives">
       <div class="topbar-icons">
+        <div class="icon-btn" onclick="goTo('messages')" title="SMS / Mensagens" aria-label="SMS">
+          <img src="sms-icon.svg" alt="SMS" style="width:28px;height:28px;object-fit:contain;display:block;">
+        </div>
         <div class="icon-btn" onclick="goTo('search')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
         </div>
@@ -2427,7 +2430,7 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
       <div class="dot"></div>
     </button>
     <button class="nav-item" data-screen="messages" onclick="goTo('messages')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
+      <img src="sms-icon.svg" alt="SMS" style="width:34px;height:34px;object-fit:contain;display:block;">
       <div class="dot"></div>
     </button>
     <button class="nav-post" type="button" onclick="goTo('create')" aria-label="Nova publicação"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>

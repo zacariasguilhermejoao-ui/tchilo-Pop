@@ -7,7 +7,6 @@ SYS = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
 SYS_CSS = 'system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'
 
 def fix_text(t):
-    # Anton variants
     t = t.replace("font-family:'Anton', sans-serif", f"font-family:{SYS}")
     t = t.replace("font-family:'Anton',sans-serif", f"font-family:{SYS}")
     t = t.replace('font-family:"Anton", sans-serif', f"font-family:{SYS}")
@@ -16,10 +15,14 @@ def fix_text(t):
     t = t.replace("font-family:Anton,Impact,sans-serif", f"font-family:{SYS}")
     t = t.replace("font-family:Anton, Impact, sans-serif", f"font-family:{SYS}")
     t = t.replace("font-family:'Anton',Impact,sans-serif", f"font-family:{SYS}")
-    # escaped in JS strings
     t = t.replace("font-family:\\'Anton\\',sans-serif", f"font-family:{SYS}")
     t = t.replace("font-family:\\'Anton\\', sans-serif", f"font-family:{SYS}")
-    # Inter → system
+    # canvas stamp titles
+    t = t.replace("Anton, Impact, Arial Black, sans-serif", SYS_CSS)
+    t = t.replace("Anton, Impact, sans-serif", SYS_CSS)
+    t = t.replace("Anton,Impact,sans-serif", SYS_CSS)
+    t = t.replace("Anton, Impact, Arial Black,sans-serif", SYS_CSS)
+    # Inter
     t = re.sub(r"font:\s*(\d{3})\s+(\d+(?:px)?)\s+Inter,\s*system-ui,\s*sans-serif", rf"font:\1 \2 {SYS_CSS}", t)
     t = re.sub(r"font:\s*(\d{3})\s+(\d+(?:px)?)\s+Inter,\s*sans-serif", rf"font:\1 \2 {SYS_CSS}", t)
     t = re.sub(r"font:\s*(\d{3})\s+(\d+(?:px)?)\s+Inter,system-ui,sans-serif", rf"font:\1 \2 {SYS_CSS}", t)
@@ -28,29 +31,20 @@ def fix_text(t):
     t = t.replace("Inter,system-ui,sans-serif", SYS_CSS)
     t = t.replace("Inter,sans-serif", SYS_CSS)
     t = t.replace("Inter, sans-serif", SYS_CSS)
-    # canvas fonts
     t = t.replace("'700 28px Inter, system-ui, sans-serif'", f"'700 28px {SYS_CSS}'")
     t = t.replace("'600 18px Inter, system-ui, sans-serif'", f"'600 18px {SYS_CSS}'")
-    t = t.replace('"700 28px Inter, system-ui, sans-serif"', f'"700 28px {SYS_CSS}"')
-    t = t.replace('"600 18px Inter, system-ui, sans-serif"', f'"600 18px {SYS_CSS}"')
     return t
 
-# index
 p = Path("index.html")
 if p.exists():
     html = p.read_text(encoding="utf-8", errors="replace")
     orig = html
-    # remove Google Fonts Anton
     html = re.sub(
         r'<link[^>]+fonts\.googleapis\.com/css2\?family=Anton[^>]*>\s*',
         '',
         html,
     )
-    # optional: keep preconnect only if other fonts — remove unused google preconnect if only Anton
-    # leave preconnect; harmless
     html = fix_text(html)
-
-    # screen-header h1 ensure system
     html = re.sub(
         r"\.screen-header h1\{[^}]+\}",
         ".screen-header h1{"
@@ -58,7 +52,6 @@ if p.exists():
         html,
         count=1,
     )
-
     OVERRIDE = f"""
 /* tchilo-system-titles — all headings use system font */
 h1,h2,h3,h4,h5,h6,
@@ -86,15 +79,21 @@ h1,h2,h3,h4,h5,h6,
             html = html.replace("</style>", OVERRIDE + "\n</style>", 1)
         print("injected system-titles override")
     else:
-        print("system-titles already present")
+        # refresh override block
+        html = re.sub(
+            r"/\* tchilo-system-titles[\s\S]*?(?=/\* tchilo-flat|/\* tchilo|</style>)",
+            OVERRIDE + "\n",
+            html,
+            count=1,
+        )
+        print("refreshed system-titles")
 
     if html != orig:
         p.write_text(html, encoding="utf-8")
-        print("index written")
+        print("index written", len(html))
     else:
         print("index unchanged")
 
-# native
 for rel in [
     "native/tchilo-profile-share.js",
     "native/tchilo-support.js",

@@ -1407,7 +1407,7 @@
   .saved-tabs{display:flex;gap:8px;padding:10px 12px;border-bottom:2px solid #e8e6de;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
   .saved-tabs::-webkit-scrollbar{display:none}
   .saved-tab{flex-shrink:0;padding:9px 12px;border:2.5px solid var(--ink);border-radius:12px;background:var(--paper);font:800 12px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer}
-  .saved-tab.active{background:var(--yellow)}
+  .saved-tab.active{background:var(--ink);color:#fff}
   .saved-body{flex:1;overflow-y:auto;padding:12px 18px 100px;-webkit-overflow-scrolling:touch}
   .saved-card{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:2px solid #e8e6de;cursor:pointer}
   .saved-thumb{width:72px;height:72px;flex-shrink:0;border:2.5px solid var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--mint);font-family:Anton,sans-serif;font-size:13px;text-align:center}
@@ -1562,7 +1562,7 @@
     border:2.5px solid var(--ink); background:var(--paper);
     font:800 12px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; cursor:pointer;
   }
-  .notif-tab.active{ background:var(--yellow); }
+  .notif-tab.active{ background:var(--ink);color:#fff; }
   #screen-notifs.active, #screen-editprofile.active, #screen-settings.active, #screen-saved.active,
   #screen-feed.active, #screen-search.active, #screen-messages.active, #screen-profile.active,
   #screen-create.active{
@@ -1727,6 +1727,69 @@
 
 
 
+
+/* tchilo-flat-all-v3 — original in index */
+.back-btn,button.back-btn,.screen-header .back-btn{
+  border:0!important;background:transparent!important;box-shadow:none!important;border-radius:50%!important;
+}
+#tchiloModalHost .tm-actions>button{
+  border:0!important;box-shadow:none!important;border-radius:12px!important;font-weight:600!important;
+}
+#tchiloModalHost .tm-actions>button.tm-primary{
+  background:var(--ink,#0B0B0C)!important;color:#fff!important;
+}
+#tchiloModalHost .tm-actions>button:not(.tm-primary):not(.tm-danger){
+  background:rgba(11,11,12,.06)!important;color:var(--ink)!important;
+}
+#tchiloModalHost .tm-input{
+  border:0!important;background:rgba(11,11,12,.06)!important;border-radius:12px!important;
+}
+#tchiloModalHost .tm-option{
+  border:0.5px solid rgba(11,11,12,.12)!important;box-shadow:none!important;
+}
+.saved-tab{
+  border:0!important;background:rgba(11,11,12,.06)!important;border-radius:999px!important;color:var(--ink)!important;
+}
+.saved-tab.active{background:var(--ink,#0B0B0C)!important;color:#fff!important;}
+.saved-remove{border:0!important;background:rgba(11,11,12,.06)!important;}
+.playlist-create{border:0!important;background:var(--ink,#0B0B0C)!important;color:#fff!important;}
+.notif-tab.active{background:var(--ink,#0B0B0C)!important;color:#fff!important;}
+#tchiloAdsPro .ap-back,#tchiloAdsPro .ap-x,
+#tchiloVerifiedSheet .tv-back,#tchiloPremiumSheet .tp-back,#tchiloSupport .su-back{
+  border:0!important;background:transparent!important;border-radius:50%!important;box-shadow:none!important;
+}
+#tchiloAdsPro .ap-btn.primary,#tchiloAdsPro .ap-pay,#tchiloAdsPro .ap-chip.on,#tchiloAdsPro .pv-cta{
+  background:#0B0B0C!important;color:#fff!important;border:0!important;
+}
+#tchiloAdsPro .ap-btn,#tchiloAdsPro .ap-card{
+  border:0.5px solid rgba(11,11,12,.12)!important;box-shadow:none!important;background:#fff!important;
+}
+#tchiloAdsPro .ap-btn.primary{background:#0B0B0C!important;color:#fff!important;}
+#tchiloAdsPro input,#tchiloAdsPro textarea,#tchiloAdsPro select{
+  border:0!important;background:rgba(11,11,12,.06)!important;
+}
+#tchiloAdsPro .ap-chip{border:0!important;background:rgba(11,11,12,.06)!important;}
+#tchiloVerifiedSheet .tv-card,#tchiloVerifiedSheet .tv-ico,#tchiloVerifiedSheet .tv-price-box,
+#tchiloVerifiedSheet .tv-hero-badge,#tchiloVerifiedSheet .close,#tchiloVerifiedSheet .active-badge,
+#tchiloPremiumSheet .tp-card,#tchiloPremiumSheet .tp-hero-icon{
+  border:0!important;box-shadow:none!important;
+}
+#tchiloVerifiedSheet .pay,#tchiloPremiumSheet .pay{
+  border:0!important;border-radius:12px!important;box-shadow:none!important;
+}
+#tchiloQrModal .card{border:0!important;box-shadow:0 12px 40px rgba(0,0,0,.2)!important;}
+#tchiloQrModal .actions button{
+  border:0!important;box-shadow:none!important;border-radius:12px!important;font-weight:600!important;
+}
+#tchiloQrModal .actions .primary{background:var(--ink,#0B0B0C)!important;color:#fff!important;}
+#tchiloQrModal .actions .ghost{background:rgba(11,11,12,.06)!important;color:var(--ink)!important;}
+.settings-item .si-icon{
+  width:24px!important;height:24px!important;border:0!important;border-radius:0!important;background:transparent!important;
+}
+.settings-item .si-icon svg{
+  display:block!important;visibility:visible!important;opacity:1!important;width:22px!important;height:22px!important;
+}
+
 /* tchilo-flat-ctas-ig */
 #tchiloQrModal .card{border:0!important;box-shadow:0 12px 40px rgba(0,0,0,.2)!important;border-radius:20px!important;}
 #tchiloQrModal .actions button{border:0!important;box-shadow:none!important;border-radius:12px!important;font-weight:600!important;padding:14px!important;}
@@ -1886,7 +1949,7 @@ body { overflow:hidden; }
   flex:1;padding:14px 12px;border:2.5px solid var(--ink);border-radius:14px;
   font:800 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer;background:var(--paper);color:var(--ink);
 }
-#tchiloModalHost .tm-actions > button.tm-primary{background:var(--yellow)}
+#tchiloModalHost .tm-actions > button.tm-primary{background:var(--ink);color:#fff}
 #tchiloModalHost .tm-actions > button.tm-danger{background:var(--pink);color:#fff}
 #tchiloModalHost .tm-actions > button:active{transform:scale(.98)}
 #tchiloModalHost .tm-option{
@@ -10964,7 +11027,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/profile-avatar-cloud.js?v=2"></script>
 <script src="native/tchilo-profile-avatar-plus.js?v=3"></script>
 <script src="native/tchilo-legal-urls.js?v=2"></script>
-<script src="native/tchilo-settings-icons.js?v=25"></script>
+<script src="native/tchilo-settings-icons.js?v=26"></script>
 <script src="native/tchilo-profile-share.js?v=4"></script>
 <script src="native/live-btn-stable.js?v=2"></script>
 <script src="native/tchilo-live.js?v=2"></script>

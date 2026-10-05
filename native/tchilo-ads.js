@@ -116,29 +116,29 @@
       "#screen-ads.open,#screen-ads-create.open{display:flex!important}" +
       ".ads-top{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;border-bottom:2px solid var(--ink,#0B0B0C);background:var(--paper,#f7f6f2)}" +
       ".ads-top h1{font:800 18px Inter,system-ui,sans-serif;margin:0;flex:1}" +
-      ".ads-top button{width:40px;height:40px;border:2.5px solid var(--ink,#0B0B0C);border-radius:50%;background:var(--yellow,#ffe566);font-size:20px;font-weight:900}" +
+      ".ads-top button{width:40px;height:40px;border:0;border-radius:50%;background:var(--yellow,#ffe566);font-size:20px;font-weight:900}" +
       ".ads-body{flex:1;overflow:auto;padding:14px 16px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}" +
-      ".ads-card{border:2.5px solid var(--ink,#0B0B0C);border-radius:16px;padding:12px;margin-bottom:12px;background:#fff}" +
+      ".ads-card{border:0;border-radius:16px;padding:12px;margin-bottom:12px;background:#fff}" +
       ".ads-card .row{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:4px 0}" +
       ".ads-badge{display:inline-block;padding:3px 8px;border-radius:999px;border:2px solid var(--ink,#0B0B0C);font:800 11px Inter,sans-serif;text-transform:uppercase}" +
-      ".ads-badge.active{background:#c8f560}.ads-badge.paused{background:#ffe566}.ads-badge.expired,.ads-badge.pending{background:#eee}" +
+      ".ads-badge.active{background:#0B0B0C;color:#fff}.ads-badge.paused{background:transparent}.ads-badge.expired,.ads-badge.pending{background:#eee}" +
       ".ads-field{margin-bottom:14px}" +
       ".ads-field label{display:block;font:800 12px Inter,sans-serif;margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em;opacity:.7}" +
-      ".ads-field input,.ads-field textarea,.ads-field select{width:100%;box-sizing:border-box;border:2.5px solid var(--ink,#0B0B0C);border-radius:12px;padding:12px;font:600 14px Inter,sans-serif;background:#fff}" +
+      ".ads-field input,.ads-field textarea,.ads-field select{width:100%;box-sizing:border-box;border:0;border-radius:12px;padding:12px;font:600 14px Inter,sans-serif;background:#fff}" +
       ".ads-field textarea{min-height:90px;resize:vertical}" +
       ".ads-types{display:grid;grid-template-columns:1fr 1fr;gap:10px}" +
-      ".ads-type{border:2.5px solid var(--ink,#0B0B0C);border-radius:14px;padding:12px;text-align:center;font:800 13px Inter,sans-serif;background:#fff;cursor:pointer}" +
-      ".ads-type.on{background:#c8f560;box-shadow:none}" +
+      ".ads-type{border:0;border-radius:14px;padding:12px;text-align:center;font:800 13px Inter,sans-serif;background:#fff;cursor:pointer}" +
+      ".ads-type.on{background:#0B0B0C;color:#fff;box-shadow:none}" +
       ".ads-reach{border:2.5px dashed var(--ink,#0B0B0C);border-radius:14px;padding:12px;background:#f1ecff;font:700 13px Inter,sans-serif;line-height:1.45;margin:8px 0 16px}" +
       ".ads-media-btn{display:flex;align-items:center;justify-content:center;min-height:120px;border:2.5px dashed var(--ink,#0B0B0C);border-radius:14px;background:#fff;cursor:pointer;font:800 13px Inter,sans-serif}" +
       ".ads-media-btn img,.ads-media-btn video{max-width:100%;max-height:180px;border-radius:10px}" +
-      ".ads-pay{width:100%;padding:14px;border:3px solid var(--ink,#0B0B0C);border-radius:16px;background:#c8f560;font:900 15px Inter,sans-serif;box-shadow:none;cursor:pointer}" +
+      ".ads-pay{width:100%;padding:14px;border:0;border-radius:16px;background:#0B0B0C;color:#fff;font:900 15px Inter,sans-serif;box-shadow:none;cursor:pointer}" +
       ".ads-pay:active{opacity:.92}" +
-      ".feed-ad{position:relative;border:2.5px solid var(--ink,#0B0B0C);border-radius:16px;margin:12px 12px;overflow:hidden;background:#fff}" +
+      ".feed-ad{position:relative;border:0;border-radius:16px;margin:12px 12px;overflow:hidden;background:#fff}" +
       ".feed-ad .ad-label{position:absolute;top:10px;left:10px;z-index:3;background:rgba(0,0,0,.72);color:#fff;font:800 10px Inter,sans-serif;padding:4px 8px;border-radius:8px;letter-spacing:.04em}" +
       ".feed-ad .ad-body{padding:12px 14px 14px;font:600 14px Inter,sans-serif}" +
       ".feed-ad .ad-media{width:100%;max-height:360px;object-fit:cover;display:block;background:#111}" +
-      ".feed-ad .ad-cta{display:block;margin:0 14px 14px;padding:12px;text-align:center;border:2.5px solid var(--ink,#0B0B0C);border-radius:12px;background:#c8f560;font:900 14px Inter,sans-serif;color:var(--ink,#0B0B0C);text-decoration:none}" +
+      ".feed-ad .ad-cta{display:block;margin:0 14px 14px;padding:12px;text-align:center;border:0;border-radius:12px;background:#0B0B0C;color:#fff;font:900 14px Inter,sans-serif;color:var(--ink,#0B0B0C);text-decoration:none}" +
       "#tchiloAdsMgrBtn{display:flex!important}";
     document.head.appendChild(st);
   }
@@ -178,7 +178,7 @@
     btn.id = "tchiloAdsMgrBtn";
     btn.className = "settings-item";
     btn.innerHTML =
-      '<div class="si-icon" style="background:#c8f560;border:2px solid var(--ink,#0B0B0C);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:900">A</div>' +
+      '<div class="si-icon" style="background:#0B0B0C;color:#fff;border:2px solid var(--ink,#0B0B0C);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:900">A</div>' +
       "<span>Meus Anúncios</span><span class=\"chev\">›</span>";
     btn.onclick = function (e) {
       e.preventDefault();
@@ -603,12 +603,12 @@
           actions =
             '<button type="button" data-pause="' +
             ad.id +
-            '" style="margin-top:8px;padding:8px 12px;border:2px solid #000;border-radius:10px;font-weight:800;background:#ffe566">Pausar</button>';
+            '" style="margin-top:8px;padding:8px 12px;border:2px solid #000;border-radius:10px;font-weight:800;background:transparent">Pausar</button>';
         if (st === "paused")
           actions =
             '<button type="button" data-resume="' +
             ad.id +
-            '" style="margin-top:8px;padding:8px 12px;border:2px solid #000;border-radius:10px;font-weight:800;background:#c8f560">Reativar</button>';
+            '" style="margin-top:8px;padding:8px 12px;border:2px solid #000;border-radius:10px;font-weight:800;background:#0B0B0C;color:#fff">Reativar</button>';
         return (
           '<div class="ads-card">' +
           '<div class="row"><span class="ads-badge ' +

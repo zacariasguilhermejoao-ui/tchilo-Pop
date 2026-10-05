@@ -96,38 +96,38 @@
       "#tchiloAdsPro.open{display:flex!important}" +
       "#tchiloAdsPro .ap-top{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;border-bottom:2.5px solid #0B0B0C;flex-shrink:0}" +
       "#tchiloAdsPro .ap-top h1{flex:1;margin:0;font:800 17px Inter,sans-serif}" +
-      "#tchiloAdsPro .ap-back,#tchiloAdsPro .ap-x{width:40px;height:40px;border:2.5px solid #0B0B0C;border-radius:50%;background:#FFE566;font:900 18px Inter,sans-serif;cursor:pointer}" +
+      "#tchiloAdsPro .ap-back,#tchiloAdsPro .ap-x{width:40px;height:40px;border:0;border-radius:50%;background:transparent;font:900 18px Inter,sans-serif;cursor:pointer}" +
       "#tchiloAdsPro .ap-body{flex:1;overflow:auto;padding:14px 14px calc(28px + env(safe-area-inset-bottom))}" +
-      "#tchiloAdsPro .ap-card{border:2.5px solid #0B0B0C;border-radius:16px;padding:14px;margin-bottom:12px;background:#fff}" +
+      "#tchiloAdsPro .ap-card{border:0;border-radius:16px;padding:14px;margin-bottom:12px;background:#fff}" +
       "#tchiloAdsPro .ap-card h2{margin:0 0 6px;font:800 15px Inter,sans-serif}" +
       "#tchiloAdsPro .ap-card p{margin:0;font:600 13px Inter,sans-serif;opacity:.75}" +
       "#tchiloAdsPro .ap-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}" +
-      "#tchiloAdsPro .ap-btn{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:16px;border:2.5px solid #0B0B0C;border-radius:16px;background:#fff;cursor:pointer;text-align:left;font:inherit;color:inherit;box-shadow:none}" +
-      "#tchiloAdsPro .ap-btn.primary{background:#c8f560}" +
+      "#tchiloAdsPro .ap-btn{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:16px;border:0;border-radius:16px;background:#fff;cursor:pointer;text-align:left;font:inherit;color:inherit;box-shadow:none}" +
+      "#tchiloAdsPro .ap-btn.primary{background:#0B0B0C;color:#fff}" +
       "#tchiloAdsPro .ap-btn b{font:900 15px Inter,sans-serif}" +
       "#tchiloAdsPro .ap-btn span{font:600 12px Inter,sans-serif;opacity:.7}" +
       "#tchiloAdsPro label.ap-lab{display:block;font:800 11px Inter,sans-serif;text-transform:uppercase;opacity:.65;margin:12px 0 6px}" +
-      "#tchiloAdsPro input,#tchiloAdsPro textarea,#tchiloAdsPro select{width:100%;box-sizing:border-box;padding:12px;border:2.5px solid #0B0B0C;border-radius:12px;font:600 14px Inter,sans-serif;background:#fff}" +
+      "#tchiloAdsPro input,#tchiloAdsPro textarea,#tchiloAdsPro select{width:100%;box-sizing:border-box;padding:12px;border:0;border-radius:12px;font:600 14px Inter,sans-serif;background:#fff}" +
       "#tchiloAdsPro textarea{min-height:90px}" +
       "#tchiloAdsPro .ap-chips{display:flex;flex-wrap:wrap;gap:8px}" +
       "#tchiloAdsPro .ap-chip{padding:8px 12px;border:2px solid #0B0B0C;border-radius:999px;font:800 12px Inter,sans-serif;background:#fff;cursor:pointer}" +
-      "#tchiloAdsPro .ap-chip.on{background:#c8f560}" +
+      "#tchiloAdsPro .ap-chip.on{background:#0B0B0C;color:#fff}" +
       "#tchiloAdsPro .ap-reach{padding:12px;border:2.5px dashed #0B0B0C;border-radius:14px;background:#f1ecff;font:700 13px Inter,sans-serif;margin:12px 0}" +
-      "#tchiloAdsPro .ap-pay{width:100%;margin-top:8px;padding:14px;border:3px solid #0B0B0C;border-radius:16px;background:#c8f560;font:900 15px Inter,sans-serif;box-shadow:none;cursor:pointer}" +
+      "#tchiloAdsPro .ap-pay{width:100%;margin-top:8px;padding:14px;border:0;border-radius:16px;background:#0B0B0C;color:#fff;font:900 15px Inter,sans-serif;box-shadow:none;cursor:pointer}" +
       "#tchiloAdsPro .ap-steps{display:flex;gap:6px;margin-bottom:14px}" +
       "#tchiloAdsPro .ap-step{flex:1;height:4px;border-radius:4px;background:rgba(0,0,0,.12)}" +
       "#tchiloAdsPro .ap-step.on{background:#0B0B0C}" +
-      "#tchiloAdsPro .ap-preview{border:2.5px solid #0B0B0C;border-radius:16px;overflow:hidden;background:#fff;margin-top:12px}" +
+      "#tchiloAdsPro .ap-preview{border:0;border-radius:16px;overflow:hidden;background:#fff;margin-top:12px}" +
       "#tchiloAdsPro .pv-head{display:flex;align-items:center;gap:10px;padding:10px 12px}" +
-      "#tchiloAdsPro .pv-av{width:36px;height:36px;border-radius:50%;background:#c8f560;border:2px solid #0B0B0C;display:flex;align-items:center;justify-content:center;font:900 14px Inter,sans-serif}" +
+      "#tchiloAdsPro .pv-av{width:36px;height:36px;border-radius:50%;background:#0B0B0C;color:#fff;border:2px solid #0B0B0C;display:flex;align-items:center;justify-content:center;font:900 14px Inter,sans-serif}" +
       "#tchiloAdsPro .pv-media{min-height:140px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center}" +
       "#tchiloAdsPro .pv-media img,#tchiloAdsPro .pv-media video{width:100%;max-height:240px;object-fit:cover;display:block}" +
       "#tchiloAdsPro .pv-cap{padding:10px 12px;font:600 14px Inter,sans-serif}" +
-      "#tchiloAdsPro .pv-cta{margin:0 12px 12px;padding:11px;border:2.5px solid #0B0B0C;border-radius:12px;background:#c8f560;font:900 13px Inter,sans-serif;text-align:center}" +
-      "#apMap{height:240px;border:2.5px solid #0B0B0C;border-radius:14px;margin-top:8px;z-index:1}" +
+      "#tchiloAdsPro .pv-cta{margin:0 12px 12px;padding:11px;border:0;border-radius:12px;background:#0B0B0C;color:#fff;font:900 13px Inter,sans-serif;text-align:center}" +
+      "#apMap{height:240px;border:0;border-radius:14px;margin-top:8px;z-index:1}" +
       "#apSearchResults{list-style:none;margin:6px 0 0;padding:0;max-height:160px;overflow:auto;border:2px solid #0B0B0C;border-radius:12px;background:#fff;display:none}" +
       "#apSearchResults li{padding:10px 12px;border-bottom:1px solid #eee;font:600 13px Inter,sans-serif;cursor:pointer}" +
-      "#apSearchResults li:active{background:#c8f560}" +
+      "#apSearchResults li:active{background:#0B0B0C;color:#fff}" +
       "#apLocLabel{margin-top:8px;font:700 13px Inter,sans-serif;line-height:1.35}";
     document.head.appendChild(st);
   }
@@ -485,7 +485,7 @@
       "<div style=\"font:700 13px Inter,sans-serif;margin-top:4px\" id=\"apRadiusVal\">" +
       draft.targetRadiusKm +
       " km</div>" +
-      "<button type=\"button\" class=\"ap-pay\" id=\"apUseMyLoc\" style=\"background:#ffe566;margin-top:12px\">Usar a minha localizacao</button>" +
+      "<button type=\"button\" class=\"ap-pay\" id=\"apUseMyLoc\" style=\"background:transparent;margin-top:12px\">Usar a minha localizacao</button>" +
       "<button type=\"button\" class=\"ap-pay\" id=\"apNext3\" style=\"margin-top:10px\">Continuar</button>";
 
     document.querySelectorAll("#apScope .ap-chip").forEach(function (c) {

@@ -227,8 +227,8 @@
       var st = document.createElement("style");
       st.id = "tchiloPremiumCSS";
       st.textContent =
-        "#tchiloPremiumBtn{display:flex;align-items:center;gap:12px;width:calc(100% - 36px);margin:12px 18px 4px;padding:14px 14px;border:3px solid var(--ink,#0B0B0C);border-radius:16px;background:linear-gradient(135deg,#c8f560 0%,#9ee0ff 100%);color:var(--ink,#0B0B0C);font:800 14px Inter,system-ui,sans-serif;text-align:left;cursor:pointer;box-shadow:none}" +
-        "#tchiloPremiumBtn .prem-icon{width:42px;height:42px;border-radius:12px;border:2.5px solid var(--ink,#0B0B0C);background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}" +
+        "#tchiloPremiumBtn{display:flex;align-items:center;gap:12px;width:calc(100% - 36px);margin:12px 18px 4px;padding:14px 14px;border:0;border-radius:16px;background:linear-gradient(135deg,#c8f560 0%,#9ee0ff 100%);color:var(--ink,#0B0B0C);font:800 14px Inter,system-ui,sans-serif;text-align:left;cursor:pointer;box-shadow:none}" +
+        "#tchiloPremiumBtn .prem-icon{width:42px;height:42px;border-radius:12px;border:0;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}" +
         "#tchiloPremiumBtn .prem-text{flex:1;min-width:0}" +
         "#tchiloPremiumBtn .prem-text b{display:block;font-size:15px}" +
         "#tchiloPremiumBtn .prem-text span{display:block;font-size:12px;font-weight:700;opacity:.75;margin-top:2px}" +

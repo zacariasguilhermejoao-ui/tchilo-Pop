@@ -196,7 +196,7 @@
       'width:calc(100% - 32px);max-width:340px;margin:12px 16px 8px;}' +
       '#tchiloBtnCam,#tchiloBtnGal{' +
       'display:flex!important;align-items:center;justify-content:center;gap:10px;' +
-      'width:100%;padding:15px 18px;border-radius:16px;border:2.5px solid var(--ink,#0B0B0C);' +
+      'width:100%;padding:15px 18px;border-radius:16px;border:0;' +
       'font-weight:800;font-size:15px;letter-spacing:0.01em;cursor:pointer;' +
       'visibility:visible!important;opacity:1!important;pointer-events:auto!important;}' +
       '#tchiloBtnCam{background:var(--mint,#c8f560);color:var(--ink,#0B0B0C);}' +

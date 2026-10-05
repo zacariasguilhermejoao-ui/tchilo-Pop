@@ -27,8 +27,8 @@ jobs:
           for f in scripts/patch_*.py; do
             base=$(basename "$f")
             case "$base" in
-              patch_plus_button_pro.py|patch_restore_*|patch_assemble_*|patch_zzz_flatten_all.py|patch_zzzb_index_flat_css.py)
-                echo "skip $base (run ordered at end)"
+              patch_plus_button_pro.py|patch_restore_*|patch_assemble_*|patch_zzz_flatten_all.py|patch_zzzb_index_flat_css.py|patch_zzzc_system_titles.py|patch_zzzd_media_picker.py)
+                echo "skip $base (ordered at end)"
                 continue
                 ;;
             esac
@@ -38,6 +38,7 @@ jobs:
           python3 scripts/patch_zzz_flatten_all.py || true
           python3 scripts/patch_zzzb_index_flat_css.py || true
           python3 scripts/patch_zzzc_system_titles.py || true
+          python3 scripts/patch_zzzd_media_picker.py || true
 
       - name: Commit if changed
         run: |

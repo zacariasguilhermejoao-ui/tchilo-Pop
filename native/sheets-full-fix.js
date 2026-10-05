@@ -1,12 +1,11 @@
 /**
- * tchilo-Pop — sheets: ecrã completo no que é conteúdo; meio ecrã só em menus rápidos
- *
- * FULL: comentários, criar story, stickers/GIFs, modais com corpo longo
- * BOTTOM (faz sentido): ⋯ post/reel/story, partilhar, denunciar, confirmar, music use (2 opções)
+ * tchilo-Pop — sheets full-screen where needed
+ * v2 — storyCreateSheet ONLY visible with .is-open (bug: [style*="flex"] matched flex-end)
  */
 (function () {
   'use strict';
-  if (window.__tchiloSheetsFullFix) return;
+  if (window.__tchiloSheetsFullFixV2) return;
+  window.__tchiloSheetsFullFixV2 = true;
   window.__tchiloSheetsFullFix = true;
 
   function injectCSS() {
@@ -15,7 +14,6 @@
     var st = document.createElement('style');
     st.id = 'tchiloSheetsFullCSS';
     st.textContent = [
-      /* —— Comentários: ecrã completo —— */
       '#commentSheet.sheet.open{align-items:stretch!important;justify-content:stretch!important;background:var(--paper,#F6F1E7)!important;}',
       '#commentSheet .sheet-panel{',
       '  width:100%!important;max-width:none!important;max-height:none!important;height:100%!important;',
@@ -34,24 +32,26 @@
       '  padding:10px 14px calc(10px + env(safe-area-inset-bottom))!important;background:var(--paper,#F6F1E7)!important;',
       '}',
 
-      /* —— Criar story: ecrã completo —— */
-      '#storyCreateSheet{align-items:stretch!important;justify-content:stretch!important;background:var(--paper,#F6F1E7)!important;}',
-      '#storyCreateSheet[style*="flex"],#storyCreateSheet.open{display:flex!important;}',
-      '#storyCreateSheet > div{',
+      /* FIX: never use [style*="flex"] — matches align-items:flex-end and forces visible */',
+      '#storyCreateSheet{display:none!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;}',
+      '#storyCreateSheet.is-open,#storyCreateSheet.open{',
+      '  display:flex!important;visibility:visible!important;pointer-events:auto!important;',
+      '  align-items:stretch!important;justify-content:stretch!important;',
+      '  background:var(--paper,#F6F1E7)!important;position:fixed!important;inset:0!important;z-index:140!important;',
+      '}',
+      '#storyCreateSheet.is-open > div,#storyCreateSheet.open > div{',
       '  width:100%!important;max-width:none!important;max-height:none!important;height:100%!important;',
       '  border-radius:0!important;margin:0!important;border:0!important;',
       '  padding:16px 16px calc(20px + env(safe-area-inset-bottom))!important;',
-      '  overflow:auto!important;',
+      '  overflow:auto!important;background:var(--paper,#F6F1E7)!important;',
       '}',
 
-      /* —— Stickers / GIFs: ecrã completo —— */
       '#tchiloSGSheet{',
       '  left:0!important;right:0!important;top:0!important;bottom:0!important;',
       '  max-height:none!important;height:100%!important;border-radius:0!important;',
       '  border-left:0!important;border-right:0!important;border-top:0!important;',
       '}',
 
-      /* —— Modal genérico com conteúdo: full quando .tm-full —— */
       '#tchiloModalHost.tm-full{align-items:stretch!important;justify-content:stretch!important;padding:0!important;}',
       '#tchiloModalHost.tm-full .tm-backdrop{display:none!important;}',
       '#tchiloModalHost.tm-full .tm-sheet{',
@@ -65,7 +65,6 @@
       '  border-bottom:2.5px solid var(--ink,#0B0B0C)!important;',
       '}',
 
-      /* Menus rápidos (⋯, partilhar, denunciar) — mantêm meio ecrã, painel mais limpo */
       '.menu-sheet .sheet-panel,',
       '#shareSheet .sheet-panel,',
       '#reportSheet .sheet-panel,',
@@ -106,15 +105,12 @@
     var orig = window.tchiloModalOpen;
     window.tchiloModalOpen = function (opts) {
       opts = opts || {};
-      var host = document.getElementById('tchiloModalHost');
       var body = opts.bodyHtml || '';
       var longBody = body.length > 80 || /attach-sheet|grid|tm-option|interest/i.test(body);
       var manyBtns = (opts.buttons || []).length > 3;
       var forceFull = opts.fullScreen === true || longBody || manyBtns;
       var forceSheet = opts.fullScreen === false;
-
       var r = orig.apply(this, arguments);
-
       setTimeout(function () {
         var h = document.getElementById('tchiloModalHost');
         if (!h) return;
@@ -122,7 +118,6 @@
         else if (forceFull) h.classList.add('tm-full');
         else h.classList.remove('tm-full');
       }, 0);
-
       return r;
     };
     window.tchiloModalOpen.__sheetsFull = true;
@@ -149,15 +144,67 @@
     window.openComments.__sheetsFull = true;
   }
 
+  function patchStoryCreateSheet() {
+    function hide() {
+      var el = document.getElementById('storyCreateSheet');
+      if (!el) return;
+      el.classList.remove('is-open', 'open');
+      el.style.setProperty('display', 'none', 'important');
+      el.style.visibility = 'hidden';
+      el.style.pointerEvents = 'none';
+    }
+    function show() {
+      var el = document.getElementById('storyCreateSheet');
+      if (!el) return;
+      el.classList.add('is-open', 'open');
+      el.style.setProperty('display', 'flex', 'important');
+      el.style.visibility = 'visible';
+      el.style.pointerEvents = 'auto';
+    }
+
+    if (typeof window.openStoryCreateSheet === 'function' && !window.openStoryCreateSheet.__sheetsV2) {
+      var o = window.openStoryCreateSheet;
+      window.openStoryCreateSheet = function () {
+        show();
+        try {
+          return o.apply(this, arguments);
+        } catch (e) {}
+      };
+      window.openStoryCreateSheet.__sheetsV2 = true;
+    } else if (typeof window.openStoryCreateSheet !== 'function') {
+      window.openStoryCreateSheet = function () {
+        show();
+      };
+    }
+
+    if (typeof window.closeStoryCreateSheet === 'function' && !window.closeStoryCreateSheet.__sheetsV2) {
+      var c = window.closeStoryCreateSheet;
+      window.closeStoryCreateSheet = function () {
+        hide();
+        try {
+          return c.apply(this, arguments);
+        } catch (e) {}
+      };
+      window.closeStoryCreateSheet.__sheetsV2 = true;
+    } else if (typeof window.closeStoryCreateSheet !== 'function') {
+      window.closeStoryCreateSheet = function () {
+        hide();
+      };
+    }
+
+    hide();
+  }
+
   function boot() {
     injectCSS();
     patchModalFull();
     patchOpenComments();
     ensureCommentBack();
+    patchStoryCreateSheet();
   }
 
   boot();
-  [200, 800, 2000].forEach(function (ms) {
+  [100, 500, 1500].forEach(function (ms) {
     setTimeout(boot, ms);
   });
 })();

@@ -151,12 +151,12 @@
     setTitle("Suporte");
     body().innerHTML =
       '<div class="su-card"><h2>Centro de ajuda</h2><p>Informacao, dicas e respostas para usares o Tchilo com confianca.</p></div>' +
-      '<button type="button" class="su-btn" id="suFaq"><span class="ico" style="background:#c8f560">?</span><span>Perguntas frequentes</span><span class="chev">\u203a</span></button>' +
-      '<button type="button" class="su-btn" id="suTips"><span class="ico" style="background:#FFE566">!</span><span>Dicas e atalhos</span><span class="chev">\u203a</span></button>' +
-      '<button type="button" class="su-btn" id="suInfo"><span class="ico" style="background:#9ee0ff">i</span><span>Informacao do app</span><span class="chev">\u203a</span></button>' +
-      '<button type="button" class="su-btn" id="suContact"><span class="ico" style="background:#f1ecff">@</span><span>Contactar suporte</span><span class="chev">\u203a</span></button>' +
-      '<button type="button" class="su-btn" id="suReport"><span class="ico" style="background:#ffd6e0">!</span><span>Reportar um problema</span><span class="chev">\u203a</span></button>' +
-      '<button type="button" class="su-btn" id="suSafety"><span class="ico" style="background:#eee">S</span><span>Seguranca e comunidade</span><span class="chev">\u203a</span></button>';
+      '<button type="button" class="su-btn" id="suFaq"><span class="ico" style="background:transparent;border:0;color:var(--ink,#0B0B0C)">?</span><span>Perguntas frequentes</span><span class="chev">\u203a</span></button>' +
+      '<button type="button" class="su-btn" id="suTips"><span class="ico" style="background:transparent;border:0;color:var(--ink,#0B0B0C)">!</span><span>Dicas e atalhos</span><span class="chev">\u203a</span></button>' +
+      '<button type="button" class="su-btn" id="suInfo"><span class="ico" style="background:transparent;border:0;color:var(--ink,#0B0B0C)">i</span><span>Informacao do app</span><span class="chev">\u203a</span></button>' +
+      '<button type="button" class="su-btn" id="suContact"><span class="ico" style="background:transparent;border:0;color:var(--ink,#0B0B0C)">@</span><span>Contactar suporte</span><span class="chev">\u203a</span></button>' +
+      '<button type="button" class="su-btn" id="suReport"><span class="ico" style="background:transparent;border:0;color:var(--ink,#0B0B0C)">!</span><span>Reportar um problema</span><span class="chev">\u203a</span></button>' +
+      '<button type="button" class="su-btn" id="suSafety"><span class="ico" style="background:transparent;border:0;color:var(--ink,#0B0B0C)">S</span><span>Seguranca e comunidade</span><span class="chev">\u203a</span></button>';
     document.getElementById("suFaq").onclick = renderFaq;
     document.getElementById("suTips").onclick = renderTips;
     document.getElementById("suInfo").onclick = renderInfo;
@@ -296,7 +296,7 @@
     btn.id = "tchiloSupportBtn";
     btn.className = "settings-item";
     btn.innerHTML =
-      '<div class="si-icon" style="background:#c8f560;font:900 14px Inter,sans-serif;display:flex;align-items:center;justify-content:center">?</div>' +
+      '<div class="si-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/></svg></div>' +
       "<span>Suporte</span><div class=\"chev\">\u203a</div>";
     btn.onclick = function (e) {
       e.preventDefault();

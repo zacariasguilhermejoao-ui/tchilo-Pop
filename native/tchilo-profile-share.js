@@ -143,7 +143,7 @@
       'width:100%!important;max-width:480px!important;' +
       'background:var(--paper,#F3F1E9)!important;color:var(--ink,#0B0B0C)!important;' +
       'border-radius:22px 22px 0 0!important;padding:14px 16px calc(22px + env(safe-area-inset-bottom))!important;' +
-      'border:3px solid var(--ink,#0B0B0C)!important;border-bottom:none!important;' +
+      'border:0!important;border-top:0.5px solid rgba(11,11,12,.12)!important;' +
       'box-shadow:0 -10px 40px rgba(0,0,0,.28)!important;}' +
       '#tchiloProfileShareSheet .tchilo-ps-handle{' +
       'width:40px;height:4px;border-radius:2px;background:#c8c4b8;margin:0 auto 12px;}' +
@@ -151,16 +151,9 @@
       'margin:0 0 4px;font-family:Anton,Impact,sans-serif;font-size:22px;text-align:center;}' +
       '#tchiloProfileShareSheet .tchilo-ps-user{' +
       'text-align:center;margin:0 0 14px;font-size:13px;font-weight:600;opacity:.55;}' +
-      '#tchiloProfileShareSheet .opt{' +
-      'display:flex;align-items:center;gap:14px;width:100%;padding:14px;margin:0 0 10px;' +
-      'border-radius:16px;border:2.5px solid var(--ink,#0B0B0C);background:#fff;' +
-      'font-weight:800;font-size:15px;cursor:pointer;color:var(--ink,#0B0B0C);' +
-      'box-shadow:none;text-align:left;}' +
-      '#tchiloProfileShareSheet .opt .ic{' +
-      'display:inline-flex;align-items:center;justify-content:center;' +
-      'width:40px;height:40px;min-width:40px;border-radius:12px;' +
-      'border:2px solid var(--ink,#0B0B0C);background:var(--yellow,#C8F560);}' +
-      '#tchiloProfileShareSheet .opt.opt-close{background:var(--paper,#F3F1E9);}' +
+      '#tchiloProfileShareSheet .opt{display:flex;align-items:center;gap:14px;width:100%;padding:14px 4px;margin:0;border:0;border-bottom:0.5px solid rgba(11,11,12,.08);border-radius:0;background:transparent;box-shadow:none;text-align:left;font:400 16px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink,#0B0B0C);cursor:pointer;}' +
+      '#tchiloProfileShareSheet .opt .ic{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;min-width:24px;border-radius:0;border:0;background:transparent;color:var(--ink,#0B0B0C);}' +
+      '#tchiloProfileShareSheet .opt.opt-close{background:transparent;}' +
       '#tchiloQrModal{position:fixed;inset:0;z-index:2147483647;display:none;' +
       'align-items:center;justify-content:center;background:rgba(11,11,12,.72);padding:20px;}' +
       '#tchiloQrModal.open{display:flex!important;}' +

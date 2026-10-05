@@ -102,7 +102,7 @@
       "#tchiloSupport label.su-lab{display:block;font:800 11px Inter,sans-serif;text-transform:uppercase;opacity:.6;margin:10px 0 6px}" +
       "#tchiloSupport input,#tchiloSupport textarea{width:100%;box-sizing:border-box;padding:12px;border:0;border-radius:12px;font:500 14px system-ui,sans-serif;background:rgba(11,11,12,.06)}" +
       "#tchiloSupport textarea{min-height:110px}" +
-      "#tchiloSupport .su-send{width:100%;margin-top:12px;padding:14px;border:3px solid var(--ink,#0B0B0C);border-radius:16px;background:var(--ink,#0B0B0C);color:#fff;font:600 15px system-ui,sans-serif;box-shadow:none;cursor:pointer;border:0}" +
+      "#tchiloSupport .su-send{width:100%;margin-top:12px;padding:14px;border:0;border-radius:12px;background:var(--ink,#0B0B0C);color:#fff;font:600 15px system-ui,sans-serif;box-shadow:none;cursor:pointer}" +
       "#tchiloSupportBtn{display:flex!important}";
     document.head.appendChild(st);
   }

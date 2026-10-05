@@ -1,11 +1,10 @@
 /**
- * Tchilo — cloud persist alinhado ao schema real (text_content)
- * Complementa o fix no index; não mascara falhas.
+ * Tchilo — hidratar avatar/stories sem re-render em loop (evita + a piscar)
  */
 (function () {
   'use strict';
-  if (window.__tchiloCloudPersistV2) return;
-  window.__tchiloCloudPersistV2 = true;
+  if (window.__tchiloCloudPersistV3) return;
+  window.__tchiloCloudPersistV3 = true;
 
   function SB() {
     return window.tchiloSupabase || null;
@@ -26,6 +25,8 @@
     }
   }
 
+  var hydratedOnce = false;
+
   async function hydrateFromCloud() {
     var s = SB();
     var id = await uid();
@@ -41,17 +42,32 @@
       if (row && row.avatar_url && String(row.avatar_url).indexOf('http') === 0) {
         var sess = typeof getSession === 'function' ? getSession() : null;
         if (sess) {
+          var changed = sess.avatar !== row.avatar_url;
           sess.avatar = row.avatar_url;
           if (row.display_name) sess.displayName = row.display_name;
           setSession(sess);
-        }
-        try {
-          if (typeof saveProfileExtra === 'function' && sess) {
-            var extra = getProfileExtra(sess.username) || {};
-            extra.avatar = row.avatar_url;
-            saveProfileExtra(sess.username, extra);
+          try {
+            if (typeof saveProfileExtra === 'function') {
+              var extra = getProfileExtra(sess.username) || {};
+              extra.avatar = row.avatar_url;
+              saveProfileExtra(sess.username, extra);
+            }
+          } catch (e) {}
+          /* Atualiza só a imagem — sem renderProfile (evita piscar o +) */
+          if (changed) {
+            var img = document.querySelector('#screen-profile .profile-avatar img');
+            if (img) {
+              img.src = row.avatar_url;
+            } else if (
+              !hydratedOnce &&
+              typeof renderProfile === 'function' &&
+              document.getElementById('screen-profile') &&
+              document.getElementById('screen-profile').classList.contains('active')
+            ) {
+              renderProfile();
+            }
           }
-        } catch (e) {}
+        }
       }
     } catch (e) {
       console.warn('[hydrate avatar]', e);
@@ -62,24 +78,20 @@
         await window.tchiloCloud.loadCloudStories();
       }
       if (typeof renderStories === 'function') renderStories();
-      if (typeof renderProfile === 'function') renderProfile();
     } catch (e2) {
       console.warn('[hydrate stories]', e2);
     }
+
+    hydratedOnce = true;
   }
 
-  function boot() {
-    hydrateFromCloud();
-  }
-
-  setTimeout(boot, 400);
-  setTimeout(boot, 2000);
+  setTimeout(hydrateFromCloud, 600);
   try {
     var s = SB();
     if (s && s.auth && s.auth.onAuthStateChange) {
       s.auth.onAuthStateChange(function (ev) {
-        if (ev === 'SIGNED_IN' || ev === 'INITIAL_SESSION' || ev === 'TOKEN_REFRESHED') {
-          setTimeout(boot, 500);
+        if (ev === 'SIGNED_IN' || ev === 'INITIAL_SESSION') {
+          setTimeout(hydrateFromCloud, 800);
         }
       });
     }

@@ -284,6 +284,18 @@
       window.tchiloOpenPremium = openPremiumSheet;
       return;
     }
+    var existing = document.getElementById('settings-premium-item');
+    if (existing) {
+      if (!existing.__tchiloBound) {
+        existing.__tchiloBound = true;
+        existing.addEventListener('click', function (e) {
+          e.preventDefault();
+          openPremiumSheet();
+        });
+      }
+      window.tchiloOpenPremium = openPremiumSheet;
+      return;
+    }
     var list =
       document.querySelector('#screen-settings .settings-list') ||
       document.querySelector('#screen-settings .settings-body');

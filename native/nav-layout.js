@@ -1,18 +1,18 @@
 /**
  * tchilo-Pop — layout de navegacao
  * Fee | SMS no topbar | Reels na barra de baixo
- * v2 — sem setInterval agressivo (evita icones a saltar)
+ * v3 — icone SMS real (sms-icon.svg), sem texto Fee/SMS
  */
 (function () {
   'use strict';
   if (window.__tchiloNavLayoutV2) return;
   window.__tchiloNavLayoutV2 = true;
 
-  var ICON_FEE =
-    '<span class="nav-text-icon nav-fee" aria-hidden="true">Fee</span>';
+  /* Nao usar texto "Fee"/"SMS" — icones limpos */
+  var ICON_FEE = null; /* manter SVG original do feed */
 
   var ICON_SMS =
-    '<span class="nav-sms-text" aria-hidden="true">SMS</span>';
+    '<img class="nav-sms-icon" src="sms-icon.svg" alt="SMS" width="28" height="28" style="width:28px;height:28px;object-fit:contain;display:block;">';
 
   var SVG_REELS =
     '<svg class="nav-reels-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
@@ -29,20 +29,19 @@
       document.head.appendChild(st);
     }
     st.textContent =
-      '.nav-item .nav-text-icon.nav-fee{' +
-      'display:inline-flex;align-items:center;justify-content:center;' +
+      '.nav-item .nav-text-icon.nav-fee,.nav-fee{' +
+      'display:none!important;' +
       'width:36px;height:32px;line-height:1;' +
       'font:900 19px Inter,system-ui,sans-serif;' +
       'letter-spacing:-0.04em;color:currentColor;' +
       'user-select:none;-webkit-user-select:none;}' +
 
-      '.nav-sms-text,' +
-      '#screen-feed .topbar-icons .icon-btn .nav-sms-text{' +
-      'display:inline-flex!important;align-items:center;justify-content:center;' +
-      'font:900 18px Inter,system-ui,sans-serif!important;' +
-      'letter-spacing:0.03em;line-height:1;color:currentColor;' +
-      'border:none!important;background:none!important;box-shadow:none!important;' +
-      'user-select:none;-webkit-user-select:none;}' +
+      '.nav-sms-icon,' +
+      '#screen-feed .topbar-icons .icon-btn .nav-sms-icon,' +
+      '.topbar-icons .icon-btn img.nav-sms-icon{' +
+      'width:28px!important;height:28px!important;object-fit:contain!important;' +
+      'display:block!important;border:none!important;background:none!important;}' +
+      '.nav-sms-text{display:none!important;}' +
 
       '.nav-item .nav-reels-icon{width:26px;height:26px;display:block;}' +
 
@@ -79,10 +78,9 @@
 
   function stripIconBtnBox(el) {
     if (!el) return;
-    el.style.setProperty('border', 'none', 'important');
+    el.style.setProperty('border', '0', 'important');
     el.style.setProperty('border-width', '0', 'important');
     el.style.setProperty('background', 'transparent', 'important');
-    el.style.setProperty('background-color', 'transparent', 'important');
     el.style.setProperty('box-shadow', 'none', 'important');
     el.style.setProperty('border-radius', '0', 'important');
     el.style.setProperty('width', 'auto', 'important');
@@ -131,21 +129,27 @@
   function applySmsIcon(el) {
     if (!el) return;
     stripIconBtnBox(el);
-    if (el.querySelector('.nav-sms-text') && !el.querySelector('.nav-sms-circle')) return;
-    var old =
-      el.querySelector('.nav-sms-circle') ||
-      el.querySelector('.nav-sms-icon') ||
-      el.querySelector('svg');
-    if (old) {
-      var wrap = document.createElement('div');
-      wrap.innerHTML = ICON_SMS;
-      old.replaceWith(wrap.firstChild);
+    /* Sempre forçar o ícone SMS e remover texto "SMS" */
+    el.querySelectorAll('.nav-sms-text, .nav-sms-circle, .nav-text-icon').forEach(function (n) {
+      try { n.remove(); } catch (e) {}
+    });
+    var existing = el.querySelector('img.nav-sms-icon, img[src*="sms-icon"]');
+    if (existing) {
+      existing.className = 'nav-sms-icon';
+      existing.setAttribute('width', '28');
+      existing.setAttribute('height', '28');
+      existing.style.cssText = 'width:28px;height:28px;object-fit:contain;display:block;';
       return;
     }
-    if (!el.querySelector('.nav-sms-text')) {
-      var w = document.createElement('div');
-      w.innerHTML = ICON_SMS;
-      el.insertBefore(w.firstChild, el.firstChild);
+    /* Remover svg antigo e colocar img limpa */
+    el.querySelectorAll('svg').forEach(function (n) {
+      try { n.remove(); } catch (e) {}
+    });
+    var w = document.createElement('div');
+    w.innerHTML = ICON_SMS;
+    var node = w.firstChild;
+    if (node) {
+      el.insertBefore(node, el.firstChild);
     }
   }
 
@@ -220,23 +224,25 @@
   }
 
   function placeFollowButtons() {
-    document
-      .querySelectorAll('#reelsViewer .reel-follow, .reels-viewer .reel-follow, button.reel-follow')
-      .forEach(function (btn) {
+    try {
+      var viewer = document.getElementById('reelsViewer');
+      if (!viewer) return;
+      viewer.querySelectorAll('.reel-follow, button.reel-follow').forEach(function (btn) {
         btn.style.setProperty('position', 'absolute', 'important');
-        btn.style.setProperty('top', 'max(14px, calc(env(safe-area-inset-top, 0px) + 10px))', 'important');
+        btn.style.setProperty('top', 'max(14px, env(safe-area-inset-top, 0px) + 10px)', 'important');
         btn.style.setProperty('right', '12px', 'important');
         btn.style.setProperty('left', 'auto', 'important');
+        btn.style.setProperty('transform', 'none', 'important');
         btn.style.setProperty('z-index', '19', 'important');
-        btn.style.setProperty('margin', '0', 'important');
       });
+    } catch (e) {}
   }
 
   function watchReelsDom() {
-    var viewer = document.getElementById('reelsViewer');
-    if (!viewer || viewer.__followWatch) return;
-    viewer.__followWatch = true;
     try {
+      var viewer = document.getElementById('reelsViewer');
+      if (!viewer || viewer.__followObs) return;
+      viewer.__followObs = true;
       new MutationObserver(function () {
         placeFollowButtons();
       }).observe(viewer, { childList: true, subtree: true });
@@ -268,7 +274,7 @@
 
   function loadExtras() {
     loadScriptOnce('native/tchilo-nav-click-fix.js', 'data-tchilo-navclick', 'v=20261001navclick');
-    loadScriptOnce('native/tchilo-ui-icons-fix.js', 'data-tchilo-uiicons', 'v=20261001uiicons');
+    loadScriptOnce('native/tchilo-ui-icons-fix.js', 'data-tchilo-uiicons', 'v=20261005uiicons5');
     loadScriptOnce('native/tchilo-reels-open-fix.js', 'data-tchilo-reelsopen', 'v=20261001reelsv3');
     loadScriptOnce('native/reels-follow-fix.js', 'data-tchilo-reelsfollow', 'v=20261001follow');
     loadScriptOnce('native/profile-name-cooldown.js', 'data-tchilo-namecd', 'v=20260922namecd');
@@ -300,6 +306,7 @@
     if (!booted) boot();
     else {
       applyFeedFee();
+      ensureTopbarMessages();
       replaceNavMessagesWithReels();
       placeFollowButtons();
     }

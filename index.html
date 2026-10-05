@@ -2129,6 +2129,7 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
 </style>
 <style id="tchilo-story-create-hide">/* tchilo-story-create-full */#storyCreateSheet{display:none!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;}#storyCreateSheet.is-open,#storyCreateSheet.open{display:flex!important;visibility:visible!important;pointer-events:auto!important;position:fixed!important;inset:0!important;z-index:200!important;align-items:stretch!important;justify-content:stretch!important;background:var(--paper,#F6F1E7)!important;padding:0!important;margin:0!important;}#storyCreateSheet.is-open > div,#storyCreateSheet.open > div{width:100%!important;max-width:none!important;min-height:100%!important;height:100%!important;border-radius:0!important;border:0!important;box-shadow:none!important;padding:16px 18px calc(24px + env(safe-area-inset-bottom))!important;background:var(--paper,#F6F1E7)!important;overflow:auto!important;}</style>
 <style id="tchilo-avatar-plus-static">#tchiloProfileAvatarPlus{animation:none!important;transition:none!important;transform:none!important;}</style>
+<style id="tchilo-chat-bar-clean">#chatScreen .chat-input-bar .chat-gif-btn,#chatScreen .chat-input-bar .chat-sticker-btn,#chatScreen .chat-input-bar [data-chat-extra="gif"],#chatScreen .chat-input-bar [data-chat-extra="sticker"],#chatScreen .chat-input-bar [data-tchilo-gif],#chatScreen .chat-input-bar [data-tchilo-sticker]{display:none!important;width:0!important;height:0!important;opacity:0!important;pointer-events:none!important;position:absolute!important;left:-9999px!important;}#chatScreen .chat-input-bar > button:not(#chatAttachBtn):not(#chatMicBtn):not(.chat-send){display:none!important;}</style>
 <style id="tchilo-story-ui-pro-inline">/* tchilo-story-ui-pro-inline-v3 */#storyViewer.story-viewer{position:fixed!important;inset:0!important;background:#000;display:none!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;opacity:0!important;}#storyViewer.story-viewer.open{display:flex!important;visibility:visible!important;pointer-events:auto!important;z-index:200!important;opacity:1!important;}#storyViewer.open .story-viewer-body{position:absolute!important;inset:0!important;padding:0!important;}#storyViewer.open .story-viewer-body .story-media,#storyViewer.open .story-viewer-body.has-media .story-media{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:0!important;}</style>
 </head>
 <body>
@@ -10889,6 +10890,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
+
+
 <script src="native/media-editor.js"></script>
 <script src="native/post-music-feed.js"></script>
 <script src="native/feed-music-play.js"></script>
@@ -10899,7 +10902,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/feed-noflicker.js"></script>
 <script src="native/chat-send-fix.js"></script>
 <script src="native/chat-audio-fix.js?v=compose3"></script>
-<script src="native/chat-compose-fix.js?v=3"></script>
+<script src="native/chat-compose-fix.js?v=4"></script>
 <script src="native/chat-call-webrtc.js?v=3"></script>
 <script src="native/profile-menu-fix.js?v=1"></script>
 <script src="native/sheets-full-fix.js?v=2"></script>

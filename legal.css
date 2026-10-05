@@ -43,13 +43,11 @@ a { color: var(--ink); }
   border-radius: 14px;
   cursor: pointer;
   padding: 0;
-  box-shadow: 3px 3px 0 var(--ink);
+  box-shadow: none;
   -webkit-tap-highlight-color: transparent;
-  transition: transform .08s ease, box-shadow .08s ease;
+  transition: background .08s ease;
 }
 .back-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--ink);
   background: var(--mint);
 }
 .brand {

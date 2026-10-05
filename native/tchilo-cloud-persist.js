@@ -1,5 +1,5 @@
 /**
- * Tchilo — hidratar avatar/stories sem re-render em loop (evita + a piscar)
+ * Hidratar avatar/stories sem chamar renderProfile em loop (evita + a piscar)
  */
 (function () {
   'use strict';
@@ -25,8 +25,6 @@
     }
   }
 
-  var hydratedOnce = false;
-
   async function hydrateFromCloud() {
     var s = SB();
     var id = await uid();
@@ -42,7 +40,7 @@
       if (row && row.avatar_url && String(row.avatar_url).indexOf('http') === 0) {
         var sess = typeof getSession === 'function' ? getSession() : null;
         if (sess) {
-          var changed = sess.avatar !== row.avatar_url;
+          var prev = sess.avatar;
           sess.avatar = row.avatar_url;
           if (row.display_name) sess.displayName = row.display_name;
           setSession(sess);
@@ -53,19 +51,9 @@
               saveProfileExtra(sess.username, extra);
             }
           } catch (e) {}
-          /* Atualiza só a imagem — sem renderProfile (evita piscar o +) */
-          if (changed) {
+          if (prev !== row.avatar_url) {
             var img = document.querySelector('#screen-profile .profile-avatar img');
-            if (img) {
-              img.src = row.avatar_url;
-            } else if (
-              !hydratedOnce &&
-              typeof renderProfile === 'function' &&
-              document.getElementById('screen-profile') &&
-              document.getElementById('screen-profile').classList.contains('active')
-            ) {
-              renderProfile();
-            }
+            if (img) img.src = row.avatar_url;
           }
         }
       }
@@ -81,17 +69,15 @@
     } catch (e2) {
       console.warn('[hydrate stories]', e2);
     }
-
-    hydratedOnce = true;
   }
 
-  setTimeout(hydrateFromCloud, 600);
+  setTimeout(hydrateFromCloud, 700);
   try {
     var s = SB();
     if (s && s.auth && s.auth.onAuthStateChange) {
       s.auth.onAuthStateChange(function (ev) {
         if (ev === 'SIGNED_IN' || ev === 'INITIAL_SESSION') {
-          setTimeout(hydrateFromCloud, 800);
+          setTimeout(hydrateFromCloud, 900);
         }
       });
     }

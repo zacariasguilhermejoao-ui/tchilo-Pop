@@ -243,77 +243,7 @@
     text-align:center; padding:12px;
   }
 
-  /* ── Tchilo + profissional (story / postar / mensagem) ── */
-  .story-card-plus,
-  .nav-post,
-  .chat-attach-btn,
-  #chatAttachBtn{
-    width:52px;
-    height:52px;
-    min-width:52px;
-    min-height:52px;
-    border-radius:16px;
-    border:3px solid var(--ink,#0B0B0C);
-    background:var(--yellow,#C8F560);
-    color:var(--ink,#0B0B0C);
-    box-shadow:3px 3px 0 var(--ink,#0B0B0C);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    padding:0;
-    margin:0;
-    flex-shrink:0;
-    font-size:0;
-    line-height:0;
-    -webkit-tap-highlight-color:transparent;
-    transition:transform .12s ease, box-shadow .12s ease;
-  }
-  .story-card-plus svg,
-  .nav-post svg,
-  .chat-attach-btn svg,
-  #chatAttachBtn svg{
-    width:24px;
-    height:24px;
-    display:block;
-    pointer-events:none;
-  }
-  .story-card-plus:active,
-  .nav-post:active,
-  .chat-attach-btn:active,
-  #chatAttachBtn:active{
-    transform:translate(2px,2px);
-    box-shadow:1px 1px 0 var(--ink,#0B0B0C);
-  }
-  /* story card: slightly larger presence */
-  .story-card-plus{
-    width:56px;
-    height:56px;
-    min-width:56px;
-    min-height:56px;
-    border-radius:18px;
-  }
-  .story-card-plus svg{ width:26px; height:26px; }
-  /* chat: fit input bar */
-  .chat-attach-btn,
-  #chatAttachBtn{
-    width:46px;
-    height:46px;
-    min-width:46px;
-    min-height:46px;
-    border-radius:14px;
-  }
-  .chat-attach-btn svg,
-  #chatAttachBtn svg{ width:22px; height:22px; }
-  .chat-attach-btn::before,
-  #chatAttachBtn::before{ content:none!important; display:none!important; }
-  .nav-post{
-    width:52px;
-    height:52px;
-    border-radius:16px;
-    font-family:inherit;
-  }
-  .story-card-create-inner > span:last-child{
+    .story-card-create-inner > span:last-child{
     font-size:12px; font-weight:800; color:var(--ink);
   }
   /* legacy circular story classes disabled */
@@ -10932,6 +10862,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
+
+
 <script src="native/media-editor.js"></script>
 <script src="native/post-music-feed.js"></script>
 <script src="native/feed-music-play.js"></script>
@@ -10948,7 +10880,8 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/sheets-full-fix.js?v=2"></script>
 <script src="native/copy-ux-refresh.js?v=1"></script>
 <script src="native/story-ui-pro.js?v=2"></script>
-<script src="native/profile-avatar-cloud.js?v=1"></script>
+<script src="native/tchilo-cloud-persist.js?v=1"></script>
+<script src="native/profile-avatar-cloud.js?v=2"></script>
 <script src="native/tchilo-profile-avatar-plus.js?v=2"></script>
 <script src="native/tchilo-legal-urls.js?v=2"></script>
 <script src="native/tchilo-profile-share.js?v=3"></script>

@@ -1,9 +1,11 @@
 /**
  * tchilo-Pop — Editar perfil + Definições no menu ⋯; limpa botões da página
+ * v2 — sem setInterval (evita Live a piscar)
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileMenuFix) return;
+  if (window.__tchiloProfileMenuFixV2) return;
+  window.__tchiloProfileMenuFixV2 = true;
   window.__tchiloProfileMenuFix = true;
 
   function isOwnProfile() {
@@ -11,10 +13,15 @@
       var sess = (typeof getSession === 'function' && getSession()) || window.session || null;
       var me = sess && sess.username ? String(sess.username).toLowerCase() : '';
       var viewing = '';
-      try { if (typeof viewingProfileUser !== 'undefined' && viewingProfileUser) viewing = String(viewingProfileUser); } catch (e) {}
+      try {
+        if (typeof viewingProfileUser !== 'undefined' && viewingProfileUser)
+          viewing = String(viewingProfileUser);
+      } catch (e) {}
       if (!viewing && me) return true;
       return !!(me && viewing && viewing.toLowerCase() === me);
-    } catch (e) { return true; }
+    } catch (e) {
+      return true;
+    }
   }
 
   function stripProfileButtons() {
@@ -24,7 +31,12 @@
       actions.querySelectorAll('button.profile-btn').forEach(function (btn) {
         var t = (btn.textContent || '').trim();
         var oc = btn.getAttribute('onclick') || '';
-        if (/Editar perfil/i.test(t) || /editprofile/i.test(oc) || (/Definições/i.test(t) || (/goTo\('settings'\)/i.test(oc) && !/Live/i.test(t)))) {
+        if (
+          /Editar perfil/i.test(t) ||
+          /editprofile/i.test(oc) ||
+          (/Definições/i.test(t) && !/Live/i.test(t)) ||
+          (/goTo\('settings'\)/i.test(oc) && !/Live/i.test(t))
+        ) {
           btn.remove();
         }
       });
@@ -64,16 +76,19 @@
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        try { sheet.classList.remove('open'); sheet.remove(); } catch (err) {}
-        setTimeout(function () {
-          if (typeof goTo === 'function') goTo(act === 'edit' ? 'editprofile' : 'settings');
-        }, 60);
-      }, true);
+        try {
+          sheet.classList.remove('open');
+        } catch (err) {}
+        if (act === 'edit' && typeof goTo === 'function') goTo('editprofile');
+        if (act === 'settings' && typeof goTo === 'function') goTo('settings');
+      });
       return btn;
     }
 
-    var editSvg = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
-    var setSvg = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>';
+    var editSvg =
+      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
+    var setSvg =
+      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>';
 
     var editBtn = makeOpt('edit', 'Editar perfil', editSvg);
     var setBtn = makeOpt('settings', 'Definições', setSvg);
@@ -118,26 +133,31 @@
   }
 
   run();
-  [100, 400, 1000, 2000].forEach(function (ms) { setTimeout(run, ms); });
-  setInterval(run, 2500);
+  [100, 500, 1200].forEach(function (ms) {
+    setTimeout(run, ms);
+  });
+  /* sem setInterval — evita Live a piscar */
 
   if (typeof window.renderProfile === 'function' && !window.renderProfile.__menuFix) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
       setTimeout(run, 40);
-      setTimeout(run, 200);
       return r;
     };
     window.renderProfile.__menuFix = true;
   }
 
-  document.addEventListener('click', function (e) {
-    var t = e.target;
-    if (!t) return;
-    if (t.id === 'tchiloProfileMoreBtn' || (t.closest && t.closest('#tchiloProfileMoreBtn'))) {
-      setTimeout(injectMenuItems, 40);
-      setTimeout(injectMenuItems, 160);
-    }
-  }, true);
+  document.addEventListener(
+    'click',
+    function (e) {
+      var t = e.target;
+      if (!t) return;
+      if (t.id === 'tchiloProfileMoreBtn' || (t.closest && t.closest('#tchiloProfileMoreBtn'))) {
+        setTimeout(injectMenuItems, 40);
+        setTimeout(injectMenuItems, 160);
+      }
+    },
+    true
+  );
 })();

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Replace Tchilo topbar logo with the user-provided LIVE pill icon."""
+"""Permanently replace Tchilo topbar logo with the user-provided LIVE pill icon.
+Also enlarge it so it is clearly visible. No flash of the old logo.
+"""
 import re
 from pathlib import Path
 
@@ -9,45 +11,52 @@ if not INDEX.exists():
     raise SystemExit(0)
 
 content = INDEX.read_text(encoding="utf-8", errors="replace")
+changed = False
 
-# The exact LIVE icon the user sent (clean SVG)
-LIVE_SVG = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect x="56" y="176" width="400" height="160" rx="80" fill="#000000"/>
-  <circle cx="148" cy="256" r="26" fill="#FFFFFF"/>
-  <text x="290" y="284" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="84" letter-spacing="4" fill="#FFFFFF">LIVE</text>
-</svg>
-'''
+# 1. Enlarge .logo-img CSS
+css_pat = re.compile(r'\.logo-img\s*\{[^}]*\}', re.DOTALL)
+new_css = """.logo-img{
+    display:block;
+    height:38px;
+    width:auto;
+    object-fit:contain;
+    max-height:40px;
+  }"""
+if css_pat.search(content):
+    content, n = css_pat.subn(new_css, content, count=1)
+    if n:
+        print("CSS .logo-img enlarged")
+        changed = True
 
-# Prefer file reference if live-icon.svg exists, else inline data URI
-live_src = "live-icon.svg"
-if not Path("live-icon.svg").exists():
-    import base64
-    b64 = base64.b64encode(LIVE_SVG.encode()).decode()
-    live_src = f"data:image/svg+xml;base64,{b64}"
-
+# 2. Replace any logo-img that is still the old Tchilo PNG or previous
 new_img = (
-    f'<img class="logo-img" src="{live_src}" alt="LIVE" '
-    'style="cursor:pointer;height:28px;width:auto;" '
+    '<img class="logo-img" src="live-icon.svg" alt="LIVE" '
+    'style="cursor:pointer;height:38px;width:auto;object-fit:contain;" '
     'onclick="if(typeof tchiloOpenLiveSetup===\'function\'){tchiloOpenLiveSetup()}'
     'else if(typeof openLiveScreen===\'function\'){openLiveScreen()}'
     'else if(typeof openSetup===\'function\'){openSetup()}'
     'else{alert(\'Lives em breve\')}" role="button" title="Lives">'
 )
 
-# Match any current logo-img in the topbar area
+# Match the long base64 or any current logo-img in topbar
 pat = re.compile(
-    r'<img\s+class="logo-img"\s+src="[^"]+"\s+alt="[^"]*"[^>]*>',
+    r'<img\s+class="logo-img"\s+src="(?:data:image/[^"]+|live-icon\.svg)"[^>]*>',
     re.IGNORECASE
 )
-
-new_content, n = pat.subn(new_img, content, count=1)
+content2, n = pat.subn(new_img, content, count=1)
 if n == 0:
-    # broader
     pat2 = re.compile(r'<img\s+class="logo-img"[^>]*>', re.IGNORECASE)
-    new_content, n = pat2.subn(new_img, content, count=1)
+    content2, n = pat2.subn(new_img, content, count=1)
 
 if n >= 1:
-    INDEX.write_text(new_content, encoding="utf-8")
-    print(f"OK: replaced logo-img ({n} occurrence)")
+    content = content2
+    print(f"OK: logo-img permanently replaced with LIVE ({n})")
+    changed = True
 else:
-    print("WARN: logo-img not found, no change")
+    print("WARN: logo-img not found")
+
+if changed:
+    INDEX.write_text(content, encoding="utf-8")
+    print("index.html written")
+else:
+    print("No changes needed")

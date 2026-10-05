@@ -130,7 +130,7 @@
       'color:var(--ink)!important;' +
       'border:3px solid var(--ink)!important;' +
       'border-radius:10px!important;' +
-      'box-shadow:3px 3px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       '}' +
       '[data-theme="retro"] .nav-create svg{' +
       'filter:none!important;' +
@@ -142,7 +142,7 @@
       'background:var(--retro-cream)!important;' +
       'border:3px solid var(--ink)!important;' +
       'border-radius:12px!important;' +
-      'box-shadow:5px 5px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       'margin-bottom:16px!important;' +
       '}' +
       '[data-theme="retro"] .post-head{' +
@@ -155,7 +155,7 @@
       'background:var(--retro-gold)!important;' +
       'color:var(--ink)!important;' +
       'border:2.5px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       'font-family:"Special Elite",serif!important;' +
       'text-transform:uppercase!important;' +
       'letter-spacing:.06em!important;' +
@@ -165,7 +165,7 @@
       'background:var(--retro-teal)!important;' +
       'color:var(--retro-cream)!important;' +
       'border:2.5px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       'border-radius:8px!important;' +
       'font-family:"IBM Plex Mono",monospace!important;' +
       'text-transform:uppercase;' +
@@ -187,13 +187,13 @@
       '}' +
       '[data-theme="retro"] .si-icon{' +
       'border:2.5px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       'border-radius:8px!important;' +
       'filter:sepia(.45) saturate(1.15)!important;' +
       '}' +
       '[data-theme="retro"] .theme-swatch{' +
       'border:3px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       '}' +
 
       /* inputs */
@@ -203,7 +203,7 @@
       'background:#F8EDD4!important;' +
       'border:2.5px solid var(--ink)!important;' +
       'border-radius:8px!important;' +
-      'box-shadow:inset 2px 2px 0 rgba(44,24,16,.1)!important;' +
+      'box-shadow:none!important;' +
       'font-family:"IBM Plex Mono",monospace!important;' +
       'color:var(--ink)!important;' +
       '}' +
@@ -217,7 +217,7 @@
       'background:var(--retro-gold)!important;' +
       'color:var(--ink)!important;' +
       'border:3px solid var(--ink)!important;' +
-      'box-shadow:3px 3px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       'border-radius:10px!important;' +
       'font-family:"Special Elite",serif!important;' +
       'text-transform:uppercase!important;' +
@@ -233,11 +233,11 @@
       '[data-theme="retro"] .bubble.me{' +
       'background:var(--retro-teal)!important;' +
       'color:var(--retro-cream)!important;' +
-      'box-shadow:3px 3px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       '}' +
       '[data-theme="retro"] .bubble.them{' +
       'background:var(--retro-cream)!important;' +
-      'box-shadow:3px 3px 0 rgba(44,24,16,.2)!important;' +
+      'box-shadow:none!important;' +
       '}' +
       '[data-theme="retro"] .chat-input-bar{' +
       'background:var(--retro-cream)!important;' +
@@ -249,7 +249,7 @@
       '[data-theme="retro"] .sc-create-trigger{' +
       'background:var(--retro-gold)!important;' +
       'border:2.5px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       'border-radius:10px!important;' +
       '}' +
       '[data-theme="retro"] .chat-send svg,' +
@@ -263,7 +263,7 @@
       /* stories */
       '[data-theme="retro"] .story-card{' +
       'border:3px solid var(--ink)!important;' +
-      'box-shadow:4px 4px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       'border-radius:12px!important;' +
       '}' +
       '[data-theme="retro"] .story-card.unseen{' +
@@ -297,7 +297,7 @@
       '}' +
       '[data-theme="retro"] .sg-item{' +
       'border:2.5px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       'background:#F8EDD4!important;' +
       '}' +
 
@@ -305,7 +305,7 @@
       '[data-theme="retro"] .avatar,' +
       '[data-theme="retro"] .story-card-avatar{' +
       'border:3px solid var(--ink)!important;' +
-      'box-shadow:2px 2px 0 var(--ink)!important;' +
+      'box-shadow:none!important;' +
       'border-radius:10px!important;' +
       'filter:sepia(.2) contrast(1.05);' +
       '}' +
@@ -316,7 +316,7 @@
       'color:var(--ink)!important;' +
       'border:2px solid var(--ink)!important;' +
       'font-family:"IBM Plex Mono",monospace!important;' +
-      'box-shadow:1px 1px 0 var(--ink);' +
+      'box-shadow:none;' +
       '}' +
 
       /* logo / imagens de marca */

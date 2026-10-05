@@ -120,7 +120,7 @@
       'color:#C9A227!important;' +
       'border:2px solid #C9A227!important;' +
       'border-radius:12px!important;' +
-      'box-shadow:0 0 14px rgba(139,30,63,.4), 2px 2px 0 #000!important;' +
+      'box-shadow:none!important;' +
       '}' +
       '[data-theme="gothic"] .nav-create svg{' +
       'stroke:#C9A227!important;' +
@@ -200,7 +200,7 @@
       'background:linear-gradient(145deg,#6B0F2A,#3A0816)!important;' +
       'color:#C9A227!important;' +
       'border:2px solid #C9A227!important;' +
-      'box-shadow:0 0 12px rgba(139,30,63,.35), 2px 2px 0 #000!important;' +
+      'box-shadow:none!important;' +
       'font-family:Cinzel,serif!important;' +
       'text-transform:uppercase;' +
       'letter-spacing:.05em;' +

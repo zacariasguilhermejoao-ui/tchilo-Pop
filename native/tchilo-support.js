@@ -92,7 +92,7 @@
       "#tchiloSupport .su-card{border:2.5px solid var(--ink,#0B0B0C);border-radius:16px;padding:14px;margin-bottom:12px;background:#fff}" +
       "#tchiloSupport .su-card h2{margin:0 0 6px;font:800 15px Inter,sans-serif}" +
       "#tchiloSupport .su-card p{margin:0;font:600 13px Inter,sans-serif;opacity:.8;line-height:1.45}" +
-      "#tchiloSupport .su-btn{display:flex;align-items:center;gap:12px;width:100%;padding:14px;margin-bottom:10px;border:2.5px solid var(--ink,#0B0B0C);border-radius:16px;background:#fff;font:800 14px Inter,sans-serif;text-align:left;cursor:pointer;box-shadow:3px 3px 0 var(--ink,#0B0B0C);color:inherit}" +
+      "#tchiloSupport .su-btn{display:flex;align-items:center;gap:12px;width:100%;padding:14px;margin-bottom:10px;border:2.5px solid var(--ink,#0B0B0C);border-radius:16px;background:#fff;font:800 14px Inter,sans-serif;text-align:left;cursor:pointer;box-shadow:none;color:inherit}" +
       "#tchiloSupport .su-btn .ico{width:36px;height:36px;border-radius:10px;border:2px solid var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;font:900 13px Inter,sans-serif;flex-shrink:0}" +
       "#tchiloSupport .su-btn .chev{margin-left:auto;opacity:.45}" +
       "#tchiloSupport .su-faq{border-bottom:1px solid rgba(0,0,0,.08);padding:12px 0}" +
@@ -102,7 +102,7 @@
       "#tchiloSupport label.su-lab{display:block;font:800 11px Inter,sans-serif;text-transform:uppercase;opacity:.6;margin:10px 0 6px}" +
       "#tchiloSupport input,#tchiloSupport textarea{width:100%;box-sizing:border-box;padding:12px;border:2.5px solid var(--ink,#0B0B0C);border-radius:12px;font:600 14px Inter,sans-serif;background:#fff}" +
       "#tchiloSupport textarea{min-height:110px}" +
-      "#tchiloSupport .su-send{width:100%;margin-top:12px;padding:14px;border:3px solid var(--ink,#0B0B0C);border-radius:16px;background:#c8f560;font:900 15px Inter,sans-serif;box-shadow:4px 4px 0 var(--ink,#0B0B0C);cursor:pointer}" +
+      "#tchiloSupport .su-send{width:100%;margin-top:12px;padding:14px;border:3px solid var(--ink,#0B0B0C);border-radius:16px;background:#c8f560;font:900 15px Inter,sans-serif;box-shadow:none;cursor:pointer}" +
       "#tchiloSupportBtn{display:flex!important}";
     document.head.appendChild(st);
   }

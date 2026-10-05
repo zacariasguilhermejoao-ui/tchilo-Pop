@@ -34,7 +34,7 @@
     st.textContent =
       "#apLivePreviewWrap{margin:16px 0 8px}" +
       "#apLivePreviewWrap .ap-pv-label{font:800 11px Inter,sans-serif;text-transform:uppercase;letter-spacing:.06em;opacity:.55;margin:0 0 8px}" +
-      "#apLivePreview.ap-feed-post{border:2.5px solid var(--ink,#0B0B0C);border-radius:16px;overflow:hidden;background:var(--paper,#fff);color:var(--ink,#0B0B0C);box-shadow:3px 3px 0 rgba(0,0,0,.08)}" +
+      "#apLivePreview.ap-feed-post{border:2.5px solid var(--ink,#0B0B0C);border-radius:16px;overflow:hidden;background:var(--paper,#fff);color:var(--ink,#0B0B0C);box-shadow:none}" +
       "#apLivePreview .pv-head{display:flex;align-items:center;gap:10px;padding:10px 12px}" +
       "#apLivePreview .pv-av{width:36px;height:36px;border-radius:50%;background:#c8f560;border:2px solid var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;font:900 14px Inter,sans-serif;flex-shrink:0}" +
       "#apLivePreview .pv-who{flex:1;min-width:0}" +

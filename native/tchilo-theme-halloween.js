@@ -120,7 +120,7 @@
       'color:#fff!important;' +
       'border:2px solid #FFB300!important;' +
       'border-radius:14px!important;' +
-      'box-shadow:0 0 16px rgba(255,107,0,.55), 3px 3px 0 #000!important;' +
+      'box-shadow:none!important;' +
       '}' +
       '[data-theme="halloween"] .nav-create svg{' +
       'stroke:#fff!important;' +
@@ -196,7 +196,7 @@
       'background:linear-gradient(145deg,#FF6B00,#8B0000)!important;' +
       'color:#fff!important;' +
       'border:2px solid #FFB300!important;' +
-      'box-shadow:0 0 14px rgba(255,107,0,.45), 3px 3px 0 #000!important;' +
+      'box-shadow:none!important;' +
       'text-transform:uppercase;' +
       'font-weight:900!important;' +
       '}' +

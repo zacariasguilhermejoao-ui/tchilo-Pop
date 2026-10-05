@@ -128,12 +128,12 @@
       ".ads-field textarea{min-height:90px;resize:vertical}" +
       ".ads-types{display:grid;grid-template-columns:1fr 1fr;gap:10px}" +
       ".ads-type{border:2.5px solid var(--ink,#0B0B0C);border-radius:14px;padding:12px;text-align:center;font:800 13px Inter,sans-serif;background:#fff;cursor:pointer}" +
-      ".ads-type.on{background:#c8f560;box-shadow:3px 3px 0 var(--ink,#0B0B0C)}" +
+      ".ads-type.on{background:#c8f560;box-shadow:none}" +
       ".ads-reach{border:2.5px dashed var(--ink,#0B0B0C);border-radius:14px;padding:12px;background:#f1ecff;font:700 13px Inter,sans-serif;line-height:1.45;margin:8px 0 16px}" +
       ".ads-media-btn{display:flex;align-items:center;justify-content:center;min-height:120px;border:2.5px dashed var(--ink,#0B0B0C);border-radius:14px;background:#fff;cursor:pointer;font:800 13px Inter,sans-serif}" +
       ".ads-media-btn img,.ads-media-btn video{max-width:100%;max-height:180px;border-radius:10px}" +
-      ".ads-pay{width:100%;padding:14px;border:3px solid var(--ink,#0B0B0C);border-radius:16px;background:#c8f560;font:900 15px Inter,sans-serif;box-shadow:4px 4px 0 var(--ink,#0B0B0C);cursor:pointer}" +
-      ".ads-pay:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink,#0B0B0C)}" +
+      ".ads-pay{width:100%;padding:14px;border:3px solid var(--ink,#0B0B0C);border-radius:16px;background:#c8f560;font:900 15px Inter,sans-serif;box-shadow:none;cursor:pointer}" +
+      ".ads-pay:active{opacity:.92}" +
       ".feed-ad{position:relative;border:2.5px solid var(--ink,#0B0B0C);border-radius:16px;margin:12px 12px;overflow:hidden;background:#fff}" +
       ".feed-ad .ad-label{position:absolute;top:10px;left:10px;z-index:3;background:rgba(0,0,0,.72);color:#fff;font:800 10px Inter,sans-serif;padding:4px 8px;border-radius:8px;letter-spacing:.04em}" +
       ".feed-ad .ad-body{padding:12px 14px 14px;font:600 14px Inter,sans-serif}" +

@@ -16,8 +16,8 @@
       '#tchiloPostMusicSheet{z-index:2147483000!important;background:rgba(11,11,12,.55)!important;}' +
       '#tchiloPostMusicSheet .panel{border:3px solid var(--ink,#0B0B0C)!important;background:var(--paper,#F3F1E9)!important;}' +
       '#tchiloPostMusicSheet .head b{font-family:Anton,Impact,sans-serif!important;font-size:22px!important;font-weight:400!important;}' +
-      '#tchiloPostMusicSheet .track{border:2.5px solid var(--ink,#0B0B0C)!important;box-shadow:2px 2px 0 var(--ink,#0B0B0C)!important;border-radius:14px!important;cursor:pointer!important;pointer-events:auto!important;}' +
-      '#tchiloPostMusicSheet .track:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink,#0B0B0C)!important;}' +
+      '#tchiloPostMusicSheet .track{border:2.5px solid var(--ink,#0B0B0C)!important;box-shadow:none!important;border-radius:14px!important;cursor:pointer!important;pointer-events:auto!important;}' +
+      '#tchiloPostMusicSheet .track:active{opacity:.92;}' +
       '#tchiloPostMusicSheet .cover,#tchiloPostMusicSheet .track img{width:48px!important;height:48px!important;border-radius:10px!important;border:2px solid var(--ink,#0B0B0C)!important;object-fit:cover!important;}' +
       '#tchiloPostMusicSheet .playbtn{background:var(--yellow,#C8F560)!important;color:var(--ink,#0B0B0C)!important;pointer-events:auto!important;}' +
       '#tchiloPostMusicSheet .favbtn{pointer-events:auto!important;}' +

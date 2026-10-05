@@ -133,7 +133,7 @@
       'display:flex!important;align-items:center!important;justify-content:center!important;' +
       'cursor:pointer!important;z-index:200!important;padding:0!important;' +
       'pointer-events:auto!important;opacity:1!important;visibility:visible!important;' +
-      'box-shadow:3px 3px 0 var(--ink,#0B0B0C)!important;}' +
+      'box-shadow:none!important;}' +
       '#tchiloProfileShareSheet{' +
       'position:fixed!important;inset:0!important;z-index:2147483646!important;' +
       'display:none;align-items:flex-end!important;justify-content:center!important;' +
@@ -155,7 +155,7 @@
       'display:flex;align-items:center;gap:14px;width:100%;padding:14px;margin:0 0 10px;' +
       'border-radius:16px;border:2.5px solid var(--ink,#0B0B0C);background:#fff;' +
       'font-weight:800;font-size:15px;cursor:pointer;color:var(--ink,#0B0B0C);' +
-      'box-shadow:3px 3px 0 var(--ink,#0B0B0C);text-align:left;}' +
+      'box-shadow:none;text-align:left;}' +
       '#tchiloProfileShareSheet .opt .ic{' +
       'display:inline-flex;align-items:center;justify-content:center;' +
       'width:40px;height:40px;min-width:40px;border-radius:12px;' +
@@ -166,12 +166,12 @@
       '#tchiloQrModal.open{display:flex!important;}' +
       '#tchiloQrModal .card{background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);border-radius:20px;' +
       'padding:18px;max-width:360px;width:100%;border:3px solid var(--ink,#0B0B0C);' +
-      'box-shadow:6px 6px 0 var(--ink,#0B0B0C);}' +
+      'box-shadow:none;}' +
       '#tchiloQrModal .qr-title{font-family:Anton,Impact,sans-serif;font-size:20px;text-align:center;margin:0 0 6px;}' +
       '#tchiloQrModal .qr-user{text-align:center;font-weight:700;opacity:.55;margin:0 0 12px;font-size:13px;}' +
       '#tchiloQrModal .actions{display:flex;flex-direction:column;gap:10px;margin-top:14px;}' +
       '#tchiloQrModal .actions button{padding:13px;border-radius:14px;font-weight:800;cursor:pointer;' +
-      'border:2.5px solid var(--ink,#0B0B0C);font-size:15px;box-shadow:3px 3px 0 var(--ink,#0B0B0C);}' +
+      'border:2.5px solid var(--ink,#0B0B0C);font-size:15px;box-shadow:none;}' +
       '#tchiloQrModal .actions .primary{background:var(--yellow,#C8F560);color:var(--ink,#0B0B0C);}' +
       '#tchiloQrModal .actions .ghost{background:#fff;color:var(--ink,#0B0B0C);}';
     document.head.appendChild(st);

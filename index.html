@@ -270,14 +270,7 @@
     font-size:24px;
     flex:1;
   }
-  .back-btn{
-    width:36px; height:36px;
-    border:2.5px solid var(--ink);
-    border-radius:10px;
-    background:var(--paper);
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer;
-  }
+  .back-btn{width:36px;height:36px;border:0;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;}
   .back-btn svg{ width:18px; height:18px; }
   .feed{
     flex:1 1 auto;
@@ -1264,10 +1257,7 @@
     background:var(--pink,#ff4b75);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
   }
   #chatMicBtn.rec{background:#c00;}
-  .chat-send{
-    width:40px;height:40px;border-radius:50%;border:0;flex-shrink:0;
-    background:var(--pink,#ff4b75);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
-  }
+  .chat-send{width:42px;height:42px;border-radius:50%;background:var(--ink);color:#fff;border:0;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
   .chat-send.tchilo-send-hidden{
     opacity:0;pointer-events:none;width:0;min-width:0;padding:0;margin:0;overflow:hidden;border:0;
   }
@@ -1388,8 +1378,8 @@
   .story-viewer-progress .seg i{display:block;width:0;height:100%;background:#fff}
   .profile-action-sheet{position:fixed;inset:0;z-index:1300;background:rgba(11,11,12,.42);display:none;align-items:flex-end;justify-content:center}
   .profile-action-sheet.open{display:flex}
-  .profile-action-card{width:min(100%,430px);background:var(--paper);border:3px solid var(--ink);border-bottom:0;border-radius:22px 22px 0 0;padding:16px 16px 28px;box-shadow:0 -14px 35px rgba(0,0,0,.22)}
-  .profile-action-card .pac-close{margin-left:auto;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:3px solid var(--ink);border-radius:50%;background:var(--yellow);font-size:25px;font-weight:900;cursor:pointer;line-height:1}
+  .profile-action-card{width:min(100%,430px);background:var(--paper);border:0;border-top:0.5px solid rgba(11,11,12,.12);border-radius:22px 22px 0 0;padding:16px 16px 28px;box-shadow:0 -14px 40px rgba(0,0,0,.18)}
+  .profile-action-card .pac-close{margin-left:auto;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:50%;background:transparent;font-size:22px;font-weight:400;cursor:pointer;line-height:1;color:var(--ink)}
   .profile-action-row{display:flex;align-items:center;gap:14px;width:100%;padding:14px 12px;border:0;border-bottom:0.5px solid rgba(11,11,12,.08);background:transparent;text-align:left;font:400 16px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer;color:var(--ink)}
   .profile-action-row:last-child{border-bottom:0}
   .profile-action-icon{width:24px;height:24px;border:0;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink)}
@@ -1510,10 +1500,7 @@
     border:2.5px solid var(--ink); border-radius:12px; padding:12px 14px;
     font:500 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; outline:none;
   }
-  .settings-save{
-    margin:0 18px 18px; padding:14px; border:2.5px solid var(--ink); border-radius:14px;
-    background:var(--yellow); font:800 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; cursor:pointer; width:calc(100% - 36px);
-  }
+  .settings-save{margin:0 18px 18px;padding:14px;border:0;border-radius:12px;background:var(--ink);color:#fff;font:600 15px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer;width:calc(100% - 36px);}
 
 
   .login-legal-links{
@@ -1674,18 +1661,9 @@
 
   /* SHARE SHEET */
   .share-options{ padding:8px 18px 24px; display:flex; flex-direction:column; gap:8px; }
-  .share-opt{
-    display:flex; align-items:center; gap:12px;
-    padding:14px 16px; border:2.5px solid var(--ink);
-    border-radius:14px; background:#fff; font:700 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    cursor:pointer; width:100%; text-align:left;
-  }
+  .share-opt{display:flex;align-items:center;gap:14px;padding:14px 4px;border:0;border-bottom:0.5px solid rgba(11,11,12,.08);border-radius:0;background:transparent;font:400 16px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer;width:100%;text-align:left;color:var(--ink);}
   .share-opt:active{ background:#f0efe8; }
-  .share-opt .so-icon{
-    width:40px; height:40px; border-radius:12px;
-    border:2px solid var(--ink); display:flex; align-items:center;
-    justify-content:center; font-size:18px; flex-shrink:0;
-  }
+  .share-opt .so-icon{width:24px;height:24px;border-radius:0;border:0;background:transparent!important;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;color:var(--ink);}
 
 
   .menu-sheet .share-options, .sheet-scroll{
@@ -1747,6 +1725,17 @@
 @media(max-width:360px){.signup-two{grid-template-columns:1fr}.interest-grid{gap:6px}.interest-grid span{min-height:58px}}
 
 
+
+
+/* tchilo-flat-ctas-ig */
+#tchiloQrModal .card{border:0!important;box-shadow:0 12px 40px rgba(0,0,0,.2)!important;border-radius:20px!important;}
+#tchiloQrModal .actions button{border:0!important;box-shadow:none!important;border-radius:12px!important;font-weight:600!important;padding:14px!important;}
+#tchiloQrModal .actions .primary{background:var(--ink,#0B0B0C)!important;color:#fff!important;}
+#tchiloQrModal .actions .ghost{background:rgba(11,11,12,.06)!important;color:var(--ink,#0B0B0C)!important;}
+#tchiloQrModal img,#tchiloQrModal canvas{border:0!important;border-radius:12px!important;}
+.back-btn{border:0!important;background:transparent!important;box-shadow:none!important;}
+.share-opt,.opt{border:0!important;box-shadow:none!important;}
+.settings-save,.su-send,.af-pay{border:0!important;box-shadow:none!important;border-radius:12px!important;background:var(--ink)!important;color:#fff!important;}
 
 </style>
 <style id="media-and-reel-polish">
@@ -4870,11 +4859,11 @@ function openReelMenu(postId) {
   const saves = getSaves();
   const saved = !!saves[postId];
   const html =
-    '<button class="share-opt" onclick="toggleReelSave()"><div class="so-icon" style="background:var(--yellow)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 4h12v17l-6-3-6 3z"/></svg></div><b>' + (saved ? 'Remover dos guardados' : 'Guardar') + '</b></button>' +
-    '<button class="share-opt" onclick="reelDuet()"><div class="so-icon" style="background:var(--violet);color:#fff"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.1"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3 2.7-5 6-5s6 2 6 5M12 20c0-3 2.7-5 6-5s6 2 6 5"/></svg></div><b>Dueto</b></button>' +
-    '<button class="share-opt" onclick="reelUseMusic()"><div class="so-icon" style="background:var(--mint)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><b>Usar música</b></button>' +
-    '<button class="share-opt" onclick="downloadPostMedia(reelMenuPostId)"><div class="so-icon" style="background:var(--yellow)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></div><b>Baixar</b></button>' +
-    '<button class="share-opt" onclick="reelReport()"><div class="so-icon" style="background:var(--pink);color:#fff"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v4M12 17h.01"/></svg></div><b>Denunciar</b></button>';
+    '<button class="share-opt" onclick="toggleReelSave()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 4h12v17l-6-3-6 3z"/></svg></div><b>' + (saved ? 'Remover dos guardados' : 'Guardar') + '</b></button>' +
+    '<button class="share-opt" onclick="reelDuet()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.1"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3 2.7-5 6-5s6 2 6 5M12 20c0-3 2.7-5 6-5s6 2 6 5"/></svg></div><b>Dueto</b></button>' +
+    '<button class="share-opt" onclick="reelUseMusic()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><b>Usar música</b></button>' +
+    '<button class="share-opt" onclick="downloadPostMedia(reelMenuPostId)"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></div><b>Baixar</b></button>' +
+    '<button class="share-opt" onclick="reelReport()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v4M12 17h.01"/></svg></div><b>Denunciar</b></button>';
   document.getElementById('reelMenuOptions').innerHTML = html;
   document.getElementById('reelMenuSheet').classList.add('open');
 }
@@ -4922,8 +4911,8 @@ function openShare(postId) {
   }catch(e){}
 
   let html = '';
-  html += '<button class="share-opt" onclick="shareToFeed()"><div class="so-icon" style="background:var(--mint)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></div><div><b>Partilhar no meu feed</b><div style="font-size:12px;color:var(--muted);font-weight:500">Republica no teu perfil</div></div></button>';
-  html += '<button class="share-opt" onclick="shareOutside()"><div class="so-icon" style="background:var(--yellow)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><div><b>Partilhar fora</b><div style="font-size:12px;color:var(--muted);font-weight:500">Apps do telemóvel</div></div></button>';
+  html += '<button class="share-opt" onclick="shareToFeed()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></div><div><b>Partilhar no meu feed</b><div style="font-size:12px;color:var(--muted);font-weight:500">Republica no teu perfil</div></div></button>';
+  html += '<button class="share-opt" onclick="shareOutside()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><div><b>Partilhar fora</b><div style="font-size:12px;color:var(--muted);font-weight:500">Apps do telemóvel</div></div></button>';
   html += '<div style="font-size:12px;font-weight:800;color:var(--muted);margin:10px 0 4px">Enviar em mensagem</div>';
   contacts.forEach(function(c) {
     html += '<button class="share-opt" onclick="shareToChat(\'' + c.name + '\',\'' + c.initials + '\',\'' + c.color + '\')">' +
@@ -5989,21 +5978,21 @@ function openPostMenu(postId) {
   const isOwn = session && p.username === session.username;
   let html = '';
   if (isOwn) {
-    html += '<button class="share-opt" onclick="startEditPost(\'' + postId + '\')"><div class="so-icon" style="background:var(--mint)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div><b>Editar publicação</b></button>';
-    html += '<button class="share-opt" onclick="deletePost(\'' + postId + '\')"><div class="so-icon" style="background:var(--pink);color:#fff"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div><b>Eliminar publicação</b></button>';
+    html += '<button class="share-opt" onclick="startEditPost(\'' + postId + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div><b>Editar publicação</b></button>';
+    html += '<button class="share-opt" onclick="deletePost(\'' + postId + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div><b>Eliminar publicação</b></button>';
   } else {
-    html += '<button class="share-opt" onclick="openReport(\'post\',\'' + postId + '\')"><div class="so-icon" style="background:var(--yellow)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v4M12 17h.01"/></svg></div><b>Denunciar publicação</b></button>';
-    html += '<button class="share-opt" onclick="openReport(\'user\',\'' + p.username + '\')"><div class="so-icon" style="background:var(--pink)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c.6-3.6 2.6-5.5 5.5-5.5s4.9 1.9 5.5 5.5"/><path d="M16 7h5M18.5 4.5v5"/></svg></div><b>Denunciar @' + p.username + '</b></button>';
-    html += '<button class="share-opt" onclick="blockUser(\'' + p.username + '\');closePostMenu();renderFeed()"><div class="so-icon" style="background:#ddd"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M5.5 5.5l13 13"/></svg></div><b>Bloquear @' + p.username + '</b></button>';
+    html += '<button class="share-opt" onclick="openReport(\'post\',\'' + postId + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v4M12 17h.01"/></svg></div><b>Denunciar publicação</b></button>';
+    html += '<button class="share-opt" onclick="openReport(\'user\',\'' + p.username + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c.6-3.6 2.6-5.5 5.5-5.5s4.9 1.9 5.5 5.5"/><path d="M16 7h5M18.5 4.5v5"/></svg></div><b>Denunciar @' + p.username + '</b></button>';
+    html += '<button class="share-opt" onclick="blockUser(\'' + p.username + '\');closePostMenu();renderFeed()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M5.5 5.5l13 13"/></svg></div><b>Bloquear @' + p.username + '</b></button>';
     if (!isFollowing(p.username)) {
-      html += '<button class="share-opt" onclick="toggleFollow(\'' + p.username + '\');closePostMenu();renderFeed()"><div class="so-icon" style="background:var(--mint)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></div><b>Seguir @' + p.username + '</b></button>';
+      html += '<button class="share-opt" onclick="toggleFollow(\'' + p.username + '\');closePostMenu();renderFeed()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></div><b>Seguir @' + p.username + '</b></button>';
     }
   }
-  html += '<button class="share-opt" onclick="openShare(\'' + postId + '\');closePostMenu()"><div class="so-icon" style="background:var(--violet);color:#fff"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><b>Partilhar</b></button>';
+  html += '<button class="share-opt" onclick="openShare(\'' + postId + '\');closePostMenu()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><b>Partilhar</b></button>';
   /* Baixar só para posts com foto/vídeo real — não em temas (stamp/cor) */
   var mediaItemsMenu = (typeof resolveMediaItems === 'function') ? resolveMediaItems(p) : [];
   if (mediaItemsMenu && mediaItemsMenu.length) {
-    html += '<button class="share-opt" onclick="downloadPostMedia(\'' + postId + '\');closePostMenu()"><div class="so-icon" style="background:var(--yellow)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></div><b>Baixar</b></button>';
+    html += '<button class="share-opt" onclick="downloadPostMedia(\'' + postId + '\');closePostMenu()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></div><b>Baixar</b></button>';
   }
   document.getElementById('postMenuOptions').innerHTML = html;
   document.getElementById('postMenuSheet').classList.add('open');
@@ -9306,9 +9295,9 @@ function openStoryMenu(){
   const opts=document.getElementById('storyMenuOptions'); if(!opts)return;
   let html='';
   if(session && s.name===session.username){
-    html+='<button class="share-opt" type="button" onclick="deleteActiveStory()"><div class="so-icon" style="background:var(--pink)">🗑️</div><div><b>Eliminar Story</b><div style="font-size:12px;color:var(--muted);font-weight:500">Remove este Story</div></div></button>';
+    html+='<button class="share-opt" type="button" onclick="deleteActiveStory()"><div class="so-icon">🗑️</div><div><b>Eliminar Story</b><div style="font-size:12px;color:var(--muted);font-weight:500">Remove este Story</div></div></button>';
   }
-  html+='<button class="share-opt" type="button" onclick="shareActiveStoryToFeed()"><div class="so-icon" style="background:var(--mint)">＋</div><div><b>Partilhar no meu feed</b><div style="font-size:12px;color:var(--muted);font-weight:500">Publica este Story no teu feed</div></div></button>';
+  html+='<button class="share-opt" type="button" onclick="shareActiveStoryToFeed()"><div class="so-icon">＋</div><div><b>Partilhar no meu feed</b><div style="font-size:12px;color:var(--muted);font-weight:500">Publica este Story no teu feed</div></div></button>';
   html+='<div style="font-size:12px;font-weight:800;color:var(--muted);margin:10px 0 4px">Enviar como mensagem</div>';
   const contacts=[];
   try{
@@ -10846,6 +10835,8 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/fx-png-effects.js"></script>
 <script src="native/face-fx-pro.js"></script>
 <!-- tchilo-png-fx-end -->
+
+
 
 
 

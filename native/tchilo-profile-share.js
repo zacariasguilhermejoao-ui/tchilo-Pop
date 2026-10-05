@@ -128,7 +128,7 @@
       '#tchiloProfileMoreBtn,button#tchiloProfileMoreBtn,.tchilo-profile-more{' +
       'position:absolute!important;right:10px!important;top:50%!important;' +
       'transform:translateY(-50%)!important;width:44px!important;height:44px!important;' +
-      'border-radius:12px!important;border:2.5px solid var(--ink,#0B0B0C)!important;' +
+      'border-radius:12px!important;border:0!important;' +
       'background:var(--paper,#F3F1E9)!important;color:var(--ink,#0B0B0C)!important;' +
       'display:flex!important;align-items:center!important;justify-content:center!important;' +
       'cursor:pointer!important;z-index:200!important;padding:0!important;' +
@@ -158,15 +158,15 @@
       'align-items:center;justify-content:center;background:rgba(11,11,12,.72);padding:20px;}' +
       '#tchiloQrModal.open{display:flex!important;}' +
       '#tchiloQrModal .card{background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);border-radius:20px;' +
-      'padding:18px;max-width:360px;width:100%;border:3px solid var(--ink,#0B0B0C);' +
-      'box-shadow:none;}' +
+      'padding:18px;max-width:360px;width:100%;border:0;' +
+      'box-shadow:0 12px 40px rgba(0,0,0,.2);}' +
       '#tchiloQrModal .qr-title{font-family:Anton,Impact,sans-serif;font-size:20px;text-align:center;margin:0 0 6px;}' +
       '#tchiloQrModal .qr-user{text-align:center;font-weight:700;opacity:.55;margin:0 0 12px;font-size:13px;}' +
       '#tchiloQrModal .actions{display:flex;flex-direction:column;gap:10px;margin-top:14px;}' +
       '#tchiloQrModal .actions button{padding:13px;border-radius:14px;font-weight:800;cursor:pointer;' +
-      'border:2.5px solid var(--ink,#0B0B0C);font-size:15px;box-shadow:none;}' +
-      '#tchiloQrModal .actions .primary{background:var(--yellow,#C8F560);color:var(--ink,#0B0B0C);}' +
-      '#tchiloQrModal .actions .ghost{background:#fff;color:var(--ink,#0B0B0C);}';
+      'border:0;font-size:15px;box-shadow:none;font-weight:600;}' +
+      '#tchiloQrModal .actions .primary{background:var(--ink,#0B0B0C);color:#fff;}' +
+      '#tchiloQrModal .actions .ghost{background:rgba(11,11,12,.06);color:var(--ink,#0B0B0C);}';
     document.head.appendChild(st);
   }
 
@@ -302,7 +302,7 @@
         mount.innerHTML =
           '<img alt="QR" src="' +
           fallback +
-          '" style="width:100%;border-radius:14px;border:2.5px solid #0B0B0C"/>';
+          '" style="width:100%;border-radius:12px;border:0"/>';
         return;
       }
       window.__tchiloQrCanvas = canvas;

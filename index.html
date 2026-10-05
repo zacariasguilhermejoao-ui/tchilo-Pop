@@ -983,14 +983,7 @@
   .profile-stat b{ display:block; font-size:18px; font-weight:800; }
   .profile-stat span{ font-size:12px; color:var(--muted); font-weight:600; }
   .profile-actions{ display:flex; flex-direction:column; gap:10px; }
-  .profile-btn{
-    width:100%; padding:14px;
-    border:2.5px solid var(--ink);
-    border-radius:14px;
-    background:var(--paper);
-    font:700 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    cursor:pointer;
-  }
+  .profile-btn{width:100%;padding:14px;border:0;border-radius:12px;background:rgba(11,11,12,.06);font:600 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer;color:var(--ink);}
   .profile-btn.danger{
     background:var(--pink);
     color:#fff;
@@ -999,7 +992,7 @@
   .profile-btn:active{ transform:scale(.98); }
   .create-body{ flex:1; overflow-y:auto; padding:18px 18px 100px; }
   .create-preview{
-    border:3px solid var(--ink);
+    border:0;
     aspect-ratio:1/1;
     display:flex; align-items:center; justify-content:center;
     margin-bottom:16px;
@@ -1059,25 +1052,11 @@
   .feed-sound-btn.on .icon-muted{ display:none !important; }
   .feed-sound-btn.on .icon-sound{ display:block !important; stroke:#111; }
 
-  .gallery-btn{
-    width:100%; padding:14px;
-    border:2.5px dashed var(--ink);
-    border-radius:14px;
-    background:transparent;
-    font:700 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    cursor:pointer; margin-bottom:12px;
-    display:flex; align-items:center; justify-content:center; gap:8px;
-  }
+  .gallery-btn{width:100%;padding:14px;border:1px dashed rgba(11,11,12,.25);border-radius:14px;background:transparent;font:600 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink);}
   .gallery-btn:active{ transform:scale(.98); }
 
   /* Capa do vídeo */
-  .video-cover-box{
-    margin:0 0 14px;
-    padding:12px;
-    border:2.5px solid var(--ink);
-    border-radius:14px;
-    background:var(--paper);
-  }
+  .video-cover-box{margin:0 0 14px;padding:12px;border:0.5px solid rgba(11,11,12,.12);border-radius:14px;background:var(--paper);}
   .video-cover-box h4{
     font:800 13px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     margin:0 0 10px;
@@ -1141,15 +1120,7 @@
     resize:none;
   }
   .create-input:focus{ box-shadow:0 0 0 3px rgba(11,11,12,.08); }
-  .publish-btn{
-    width:100%;
-    padding:16px;
-    background:var(--yellow);
-    border:2.5px solid var(--ink);
-    border-radius:14px;
-    font:800 15px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    cursor:pointer;
-  }
+  .publish-btn{width:100%;padding:16px;background:var(--ink);color:#fff;border:0;border-radius:12px;font:600 15px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer;}
   .publish-btn:active{ transform:scale(.98); }
   .empty{
     text-align:center;
@@ -1224,26 +1195,20 @@
   .chat-screen.open{ display:flex; }
   .chat-header{
     display:flex; align-items:center; gap:12px;
-    padding:14px 16px; border-bottom:3px solid var(--line); flex-shrink:0;
+    padding:14px 16px; border-bottom:0.5px solid rgba(11,11,12,.12); flex-shrink:0;
   }
   .chat-header .avatar{ width:36px; height:36px; font-size:12px; }
   .chat-header b{ flex:1; font-size:15px; }
   .chat-body{ flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
-  .bubble{
-    max-width:78%; padding:10px 14px; border-radius:16px;
-    font-size:14px; line-height:1.4; border:2px solid var(--ink);
-  }
+  .bubble{max-width:78%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.4;border:0;}
   .bubble.them{ align-self:flex-start; background:#fff; border-bottom-left-radius:4px; }
   .bubble.me{ align-self:flex-end; background:var(--mint); border-bottom-right-radius:4px; }
   .chat-input-bar{
     display:flex; gap:8px; padding:12px 14px;
-    border-top:3px solid var(--line); flex-shrink:0;
+    border-top:0.5px solid rgba(11,11,12,.12); flex-shrink:0;
     padding-bottom:calc(12px + env(safe-area-inset-bottom));
   }
-  .chat-input-bar input{
-    flex:1; border:2.5px solid var(--ink); border-radius:20px;
-    padding:10px 14px; font:500 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; outline:none;
-  }
+  .chat-input-bar input{flex:1;border:0;border-radius:20px;padding:10px 14px;font:500 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;outline:none;background:rgba(11,11,12,.06);}
 
   /* chat-attach-btn styles unified in Tchilo + profissional */
   .chat-call-btns{display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0;}
@@ -1289,10 +1254,7 @@
   }
   .chat-preview-bar .cp-info{ flex:1; min-width:0; font-size:12.5px; font-weight:700; }
   .chat-preview-bar .cp-info span{ display:block; font-weight:500; color:var(--muted); font-size:11px; }
-  .chat-preview-bar .cp-cancel{
-    border:2px solid var(--ink); background:var(--paper); border-radius:10px;
-    padding:8px 10px; font:800 12px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; cursor:pointer;
-  }
+  .chat-preview-bar .cp-cancel{border:0;background:rgba(11,11,12,.06);border-radius:10px;padding:8px 10px;font:600 12px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer;}
   .chat-rec-bar{
     display:none; align-items:center; gap:10px; padding:10px 14px;
     border-top:2px solid #e8e6de; background:#fff5f7; flex-shrink:0;
@@ -1301,26 +1263,14 @@
   .chat-rec-dot{ width:10px; height:10px; border-radius:50%; background:var(--pink); animation:tmPulse 1s infinite; }
   @keyframes tmPulse{0%,100%{opacity:1}50%{opacity:.35}}
   .chat-rec-bar b{ flex:1; font-size:13px; }
-  .chat-rec-bar button{
-    border:2.5px solid var(--ink); border-radius:12px; padding:8px 12px;
-    font:800 12px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--paper); cursor:pointer;
-  }
-  .chat-rec-bar button.send-rec{ background:var(--yellow); }
+  .chat-rec-bar button{border:0;border-radius:12px;padding:8px 12px;font:600 12px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:rgba(11,11,12,.06);cursor:pointer;}
+  .chat-rec-bar button.send-rec{ background:var(--ink);color:#fff; }
   .attach-sheet-grid{
     display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:8px 4px 16px;
   }
-  .attach-opt{
-    display:flex; flex-direction:column; align-items:center; gap:8px;
-    padding:14px 8px; border:2.5px solid var(--ink); border-radius:16px;
-    background:#fff; cursor:pointer; font:800 12px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  }
+  .attach-opt{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 8px;border:0.5px solid rgba(11,11,12,.12);border-radius:16px;background:#fff;cursor:pointer;font:600 12px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
   .attach-opt:active{ transform:scale(.96); background:#f0efe8; }
-  .attach-opt .ao-icon{
-    width:48px; height:48px; border-radius:14px; border:2px solid var(--ink);
-    display:flex; align-items:center; justify-content:center; overflow:hidden;
-    position:relative; box-shadow:none;
-    transform:translateZ(0);
-  }
+  .attach-opt .ao-icon{width:48px;height:48px;border-radius:14px;border:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(11,11,12,.06);}
   .attach-opt .ao-icon svg{
     width:34px; height:34px; display:block; overflow:visible;
     filter:drop-shadow(2px 3px 0 rgba(0,0,0,.22));
@@ -1328,11 +1278,7 @@
   .attach-opt .ao-icon .icon-highlight{ opacity:.82; }
   .attach-opt .ao-icon .icon-side{ opacity:.95; }
   .attach-opt .ao-icon .icon-gloss{ opacity:.55; }
-  .chat-send{
-    width:42px; height:42px; border-radius:50%;
-    background:var(--yellow); border:2.5px solid var(--ink);
-    font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  }
+  .chat-send{width:42px;height:42px;border-radius:50%;background:var(--ink);color:#fff;border:0;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 
   /* ----- COMMENTS SHEET ----- */
   .sheet{
@@ -1539,18 +1485,11 @@
   }
   .edit-form{ padding:12px 18px 120px; display:flex; flex-direction:column; gap:12px; flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   .edit-form label{ font-size:12px; font-weight:800; color:var(--muted); }
-  .edit-form input, .edit-form textarea{
-    width:100%; border:2.5px solid var(--ink); border-radius:12px;
-    padding:12px 14px; font:500 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; outline:none;
-    background:#fff;
-  }
+  .edit-form input, .edit-form textarea{width:100%;border:0;border-radius:12px;padding:12px 14px;font:500 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;outline:none;background:rgba(11,11,12,.06);}
   .edit-form textarea{ min-height:80px; resize:vertical; }
   .avatar-colors{ display:flex; gap:8px; flex-wrap:wrap; }
-  .avatar-color{
-    width:32px; height:32px; border-radius:50%;
-    border:2.5px solid var(--ink); cursor:pointer;
-  }
-  .avatar-color.active{ outline:3px solid var(--ink); outline-offset:2px; }
+  .avatar-color{width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(11,11,12,.2);cursor:pointer;}
+  .avatar-color.active{ outline:2px solid var(--ink); outline-offset:2px; }
 
 
   .notif-tabs{
@@ -1728,6 +1667,7 @@
 
 
 
+
 /* tchilo-flat-all-v3 — original in index */
 .back-btn,button.back-btn,.screen-header .back-btn{
   border:0!important;background:transparent!important;box-shadow:none!important;border-radius:50%!important;
@@ -1788,6 +1728,41 @@
 }
 .settings-item .si-icon svg{
   display:block!important;visibility:visible!important;opacity:1!important;width:22px!important;height:22px!important;
+}
+/* edit profile + forms */
+.edit-form input,.edit-form textarea{
+  border:0!important;background:rgba(11,11,12,.06)!important;border-radius:12px!important;box-shadow:none!important;
+}
+.gallery-btn{
+  border:1px dashed rgba(11,11,12,.25)!important;box-shadow:none!important;background:transparent!important;
+}
+.profile-btn{
+  border:0!important;box-shadow:none!important;background:rgba(11,11,12,.06)!important;border-radius:12px!important;
+}
+/* chat */
+.chat-input-bar input{
+  border:0!important;background:rgba(11,11,12,.06)!important;box-shadow:none!important;
+}
+.bubble{border:0!important;box-shadow:none!important;}
+.chat-send{
+  border:0!important;box-shadow:none!important;background:var(--ink,#0B0B0C)!important;color:#fff!important;
+}
+.chat-attach-btn,#chatAttachBtn,.story-card-plus,.nav-post{
+  border:0!important;box-shadow:none!important;
+  background:var(--ink,#0B0B0C)!important;color:#fff!important;
+  border-radius:50%!important;
+}
+.attach-opt,.attach-opt .ao-icon{
+  border:0!important;box-shadow:none!important;
+}
+.publish-btn{
+  border:0!important;box-shadow:none!important;background:var(--ink,#0B0B0C)!important;color:#fff!important;border-radius:12px!important;
+}
+.video-cover-box,.create-preview{
+  border:0!important;box-shadow:none!important;
+}
+.chat-rec-bar button.send-rec{
+  background:var(--ink,#0B0B0C)!important;color:#fff!important;border:0!important;
 }
 
 /* tchilo-flat-ctas-ig */

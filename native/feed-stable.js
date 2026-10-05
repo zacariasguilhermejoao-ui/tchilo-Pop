@@ -71,8 +71,8 @@
     add('native/tchilo-feed-to-reels.js?v=2');
     add('native/tchilo-reels-icon.js?v=2');
     add('native/tchilo-share-target.js?v=1');
-    add('native/nav-layout.js?v=2');
-    add('native/tchilo-ui-icons-fix.js?v=3');
+    add('native/nav-layout.js?v=3');
+    add('native/tchilo-ui-icons-fix.js?v=5');
     add('native/reels-follow-fix.js?v=2');
     add('native/tchilo-profile-avatar-plus.js?v=1');
   }

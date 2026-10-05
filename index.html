@@ -8128,14 +8128,19 @@ async function saveProfile() {
       try{ document.getElementById('editNewPassword').value=''; document.getElementById('editNewPassword2').value=''; }catch(e){}
     }
     let cloudAvatar=editAvatarData||session.avatar||null;
-    if(editAvatarData&&/^data:image\//i.test(editAvatarData)&&window.tchiloSupabase){
+    if(editAvatarData&&/^data:image\//i.test(String(editAvatarData))){
+      if(!window.tchiloSupabase) throw new Error('Supabase offline');
       const auth=await window.tchiloSupabase.auth.getSession();
       const uid=window.__tchiloCloudUserId||(auth&&auth.data&&auth.data.session&&auth.data.session.user&&auth.data.session.user.id);
-      if(uid){
-        cloudAvatar=await tchiloUploadAvatar(uid,editAvatarData);
-      } else {
-        console.warn('Tchilo avatar: sem user id, guarda localmente');
+      if(!uid) throw new Error('Sem sessão para guardar foto');
+      cloudAvatar=await tchiloUploadAvatar(uid,editAvatarData);
+      if(!cloudAvatar||/^data:/i.test(String(cloudAvatar))){
+        throw new Error('Upload da foto de perfil falhou');
       }
+      editAvatarData=cloudAvatar;
+    } else if(cloudAvatar&&/^data:/i.test(String(cloudAvatar))){
+      /* nunca persistir data URL como avatar final */
+      cloudAvatar=session.avatar&&String(session.avatar).indexOf('http')===0?session.avatar:null;
     }
     /* Atualiza users locais se existir (compat), sem bloquear se não existir */
     try{
@@ -9233,7 +9238,7 @@ function onStoryMediaPicked(event){
 }
 async function publishStory(data){
   const session=getSession();
-  if(!session)return;
+  if(!session){ showToast('Inicia sessão'); return; }
   const item={
     text:data.text||'',
     media:data.media||null,
@@ -9243,15 +9248,23 @@ async function publishStory(data){
     musicMeta:(data.musicMeta||data.music||null),
     createdAt:Date.now()
   };
+  if(!(window.tchiloCloud&&typeof window.tchiloCloud.publishStory==='function')){
+    showToast('Cloud offline — story não publicado');
+    return;
+  }
   try{
-    if(window.tchiloCloud&&typeof window.tchiloCloud.publishStory==='function'){
-      const res=await window.tchiloCloud.publishStory(item);
-      if(res&&res.media){ item.media=res.media; item.mediaType=res.mediaType||item.mediaType; }
-      item._synced=true;
+    showToast('A publicar story…');
+    const res=await window.tchiloCloud.publishStory(item);
+    if(res&&res.media){ item.media=res.media; item.mediaType=res.mediaType||item.mediaType; }
+    /* Nunca guardar data:/blob: como definitivo */
+    if(item.media&&(String(item.media).indexOf('data:')===0||String(item.media).indexOf('blob:')===0)){
+      throw new Error('Media não foi enviada para o Storage');
     }
+    item._synced=true;
   }catch(err){
-    console.warn('Tchilo story cloud:',err&&err.message?err.message:err);
-    showToast('Story guardado localmente (cloud: '+(err&&err.message?err.message:'erro')+')');
+    console.error('Tchilo story cloud:',err&&err.message?err.message:err);
+    showToast('Story não publicado: '+(err&&err.message?err.message:'erro na nuvem'));
+    return;
   }
   const all=getStoriesStore();
   let arr=Array.isArray(all[session.username])?all[session.username]:(all[session.username]?[all[session.username]]:[]);
@@ -9260,7 +9273,7 @@ async function publishStory(data){
   all[session.username]=arr;
   saveStoriesStore(all);
   renderStories();
-  showToast('Status publicado (24h)');
+  showToast('Story publicado (24h)');
 }
 function getThemeColor(c){ const map={m1:'var(--mint)',m2:'var(--yellow)',m3:'var(--violet)',m4:'var(--pink)',m5:'var(--paper)',m6:'#9ED7FF',m7:'#FFB36B',m8:'#FF6F7D',m9:'#69D6C2',m10:'#B9A7FF',m11:'#17171A',m12:'#D8C3A5'}; return map[c]||'var(--mint)'; }
 function setupStoriesTouchGuard(){ const bar=document.getElementById('storiesBar'); if(!bar||bar.dataset.touchReady==='1')return;bar.dataset.touchReady='1';bar.style.touchAction='pan-x'; }
@@ -10264,26 +10277,45 @@ document.addEventListener('DOMContentLoaded', function() {
   async function publishStoryCloud(story){
     const userId=await getUserId();
     if(!userId) throw new Error('Sessão Supabase não encontrada.');
+    const uname=(typeof username==='function'?username():null)||(getSession()&&getSession().username)||null;
     let mediaUrl=story.media||null;
     let mediaType=story.mediaType||null;
     if(mediaUrl&&String(mediaUrl).indexOf('data:')===0){
-      const ext=mediaType==='video'?'mp4':'jpg';
+      const isVid=mediaType==='video'||String(mediaUrl).indexOf('data:video')===0;
+      const ext=isVid?'mp4':(String(mediaUrl).indexOf('image/png')>=0?'png':'jpg');
       const path=userId+'/stories/'+Date.now()+'.'+ext;
       mediaUrl=await uploadDataUrl('posts-media',path,mediaUrl);
+      mediaType=mediaType||(isVid?'video':'image');
     }else if(mediaUrl&&String(mediaUrl).indexOf('blob:')===0){
       const response=await fetch(mediaUrl);
       const blob=await response.blob();
-      const ext=(blob.type||'').indexOf('video')===0?'mp4':'jpg';
+      const isVid=(blob.type||'').indexOf('video')===0||mediaType==='video';
+      const ext=isVid?'mp4':((blob.type||'').indexOf('png')>=0?'png':'jpg');
       const path=userId+'/stories/'+Date.now()+'.'+ext;
       mediaUrl=await uploadBlobPath('posts-media',path,blob,blob.type);
-      mediaType=mediaType||((blob.type||'').indexOf('video')===0?'video':'image');
+      mediaType=mediaType||(isVid?'video':'image');
     }
     const created=story.createdAt?new Date(story.createdAt).toISOString():iso();
-    await insertCandidates('stories',[
-      {user_id:userId,text:story.text||'',media_url:mediaUrl,media_type:mediaType,color:story.color||null,created_at:created},
-      {user_id:userId,content:story.text||'',media_url:mediaUrl,media_type:mediaType,created_at:created},
-      {user_id:userId,caption:story.text||'',media_url:mediaUrl,media_type:mediaType,created_at:created}
-    ]);
+    const expires=new Date((story.createdAt||Date.now())+24*60*60*1000).toISOString();
+    /* Schema real (sql/tchilo-cloud-complete.sql): text_content, não text/content/caption */
+    const row={
+      user_id:userId,
+      username:uname,
+      media_url:mediaUrl,
+      media_type:mediaType,
+      text_content:story.text||'',
+      color:story.color||null,
+      music:(story.musicMeta||story.music)||null,
+      created_at:created,
+      expires_at:expires
+    };
+    const {error}=await SB.from('stories').insert(row);
+    if(error){
+      /* fallback mínimo se music jsonb não existir */
+      const row2={user_id:userId,username:uname,media_url:mediaUrl,media_type:mediaType,text_content:story.text||'',color:story.color||null,created_at:created,expires_at:expires};
+      const r2=await SB.from('stories').insert(row2);
+      if(r2.error) throw new Error('Story na nuvem: '+(r2.error.message||error.message||'insert falhou'));
+    }
     return {ok:true,media:mediaUrl,mediaType:mediaType};
   }
 
@@ -10526,7 +10558,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const uname=profileMap[r.user_id]||r.username;
         if(!uname) return;
         const item={
-          text:r.text||r.content||r.caption||'',
+          text:r.text_content||r.text||r.content||r.caption||'',
           media:r.media_url||r.media||null,
           mediaType:r.media_type||r.mediaType||null,
           color:r.color||null,
@@ -10795,6 +10827,8 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/fx-png-effects.js"></script>
 <script src="native/face-fx-pro.js"></script>
 <!-- tchilo-png-fx-end -->
+
+
 
 
 

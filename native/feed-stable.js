@@ -75,6 +75,7 @@
     add('native/tchilo-ui-icons-fix.js?v=5');
     add('native/reels-follow-fix.js?v=2');
     add('native/tchilo-profile-avatar-plus.js?v=1');
+    add('native/topbar-border-thin.js?v=1');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);

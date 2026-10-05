@@ -24,21 +24,20 @@ jobs:
 
       - name: Run safe patch scripts only
         run: |
-          # Skip known overwriters / obsolete neo-brutalist reinjectors
           for f in scripts/patch_*.py; do
             base=$(basename "$f")
             case "$base" in
-              patch_plus_button_pro.py|patch_restore_*|patch_assemble_*|patch_zzz*)
-                echo "skip $base"
+              patch_plus_button_pro.py|patch_restore_*|patch_assemble_*|patch_zzz_flatten_all.py|patch_zzzb_index_flat_css.py)
+                echo "skip $base (run ordered at end)"
                 continue
                 ;;
             esac
             echo "=== $f ==="
             python3 "$f" || echo "WARN $f"
           done
-          # Always run flat last
           python3 scripts/patch_zzz_flatten_all.py || true
           python3 scripts/patch_zzzb_index_flat_css.py || true
+          python3 scripts/patch_zzzc_system_titles.py || true
 
       - name: Commit if changed
         run: |

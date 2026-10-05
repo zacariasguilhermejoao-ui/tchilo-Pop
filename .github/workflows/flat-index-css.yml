@@ -7,6 +7,7 @@ on:
     paths:
       - 'scripts/patch_zzzb_index_flat_css.py'
       - 'scripts/patch_zzz_flatten_all.py'
+      - 'scripts/patch_zzzc_system_titles.py'
       - '.github/workflows/flat-index-css.yml'
 
 concurrency:
@@ -23,15 +24,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply flat UI to index + native
+      - name: Apply flat UI + system titles
         run: |
           set -e
-          python3 scripts/patch_zzzb_index_flat_css.py
+          python3 scripts/patch_zzzb_index_flat_css.py || true
           python3 scripts/patch_zzz_flatten_all.py || true
-          echo "--- verify ---"
-          grep -c 'edit profile + forms' index.html || true
-          grep -o 'chat-attach-btn,#chatAttachBtn' index.html | head -1 || true
-          grep -o '1px dashed rgba' index.html | head -1 || true
+          python3 scripts/patch_zzzc_system_titles.py
+          echo "--- verify titles ---"
+          grep -c "tchilo-system-titles" index.html || true
+          grep -c "family=Anton" index.html || echo "Anton link gone"
+          grep -c "font-family:'Anton'" index.html || echo "Anton CSS gone"
 
       - name: Commit
         run: |
@@ -42,7 +44,7 @@ jobs:
             echo "No changes"
             exit 0
           fi
-          git commit -m "fix: flat edit profile, chat, create controls in index"
+          git commit -m "fix: system font on all titles (index + native)"
           for i in 1 2 3 4 5; do
             git pull --rebase origin main || true
             git push origin HEAD:main && exit 0

@@ -960,6 +960,16 @@
     display:flex; flex-direction:column; align-items:center;
     text-align:center; margin-bottom:28px;
   }
+  #tchiloProfileAvatarPlus.tchilo-av-add{
+    position:absolute;right:0;bottom:0;z-index:5;
+    width:28px;height:28px;border-radius:50%;
+    background:var(--yellow,#C8F560);color:var(--ink,#0B0B0C);
+    border:2.5px solid var(--ink,#0B0B0C);
+    display:flex;align-items:center;justify-content:center;
+    padding:0;margin:0;cursor:pointer;
+    animation:none!important;transition:none!important;transform:none!important;
+  }
+  #tchiloProfileAvatarPlus.tchilo-av-add svg{display:block;pointer-events:none;}
   .profile-avatar{
     width:90px; height:90px;
     border-radius:50%;
@@ -7307,7 +7317,7 @@ function renderProfile() {
 
     profileBody.innerHTML =
       '<div class="profile-header">' +
-      '<div class="profile-avatar" style="background:' + avatarColor + ';overflow:hidden;position:relative">' + avatarHtml + '</div>' +
+      '<div class="profile-avatar" style="background:' + avatarColor + ';overflow:visible;position:relative">' + avatarHtml + (isOther ? '' : '<button type="button" id="tchiloProfileAvatarPlus" class="tchilo-av-add" aria-label="Adicionar foto" onclick="event.preventDefault();event.stopPropagation();var i=document.getElementById(\'editAvatarInput\');if(i){i.value=\'\';i.click();}else if(typeof goTo===\'function\')goTo(\'editprofile\');"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>') + '</div>' +
       '<h2>' + String(displayName).replace(/</g, '&lt;') + '</h2>' +
       '<div class="email">@' + username.replace(/</g, '&lt;') + (location ? ' · ' + String(location).replace(/</g, '&lt;') : '') + '</div>' +
       (badges ? '<div>' + badges + '</div>' : '') +
@@ -10902,6 +10912,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
+
+
 <script src="native/media-editor.js"></script>
 <script src="native/post-music-feed.js"></script>
 <script src="native/feed-music-play.js"></script>
@@ -10920,7 +10932,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/story-ui-pro.js?v=2"></script>
 <script src="native/tchilo-cloud-persist.js?v=1"></script>
 <script src="native/profile-avatar-cloud.js?v=2"></script>
-<script src="native/tchilo-profile-avatar-plus.js?v=2"></script>
+<script src="native/tchilo-profile-avatar-plus.js?v=3"></script>
 <script src="native/tchilo-legal-urls.js?v=2"></script>
 <script src="native/tchilo-profile-share.js?v=3"></script>
 <script src="native/live-btn-stable.js?v=2"></script>

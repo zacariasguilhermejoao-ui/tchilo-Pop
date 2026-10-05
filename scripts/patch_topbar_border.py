@@ -46,3 +46,4 @@ else:
         print("Already patched or topbar already 1px")
     else:
         print("WARN: pattern not found")
+# trigger workflow

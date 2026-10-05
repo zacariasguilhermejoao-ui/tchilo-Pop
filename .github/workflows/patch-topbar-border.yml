@@ -1,0 +1,30 @@
+name: Patch topbar border thin
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/patch_topbar_border.py'
+      - '.github/workflows/patch-topbar-border.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply topbar border 1px
+        run: python3 scripts/patch_topbar_border.py
+      - name: Commit if changed
+        run: |
+          git config user.name "tchilo-bot"
+          git config user.email "bot@tchilopop.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No index changes"
+          else
+            git commit -m "fix(index): topbar border 3px → 1px (só cabeçalho)"
+            git push
+          fi

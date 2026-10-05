@@ -1,0 +1,23 @@
+{
+  "name": "tchilo-media-gallery",
+  "version": "1.0.0",
+  "description": "Tchilo native gallery — PhotoKit (iOS) + MediaStore (Android)",
+  "main": "dist/plugin.cjs.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "unpkg": "dist/plugin.js",
+  "files": ["android/", "ios/", "dist/", "TchiloMediaGallery.podspec"],
+  "author": "Tchilo",
+  "license": "MIT",
+  "peerDependencies": {
+    "@capacitor/core": ">=5.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/core": "latest",
+    "typescript": "latest"
+  },
+  "capacitor": {
+    "ios": { "src": "ios" },
+    "android": { "src": "android" }
+  }
+}

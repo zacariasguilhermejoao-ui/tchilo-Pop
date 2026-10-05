@@ -5,9 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Feed</title>
 <!-- RESTORED - full content will be provided in next step if needed. Temporary minimal to unbreak. -->
+<style id="tchilo-hide-nav-legal">
+body.legal-screen-open .navbar, body.legal-from-login .navbar,
+body.legal-screen-open .topbar, body.legal-from-login .topbar,
+body.legal-screen-open .stories, body.legal-from-login .stories {
+  display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;
+}
+#appFrame:has(#screen-terms.active) .navbar,
+#appFrame:has(#screen-privacy.active) .navbar,
+#appFrame:has(#screen-child.active) .navbar,
+#appFrame:has(#screen-community.active) .navbar,
+#appFrame:has(#screen-about.active) .navbar {
+  display:none!important;visibility:hidden!important;
+}
+</style>
 </head>
 <body>
 <p>Restoring... Please wait or refresh after next commit.</p>
 <script>location.reload()</script>
+<script src="native/legal-navbar-fix.js"></script>
+<script src="native/feed-names-fix.js"></script>
 </body>
 </html>

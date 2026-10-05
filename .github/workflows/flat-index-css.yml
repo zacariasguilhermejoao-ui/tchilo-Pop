@@ -1,0 +1,50 @@
+name: Embed flat CSS in index
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/patch_zzzb_index_flat_css.py'
+      - '.github/workflows/flat-index-css.yml'
+
+concurrency:
+  group: flat-index-css
+  cancel-in-progress: true
+
+jobs:
+  embed:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Embed flat CSS into index.html
+        run: |
+          set -e
+          ls -la index.html
+          wc -c index.html
+          python3 scripts/patch_zzzb_index_flat_css.py
+          python3 scripts/patch_zzz_flatten_all.py || true
+          wc -c index.html
+          grep -c 'tchilo-flat-all-v3' index.html || true
+          grep -o 'tm-primary{[^}]*}' index.html | head -1 || true
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git status
+          git add index.html native/ || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            git diff index.html | head -50 || true
+            exit 0
+          fi
+          git commit -m "fix: embed flat UI CSS in index.html"
+          git pull --rebase origin main || true
+          git push origin HEAD:main

@@ -2127,6 +2127,7 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
   display:none!important;visibility:hidden!important;
 }
 </style>
+<style id="tchilo-story-create-hide">/* tchilo-story-create-hide */#storyCreateSheet{display:none!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;}#storyCreateSheet.is-open,#storyCreateSheet.open{display:flex!important;visibility:visible!important;pointer-events:auto!important;z-index:140!important;position:fixed!important;inset:0!important;}</style>
 <style id="tchilo-story-ui-pro-inline">/* tchilo-story-ui-pro-inline-v3 */#storyViewer.story-viewer{position:fixed!important;inset:0!important;background:#000;display:none!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;opacity:0!important;}#storyViewer.story-viewer.open{display:flex!important;visibility:visible!important;pointer-events:auto!important;z-index:200!important;opacity:1!important;}#storyViewer.open .story-viewer-body{position:absolute!important;inset:0!important;padding:0!important;}#storyViewer.open .story-viewer-body .story-media,#storyViewer.open .story-viewer-body.has-media .story-media{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:0!important;}</style>
 </head>
 <body>
@@ -9152,8 +9153,8 @@ function onYourStoryClick(){
   if(mine.length){ openStory(flattenStoryGroups(getStoryGroupsForViewer())); return; }
   openStoryCreateSheet();
 }
-function openStoryCreateSheet(){ const el=document.getElementById('storyCreateSheet'); if(el){el.style.display='flex';} }
-function closeStoryCreateSheet(){ const el=document.getElementById('storyCreateSheet'); if(el){el.style.display='none';} }
+function openStoryCreateSheet(){ var el=document.getElementById('storyCreateSheet'); if(el){el.classList.add('is-open','open');el.style.setProperty('display','flex','important');el.style.visibility='visible';el.style.pointerEvents='auto';} }
+function closeStoryCreateSheet(){ var el=document.getElementById('storyCreateSheet'); if(el){el.classList.remove('is-open','open');el.style.setProperty('display','none','important');el.style.visibility='hidden';el.style.pointerEvents='none';} }
 function chooseStoryGallery(){ const input=document.getElementById('storyMediaInput'); if(!input)return; input.value=''; input.click(); }
 let storyThemeColor='m1';
 function openStoryThemeComposer(){ closeStoryCreateSheet(); const sheet=document.getElementById('storyThemeSheet'); if(sheet) sheet.style.display='block'; renderStoryThemeColors(); updateStoryThemePreview(); }
@@ -10837,6 +10838,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
+
+
 <script src="native/media-editor.js"></script>
 <script src="native/post-music-feed.js"></script>
 <script src="native/feed-music-play.js"></script>
@@ -10850,9 +10853,10 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/chat-compose-fix.js?v=3"></script>
 <script src="native/chat-call-webrtc.js?v=3"></script>
 <script src="native/profile-menu-fix.js?v=1"></script>
-<script src="native/sheets-full-fix.js?v=1"></script>
+<script src="native/sheets-full-fix.js?v=2"></script>
 <script src="native/copy-ux-refresh.js?v=1"></script>
 <script src="native/story-ui-pro.js?v=2"></script>
+<script src="native/profile-avatar-cloud.js?v=1"></script>
 <script src="native/tchilo-legal-urls.js?v=2"></script>
 <script src="native/tchilo-profile-share.js?v=3"></script>
 <script src="native/tchilo-live.js?v=2"></script>

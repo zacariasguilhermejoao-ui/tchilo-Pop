@@ -60,8 +60,8 @@
 /* Also replace topbar logo with LIVE pill icon (user request) */
 (function () {
   'use strict';
-  if (window.__tchiloLiveLogoV1) return;
-  window.__tchiloLiveLogoV1 = true;
+  if (window.__tchiloLiveLogoV2) return;
+  window.__tchiloLiveLogoV2 = true;
 
   function applyLiveLogo() {
     try {
@@ -71,7 +71,7 @@
       img.alt = 'LIVE';
       img.title = 'Lives';
       img.style.cursor = 'pointer';
-      img.style.height = '28px';
+      img.style.height = '68px';
       img.style.width = 'auto';
       img.setAttribute('role', 'button');
       img.onclick = function (e) {

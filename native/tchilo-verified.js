@@ -1,10 +1,11 @@
 /**
  * Tchilo — Selo verificado (mensal, $2 via Paddle)
- * v3 — ecrã completo + copy profissional
+ * v4 — ícones SVG profissionais (sem emoji)
  */
 (function () {
   'use strict';
-  if (window.__tchiloVerifiedV3) return;
+  if (window.__tchiloVerifiedV4) return;
+  window.__tchiloVerifiedV4 = true;
   window.__tchiloVerifiedV3 = true;
   window.__tchiloVerifiedV2 = true;
   window.__tchiloVerifiedV1 = true;
@@ -15,6 +16,17 @@
   var PRICE_LABEL = 'Selo verificado';
   var PRICE_AMOUNT = '2 USD / mês';
   var cache = {};
+
+  var ICO = {
+    check:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+    shield:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>',
+    briefcase:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>',
+    refresh:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>'
+  };
 
   function toast(msg) {
     try {
@@ -135,7 +147,8 @@
       '#tchiloVerifiedSheet .tv-row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1.5px solid #ebe8e0;}' +
       '#tchiloVerifiedSheet .tv-row:first-of-type{border-top:0;padding-top:0;}' +
       '#tchiloVerifiedSheet .tv-row:last-child{padding-bottom:0;}' +
-      '#tchiloVerifiedSheet .tv-ico{width:40px;height:40px;border-radius:12px;background:#E8F5FE;border:2px solid var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}' +
+      '#tchiloVerifiedSheet .tv-ico{width:40px;height:40px;border-radius:12px;background:#E8F5FE;border:2px solid var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;flex-shrink:0;}' +
+      '#tchiloVerifiedSheet .tv-ico svg{width:20px;height:20px;display:block;color:#1D9BF0;}' +
       '#tchiloVerifiedSheet .tv-row b{display:block;font-size:14.5px;font-weight:800;margin-bottom:3px;}' +
       '#tchiloVerifiedSheet .tv-row span{display:block;font-size:13px;line-height:1.4;font-weight:600;opacity:.7;}' +
       '#tchiloVerifiedSheet .tv-price-box{text-align:center;padding:18px 16px;background:linear-gradient(180deg,#E8F5FE 0%,#fff 100%);border:2.5px solid var(--ink,#0B0B0C);border-radius:18px;margin:0 0 14px;}' +
@@ -229,10 +242,18 @@
       (meOk ? '<div class="active-badge">O teu selo verificado está ativo</div>' : '') +
       '<div class="tv-card">' +
       '<h3>O que ganhas</h3>' +
-      '<div class="tv-row"><div class="tv-ico">✓</div><div><b>Selo azul junto ao nome</b><span>Identificação clara no perfil, no feed e nas conversas — os outros reconhecem a conta oficial.</span></div></div>' +
-      '<div class="tv-row"><div class="tv-ico">👁</div><div><b>Mais confiança</b><span>Reduz confusão com contas semelhantes e ajuda a comunidade a saber com quem está a interagir.</span></div></div>' +
-      '<div class="tv-row"><div class="tv-ico">⬆</div><div><b>Presença profissional</b><span>Ideal para criadores, marcas e perfis públicos que querem uma imagem consistente no Tchilo.</span></div></div>' +
-      '<div class="tv-row"><div class="tv-ico">🔄</div><div><b>Renovação mensal</b><span>Mantém o selo ativo enquanto a subscrição estiver válida. Podes cancelar quando quiseres.</span></div></div>' +
+      '<div class="tv-row"><div class="tv-ico">' +
+      ICO.check +
+      '</div><div><b>Selo azul junto ao nome</b><span>Identificação clara no perfil, no feed e nas conversas — os outros reconhecem a conta oficial.</span></div></div>' +
+      '<div class="tv-row"><div class="tv-ico">' +
+      ICO.shield +
+      '</div><div><b>Mais confiança</b><span>Reduz confusão com contas semelhantes e ajuda a comunidade a saber com quem está a interagir.</span></div></div>' +
+      '<div class="tv-row"><div class="tv-ico">' +
+      ICO.briefcase +
+      '</div><div><b>Presença profissional</b><span>Ideal para criadores, marcas e perfis públicos que querem uma imagem consistente no Tchilo.</span></div></div>' +
+      '<div class="tv-row"><div class="tv-ico">' +
+      ICO.refresh +
+      '</div><div><b>Renovação mensal</b><span>Mantém o selo ativo enquanto a subscrição estiver válida. Podes cancelar quando quiseres.</span></div></div>' +
       '</div>' +
       (meOk
         ? '<div class="tv-actions"><button type="button" class="close" data-a="close">Voltar às definições</button></div>'

@@ -2127,7 +2127,7 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
   display:none!important;visibility:hidden!important;
 }
 </style>
-<style id="tchilo-story-create-hide">/* tchilo-story-create-hide */#storyCreateSheet{display:none!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;}#storyCreateSheet.is-open,#storyCreateSheet.open{display:flex!important;visibility:visible!important;pointer-events:auto!important;z-index:140!important;position:fixed!important;inset:0!important;}</style>
+<style id="tchilo-story-create-hide">/* tchilo-story-create-full */#storyCreateSheet{display:none!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;}#storyCreateSheet.is-open,#storyCreateSheet.open{display:flex!important;visibility:visible!important;pointer-events:auto!important;position:fixed!important;inset:0!important;z-index:200!important;align-items:stretch!important;justify-content:stretch!important;background:var(--paper,#F6F1E7)!important;padding:0!important;margin:0!important;}#storyCreateSheet.is-open > div,#storyCreateSheet.open > div{width:100%!important;max-width:none!important;min-height:100%!important;height:100%!important;border-radius:0!important;border:0!important;box-shadow:none!important;padding:16px 18px calc(24px + env(safe-area-inset-bottom))!important;background:var(--paper,#F6F1E7)!important;overflow:auto!important;}</style>
 <style id="tchilo-avatar-plus-static">#tchiloProfileAvatarPlus{animation:none!important;transition:none!important;transform:none!important;}</style>
 <style id="tchilo-story-ui-pro-inline">/* tchilo-story-ui-pro-inline-v3 */#storyViewer.story-viewer{position:fixed!important;inset:0!important;background:#000;display:none!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;opacity:0!important;}#storyViewer.story-viewer.open{display:flex!important;visibility:visible!important;pointer-events:auto!important;z-index:200!important;opacity:1!important;}#storyViewer.open .story-viewer-body{position:absolute!important;inset:0!important;padding:0!important;}#storyViewer.open .story-viewer-body .story-media,#storyViewer.open .story-viewer-body.has-media .story-media{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:0!important;}</style>
 </head>
@@ -2382,8 +2382,8 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
     </div>
   </div>
 
-  <div class="sheet" id="storyCreateSheet" style="display:none;position:fixed;inset:0;z-index:140;background:rgba(0,0,0,.42);align-items:flex-end;justify-content:center;">
-    <div style="width:min(100%,520px);background:var(--paper);border:3px solid var(--ink);border-bottom:0;border-radius:20px 20px 0 0;padding:20px 18px 28px;box-shadow:0 -10px 30px rgba(0,0,0,.18)">
+  <div class="sheet" id="storyCreateSheet" style="display:none;position:fixed;inset:0;z-index:200;background:var(--paper);align-items:stretch;justify-content:stretch;">
+    <div style="width:100%;height:100%;background:var(--paper);padding:20px 18px 28px;box-sizing:border-box;overflow:auto">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><b style="font-size:18px">Criar Story</b><button type="button" onclick="closeStoryCreateSheet()" style="border:0;background:none;font-size:28px;line-height:1;cursor:pointer">×</button></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <button type="button" class="gallery-btn" onclick="chooseStoryGallery()" style="justify-content:center;min-height:76px"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-2h6l2 2h3v12H4V8z"/><circle cx="12" cy="13" r="4"/></svg><span>Galeria</span></button>
@@ -9154,7 +9154,7 @@ function onYourStoryClick(){
   if(mine.length){ openStory(flattenStoryGroups(getStoryGroupsForViewer())); return; }
   openStoryCreateSheet();
 }
-function openStoryCreateSheet(){ var el=document.getElementById('storyCreateSheet'); if(el){el.classList.add('is-open','open');el.style.setProperty('display','flex','important');el.style.visibility='visible';el.style.pointerEvents='auto';} }
+function openStoryCreateSheet(){ var el=document.getElementById('storyCreateSheet'); if(!el)return; el.classList.add('is-open','open'); el.style.setProperty('display','flex','important'); el.style.setProperty('align-items','stretch','important'); el.style.setProperty('justify-content','stretch','important'); el.style.setProperty('background','var(--paper)','important'); el.style.setProperty('inset','0','important'); el.style.setProperty('z-index','200','important'); el.style.visibility='visible'; el.style.pointerEvents='auto'; var panel=el.firstElementChild; if(panel){ panel.style.setProperty('width','100%','important'); panel.style.setProperty('height','100%','important'); panel.style.setProperty('max-width','none','important'); panel.style.setProperty('border-radius','0','important'); panel.style.setProperty('border','0','important'); panel.style.setProperty('box-shadow','none','important'); } }
 function closeStoryCreateSheet(){ var el=document.getElementById('storyCreateSheet'); if(el){el.classList.remove('is-open','open');el.style.setProperty('display','none','important');el.style.visibility='hidden';el.style.pointerEvents='none';} }
 function chooseStoryGallery(){ const input=document.getElementById('storyMediaInput'); if(!input)return; input.value=''; input.click(); }
 let storyThemeColor='m1';
@@ -10804,6 +10804,8 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/fx-png-effects.js"></script>
 <script src="native/face-fx-pro.js"></script>
 <!-- tchilo-png-fx-end -->
+
+
 
 
 

@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import runpy
-a = Path("native/c6-part-a.txt")
-b = Path("native/c6-part-b.txt")
-if a.exists() and b.exists():
-    Path("scripts/_c6_run.py").write_text(a.read_text(encoding="utf-8")+b.read_text(encoding="utf-8"), encoding="utf-8")
-    runpy.run_path("scripts/_c6_run.py")
-    for p in [a,b,Path("scripts/_c6_run.py")]:
-        try: p.unlink()
-        except Exception: pass
-else:
-    print("c6 parts missing")
+import base64, runpy
+parts = sorted(Path("native").glob("c6b64-*.txt"), key=lambda p: int(p.stem.split("-")[1]))
+if not parts:
+    print("no c6b64"); raise SystemExit(0)
+code = base64.b64decode("".join(p.read_text().strip() for p in parts)).decode()
+Path("scripts/_c6_run.py").write_text(code, encoding="utf-8")
+runpy.run_path("scripts/_c6_run.py")
+for p in list(parts)+[Path("scripts/_c6_run.py")]:
+    try: p.unlink()
+    except Exception: pass

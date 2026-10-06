@@ -1,5 +1,5 @@
 /**
- * Tchilo Create Flow v3
+ * Tchilo Create Flow v4 - POST/STORY/TEMA large tabs + flat icons
  * + → Hub (voltar / tema / story + câmara + galeria + recentes)
  * Tema → escrever + fundo + publicar
  * Post → composição (descrição, música, cortar) → Publicar + progresso
@@ -7,7 +7,8 @@
  */
 (function () {
   'use strict';
-  if (window.__TCHILO_MEDIA_PICKER_V3) return;
+  if (window.__TCHILO_MEDIA_PICKER_V4) return;
+  window.__TCHILO_MEDIA_PICKER_V4 = true;
   window.__TCHILO_MEDIA_PICKER_V3 = true;
   window.__TCHILO_MEDIA_PICKER_V2 = true;
 
@@ -143,8 +144,8 @@
       'color:var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;}',
       '#tchiloMediaPicker .mp-icon-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;}',
       '#tchiloMediaPicker .mp-modes{flex:1;display:flex;align-items:center;justify-content:center;gap:0;min-width:0;overflow:hidden;touch-action:pan-y;}',
-      '#tchiloMediaPicker .mp-mode{border:0;background:transparent;color:rgba(11,11,12,.28);font:800 22px/1.1 system-ui,-apple-system,sans-serif;',
-      'letter-spacing:0.04em;text-transform:uppercase;padding:6px 10px;cursor:pointer;transition:color .15s ease;}',
+      '#tchiloMediaPicker .mp-mode{border:0;background:transparent;color:rgba(11,11,12,.28);font:800 28px/1 system-ui,-apple-system,sans-serif;',
+      'letter-spacing:0.06em;text-transform:uppercase;padding:8px 12px;cursor:pointer;transition:color .15s ease;flex-shrink:0;}',
       '#tchiloMediaPicker .mp-mode.on{color:var(--ink,#0B0B0C);}',
       '#tchiloMediaPicker .mp-top-title{display:none;}',
       '#tchiloMediaPicker .mp-chip{display:none!important;border:0;border-radius:999px;padding:8px 14px;font:600 13px system-ui,sans-serif;',
@@ -157,10 +158,10 @@
       '#tchiloMediaPicker .mp-step{display:none;flex:1;min-height:0;flex-direction:column;}',
       '#tchiloMediaPicker .mp-step.on{display:flex!important;}',
       /* hub actions */
-      '#tchiloMediaPicker .mp-actions{display:flex;gap:12px;padding:12px 14px;flex-shrink:0;}',
+      '#tchiloMediaPicker .mp-actions{display:flex;gap:0;padding:8px 8px 4px;flex-shrink:0;}',
       '#tchiloMediaPicker .mp-action{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;',
-      'padding:16px 10px;border-radius:0;border:0;background:transparent;color:var(--ink,#0B0B0C);cursor:pointer;',
-      'font:600 13px system-ui,sans-serif;box-shadow:none;}',
+      'padding:14px 8px;border-radius:0;border:0;background:transparent!important;color:var(--ink,#0B0B0C);cursor:pointer;',
+      'font:600 13px system-ui,sans-serif;box-shadow:none!important;}',
       '#tchiloMediaPicker .mp-action svg{width:28px;height:28px;stroke:var(--ink,#0B0B0C);fill:none;}',
       '#tchiloMediaPicker .mp-section{padding:0 14px 8px;font:600 13px system-ui,sans-serif;opacity:.7;flex-shrink:0;}',
       /* grid */
@@ -187,7 +188,7 @@
       '#tchiloMediaPicker .mp-theme-input::placeholder{color:rgba(11,11,12,.4);}',
       /* compose */
       '#tchiloMediaPicker .mp-compose-body{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;}',
-      '#tchiloMediaPicker .mp-preview{flex:1;min-height:0;background:#000;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;overflow:hidden;overflow:hidden;overflow:hidden;overflow:hidden;}',
+      '#tchiloMediaPicker .mp-preview{flex:1;min-height:0;background:#000;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;overflow:hidden;overflow:hidden;overflow:hidden;overflow:hidden;overflow:hidden;}',
       '#tchiloMediaPicker .mp-preview img,#tchiloMediaPicker .mp-preview video{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;}',
       '#tchiloMediaPicker .mp-side{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:2;}',
       '#tchiloMediaPicker .mp-side button{width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.45);',
@@ -219,7 +220,16 @@
 
   function ensureDOM() {
     injectCSS();
-    if ($('tchiloMediaPicker')) return;
+    var existing = $('tchiloMediaPicker');
+    if (existing) {
+      if (!existing.querySelector('#mpModes')) {
+        try { existing.remove(); } catch (e) {}
+      } else {
+        try { bindModeTabs(); } catch (e2) {}
+        try { syncModeTabs(); } catch (e3) {}
+        return;
+      }
+    }
     var root = document.createElement('div');
     root.id = 'tchiloMediaPicker';
     root.innerHTML =
@@ -309,30 +319,20 @@
       colors.appendChild(b);
     });
     themeBg = THEME_COLORS[0].bg;
+    try { bindModeTabs(); } catch (e) {}
+    try { syncModeTabs(); } catch (e2) {}
   }
 
   function setStep(step) {
-    try { syncModeTabs(); } catch (e) {}
     STEP = step;
     document.querySelectorAll('#tchiloMediaPicker .mp-step').forEach(function (el) {
       el.classList.toggle('on', el.getAttribute('data-step') === step);
     });
-    var title = $('mpTitle');
-    var themeBtn = $('mpThemeBtn');
-    var storyBtn = $('mpStoryBtn');
     var pubBtn = $('mpPublishBtn');
-
-    themeBtn.style.display = step === 'hub' ? '' : 'none';
-    storyBtn.style.display = step === 'hub' ? '' : 'none';
-    pubBtn.style.display = (step === 'compose' || step === 'story' || step === 'theme') ? '' : 'none';
-
-    if (step === 'hub') title.textContent = MODE === 'story' ? 'Story' : 'Criar';
-    if (step === 'theme') title.textContent = 'Tema';
-    if (step === 'compose') title.textContent = 'Nova publicação';
-    if (step === 'story') title.textContent = 'Novo story';
-    if (step === 'publishing') title.textContent = 'Publicar';
-
-    storyBtn.classList.toggle('on', MODE === 'story');
+    if (pubBtn) {
+      pubBtn.style.display = (step === 'compose' || step === 'story' || step === 'theme') ? '' : 'none';
+    }
+    try { syncModeTabs(); } catch (e) {}
   }
 
   function formatDur(sec) {

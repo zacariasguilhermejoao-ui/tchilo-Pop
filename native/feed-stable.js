@@ -72,7 +72,7 @@
     add('native/reels-follow-fix.js?v=2');
     add('native/tchilo-profile-avatar-plus.js?v=1');
     add('native/topbar-border-thin.js?v=2');
-    add('native/fee-sms-final.js?v=10');
+    add('native/fee-sms-final.js?v=11');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);

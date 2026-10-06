@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v30 — stable-ui primeiro */
+/** tchilo-Pop loaders v31 — stable-ui v2 */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V30) return;
-  window.__TCHILO_FEED_STABLE_V30 = true;
+  if (window.__TCHILO_FEED_STABLE_V31) return;
+  window.__TCHILO_FEED_STABLE_V31 = true;
 
   function add(src) {
     try {
@@ -26,8 +26,7 @@
   }
 
   function load() {
-    /* PRIMEIRO: UI estavel (icones, avatares, anti-flicker) */
-    add('native/tchilo-stable-ui.js?v=1');
+    add('native/tchilo-stable-ui.js?v=2');
     add('native/tchilo-settings-icons.js?v=24');
     add('native/tchilo-product-copy.js?v=2');
     add('native/tchilo-legal-links.js?v=1');
@@ -75,7 +74,6 @@
     add('native/tchilo-profile-avatar-plus.js?v=1');
     add('native/topbar-border-thin.js?v=2');
     add('native/feed-stories-scroll.js?v=3');
-    /* NAO carregar fee-sms / ui-icons / default-avatar / polish / nav-layout — causam flicker */
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);

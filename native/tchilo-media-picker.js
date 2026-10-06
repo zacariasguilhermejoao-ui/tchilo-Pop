@@ -201,7 +201,7 @@
       '<button type="button" data-a="crop" title="Cortar">' + svg('<path d="M6 3v15h15"/><path d="M3 6h15v15"/>') + '</button>' +
       '</div>' +
       '<div class="mp-caption-bar">' +
-      '<textarea class="mp-caption" id="mpCaption" rows="2" placeholder="Escreve uma descrição…"></textarea>' +
+      '<div id="mpMusicChip" style="display:none;margin-bottom:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.1);font:600 13px system-ui,sans-serif"></div><textarea class="mp-caption" id="mpCaption" rows="2" placeholder="Escreve uma descrição…"></textarea>' +
       '</div></div></div>' +
 
       /* STORY */
@@ -419,6 +419,7 @@
     var box = $('mpComposePreview');
     if (!box || !selected[0]) return;
     box.innerHTML = '';
+    try { if (typeof window.tchiloSyncCreateMediaForMusic === 'function') window.tchiloSyncCreateMediaForMusic(selected[0]); } catch (eSync) {}
     var m = selected[0];
     if (m.type === 'video') {
       var v = document.createElement('video');
@@ -718,9 +719,10 @@
       return;
     }
     if (a === 'music') {
-      if (typeof window.tchiloOpenCreateMusic === 'function') window.tchiloOpenCreateMusic();
-      else {
-        try { if (typeof openMusicPicker === 'function') openMusicPicker(); } catch (err) {}
+      if (typeof window.tchiloOpenCreateMusic === 'function') window.tchiloOpenCreateMusic(selected[0]);
+      else if (typeof window.tchiloOpenPostMusic === 'function') {
+        try { if (typeof window.tchiloSyncCreateMediaForMusic === 'function') window.tchiloSyncCreateMediaForMusic(selected[0]); } catch (e) {}
+        window.tchiloOpenPostMusic();
       }
       return;
     }

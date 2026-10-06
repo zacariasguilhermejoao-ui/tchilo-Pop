@@ -85,13 +85,20 @@
 
   function isPhotoOnlyCreate() {
     var items = getCreateItems();
+    if (!items.length && window.__tchiloCreateFlowActive && window.createMediaData && window.createMediaData.items) {
+      items = window.createMediaData.items;
+    }
+    if (!items.length && window.__tchiloPendingMedia) {
+      items = [window.__tchiloPendingMedia];
+    }
     if (!items.length) return false;
     var hasVideo = items.some(function (m) {
       return m && m.type === 'video';
     });
     var hasImage = items.some(function (m) {
-      return m && m.type === 'image';
+      return m && (m.type === 'image' || !m.type);
     });
+    if (window.__tchiloCreateFlowActive && hasImage && !hasVideo) return true;
     return hasImage && !hasVideo;
   }
 
@@ -332,6 +339,7 @@
     stopSheetPreview();
     updatePostMusicBtn();
     if (typeof showToast === 'function') showToast('Música adicionada');
+    try { window.dispatchEvent(new CustomEvent('tchilo-music-selected', { detail: { label: window._pendingMusic, meta: window._pendingMusicMeta } })); } catch (e) {}
   }
 
   function renderTracks(tracks, isSearch, isFavTab) {

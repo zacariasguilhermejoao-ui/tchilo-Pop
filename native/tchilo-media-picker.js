@@ -11,7 +11,66 @@
   window.__TCHILO_MEDIA_PICKER_V3 = true;
   window.__TCHILO_MEDIA_PICKER_V2 = true;
 
-  var MODE = 'post'; // post | story
+  var MODE = 'post'; // post | story | theme
+
+  var MODE_ORDER = ['post', 'story', 'theme'];
+
+  function syncModeTabs() {
+    var modes = document.querySelectorAll('#mpModes .mp-mode');
+    if (!modes.length) return;
+    var active = STEP === 'theme' ? 'theme' : MODE;
+    modes.forEach(function (b) {
+      b.classList.toggle('on', b.getAttribute('data-mode') === active);
+    });
+    var title = $('mpTitle');
+    if (title) title.textContent = active === 'theme' ? 'TEMA' : active === 'story' ? 'STORY' : 'POST';
+  }
+
+  function setCreateMode(mode) {
+    if (mode === 'theme') {
+      MODE = 'post';
+      setStep('theme');
+      try { syncThemePreview(); } catch (e) {}
+      syncModeTabs();
+      return;
+    }
+    MODE = mode === 'story' ? 'story' : 'post';
+    if (STEP === 'theme' || STEP === 'compose' || STEP === 'story') {
+      selected = [];
+      setStep('hub');
+      try { loadRecent(false); } catch (e2) {}
+    }
+    syncModeTabs();
+  }
+
+  function bindModeTabs() {
+    var host = $('mpModes');
+    if (!host || host.__bound) return;
+    host.__bound = true;
+    host.querySelectorAll('.mp-mode').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        setCreateMode(btn.getAttribute('data-mode'));
+      });
+    });
+    var sx = 0;
+    host.addEventListener('touchstart', function (e) {
+      if (!e.touches || !e.touches[0]) return;
+      sx = e.touches[0].clientX;
+    }, { passive: true });
+    host.addEventListener('touchend', function (e) {
+      if (!e.changedTouches || !e.changedTouches[0]) return;
+      var dx = e.changedTouches[0].clientX - sx;
+      if (Math.abs(dx) < 40) return;
+      var cur = STEP === 'theme' ? 'theme' : MODE;
+      var i = MODE_ORDER.indexOf(cur);
+      if (i < 0) i = 0;
+      if (dx < 0 && i < MODE_ORDER.length - 1) setCreateMode(MODE_ORDER[i + 1]);
+      else if (dx > 0 && i > 0) setCreateMode(MODE_ORDER[i - 1]);
+    }, { passive: true });
+  }
+
   var STEP = 'hub'; // hub | theme | compose | story | publishing
   var items = [];
   var selected = [];
@@ -80,11 +139,15 @@
       /* top */
       '#tchiloMediaPicker .mp-top{display:flex;align-items:center;gap:8px;padding:10px 12px;',
       'padding-top:max(10px,env(safe-area-inset-top));flex-shrink:0;}',
-      '#tchiloMediaPicker .mp-icon-btn{width:40px;height:40px;border:0;border-radius:50%;background:rgba(11,11,12,.06);',
+      '#tchiloMediaPicker .mp-icon-btn{width:40px;height:40px;border:0;border-radius:50%;background:transparent;',
       'color:var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;}',
       '#tchiloMediaPicker .mp-icon-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;}',
-      '#tchiloMediaPicker .mp-top-title{flex:1;text-align:center;font:700 16px system-ui,-apple-system,sans-serif;}',
-      '#tchiloMediaPicker .mp-chip{border:0;border-radius:999px;padding:8px 14px;font:600 13px system-ui,sans-serif;',
+      '#tchiloMediaPicker .mp-modes{flex:1;display:flex;align-items:center;justify-content:center;gap:0;min-width:0;overflow:hidden;touch-action:pan-y;}',
+      '#tchiloMediaPicker .mp-mode{border:0;background:transparent;color:rgba(11,11,12,.28);font:800 22px/1.1 system-ui,-apple-system,sans-serif;',
+      'letter-spacing:0.04em;text-transform:uppercase;padding:6px 10px;cursor:pointer;transition:color .15s ease;}',
+      '#tchiloMediaPicker .mp-mode.on{color:var(--ink,#0B0B0C);}',
+      '#tchiloMediaPicker .mp-top-title{display:none;}',
+      '#tchiloMediaPicker .mp-chip{display:none!important;border:0;border-radius:999px;padding:8px 14px;font:600 13px system-ui,sans-serif;',
       'background:rgba(11,11,12,.08);color:var(--ink,#0B0B0C);cursor:pointer;}',
       '#tchiloMediaPicker .mp-chip.on{background:#fff;color:#0B0B0C;}',
       '#tchiloMediaPicker .mp-publish{border:0;border-radius:999px;padding:8px 16px;font:700 14px system-ui,sans-serif;',
@@ -96,8 +159,8 @@
       /* hub actions */
       '#tchiloMediaPicker .mp-actions{display:flex;gap:12px;padding:12px 14px;flex-shrink:0;}',
       '#tchiloMediaPicker .mp-action{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;',
-      'padding:18px 10px;border-radius:16px;border:0;background:rgba(11,11,12,.05);color:var(--ink,#0B0B0C);cursor:pointer;',
-      'font:600 13px system-ui,sans-serif;}',
+      'padding:16px 10px;border-radius:0;border:0;background:transparent;color:var(--ink,#0B0B0C);cursor:pointer;',
+      'font:600 13px system-ui,sans-serif;box-shadow:none;}',
       '#tchiloMediaPicker .mp-action svg{width:28px;height:28px;stroke:var(--ink,#0B0B0C);fill:none;}',
       '#tchiloMediaPicker .mp-section{padding:0 14px 8px;font:600 13px system-ui,sans-serif;opacity:.7;flex-shrink:0;}',
       /* grid */
@@ -124,7 +187,7 @@
       '#tchiloMediaPicker .mp-theme-input::placeholder{color:rgba(11,11,12,.4);}',
       /* compose */
       '#tchiloMediaPicker .mp-compose-body{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;}',
-      '#tchiloMediaPicker .mp-preview{flex:1;min-height:0;background:#000;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;overflow:hidden;overflow:hidden;}',
+      '#tchiloMediaPicker .mp-preview{flex:1;min-height:0;background:#000;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;overflow:hidden;overflow:hidden;overflow:hidden;}',
       '#tchiloMediaPicker .mp-preview img,#tchiloMediaPicker .mp-preview video{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;}',
       '#tchiloMediaPicker .mp-side{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:2;}',
       '#tchiloMediaPicker .mp-side button{width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.45);',
@@ -164,9 +227,12 @@
       '<div class="mp-top" id="mpTop">' +
       '<button type="button" class="mp-icon-btn" data-a="back" aria-label="Voltar">' +
       svg('<path d="M15 18l-6-6 6-6"/>') + '</button>' +
-      '<div class="mp-top-title" id="mpTitle">Criar</div>' +
-      '<button type="button" class="mp-chip" data-a="theme" id="mpThemeBtn">Tema</button>' +
-      '<button type="button" class="mp-chip" data-a="story-mode" id="mpStoryBtn">Story</button>' +
+      '<div class="mp-modes" id="mpModes">' +
+      '<button type="button" class="mp-mode on" data-mode="post" id="mpModePost">POST</button>' +
+      '<button type="button" class="mp-mode" data-mode="story" id="mpModeStory">STORY</button>' +
+      '<button type="button" class="mp-mode" data-mode="theme" id="mpModeTheme">TEMA</button>' +
+      '</div>' +
+      '<div class="mp-top-title" id="mpTitle" style="display:none">POST</div>' +
       '<button type="button" class="mp-publish" data-a="do-publish" id="mpPublishBtn" style="display:none">Publicar</button>' +
       '</div>' +
 
@@ -246,6 +312,7 @@
   }
 
   function setStep(step) {
+    try { syncModeTabs(); } catch (e) {}
     STEP = step;
     document.querySelectorAll('#tchiloMediaPicker .mp-step').forEach(function (el) {
       el.classList.toggle('on', el.getAttribute('data-step') === step);
@@ -683,16 +750,11 @@
       return;
     }
     if (a === 'theme') {
-      MODE = 'post';
-      setStep('theme');
-      syncThemePreview();
+      setCreateMode('theme');
       return;
     }
     if (a === 'story-mode') {
-      MODE = MODE === 'story' ? 'post' : 'story';
-      $('mpStoryBtn').classList.toggle('on', MODE === 'story');
-      $('mpTitle').textContent = MODE === 'story' ? 'Story' : 'Criar';
-      toast(MODE === 'story' ? 'Modo Story' : 'Modo Post');
+      setCreateMode(MODE === 'story' ? 'post' : 'story');
       return;
     }
     if (a === 'camera') {

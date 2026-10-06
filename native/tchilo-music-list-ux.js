@@ -1,10 +1,10 @@
 /**
- * Music list UX v2 — play on cover (real audio), star, arrow, no card borders
+ * Music list UX v3 — cover play ONLY plays (never selects); star/arrow separate
  */
 (function () {
   'use strict';
-  if (window.__TCHILO_MUSIC_LIST_UX_V2) return;
-  window.__TCHILO_MUSIC_LIST_UX_V2 = true;
+  if (window.__TCHILO_MUSIC_LIST_UX_V3) return;
+  window.__TCHILO_MUSIC_LIST_UX_V3 = true;
 
   function formatTrackDur(sec) {
     sec = Math.max(0, Math.round(Number(sec) || 0));
@@ -37,7 +37,8 @@
     if (currentAudio) {
       try {
         currentAudio.pause();
-        currentAudio.src = '';
+        currentAudio.removeAttribute('src');
+        currentAudio.load();
       } catch (e) {}
       currentAudio = null;
     }
@@ -60,10 +61,8 @@
     }
     stopAudio();
     try {
-      var a = new Audio();
-      a.crossOrigin = 'anonymous';
+      var a = new Audio(url);
       a.preload = 'auto';
-      a.src = url;
       currentAudio = a;
       currentId = id;
       if (coverBtn) {
@@ -72,11 +71,25 @@
         if (ico) ico.innerHTML = svgPause();
       }
       var p = a.play();
-      if (p && p.catch) {
-        p.catch(function (err) {
-          console.warn('music play', err);
-          stopAudio();
-          if (typeof showToast === 'function') showToast('Não foi possível reproduzir');
+      if (p && typeof p.then === 'function') {
+        p.then(function () {}).catch(function (err) {
+          console.warn('music play fail', err);
+          // retry without crossOrigin issues
+          try {
+            var a2 = new Audio();
+            a2.src = url;
+            currentAudio = a2;
+            a2.play().catch(function () {
+              stopAudio();
+              if (typeof showToast === 'function') showToast('Não foi possível reproduzir');
+            });
+            a2.onended = function () {
+              stopAudio();
+            };
+          } catch (e2) {
+            stopAudio();
+            if (typeof showToast === 'function') showToast('Não foi possível reproduzir');
+          }
         });
       }
       a.onended = function () {
@@ -96,47 +109,81 @@
     var i = Number(row.getAttribute('data-i'));
     var list = document.getElementById('pmList');
     var store = (list && list._pmTracks) || window.__lastPmTracks || [];
-    if (store[i]) return store[i];
-    // from data attributes
+    if (!isNaN(i) && store[i]) return store[i];
+    var id = row.getAttribute('data-id');
+    if (id) {
+      for (var k = 0; k < store.length; k++) {
+        if (store[k] && String(store[k].id) === String(id)) return store[k];
+      }
+    }
     var prev = row.getAttribute('data-preview');
     if (prev) {
       return {
-        id: row.getAttribute('data-id') || String(i),
+        id: id || String(i),
         preview: prev,
-        title: (row.querySelector('.t b') || {}).textContent || '',
-        artist: (row.querySelector('.t span') || {}).textContent || ''
+        title: ((row.querySelector('.t b') || {}).textContent || '').replace(/TOP.*/g, '').trim(),
+        artist: ((row.querySelector('.t span') || {}).textContent || '').split('·')[0].trim()
       };
     }
     return null;
   }
 
   function restyleRows(list) {
-    // keep tracks store if post-music put it
     if (window.__lastPmTracks && window.__lastPmTracks.length) {
       list._pmTracks = window.__lastPmTracks;
     }
 
     list.querySelectorAll('.track').forEach(function (row) {
-      // strip any card border styles inline
       row.style.border = 'none';
       row.style.boxShadow = 'none';
       row.style.outline = 'none';
       row.style.borderRadius = '0';
       row.style.background = 'transparent';
 
-      if (row.__uxV2) return;
-      row.__uxV2 = true;
+      // Always re-stamp preview from store
+      var i = Number(row.getAttribute('data-i'));
+      var store = list._pmTracks || window.__lastPmTracks || [];
+      if (!isNaN(i) && store[i]) {
+        if (store[i].preview) row.setAttribute('data-preview', store[i].preview);
+        if (store[i].id) row.setAttribute('data-id', store[i].id);
+      }
+
+      // Block row select when interacting with controls
+      if (!row.__rowGuard) {
+        row.__rowGuard = true;
+        row.addEventListener(
+          'click',
+          function (e) {
+            if (e.target.closest('.cover-play, .playbtn, .favbtn, .usebtn, .cover-ico, button')) {
+              e.stopPropagation();
+              // do not select when control clicked
+              if (e.target.closest('.cover-play, .playbtn, .cover-ico')) {
+                e.preventDefault();
+              }
+            }
+          },
+          true
+        );
+      }
+
+      if (row.__uxV3) {
+        // re-wire cover if needed
+        var c = row.querySelector('.cover-play');
+        if (c && !c.__wired3) wireCover(c, row, row.querySelector('.playbtn'));
+        return;
+      }
+      row.__uxV3 = true;
 
       var playBtn = row.querySelector('.playbtn');
-      var img = row.querySelector('img:not(.cover-play img)');
-      // if already has cover-play from native render
       var existingCover = row.querySelector('.cover-play');
       if (existingCover) {
         wireCover(existingCover, row, playBtn);
         ensureArrow(row);
+        if (playBtn) playBtn.style.display = 'none';
         return;
       }
 
+      var img = row.querySelector('img');
       var cover = img ? img.getAttribute('src') : '';
       var coverBtn = document.createElement('button');
       coverBtn.type = 'button';
@@ -146,6 +193,7 @@
         var im = document.createElement('img');
         im.src = cover;
         im.alt = '';
+        im.style.pointerEvents = 'none';
         coverBtn.appendChild(im);
       } else {
         var ph = document.createElement('div');
@@ -155,6 +203,7 @@
       var ico = document.createElement('span');
       ico.className = 'cover-ico';
       ico.innerHTML = svgPlay();
+      ico.style.pointerEvents = 'none';
       coverBtn.appendChild(ico);
 
       if (img && img.parentNode === row) img.remove();
@@ -166,36 +215,42 @@
   }
 
   function wireCover(coverBtn, row, playBtn) {
-    if (coverBtn.__wired) return;
+    if (coverBtn.__wired3) return;
+    coverBtn.__wired3 = true;
     coverBtn.__wired = true;
-    coverBtn.addEventListener(
-      'click',
-      function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var tr = getTrackForRow(row);
-        var url = (tr && tr.preview) || row.getAttribute('data-preview') || '';
-        // try extract from original handler store
-        if (!url && playBtn) {
-          var idx = playBtn.getAttribute('data-play');
-          var store = (document.getElementById('pmList') || {})._pmTracks || window.__lastPmTracks || [];
-          if (store[Number(idx)] && store[Number(idx)].preview) url = store[Number(idx)].preview;
-          tr = store[Number(idx)] || tr;
+
+    function onPlayTap(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+
+      var tr = getTrackForRow(row);
+      var url = (tr && tr.preview) || row.getAttribute('data-preview') || '';
+
+      if (!url && playBtn) {
+        var idx = playBtn.getAttribute('data-play');
+        var store = (document.getElementById('pmList') || {})._pmTracks || window.__lastPmTracks || [];
+        if (store[Number(idx)] && store[Number(idx)].preview) {
+          url = store[Number(idx)].preview;
+          tr = store[Number(idx)];
         }
-        if (!url) {
-          // last resort: trigger old playbtn then read audio
-          if (playBtn) {
-            try {
-              playBtn.click();
-            } catch (err) {}
-          }
-          if (typeof showToast === 'function') showToast('Pré-visualização indisponível');
-          return;
-        }
-        playPreview(url, (tr && tr.id) || url, coverBtn);
-      },
-      true
-    );
+      }
+
+      // Try original togglePreview without selecting
+      if (!url && typeof window.__tchiloTogglePreview === 'function' && tr) {
+        window.__tchiloTogglePreview(tr, coverBtn);
+        return;
+      }
+
+      if (!url) {
+        if (typeof showToast === 'function') showToast('Pré-visualização indisponível');
+        return;
+      }
+      playPreview(url, (tr && tr.id) || url, coverBtn);
+    }
+
+    coverBtn.addEventListener('click', onPlayTap, true);
+    coverBtn.addEventListener('touchend', onPlayTap, { capture: true, passive: false });
   }
 
   function ensureArrow(row) {
@@ -205,36 +260,51 @@
     use.className = 'usebtn';
     use.setAttribute('aria-label', 'Usar');
     use.innerHTML = svgArrow();
-    use.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      // prefer original row click / selectTrack
-      var tr = getTrackForRow(row);
-      if (tr && tr.title) {
-        window._pendingMusic = tr.title + (tr.artist ? ' · ' + tr.artist : '');
-        window._pendingMusicMeta = {
-          id: tr.id,
-          title: tr.title,
-          artist: tr.artist || '',
-          preview: tr.preview || '',
-          cover: tr.cover || ''
-        };
+    use.addEventListener(
+      'click',
+      function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var tr = getTrackForRow(row);
+        if (tr && tr.title) {
+          window._pendingMusic = tr.title + (tr.artist ? ' · ' + tr.artist : '');
+          window._pendingMusicMeta = {
+            id: tr.id,
+            title: tr.title,
+            artist: tr.artist || '',
+            preview: tr.preview || '',
+            cover: tr.cover || ''
+          };
+          try {
+            var sheet = document.getElementById('tchiloPostMusicSheet');
+            if (sheet) sheet.classList.remove('open');
+          } catch (e2) {}
+          try {
+            window.dispatchEvent(
+              new CustomEvent('tchilo-music-selected', {
+                detail: { label: window._pendingMusic, meta: window._pendingMusicMeta }
+              })
+            );
+          } catch (e3) {}
+          if (typeof showToast === 'function') showToast('Música adicionada');
+          stopAudio();
+          return;
+        }
+        // fallback: only select via arrow, not via play
+        var playBtn = row.querySelector('.playbtn');
+        if (playBtn) {
+          // temporarily allow row select by synthesizing select from data-i
+        }
         try {
-          var sheet = document.getElementById('tchiloPostMusicSheet');
-          if (sheet) sheet.classList.remove('open');
-        } catch (e2) {}
-        try {
-          window.dispatchEvent(
-            new CustomEvent('tchilo-music-selected', {
-              detail: { label: window._pendingMusic, meta: window._pendingMusicMeta }
-            })
-          );
-        } catch (e3) {}
-        if (typeof showToast === 'function') showToast('Música adicionada');
-        return;
-      }
-      row.click();
-    });
+          var i = Number(row.getAttribute('data-i'));
+          var store = (document.getElementById('pmList') || {})._pmTracks || window.__lastPmTracks || [];
+          if (store[i] && typeof window.__tchiloSelectTrack === 'function') {
+            window.__tchiloSelectTrack(store[i]);
+          }
+        } catch (e4) {}
+      },
+      true
+    );
     row.appendChild(use);
   }
 
@@ -288,11 +358,11 @@
     row.setAttribute('data-i', String(idx));
     row.setAttribute('data-preview', tr.preview || '');
     row.setAttribute('data-id', tr.id || '');
-    row.__uxV2 = true;
+    row.__uxV3 = true;
     row.innerHTML =
       '<button type="button" class="cover-play" aria-label="Pré-ouvir">' +
-      (tr.cover ? '<img src="' + String(tr.cover).replace(/"/g, '') + '" alt="">' : '<div class="cover-ph"></div>') +
-      '<span class="cover-ico">' +
+      (tr.cover ? '<img src="' + String(tr.cover).replace(/"/g, '') + '" alt="" style="pointer-events:none">' : '<div class="cover-ph"></div>') +
+      '<span class="cover-ico" style="pointer-events:none">' +
       svgPlay() +
       '</span></button>' +
       '<div class="t"><b>' +
@@ -304,31 +374,16 @@
       '<button type="button" class="favbtn" aria-label="Favorita">' +
       svgStar(false) +
       '</button>';
-    var coverBtn = row.querySelector('.cover-play');
-    wireCover(coverBtn, row, null);
+    wireCover(row.querySelector('.cover-play'), row, null);
     ensureArrow(row);
     list.appendChild(row);
   }
 
-  function hookRenderTracks() {
-    // Patch: after tracks render, store them
-    var list = document.getElementById('pmList');
-    if (!list || list.__storeHook) return;
-    list.__storeHook = true;
-    var obs = new MutationObserver(function () {
-      // try to capture from playbtn data-play max index
-      restyleRows(list);
-    });
-    obs.observe(list, { childList: true });
-  }
-
-  // Expose setter for post-music if it calls us
   window.tchiloSetPmTracks = function (tracks) {
     window.__lastPmTracks = tracks || [];
     var list = document.getElementById('pmList');
     if (list) {
       list._pmTracks = window.__lastPmTracks.slice();
-      // stamp data-preview on rows
       list.querySelectorAll('.track').forEach(function (row) {
         var i = Number(row.getAttribute('data-i'));
         var tr = window.__lastPmTracks[i];
@@ -345,7 +400,6 @@
     }
   };
 
-  // Wrap render by intercepting list innerHTML changes after open
   function enhanceList() {
     var list = document.getElementById('pmList');
     if (!list) return;
@@ -359,31 +413,34 @@
         loadMore(list);
       });
     }
-    hookRenderTracks();
+    if (!list.__storeHook) {
+      list.__storeHook = true;
+      new MutationObserver(function () {
+        restyleRows(list);
+      }).observe(list, { childList: true });
+    }
     restyleRows(list);
   }
 
   function watchSheet() {
     var sheet = document.getElementById('tchiloPostMusicSheet');
-    if (!sheet || sheet.__uxWatch2) return;
-    sheet.__uxWatch2 = true;
-    var obs = new MutationObserver(function () {
+    if (!sheet || sheet.__uxWatch3) return;
+    sheet.__uxWatch3 = true;
+    new MutationObserver(function () {
       if (sheet.classList.contains('open')) {
         offset = 0;
         hasMore = true;
         loading = false;
         setTimeout(enhanceList, 50);
-        setTimeout(enhanceList, 300);
+        setTimeout(enhanceList, 400);
       } else {
         stopAudio();
       }
-    });
-    obs.observe(sheet, { attributes: true, attributeFilter: ['class'] });
+    }).observe(sheet, { attributes: true, attributeFilter: ['class'] });
   }
 
-  // Monkey-patch: when post-music finishes loading tracks, store them
   function patchCatalogSide() {
-    if (typeof window.tchiloCatalogFetch !== 'function' || window.tchiloCatalogFetch.__ux) return;
+    if (typeof window.tchiloCatalogFetch !== 'function' || window.tchiloCatalogFetch.__ux3) return;
     var orig = window.tchiloCatalogFetch;
     window.tchiloCatalogFetch = function (path) {
       return orig.apply(this, arguments).then(function (data) {
@@ -399,24 +456,40 @@
                 duration: t.duration || 0
               };
             });
-            // merge into last tracks if chart first page
             if (String(path).indexOf('index=') < 0 || String(path).indexOf('index=0') >= 0) {
               window.__lastPmTracks = mapped;
               setTimeout(function () {
                 if (typeof window.tchiloSetPmTracks === 'function') window.tchiloSetPmTracks(mapped);
-              }, 100);
+              }, 80);
             }
           }
         } catch (e) {}
         return data;
       });
     };
-    window.tchiloCatalogFetch.__ux = true;
+    window.tchiloCatalogFetch.__ux3 = true;
+  }
+
+  // Patch post-music row click to ignore cover-play
+  function patchRowSelect() {
+    var list = document.getElementById('pmList');
+    if (!list || list.__selectPatch) return;
+    list.__selectPatch = true;
+    list.addEventListener(
+      'click',
+      function (e) {
+        if (e.target.closest('.cover-play, .playbtn, .favbtn, .usebtn, .cover-ico')) {
+          e.stopPropagation();
+        }
+      },
+      true
+    );
   }
 
   function boot() {
     patchCatalogSide();
     watchSheet();
+    patchRowSelect();
     enhanceList();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

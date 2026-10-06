@@ -1,4 +1,4 @@
-/** tchilo-Pop loaders v24 — full feed + settings icons (settings-only, no feed mutation) */
+/** tchilo-Pop loaders v24 */
 (function () {
   'use strict';
   if (window.__TCHILO_FEED_STABLE_V24) return;
@@ -10,14 +10,11 @@
       var existing = document.querySelector('script[src*="' + name + '"]');
       if (existing) {
         var cur = existing.getAttribute('src') || '';
-        if (name.indexOf('settings-icons') >= 0 && cur.indexOf('v=24') < 0) existing.remove();
-        else if (cur === src) return;
-        else if (cur.split('?')[0].split('/').pop() === name) {
-          var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
-          var newV = (src.match(/[?&]v=([^&]+)/) || [])[1];
-          if (oldV && newV && oldV !== newV) existing.remove();
-          else return;
-        } else return;
+        if (cur === src) return;
+        var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
+        var newV = (src.match(/[?&]v=([^&]+)/) || [])[1];
+        if (oldV && newV && oldV !== newV) existing.remove();
+        else if (cur.split('?')[0].split('/').pop() === name) return;
       }
       var s = document.createElement('script');
       s.src = src;
@@ -75,7 +72,7 @@
     add('native/reels-follow-fix.js?v=2');
     add('native/tchilo-profile-avatar-plus.js?v=1');
     add('native/topbar-border-thin.js?v=2');
-    add('native/fee-sms-final.js?v=1');
+    add('native/fee-sms-final.js?v=8');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);

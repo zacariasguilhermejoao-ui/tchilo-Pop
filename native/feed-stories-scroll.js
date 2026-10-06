@@ -1,7 +1,7 @@
 /**
  * tchilo-Pop — Stories no mesmo scroll do Feed
  * + pull-to-refresh: 3 pontos por cima dos stories
- * + barra de cima (topbar) NÃO se mexe
+ * + barra de cima (topbar) sobe com o scroll do feed
  */
 (function () {
   'use strict';
@@ -19,10 +19,11 @@
       'overflow-y:auto!important;overflow-x:hidden!important;' +
       '-webkit-overflow-scrolling:touch;overscroll-behavior:contain;' +
       'min-height:0;position:relative;}' +
-      /* Topbar fixa no topo do scroll — não salta com o PTR */
+      /* Topbar no fluxo do scroll — sobe junto com o feed ao arrastar para cima */
       '#screen-feed .topbar{' +
-      'position:sticky;top:0;z-index:8;flex-shrink:0;' +
-      'background:var(--paper,#F3F1E9)!important;}' +
+      'position:relative!important;top:auto!important;z-index:8;flex-shrink:0;' +
+      'background:var(--paper,#F3F1E9)!important;' +
+      'transition:none!important;}' +
       '#screen-feed .stories{' +
       'flex-shrink:0!important;position:relative!important;' +
       'max-height:none!important;height:auto!important;' +
@@ -50,61 +51,33 @@
       '#screen-feed .ptr-indicator .tchilo-loading-dots{' +
       'display:inline-flex;align-items:center;justify-content:center;gap:8px;' +
       'min-width:78px;height:28px;pointer-events:none;}' +
-      '#screen-feed .ptr-indicator .tchilo-loading-dots i{' +
-      'width:11px;height:11px;border-radius:50%;display:block;flex-shrink:0;' +
-      'animation:tchiloDotPtr .7s infinite ease-in-out both;}' +
-      '#screen-feed .ptr-indicator .tchilo-loading-dots i:nth-child(1){background:#0B0B0C;animation-delay:0s;}' +
-      '#screen-feed .ptr-indicator .tchilo-loading-dots i:nth-child(2){background:#6B3DFF;animation-delay:.15s;}' +
-      '#screen-feed .ptr-indicator .tchilo-loading-dots i:nth-child(3){background:#FF2D5C;animation-delay:.3s;}' +
-      '@keyframes tchiloDotPtr{0%,80%,100%{transform:scale(.55);opacity:.45}40%{transform:scale(1);opacity:1}}';
+      '#screen-feed .ptr-indicator .tchilo-loading-dots span{' +
+      'width:8px;height:8px;border-radius:50%;background:#0B0B0C;' +
+      'display:inline-block;animation:tchiloPtrDot 0.9s ease-in-out infinite;}' +
+      '#screen-feed .ptr-indicator .tchilo-loading-dots span:nth-child(2){animation-delay:.15s;}' +
+      '#screen-feed .ptr-indicator .tchilo-loading-dots span:nth-child(3){animation-delay:.3s;}' +
+      '@keyframes tchiloPtrDot{0%,80%,100%{opacity:.25;transform:scale(.85)}40%{opacity:1;transform:scale(1)}}';
   }
 
-  function dotsHtml() {
-    return '<span class="tchilo-loading-dots" aria-label="A atualizar"><i></i><i></i><i></i></span>';
-  }
-
-  function ensureIndicator() {
+  function ensurePtrIndicator() {
     var stories = document.querySelector('#screen-feed .stories');
-    var screen = document.getElementById('screen-feed');
-    if (!screen) return null;
-
-    // remover indicadores no sítio errado (topo do ecrã / feedList)
-    screen.querySelectorAll(':scope > .ptr-indicator').forEach(function (el) {
-      el.remove();
-    });
-    var feed = document.getElementById('feedList');
-    if (feed) {
-      feed.querySelectorAll(':scope > .ptr-indicator').forEach(function (el) {
-        el.remove();
-      });
-      try {
-        delete feed.dataset.ptr;
-      } catch (e) {}
-    }
-
     if (!stories) return null;
-    if (getComputedStyle(stories).position === 'static') {
-      stories.style.position = 'relative';
+    var ind = stories.querySelector('.ptr-indicator');
+    if (!ind) {
+      ind = document.createElement('div');
+      ind.className = 'ptr-indicator';
+      ind.innerHTML =
+        '<div class="tchilo-loading-dots" aria-hidden="true">' +
+        '<span></span><span></span><span></span></div>';
+      stories.insertBefore(ind, stories.firstChild);
     }
-
-    var indicator = stories.querySelector(':scope > .ptr-indicator');
-    if (!indicator) {
-      indicator = document.createElement('div');
-      indicator.className = 'ptr-indicator';
-      indicator.innerHTML = dotsHtml();
-      stories.insertBefore(indicator, stories.firstChild);
-    }
-    return indicator;
+    return ind;
   }
 
   function setupFeedPTR() {
     var screen = document.getElementById('screen-feed');
-    if (!screen) return;
-    if (screen.dataset.ptrUnified === '2') return;
-    screen.dataset.ptrUnified = '2';
-
-    var indicator = ensureIndicator();
-    if (!indicator) return;
+    if (!screen || screen.dataset.ptrReady === '1') return;
+    screen.dataset.ptrReady = '1';
 
     var startY = 0;
     var pulling = false;
@@ -114,14 +87,11 @@
     screen.addEventListener(
       'touchstart',
       function (e) {
-        if (!e.touches || !e.touches[0]) return;
-        if (screen.scrollTop <= 2) {
-          startY = e.touches[0].clientY;
-          pulling = true;
-          armed = false;
-        } else {
-          pulling = false;
-        }
+        if (!e.touches || !e.touches.length) return;
+        if (screen.scrollTop > 2) return;
+        startY = e.touches[0].clientY;
+        pulling = true;
+        armed = false;
       },
       { passive: true }
     );
@@ -129,14 +99,19 @@
     screen.addEventListener(
       'touchmove',
       function (e) {
-        if (!pulling || refreshing || !e.touches || !e.touches[0]) return;
+        if (!pulling || refreshing) return;
+        if (!e.touches || !e.touches.length) return;
+        if (screen.scrollTop > 2) {
+          pulling = false;
+          return;
+        }
         var dy = e.touches[0].clientY - startY;
-        var ind = ensureIndicator();
+        var ind = ensurePtrIndicator();
         if (!ind) return;
-        if (dy > 12 && screen.scrollTop <= 2) {
+        if (dy > 12) {
           armed = dy > 56;
           ind.classList.add('show');
-        } else if (dy < 8) {
+        } else {
           ind.classList.remove('show');
           armed = false;
         }
@@ -149,29 +124,27 @@
       function () {
         if (!pulling) return;
         pulling = false;
-        var ind = ensureIndicator();
-        if (!ind) return;
-        if (armed && !refreshing) {
+        var ind = ensurePtrIndicator();
+        if (armed && !refreshing && ind) {
           refreshing = true;
           ind.classList.add('show');
-          var done = function () {
-            setTimeout(function () {
-              ind.classList.remove('show');
-              refreshing = false;
-            }, 450);
-          };
+          function done() {
+            refreshing = false;
+            if (ind) ind.classList.remove('show');
+          }
           try {
             var p =
-              typeof softRefreshFeed === 'function'
-                ? softRefreshFeed(false)
-                : null;
-            Promise.resolve(p)
-              .catch(function () {})
-              .then(done);
+              typeof window.tchiloRefreshFeed === 'function'
+                ? window.tchiloRefreshFeed()
+                : typeof window.refreshFeed === 'function'
+                  ? window.refreshFeed()
+                  : null;
+            if (p && typeof p.then === 'function') p.then(done).catch(done);
+            else setTimeout(done, 900);
           } catch (err) {
             done();
           }
-        } else if (!refreshing) {
+        } else if (ind && !refreshing) {
           ind.classList.remove('show');
         }
         armed = false;

@@ -201,30 +201,30 @@
     root.id = 'tchiloPostMusicSheet';
     root.innerHTML =
       '<style>' +
-      '#tchiloPostMusicSheet{display:none;position:fixed;inset:0;z-index:290;background:rgba(0,0,0,.35);align-items:flex-end;justify-content:center;}' +
+      '#tchiloPostMusicSheet{display:none;position:fixed;inset:0;z-index:10060;background:#000;align-items:stretch;justify-content:stretch;}' +
       '#tchiloPostMusicSheet.open{display:flex;}' +
-      '#tchiloPostMusicSheet .panel{width:min(100%,520px);max-height:82vh;background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;border:3px solid var(--ink,#0B0B0C);border-bottom:0;box-shadow:0 -12px 40px rgba(0,0,0,.18);}' +
+      '#tchiloPostMusicSheet .panel{width:100%;max-height:none;height:100%;background:#000;color:#fff;border-radius:0;padding:12px 16px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;border:0;box-shadow:none;}' +
       '#tchiloPostMusicSheet .head{display:flex;justify-content:space-between;align-items:center;}' +
       '#tchiloPostMusicSheet .head b{font-size:18px;font-weight:800;}' +
       '#tchiloPostMusicSheet .tabs{display:flex;gap:8px;}' +
-      '#tchiloPostMusicSheet .tab{flex:1;border:2px solid var(--ink,#0B0B0C);border-radius:12px;padding:10px;font-weight:800;font-size:13px;background:#fff;color:var(--ink,#0B0B0C);cursor:pointer;}' +
-      '#tchiloPostMusicSheet .tab.on{background:var(--mint,#c8f560);}' +
-      '#tchiloPostMusicSheet .close{border:2px solid var(--ink,#0B0B0C);background:var(--mint,#c8f560);color:var(--ink,#0B0B0C);border-radius:12px;width:40px;height:40px;font-size:20px;font-weight:800;cursor:pointer;line-height:1;}' +
-      '#tchiloPostMusicSheet .search{display:flex;gap:8px;align-items:center;background:#fff;border:2px solid var(--ink,#0B0B0C);border-radius:14px;padding:10px 12px;}' +
-      '#tchiloPostMusicSheet .search input{flex:1;border:0;background:transparent;color:var(--ink,#0B0B0C);font-size:15px;font-weight:600;outline:none;}' +
+      '#tchiloPostMusicSheet .tab{flex:1;border:0;border-radius:10px;padding:10px;font-weight:600;font-size:13px;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;}' +
+      '#tchiloPostMusicSheet .tab.on{background:rgba(255,255,255,.22);color:#fff;}' +
+      '#tchiloPostMusicSheet .close{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:50%;width:36px;height:36px;font-size:18px;font-weight:600;cursor:pointer;line-height:1;}' +
+      '#tchiloPostMusicSheet .search{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.1);border:0;border-radius:12px;padding:12px 14px;}' +
+      '#tchiloPostMusicSheet .search input{flex:1;border:0;background:transparent;color:#fff;font-size:15px;font-weight:500;outline:none;}' +
       '#tchiloPostMusicSheet .list{overflow:auto;flex:1;min-height:180px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}' +
       '#tchiloPostMusicSheet .list::-webkit-scrollbar{display:none;}' +
       '#tchiloPostMusicSheet .track{display:flex;gap:10px;align-items:center;padding:12px 4px;border-bottom:1px solid rgba(23,23,26,.08);cursor:pointer;}' +
-      '#tchiloPostMusicSheet .track:active{background:rgba(200,245,96,.25);}' +
-      '#tchiloPostMusicSheet .track img{width:52px;height:52px;border-radius:12px;object-fit:cover;border:2px solid var(--ink,#0B0B0C);background:#ddd;}' +
+      '#tchiloPostMusicSheet .track:active{background:rgba(255,255,255,.06);}' +
+      '#tchiloPostMusicSheet .track img{width:48px;height:48px;border-radius:8px;object-fit:cover;border:0;background:#ddd;}' +
       '#tchiloPostMusicSheet .track .t{flex:1;min-width:0;}' +
       '#tchiloPostMusicSheet .track .t b{display:block;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
       '#tchiloPostMusicSheet .track .t span{font-size:12px;font-weight:600;color:var(--muted,#6b6b70);}' +
-      '#tchiloPostMusicSheet .playbtn,#tchiloPostMusicSheet .favbtn{width:40px;height:40px;border-radius:50%;border:2px solid var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}' +
-      '#tchiloPostMusicSheet .playbtn{background:var(--mint,#c8f560);color:var(--ink,#0B0B0C);}' +
-      '#tchiloPostMusicSheet .playbtn.playing{background:var(--pink,#ff6f7d);color:#fff;animation:tchiloPulse 1s ease-in-out infinite;}' +
-      '#tchiloPostMusicSheet .favbtn{background:#fff;color:var(--ink,#0B0B0C);}' +
-      '#tchiloPostMusicSheet .favbtn.on{background:var(--yellow,#ffe66d);}' +
+      '#tchiloPostMusicSheet .playbtn,#tchiloPostMusicSheet .favbtn{width:40px;height:40px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}' +
+      '#tchiloPostMusicSheet .playbtn{background:rgba(255,255,255,.15);color:#fff;}' +
+      '#tchiloPostMusicSheet .playbtn.playing{background:#3897f0;color:#fff;animation:none;}' +
+      '#tchiloPostMusicSheet .favbtn{background:rgba(255,255,255,.08);color:#fff;}' +
+      '#tchiloPostMusicSheet .favbtn.on{background:rgba(255,255,255,.2);}' +
       '@keyframes tchiloPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}' +
       '#tchiloPostMusicSheet .dots{display:inline-flex;gap:3px;align-items:center;margin-left:6px;vertical-align:middle;}' +
       '#tchiloPostMusicSheet .dots i{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;animation:tchiloDots 1s infinite ease-in-out;}' +
@@ -361,7 +361,7 @@
           '">' +
           (t.cover
             ? '<img src="' + String(t.cover).replace(/"/g, '') + '" alt="">'
-            : '<div style="width:52px;height:52px;border-radius:12px;background:#ddd;border:2px solid #0B0B0C"></div>') +
+            : '<div style="width:52px;height:52px;border-radius:8px;background:#222;border:0"></div>') +
           '<div class="t"><b>' +
           String(t.title).replace(/</g, '<') +
           badge +
@@ -712,7 +712,7 @@
         btn.type = 'button';
         btn.className = 'me-play playbtn';
         btn.style.cssText =
-          'width:40px;height:40px;border-radius:50%;border:2px solid var(--ink,#0B0B0C);background:var(--mint,#c8f560);color:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;';
+          'width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;';
         btn.innerHTML = svgPlay();
         btn.onclick = function (e) {
           e.stopPropagation();
@@ -808,7 +808,7 @@
             '</button>' +
             '<button type="button" class="me-play playbtn" data-play="' +
             i +
-            '" style="width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);background:var(--mint);display:flex;align-items:center;justify-content:center">' +
+            '" style="width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center">' +
             svgPlay() +
             '</button></div>'
           );
@@ -864,7 +864,7 @@
           var tr = tracks[Number(btn.getAttribute('data-fav'))];
           var on = toggleFav(tr);
           btn.classList.toggle('on', on);
-          btn.style.background = on ? 'var(--yellow)' : '#fff';
+          btn.style.background = on ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.08)';
           btn.innerHTML = svgStar(on);
           if (typeof showToast === 'function') showToast(on ? 'Guardada nas favoritas' : 'Removida das favoritas');
         };

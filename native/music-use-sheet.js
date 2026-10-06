@@ -187,12 +187,12 @@
       '#tchiloMusicUseSheet.open{display:flex!important;}' +
       '#tchiloMusicUseSheet .panel{width:min(100%,520px);background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);' +
       'border-radius:20px 20px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom));' +
-      'border:3px solid var(--ink,#0B0B0C);border-bottom:0;box-shadow:0 -12px 40px rgba(0,0,0,.2);}' +
+      'border:0;box-shadow:none;}' +
       '#tchiloMusicUseSheet h3{margin:0 0 4px;font-size:18px;font-weight:900;}' +
       '#tchiloMusicUseSheet .sub{font-size:13px;font-weight:600;opacity:.75;margin-bottom:14px;}' +
       '#tchiloMusicUseSheet .opt{width:100%;border:2.5px solid var(--ink,#0B0B0C);border-radius:14px;padding:14px 16px;' +
       'background:#fff;font-weight:800;font-size:15px;margin-bottom:10px;cursor:pointer;text-align:left;color:var(--ink,#0B0B0C);}' +
-      '#tchiloMusicUseSheet .opt:active{background:var(--mint,#c8f560);}' +
+      '#tchiloMusicUseSheet .opt:active{background:rgba(255,255,255,.08);}' +
       '#tchiloMusicUseSheet .cancel{width:100%;border:0;background:transparent;font-weight:800;padding:12px;cursor:pointer;}' +
       '</style>' +
       '<div class="panel" role="dialog" aria-label="Usar esta música">' +

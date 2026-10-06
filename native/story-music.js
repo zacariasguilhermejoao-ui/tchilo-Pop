@@ -240,7 +240,7 @@
       '#tchiloMusicUseSheet .panel .sub{font-size:13px;font-weight:600;opacity:.75;margin-bottom:14px;}' +
       '#tchiloMusicUseSheet .opt{width:100%;border:2.5px solid var(--ink,#0B0B0C);border-radius:14px;padding:14px 16px;' +
       'background:#fff;font-weight:800;font-size:15px;margin-bottom:10px;cursor:pointer;text-align:left;color:var(--ink,#0B0B0C);}' +
-      '#tchiloMusicUseSheet .opt:active{background:var(--mint,#c8f560);}' +
+      '#tchiloMusicUseSheet .opt:active{background:rgba(255,255,255,.08);}' +
       '#tchiloMusicUseSheet .cancel{width:100%;border:0;background:transparent;font-weight:800;padding:12px;cursor:pointer;color:var(--ink,#0B0B0C);}';
   }
 

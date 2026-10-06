@@ -5,16 +5,10 @@ on:
   push:
     branches: [main]
     paths:
-      - 'scripts/patch_zzzb_index_flat_css.py'
-      - 'scripts/patch_zzz_flatten_all.py'
-      - 'scripts/patch_zzzc_system_titles.py'
-      - 'scripts/patch_zzzd_media_picker.py'
-      - 'scripts/patch_zzze_media_picker_v3.py'
-      - 'scripts/patch_zzzf_write_picker_v3.py'
-      - 'scripts/patch_zzzg_create_bridge.py'
-      - 'scripts/patch_zzzh_camera_deliver.py'
+      - 'scripts/patch_zzz*.py'
       - 'native/tchilo-media-picker.js'
       - 'native/tchilo-create-bridge.js'
+      - 'native/post-music-feed.js'
       - '.github/workflows/flat-index-css.yml'
 
 concurrency:
@@ -31,30 +25,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply create flow patches
+      - name: Apply patches
         run: |
           set -e
-          python3 scripts/patch_zzzb_index_flat_css.py || true
-          python3 scripts/patch_zzz_flatten_all.py || true
-          python3 scripts/patch_zzzc_system_titles.py || true
-          python3 scripts/patch_zzzd_media_picker.py || true
-          python3 scripts/patch_zzze_media_picker_v3.py || true
-          python3 scripts/patch_zzzf_write_picker_v3.py || true
-          python3 scripts/patch_zzzg_create_bridge.py || true
-          python3 scripts/patch_zzzh_camera_deliver.py || true
-          grep -c 'tchilo-create-bridge' index.html || true
-          grep -c 'tchiloReceiveCreateMedia' native/camera-tiktok.js || true
+          for f in scripts/patch_zzz*.py; do
+            echo "=== $f ==="
+            python3 "$f" || echo "WARN $f"
+          done
+          grep -c 'tchiloOpenCreateMusic(selected' native/tchilo-media-picker.js || true
+          grep -c '__tchiloCreateFlowActive' native/post-music-feed.js || true
+          grep -c 'tchilo-create-bridge.js?v=2' index.html || true
 
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html native/
-          if git diff --cached --quiet; then
-            echo "No changes"
-            exit 0
-          fi
-          git commit -m "fix: create bridge + camera handoff + crop"
+          if git diff --cached --quiet; then echo No changes; exit 0; fi
+          git commit -m "fix: music list/play/attach in create flow"
           for i in 1 2 3 4 5; do
             git pull --rebase origin main || true
             git push origin HEAD:main && exit 0

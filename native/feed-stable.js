@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v27 */
+/** tchilo-Pop loaders v28 */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V27) return;
-  window.__TCHILO_FEED_STABLE_V27 = true;
+  if (window.__TCHILO_FEED_STABLE_V28) return;
+  window.__TCHILO_FEED_STABLE_V28 = true;
 
   function add(src) {
     try {
@@ -26,6 +26,7 @@
   }
 
   function load() {
+    add('native/tchilo-default-avatar.js?v=1');
     add('native/tchilo-settings-icons.js?v=24');
     add('native/tchilo-product-copy.js?v=2');
     add('native/tchilo-legal-links.js?v=1');

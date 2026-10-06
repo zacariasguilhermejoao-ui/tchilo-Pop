@@ -32,9 +32,8 @@ jobs:
             echo "=== $f ==="
             python3 "$f" || echo "WARN $f"
           done
-          grep -c 'tchiloOpenCreateMusic(selected' native/tchilo-media-picker.js || true
-          grep -c '__tchiloCreateFlowActive' native/post-music-feed.js || true
-          grep -c 'tchilo-create-bridge.js?v=2' index.html || true
+          grep -c 'tchilo-music-flat-v1' index.html || true
+          grep -c 'background:#000' native/post-music-feed.js || true
 
       - name: Commit
         run: |
@@ -42,7 +41,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html native/
           if git diff --cached --quiet; then echo No changes; exit 0; fi
-          git commit -m "fix: music list/play/attach in create flow"
+          git commit -m "fix: flat full-screen black music UI"
           for i in 1 2 3 4 5; do
             git pull --rebase origin main || true
             git push origin HEAD:main && exit 0

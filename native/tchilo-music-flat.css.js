@@ -1,7 +1,8 @@
-/** Light paper theme for music sheet — matches Tchilo classic (no neo) */
+/** Light paper music list UX — cover play, star, arrow, no neo */
 (function () {
   'use strict';
-  if (window.__TCHILO_MUSIC_FLAT_V2) return;
+  if (window.__TCHILO_MUSIC_FLAT_V3) return;
+  window.__TCHILO_MUSIC_FLAT_V3 = true;
   window.__TCHILO_MUSIC_FLAT_V2 = true;
   window.__TCHILO_MUSIC_FLAT_V1 = true;
 
@@ -16,7 +17,7 @@
     '#tchiloPostMusicSheet .panel{width:100%!important;max-width:none!important;max-height:none!important;height:100%!important;' +
     'background:' + PAPER + '!important;color:' + INK + '!important;border:0!important;border-radius:0!important;' +
     'box-shadow:none!important;padding:12px 16px calc(16px + env(safe-area-inset-bottom))!important;' +
-    'display:flex!important;flex-direction:column!important;gap:12px!important}' +
+    'display:flex!important;flex-direction:column!important;gap:10px!important}' +
     '#tchiloPostMusicSheet .head{display:flex!important;justify-content:space-between!important;align-items:center!important;' +
     'padding-top:max(4px,env(safe-area-inset-top))!important}' +
     '#tchiloPostMusicSheet .head b{font-size:18px!important;font-weight:700!important;color:' + INK + '!important}' +
@@ -34,44 +35,51 @@
     '#tchiloPostMusicSheet .search input{flex:1!important;border:0!important;background:transparent!important;' +
     'color:' + INK + '!important;font-size:15px!important;font-weight:500!important;outline:none!important}' +
     '#tchiloPostMusicSheet .search input::placeholder{color:rgba(11,11,12,.4)!important}' +
-    '#tchiloPostMusicSheet .list{flex:1!important;overflow:auto!important;-webkit-overflow-scrolling:touch!important}' +
-    '#tchiloPostMusicSheet .track{display:flex!important;align-items:center!important;gap:12px!important;padding:10px 4px!important;' +
-    'border:0!important;border-bottom:1px solid rgba(11,11,12,.08)!important;border-radius:0!important;' +
-    'background:transparent!important;box-shadow:none!important;cursor:pointer!important;color:' + INK + '!important}' +
+    '#tchiloPostMusicSheet .list{flex:1!important;overflow:auto!important;-webkit-overflow-scrolling:touch!important;' +
+    'min-height:0!important;scrollbar-width:none!important}' +
+    '#tchiloPostMusicSheet .list::-webkit-scrollbar{display:none!important}' +
+    /* track row */
+    '#tchiloPostMusicSheet .track{display:flex!important;align-items:center!important;gap:12px!important;' +
+    'padding:10px 2px!important;border:0!important;border-bottom:1px solid rgba(11,11,12,.08)!important;' +
+    'border-radius:0!important;background:transparent!important;box-shadow:none!important;cursor:pointer!important;color:' + INK + '!important}' +
     '#tchiloPostMusicSheet .track:active{background:rgba(11,11,12,.04)!important}' +
-    '#tchiloPostMusicSheet .track img{width:48px!important;height:48px!important;border-radius:8px!important;object-fit:cover!important;' +
-    'border:0!important;background:rgba(11,11,12,.06)!important;box-shadow:none!important}' +
-    '#tchiloPostMusicSheet .track .meta b{display:block!important;font-size:14px!important;font-weight:600!important;color:' + INK + '!important;' +
-    'white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}' +
-    '#tchiloPostMusicSheet .track .meta span{display:block!important;font-size:12px!important;color:rgba(11,11,12,.5)!important;' +
-    'white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}' +
-    '#tchiloPostMusicSheet .playbtn,#tchiloPostMusicSheet .favbtn{width:40px!important;height:40px!important;border-radius:50%!important;' +
+    /* cover with play */
+    '#tchiloPostMusicSheet .cover-play{position:relative!important;width:52px!important;height:52px!important;' +
+    'border:0!important;padding:0!important;border-radius:10px!important;overflow:hidden!important;' +
+    'background:rgba(11,11,12,.06)!important;flex-shrink:0!important;cursor:pointer!important;box-shadow:none!important}' +
+    '#tchiloPostMusicSheet .cover-play img,#tchiloPostMusicSheet .cover-ph{width:100%!important;height:100%!important;' +
+    'object-fit:cover!important;display:block!important;border:0!important;border-radius:10px!important;box-shadow:none!important}' +
+    '#tchiloPostMusicSheet .cover-ph{background:rgba(11,11,12,.08)!important}' +
+    '#tchiloPostMusicSheet .cover-ico{position:absolute!important;inset:0!important;display:flex!important;' +
+    'align-items:center!important;justify-content:center!important;background:rgba(0,0,0,.28)!important;color:#fff!important}' +
+    '#tchiloPostMusicSheet .cover-play.playing .cover-ico{background:rgba(0,0,0,.4)!important}' +
+    '#tchiloPostMusicSheet .track .t{flex:1!important;min-width:0!important}' +
+    '#tchiloPostMusicSheet .track .t b{display:block!important;font-size:15px!important;font-weight:600!important;' +
+    'color:' + INK + '!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}' +
+    '#tchiloPostMusicSheet .track .t span{display:block!important;font-size:12px!important;color:rgba(11,11,12,.5)!important;' +
+    'white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;margin-top:2px!important}' +
+    '#tchiloPostMusicSheet .favbtn,#tchiloPostMusicSheet .usebtn{width:40px!important;height:40px!important;border-radius:50%!important;' +
     'border:0!important;display:flex!important;align-items:center!important;justify-content:center!important;' +
-    'box-shadow:none!important;cursor:pointer!important}' +
-    '#tchiloPostMusicSheet .playbtn{background:rgba(11,11,12,.1)!important;color:' + INK + '!important}' +
-    '#tchiloPostMusicSheet .playbtn.playing{background:' + INK + '!important;color:#fff!important;animation:none!important}' +
-    '#tchiloPostMusicSheet .favbtn{background:rgba(11,11,12,.06)!important;color:' + INK + '!important}' +
-    '#tchiloPostMusicSheet .favbtn.on{background:rgba(11,11,12,.14)!important;color:' + INK + '!important}' +
-    '#tchiloPostMusicSheet .badge{display:inline-block!important;font-size:10px!important;font-weight:600!important;' +
-    'background:rgba(11,11,12,.08)!important;border:0!important;border-radius:6px!important;padding:2px 6px!important;' +
-    'color:rgba(11,11,12,.65)!important;box-shadow:none!important}' +
+    'box-shadow:none!important;cursor:pointer!important;flex-shrink:0!important;' +
+    'background:rgba(11,11,12,.06)!important;color:' + INK + '!important}' +
+    '#tchiloPostMusicSheet .favbtn.on{background:rgba(11,11,12,.12)!important;color:' + INK + '!important}' +
+    '#tchiloPostMusicSheet .usebtn{background:rgba(11,11,12,.08)!important}' +
+    '#tchiloPostMusicSheet .playbtn{display:none!important}' +
+    '#tchiloPostMusicSheet .badge{display:none!important}' +
     '#tchiloPostMusicSheet .empty{color:rgba(11,11,12,.45)!important;text-align:center!important;padding:32px 16px!important}' +
-    /* music use */
+    /* kill neo shadows on any leftover music cards */
+    '#tchiloPostMusicSheet .track,#tchiloPostMusicSheet .cover-play,#tchiloPostMusicSheet img{' +
+    'box-shadow:none!important;outline:none!important;filter:none!important}' +
     '#tchiloMusicUseSheet{background:rgba(11,11,12,.35)!important}' +
     '#tchiloMusicUseSheet .panel,#tchiloMusicUseSheet .sheet-panel{' +
-    'background:' + PAPER + '!important;color:' + INK + '!important;border:0!important;border-radius:16px 16px 0 0!important;box-shadow:none!important}' +
-    '#tchiloMusicUseSheet .opt{border:0!important;box-shadow:none!important;background:transparent!important;color:' + INK + '!important}' +
-    '#tchiloMusicUseSheet .opt:active{background:rgba(11,11,12,.06)!important}' +
-    /* media editor sheets */
+    'background:' + PAPER + '!important;color:' + INK + '!important;border:0!important;box-shadow:none!important}' +
     '#tchiloMediaEd .me-sheet-panel{background:' + PAPER + '!important;color:' + INK + '!important;border:0!important;box-shadow:none!important}' +
-    '#tchiloMediaEd .me-search{background:#fff!important;border:1px solid rgba(11,11,12,.1)!important;box-shadow:none!important;border-radius:12px!important}' +
-    '#tchiloMediaEd .me-search input{color:' + INK + '!important}' +
+    '#tchiloMediaEd .me-search{background:#fff!important;border:1px solid rgba(11,11,12,.1)!important;box-shadow:none!important}' +
     '#tchiloMediaEd .me-publish{background:' + INK + '!important;color:#fff!important;border:0!important;box-shadow:none!important}' +
-    '#tchiloMediaEd .me-iconbtn{border:0!important;background:rgba(11,11,12,.06)!important;color:' + INK + '!important;box-shadow:none!important}' +
-    '#tchiloMediaEd .me-chip.active{border-color:rgba(11,11,12,.25)!important;background:rgba(11,11,12,.08)!important}' +
-    '#tchiloMediaEd .me-tool.active{background:rgba(11,11,12,.08)!important;outline:1px solid rgba(11,11,12,.2)!important}' +
-    '#tchiloMediaEd .me-range{accent-color:' + INK + '!important}';
+    '#tchiloMediaEd .me-iconbtn{border:0!important;background:rgba(11,11,12,.06)!important;color:' + INK + '!important;box-shadow:none!important}';
 
+  var old = document.getElementById('tchilo-music-flat-css');
+  if (old) old.remove();
   var s = document.createElement('style');
   s.id = 'tchilo-music-flat-css';
   s.textContent = css;

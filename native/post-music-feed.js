@@ -215,9 +215,9 @@
       '#tchiloPostMusicSheet .search input{flex:1;border:0;background:transparent;color:#fff;font-size:15px;font-weight:500;outline:none;}' +
       '#tchiloPostMusicSheet .list{overflow:auto;flex:1;min-height:180px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}' +
       '#tchiloPostMusicSheet .list::-webkit-scrollbar{display:none;}' +
-      '#tchiloPostMusicSheet .track{display:flex;gap:10px;align-items:center;padding:12px 4px;border-bottom:1px solid rgba(23,23,26,.08);cursor:pointer;}' +
+      '#tchiloPostMusicSheet .track{display:flex;gap:12px;align-items:center;padding:12px 0;border:0;border-bottom:1px solid rgba(11,11,12,.08);border-radius:0;background:transparent;box-shadow:none;cursor:pointer;}' +
       '#tchiloPostMusicSheet .track:active{background:rgba(255,255,255,.06);}' +
-      '#tchiloPostMusicSheet .track img{width:48px;height:48px;border-radius:8px;object-fit:cover;border:0;background:#ddd;}' +
+      '#tchiloPostMusicSheet .track img{width:48px;height:48px;border-radius:10px;object-fit:cover;border:0;background:transparent;}' +
       '#tchiloPostMusicSheet .track .t{flex:1;min-width:0;}' +
       '#tchiloPostMusicSheet .track .t b{display:block;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
       '#tchiloPostMusicSheet .track .t span{font-size:12px;font-weight:600;color:var(--muted,#6b6b70);}' +
@@ -362,6 +362,7 @@
         '</div>';
       return;
     }
+    try { window.__lastPmTracks = tracks.slice(); list._pmTracks = tracks.slice(); if (typeof window.tchiloSetPmTracks==='function') window.tchiloSetPmTracks(tracks); } catch(e) {}
     list.innerHTML = tracks
       .map(function (t, i) {
         var fav = isFav(t.id);

@@ -287,9 +287,14 @@
       sheetAudio = null;
     }
     sheetPlayingId = null;
-    document.querySelectorAll('#pmList .playbtn.playing, #meMusicList .me-play.playing').forEach(function (b) {
+    document.querySelectorAll('#pmList .playbtn.playing, #pmList .cover-play.playing, #meMusicList .me-play.playing').forEach(function (b) {
       b.classList.remove('playing');
-      b.innerHTML = svgPlay();
+      if (b.classList.contains('cover-play')) {
+        var ico = b.querySelector('.cover-ico');
+        if (ico) ico.innerHTML = svgPlay();
+      } else {
+        b.innerHTML = svgPlay();
+      }
     });
     document.querySelectorAll('#pmList .dots, #meMusicList .dots').forEach(function (d) {
       d.style.display = 'none';
@@ -309,7 +314,12 @@
     sheetAudio = new Audio(track.preview);
     sheetPlayingId = track.id;
     btn.classList.add('playing');
-    btn.innerHTML = svgPause();
+    if (btn.classList.contains('cover-play')) {
+      var ico = btn.querySelector('.cover-ico');
+      if (ico) ico.innerHTML = svgPause();
+    } else {
+      btn.innerHTML = svgPause();
+    }
     var row = btn.closest('.track, .me-track');
     if (row) {
       var dots = row.querySelector('.dots');

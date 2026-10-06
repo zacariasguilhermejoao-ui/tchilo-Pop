@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import re
-# Source embedded
-SRC = r'''PLACEHOLDER_SRC'''
-# Will be replaced by next push if needed — for now load from sibling if present
-p = Path('scripts/_picker_v3.js')
-if p.exists():
-    SRC = p.read_text(encoding='utf-8')
-elif 'PLACEHOLDER' in SRC:
-    print('waiting for _picker_v3.js')
-    raise SystemExit(0)
-Path('native/tchilo-media-picker.js').write_text(SRC, encoding='utf-8')
-print('wrote', len(SRC))
+parts = []
+for i in range(3):
+    p = Path(f'scripts/_picker_v3_{i}.js')
+    if not p.exists():
+        print('missing', p)
+        raise SystemExit(0)
+    parts.append(p.read_text(encoding='utf-8'))
+src = ''.join(parts)
+Path('native/tchilo-media-picker.js').write_text(src, encoding='utf-8')
+print('wrote picker', len(src))
 h = Path('index.html')
 if h.exists():
     t = h.read_text(encoding='utf-8', errors='replace')

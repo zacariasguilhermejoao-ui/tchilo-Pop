@@ -335,6 +335,8 @@
     };
   }
 
+  window.__tchiloSelectTrack = selectTrack;
+  window.__tchiloTogglePreview = togglePreview;
   function selectTrack(t) {
     if (!t) return;
     window._pendingMusic = t.title + ' · ' + t.artist;
@@ -398,7 +400,7 @@
 
     list.querySelectorAll('.track').forEach(function (row) {
       row.onclick = function (e) {
-        if (e.target.closest('.playbtn') || e.target.closest('.favbtn')) return;
+        if (e.target.closest('.playbtn') || e.target.closest('.favbtn') || e.target.closest('.cover-play') || e.target.closest('.usebtn') || e.target.closest('.cover-ico')) return;
         selectTrack(tracks[Number(row.getAttribute('data-i'))]);
       };
     });

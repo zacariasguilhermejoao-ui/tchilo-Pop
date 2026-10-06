@@ -1,20 +1,21 @@
 /**
- * Feed + SMS topbar — v13
- * - Usa SEMPRE sms-icon.svg do utilizador (nunca icone antigo)
- * - Nao troca de lugar com a lupa (messages a esquerda, search a direita)
- * - Mensagem e lupa maiores
+ * Feed + SMS topbar — v14
+ * - sms-icon.svg do utilizador
+ * - SMS e lupa no mesmo tamanho do feed (38px)
+ * - Ordem: mensagem antes da lupa
  */
 (function () {
   'use strict';
-  if (window.__tchiloFeeSmsFinalV13) return;
+  if (window.__tchiloFeeSmsFinalV14) return;
+  window.__tchiloFeeSmsFinalV14 = true;
   window.__tchiloFeeSmsFinalV13 = true;
   window.__tchiloFeeSmsFinalV12 = true;
   window.__tchiloFeeSmsFinalV11 = true;
 
   var SMS_SRC = 'sms-icon.svg?v=20';
-  var FEED_SRC = 'native/icons/feed.svg?v=13';
-  var SMS_SIZE = 36;
-  var SEARCH_SIZE = 34;
+  var FEED_SRC = 'native/icons/feed.svg?v=14';
+  var SMS_SIZE = 38;
+  var SEARCH_SIZE = 38;
   var FEED_SIZE = 38;
 
   function css() {
@@ -76,10 +77,7 @@
       else if (isSearchBtn(el)) search = el;
     });
     if (!msg || !search) return;
-    // messages must come BEFORE search
-    var msgIdx = kids.indexOf(msg);
-    var searchIdx = kids.indexOf(search);
-    if (msgIdx > searchIdx) {
+    if (kids.indexOf(msg) > kids.indexOf(search)) {
       bar.insertBefore(msg, search);
     }
   }
@@ -114,7 +112,6 @@
     var bar = document.querySelector('#screen-feed .topbar-icons, .topbar-icons');
     var el = document.querySelector('[data-top-messages]');
 
-    // Prefer existing messages button in HTML — do not recreate if present
     if (!el && bar) {
       var kids = Array.prototype.slice.call(bar.querySelectorAll('.icon-btn'));
       for (var i = 0; i < kids.length; i++) {
@@ -144,7 +141,6 @@
     }
     if (!el) return;
 
-    // Remove only text labels, keep img
     el.querySelectorAll('span,.nav-sms-text,.nav-sms-circle').forEach(function (n) {
       try { n.remove(); } catch (e) {}
     });
@@ -157,11 +153,9 @@
       el.insertBefore(img, el.firstChild);
     }
 
-    // Force USER icon only (sms-icon.svg) — never bubble/old path
-    var want = SMS_SRC;
     var cur = img.getAttribute('src') || '';
     if (cur.indexOf('sms-icon.svg') === -1 || cur.indexOf('v=20') === -1) {
-      img.src = want;
+      img.src = SMS_SRC;
     }
     img.className = 'nav-sms-icon';
     img.alt = 'Mensagens';
@@ -178,7 +172,6 @@
       SMS_SIZE +
       'px;';
 
-    // Hide any leftover SVGs inside messages btn
     el.querySelectorAll('svg').forEach(function (s) {
       try { s.style.display = 'none'; } catch (e) {}
     });

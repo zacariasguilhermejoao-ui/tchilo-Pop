@@ -9,6 +9,8 @@ on:
       - 'native/tchilo-media-picker.js'
       - 'native/tchilo-create-bridge.js'
       - 'native/post-music-feed.js'
+      - 'native/tchilo-music-flat.css.js'
+      - 'native/tchilo-light-create.css.js'
       - '.github/workflows/flat-index-css.yml'
 
 concurrency:
@@ -32,8 +34,8 @@ jobs:
             echo "=== $f ==="
             python3 "$f" || echo "WARN $f"
           done
-          grep -c 'tchilo-music-flat-v1' index.html || true
-          grep -c 'background:#000' native/post-music-feed.js || true
+          grep -c 'tchilo-light-create.css.js' index.html || true
+          grep -c 'tchilo-music-flat.css.js?v=2' index.html || true
 
       - name: Commit
         run: |
@@ -41,7 +43,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html native/
           if git diff --cached --quiet; then echo No changes; exit 0; fi
-          git commit -m "fix: flat full-screen black music UI"
+          git commit -m "fix: light paper theme create/music/login"
           for i in 1 2 3 4 5; do
             git pull --rebase origin main || true
             git push origin HEAD:main && exit 0

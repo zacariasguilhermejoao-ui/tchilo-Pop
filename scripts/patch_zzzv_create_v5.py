@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import re
 p = Path('index.html')
 if not p.exists():
     raise SystemExit(0)

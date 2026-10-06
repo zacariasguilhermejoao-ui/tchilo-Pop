@@ -321,27 +321,23 @@
   }
 
   function setStep(step) {
-    try { syncModeTabs(); } catch (e) {}
     STEP = step;
     document.querySelectorAll('#tchiloMediaPicker .mp-step').forEach(function (el) {
       el.classList.toggle('on', el.getAttribute('data-step') === step);
     });
-    var title = $('mpTitle');
-    var themeBtn = $('mpThemeBtn');
-    var storyBtn = $('mpStoryBtn');
     var pubBtn = $('mpPublishBtn');
-
-    themeBtn.style.display = step === 'hub' ? '' : 'none';
-    storyBtn.style.display = step === 'hub' ? '' : 'none';
-    pubBtn.style.display = (step === 'compose' || step === 'story' || step === 'theme') ? '' : 'none';
-
-    if (step === 'hub') title.textContent = MODE === 'story' ? 'Story' : 'Criar';
-    if (step === 'theme') title.textContent = 'Tema';
-    if (step === 'compose') title.textContent = 'Nova publicação';
-    if (step === 'story') title.textContent = 'Novo story';
-    if (step === 'publishing') title.textContent = 'Publicar';
-
-    storyBtn.classList.toggle('on', MODE === 'story');
+    if (pubBtn) {
+      pubBtn.style.display = (step === 'compose' || step === 'story' || step === 'theme') ? '' : 'none';
+    }
+    var modes = $('mpModes');
+    if (modes) {
+      if (step === 'hub') modes.classList.remove('mp-modes-hidden');
+      else modes.classList.add('mp-modes-hidden');
+    }
+    if (step === 'publishing' || step === 'hub') {
+      try { stopComposeAudio(); } catch (e0) {}
+    }
+    try { syncModeTabs(); } catch (e) {}
   }
 
   function formatDur(sec) {

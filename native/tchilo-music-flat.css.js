@@ -1,8 +1,8 @@
 /** Music sheet flat light — no borders, no neo, no black covers */
 (function () {
   'use strict';
-  if (window.__TCHILO_MUSIC_FLAT_V4) return;
-  window.__TCHILO_MUSIC_FLAT_V4 = true;
+  if (window.__TCHILO_MUSIC_FLAT_V5) return;
+  window.__TCHILO_MUSIC_FLAT_V5 = true;
 
   var PAPER = 'var(--paper,#F3F1E9)';
   var INK = 'var(--ink,#0B0B0C)';
@@ -21,11 +21,11 @@
     '#tchiloPostMusicSheet .head b{font-size:18px!important;font-weight:700!important;color:' + INK + '!important}' +
     '#tchiloPostMusicSheet .tabs{display:flex!important;gap:8px!important}' +
     '#tchiloPostMusicSheet .tab{flex:1!important;border:0!important;border-radius:10px!important;padding:10px!important;' +
-    'font-weight:600!important;font-size:13px!important;background:rgba(11,11,12,.06)!important;color:' + INK + '!important;' +
+    'font-weight:600!important;font-size:13px!important;background:transparent!important;color:' + INK + '!important;' +
     'cursor:pointer!important;box-shadow:none!important;outline:none!important}' +
     '#tchiloPostMusicSheet .tab.on{background:rgba(11,11,12,.12)!important;color:' + INK + '!important;' +
     'background-image:none!important}' +
-    '#tchiloPostMusicSheet .close{border:0!important;background:rgba(11,11,12,.08)!important;color:' + INK + '!important;' +
+    '#tchiloPostMusicSheet .close{border:0!important;background:transparent!important;color:' + INK + '!important;' +
     'border-radius:50%!important;width:36px!important;height:36px!important;box-shadow:none!important}' +
     '#tchiloPostMusicSheet .search{background:#fff!important;border:1px solid rgba(11,11,12,.1)!important;border-radius:12px!important;' +
     'box-shadow:none!important;padding:12px 14px!important}' +
@@ -64,7 +64,7 @@
     'white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;margin-top:2px!important}' +
     '#tchiloPostMusicSheet .favbtn,#tchiloPostMusicSheet .usebtn{' +
     'width:40px!important;height:40px!important;border-radius:50%!important;border:0!important;' +
-    'background:rgba(11,11,12,.06)!important;color:' + INK + '!important;box-shadow:none!important;' +
+    'background:transparent!important;color:' + INK + '!important;box-shadow:none!important;' +
     'display:flex!important;align-items:center!important;justify-content:center!important;flex-shrink:0!important}' +
     '#tchiloPostMusicSheet .favbtn.on{background:rgba(11,11,12,.12)!important}' +
     '#tchiloPostMusicSheet .playbtn{display:none!important}' +

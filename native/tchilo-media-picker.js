@@ -21,7 +21,7 @@
   function clearMusic(){stopComposeAudio();paintMusicChip(null)}
   function applyMusic(meta,play){if(!meta)return;paintMusicChip(meta);if(play!==false)playComposeMusic(meta)}
   function openMusicSheet(){try{if(selected[0]&&typeof window.tchiloSyncCreateMediaForMusic==='function')window.tchiloSyncCreateMediaForMusic(selected[0])}catch(e){}if(typeof window.tchiloOpenCreateMusic==='function')window.tchiloOpenCreateMusic(selected[0]);else if(typeof window.tchiloOpenPostMusic==='function')window.tchiloOpenPostMusic()}
-  function autoAttachMusic(){if(selectedMusic&&selectedMusic.preview){playComposeMusic(selectedMusic);paintMusicChip(selectedMusic);return}var meta=window._pendingMusicMeta;if(meta&&meta.preview){applyMusic(meta,true);return}var tracks=window.__lastPmTracks||[];if(tracks.length&&tracks[0]&&tracks[0].preview){var t0=tracks[0];applyMusic({id:t0.id,title:t0.title,artist:t0.artist||'',preview:t0.preview||'',cover:t0.cover||''},true);return}try{var cb='tchiloMP_'+Date.now();window[cb]=function(data){try{delete window[cb]}catch(e2){}var list=(data&&data.data)||[];if(!list.length||selectedMusic)return;if(STEP!=='compose'&&STEP!=='story')return;var x=list[0];applyMusic({id:x.id||'',title:x.title||'Música',artist:(x.artist&&x.artist.name)||'',preview:x.preview||'',cover:(x.album&&(x.album.cover_medium||x.album.cover))||''},true)};var s=document.createElement('script');s.src='https://api.deezer.com/chart/0/tracks?limit=10&output=jsonp&callback='+cb;document.head.appendChild(s)}catch(e4){}}
+  function autoAttachMusic(){if(selectedMusic&&selectedMusic.preview){playComposeMusic(selectedMusic);paintMusicChip(selectedMusic);return}var meta=window._pendingMusicMeta;if(meta&&meta.preview){applyMusic(meta,true);return}var tracks=window.__lastPmTracks||[];if(tracks.length&&tracks[0]&&tracks[0].preview){var t0=tracks[0];applyMusic({id:t0.id,title:t0.title,artist:t0.artist||'',preview:t0.preview||'',cover:t0.cover||''},true);return}try{var cb='tchiloMP_'+Date.now();window[cb]=function(data){try{delete window[cb]}catch(e2){}var list=(data&&data.data)||[];if(!list.length||selectedMusic)return;if(STEP!=='compose'&&STEP!=='story')return;var x=list[0];applyMusic({id:x.id||'',title:x.title||'Música',artist:(x.artist&&x.artist.name)||'',preview:x.preview||'',cover:(x.album&&(x.album.cover_big||x.album.cover))||''},true)};var s=document.createElement('script');s.src='https://api.deezer.com/chart/0/tracks?limit=10&output=jsonp&callback='+cb;document.head.appendChild(s)}catch(e4){}}
   function onMusicSelectedEvent(ev){var d=(ev&&ev.detail)||{};var meta=d.meta||window._pendingMusicMeta;if(!meta)return;applyMusic(meta,true)}
 
   function syncModeTabs() {
@@ -52,6 +52,7 @@
     syncModeTabs();
   }
 
+  window.__tchiloSetCreateMode = setCreateMode;
   function bindModeTabs() {
     var host = $('mpModes');
     if (!host || host.__bound) return;
@@ -159,8 +160,8 @@
       '#tchiloMediaPicker .mp-chip{display:none!important;border:0;border-radius:999px;padding:8px 14px;font:600 13px system-ui,sans-serif;',
       'background:rgba(11,11,12,.08);color:var(--ink,#0B0B0C);cursor:pointer;}',
       '#tchiloMediaPicker .mp-chip.on{background:#fff;color:#0B0B0C;}',
-      '#tchiloMediaPicker .mp-publish{border:0;border-radius:999px;padding:8px 16px;font:700 14px system-ui,sans-serif;',
-      'background:var(--ink,#0B0B0C);color:var(--ink,#0B0B0C);cursor:pointer;}',
+      '#tchiloMediaPicker .mp-publish{border:0;border-radius:0;padding:6px 4px;margin-left:auto;font:800 18px/1.1 system-ui,-apple-system,sans-serif;letter-spacing:0.04em;text-transform:uppercase;',
+      'background:transparent;color:var(--ink,#0B0B0C);cursor:pointer;box-shadow:none;}',
       '#tchiloMediaPicker .mp-publish:disabled{opacity:.4;}',
       /* body steps */
       '#tchiloMediaPicker .mp-step{display:none;flex:1;min-height:0;flex-direction:column;}',
@@ -242,7 +243,7 @@
       '<button type="button" class="mp-mode" data-mode="theme" id="mpModeTheme">TEMA</button>' +
       '</div>' +
       '<div class="mp-top-title" id="mpTitle" style="display:none">POST</div>' +
-      '<button type="button" class="mp-publish" data-a="do-publish" id="mpPublishBtn" style="display:none">Publicar</button>' +
+      '<button type="button" class="mp-publish" data-a="do-publish" id="mpPublishBtn" style="display:none">PUBLICAR</button>' +
       '</div>' +
 
       /* HUB */

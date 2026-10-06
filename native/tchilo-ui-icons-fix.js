@@ -1,131 +1,143 @@
 /**
- * Tchilo — SMS no topbar + lupa estavel
- * v5 — icone SMS (sms-icon.svg), sem texto
+ * Tchilo — SMS topbar + lupa — v6
+ * Nao substitui o sms-icon.svg do utilizador; so garante tamanho e ordem.
  */
 (function () {
   'use strict';
-  if (window.__tchiloUiIconsFixV5) return;
+  if (window.__tchiloUiIconsFixV6) return;
+  window.__tchiloUiIconsFixV6 = true;
   window.__tchiloUiIconsFixV5 = true;
   window.__tchiloUiIconsFixV4 = true;
   window.__tchiloUiIconsFixV3 = true;
   window.__tchiloUiIconsFixV2 = true;
   window.__tchiloUiIconsFixV1 = true;
 
-  var placed = false;
-  var SMS_ICON = '<img class="nav-sms-icon" src="sms-icon.svg" alt="SMS" width="28" height="28" style="width:28px;height:28px;object-fit:contain;display:block;">';
+  var SMS_SRC = 'sms-icon.svg?v=20';
+  var SMS_SIZE = 36;
+  var SEARCH_SIZE = 34;
 
   function injectCSS() {
     var st = document.getElementById('tchiloUiIconsCSS');
     if (!st) {
       st = document.createElement('style');
       st.id = 'tchiloUiIconsCSS';
-      document.head.appendChild(st);
+      (document.head || document.documentElement).appendChild(st);
     }
     st.textContent =
       '#screen-feed .topbar-icons,.topbar-icons{' +
-      'display:flex!important;align-items:center!important;gap:16px!important;position:relative!important;}' +
+      'display:flex!important;align-items:center!important;gap:14px!important;}' +
       '#screen-feed .topbar-icons .icon-btn,.topbar-icons .icon-btn{' +
       'width:auto!important;height:auto!important;min-width:0!important;' +
       'border:0!important;border-radius:0!important;' +
       'background:transparent!important;box-shadow:none!important;' +
       'padding:4px!important;display:inline-flex!important;' +
-      'align-items:center!important;justify-content:center!important;' +
-      'cursor:pointer!important;position:static!important;transform:none!important;' +
-      'transition:none!important;animation:none!important;}' +
-      '#screen-feed .topbar-icons .icon-btn svg,.topbar-icons .icon-btn svg{' +
-      'width:28px!important;height:28px!important;display:block!important;stroke-width:2.4!important;' +
-      'transform:none!important;transition:none!important;animation:none!important;}' +
+      'align-items:center!important;justify-content:center!important;}' +
       '.topbar-icons .nav-sms-text{display:none!important;}' +
       '.topbar-icons .nav-sms-icon,[data-top-messages] .nav-sms-icon,[data-top-messages] img{' +
-      'width:28px!important;height:28px!important;object-fit:contain!important;' +
-      'display:block!important;border:0!important;background:none!important;padding:0!important;margin:0!important;}' +
-      '[data-top-messages]{' +
-      'display:inline-flex!important;align-items:center!important;' +
-      'opacity:1!important;visibility:visible!important;pointer-events:auto!important;' +
-      'position:static!important;transform:none!important;}';
+      'width:' + SMS_SIZE + 'px!important;height:' + SMS_SIZE + 'px!important;' +
+      'object-fit:contain!important;display:block!important;border:0!important;' +
+      'background:none!important;padding:0!important;margin:0!important;}' +
+      '.topbar-icons .icon-btn[onclick*="search"] svg,' +
+      '.topbar-icons .icon-btn[aria-label*="esquisar"] svg{' +
+      'width:' + SEARCH_SIZE + 'px!important;height:' + SEARCH_SIZE + 'px!important;}' +
+      '[data-top-messages]{display:inline-flex!important;order:1!important;}' +
+      '.topbar-icons .icon-btn[onclick*="search"]{order:2!important;}';
   }
 
-  function openMessages(e) {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    try { if (typeof goTo === 'function') goTo('messages'); } catch (err) {}
+  function isSearch(el) {
+    var s = ((el.getAttribute('onclick') || '') + (el.getAttribute('aria-label') || '')).toLowerCase();
+    return s.indexOf('search') >= 0 || s.indexOf('pesquis') >= 0;
+  }
+
+  function isMsg(el) {
+    if (el.getAttribute('data-top-messages')) return true;
+    var s = ((el.getAttribute('onclick') || '') + (el.getAttribute('aria-label') || '') + (el.getAttribute('title') || '')).toLowerCase();
+    return s.indexOf('message') >= 0 || s.indexOf('sms') >= 0 || s.indexOf('mensagem') >= 0;
   }
 
   function fixTopbarIcons() {
-    var bar =
-      document.querySelector('#screen-feed .topbar-icons') ||
-      document.querySelector('.topbar .topbar-icons') ||
-      document.querySelector('.topbar-icons');
-    if (!bar) return false;
+    var bar = document.querySelector('#screen-feed .topbar-icons, .topbar-icons');
+    if (!bar) return;
 
-    var searchBtn =
-      bar.querySelector('.icon-btn[onclick*="search"]') ||
-      bar.querySelector('[onclick*="search"]') ||
-      null;
-    if (!searchBtn) {
-      var candidates = bar.querySelectorAll('.icon-btn');
-      for (var i = 0; i < candidates.length; i++) {
-        if (candidates[i].querySelector('svg circle') && !candidates[i].getAttribute('data-top-messages')) {
-          searchBtn = candidates[i];
-          break;
+    var sms = bar.querySelector('[data-top-messages]');
+    if (!sms) {
+      Array.prototype.slice.call(bar.children).forEach(function (c) {
+        if (isMsg(c)) {
+          sms = c;
+          sms.setAttribute('data-top-messages', '1');
         }
-      }
-    }
-    if (searchBtn) {
-      searchBtn.querySelectorAll('svg').forEach(function (svg) {
-        svg.setAttribute('width', '28');
-        svg.setAttribute('height', '28');
-        svg.style.setProperty('width', '28px', 'important');
-        svg.style.setProperty('height', '28px', 'important');
-        svg.style.setProperty('transform', 'none', 'important');
       });
     }
 
-    var sms =
-      bar.querySelector('[data-top-messages]') ||
-      bar.querySelector('.topbar-sms');
-
     if (!sms) {
-      sms = document.createElement('button');
-      sms.type = 'button';
-      sms.className = 'icon-btn topbar-sms';
+      sms = document.createElement('div');
+      sms.className = 'icon-btn';
       sms.setAttribute('data-top-messages', '1');
       sms.setAttribute('aria-label', 'Mensagens');
-      sms.innerHTML = SMS_ICON;
-      sms.addEventListener('click', openMessages);
-      if (searchBtn && searchBtn.parentNode === bar) {
-        bar.insertBefore(sms, searchBtn);
-      } else {
-        bar.appendChild(sms);
-      }
-    } else {
-      sms.style.setProperty('display', 'inline-flex', 'important');
-      sms.style.setProperty('visibility', 'visible', 'important');
-      sms.style.setProperty('opacity', '1', 'important');
-      sms.style.setProperty('transform', 'none', 'important');
-      /* Remover texto SMS e garantir icone */
-      sms.querySelectorAll('.nav-sms-text').forEach(function (n) { try { n.remove(); } catch (e) {} });
-      if (!sms.querySelector('.nav-sms-icon, img[src*="sms-icon"]')) {
-        sms.innerHTML = SMS_ICON;
-      }
-      if (!sms.__tchiloSmsBound) {
-        sms.addEventListener('click', openMessages);
-        sms.__tchiloSmsBound = true;
-      }
+      sms.setAttribute('title', 'SMS');
+      sms.onclick = function () {
+        try {
+          if (typeof goTo === 'function') goTo('messages');
+        } catch (e) {}
+      };
+      var searchEl = null;
+      Array.prototype.slice.call(bar.children).forEach(function (c) {
+        if (isSearch(c)) searchEl = c;
+      });
+      if (searchEl) bar.insertBefore(sms, searchEl);
+      else bar.appendChild(sms);
     }
 
-    return true;
+    var img = sms.querySelector('img');
+    if (!img) {
+      img = document.createElement('img');
+      img.className = 'nav-sms-icon';
+      img.alt = 'Mensagens';
+      sms.insertBefore(img, sms.firstChild);
+    }
+    var cur = img.getAttribute('src') || '';
+    if (cur.indexOf('sms-icon.svg') === -1 || cur.indexOf('v=20') === -1) {
+      img.src = SMS_SRC;
+    }
+    img.className = 'nav-sms-icon';
+    img.width = SMS_SIZE;
+    img.height = SMS_SIZE;
+    img.style.cssText =
+      'width:' + SMS_SIZE + 'px;height:' + SMS_SIZE + 'px;object-fit:contain;display:block;';
+
+    sms.querySelectorAll('span,.nav-sms-text').forEach(function (n) {
+      try { n.remove(); } catch (e) {}
+    });
+    sms.querySelectorAll('svg').forEach(function (s) {
+      try { s.style.display = 'none'; } catch (e) {}
+    });
+
+    var search = null;
+    Array.prototype.slice.call(bar.children).forEach(function (c) {
+      if (isSearch(c)) search = c;
+    });
+    if (search && sms) {
+      var kids = Array.prototype.slice.call(bar.children);
+      if (kids.indexOf(sms) > kids.indexOf(search)) {
+        bar.insertBefore(sms, search);
+      }
+      search.querySelectorAll('svg').forEach(function (svg) {
+        svg.setAttribute('width', String(SEARCH_SIZE));
+        svg.setAttribute('height', String(SEARCH_SIZE));
+        svg.style.width = SEARCH_SIZE + 'px';
+        svg.style.height = SEARCH_SIZE + 'px';
+      });
+    }
   }
 
-  function runOnce() {
+  function run() {
     injectCSS();
-    if (fixTopbarIcons()) placed = true;
+    fixTopbarIcons();
   }
 
-  runOnce();
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', runOnce);
-  }
-  setTimeout(runOnce, 150);
-  setTimeout(runOnce, 600);
-  setTimeout(function () { if (!placed) runOnce(); }, 1500);
+  run();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  setTimeout(run, 100);
+  setTimeout(run, 600);
+  setTimeout(run, 1500);
 })();

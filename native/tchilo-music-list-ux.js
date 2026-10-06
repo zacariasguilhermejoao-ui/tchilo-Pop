@@ -326,7 +326,7 @@
             title: t.title || t.title_short || 'Música',
             artist: (t.artist && t.artist.name) || 'Artista',
             preview: t.preview || '',
-            cover: (t.album && (t.album.cover_big || t.album.cover_big || t.album.cover_medium || t.album.cover)) || '',
+            cover: (t.album && (t.album.cover_big || t.album.cover_big || t.album.cover_big || t.album.cover_medium || t.album.cover)) || '',
             duration: t.duration || 0
           };
         });
@@ -452,7 +452,7 @@
                 title: t.title || t.title_short || 'Música',
                 artist: (t.artist && t.artist.name) || 'Artista',
                 preview: t.preview || '',
-                cover: (t.album && (t.album.cover_big || t.album.cover_big || t.album.cover_medium || t.album.cover)) || '',
+                cover: (t.album && (t.album.cover_big || t.album.cover_big || t.album.cover_big || t.album.cover_medium || t.album.cover)) || '',
                 duration: t.duration || 0
               };
             });

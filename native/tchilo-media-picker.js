@@ -1,49 +1,71 @@
 /**
- * Tchilo Media Picker — Instagram-style + native PhotoKit/MediaStore
+ * Tchilo Create Flow v3
+ * + → Hub (voltar / tema / story + câmara + galeria + recentes)
+ * Tema → escrever + fundo + publicar
+ * Post → composição (descrição, música, cortar) → Publicar + progresso
+ * Story → layout story → publicar
  */
 (function () {
   'use strict';
-  if (window.__TCHILO_MEDIA_PICKER_V2) return;
+  if (window.__TCHILO_MEDIA_PICKER_V3) return;
+  window.__TCHILO_MEDIA_PICKER_V3 = true;
   window.__TCHILO_MEDIA_PICKER_V2 = true;
-  window.__TCHILO_MEDIA_PICKER_V1 = true;
 
-  var MODE = 'post';
-  var TAB = 'fotos';
-  var selected = [];
+  var MODE = 'post'; // post | story
+  var STEP = 'hub'; // hub | theme | compose | story | publishing
   var items = [];
-  var albums = [];
+  var selected = [];
   var thumbCache = Object.create(null);
   var page = 0;
   var PAGE_SIZE = 60;
   var loading = false;
-  var limitedAccess = false;
-  var permDenied = false;
   var hasMore = true;
+  var permDenied = false;
+  var limitedAccess = false;
+  var returnScreen = 'feed';
+  var themeBg = 'm1';
+  var publishPct = 0;
+
+  var THEME_COLORS = [
+    { id: 'm1', bg: '#7DFFB3' },
+    { id: 'm2', bg: '#C8F560' },
+    { id: 'm3', bg: '#B39CFF' },
+    { id: 'm4', bg: '#FF4B75' },
+    { id: 'm5', bg: '#F7F6F2' },
+    { id: 'm6', bg: '#0B0B0C' },
+    { id: 'm7', bg: '#4FC3F7' },
+    { id: 'm8', bg: '#FFB74D' }
+  ];
 
   function $(id) { return document.getElementById(id); }
-
-  function toast(msg) {
-    try {
-      if (typeof showToast === 'function') showToast(msg);
-    } catch (e) {}
+  function toast(m) {
+    try { if (typeof showToast === 'function') showToast(m); } catch (e) {}
   }
 
   function nativeGallery() {
     try {
-      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TchiloMediaGallery) {
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TchiloMediaGallery)
         return window.Capacitor.Plugins.TchiloMediaGallery;
-      }
     } catch (e) {}
     return null;
   }
 
   function getCamera() {
     try {
-      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Camera) {
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Camera)
         return window.Capacitor.Plugins.Camera;
-      }
     } catch (e) {}
     return null;
+  }
+
+  function rememberReturn() {
+    try {
+      var active = document.querySelector('.screen.active');
+      if (active && active.id) {
+        var id = active.id.replace(/^screen-/, '');
+        if (id && id !== 'create') returnScreen = id;
+      }
+    } catch (e) {}
   }
 
   function injectCSS() {
@@ -51,49 +73,85 @@
     var st = document.createElement('style');
     st.id = 'tchilo-mp-css';
     st.textContent = [
-      '#tchiloMediaPicker{position:fixed;inset:0;z-index:10050;display:none;flex-direction:column;background:#000;color:#fff;',
+      '#tchiloMediaPicker{position:fixed;inset:0;z-index:10050;display:none;flex-direction:column;background:#0B0B0C;color:#fff;',
       'font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}',
       '#tchiloMediaPicker.open{display:flex!important;}',
       '#tchiloMediaPicker *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}',
-      '#tchiloMediaPicker .mp-top{display:flex;align-items:center;justify-content:space-between;',
-      'padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top));flex-shrink:0;}',
-      '#tchiloMediaPicker .mp-top button{background:none;border:0;color:#fff;font:600 16px system-ui,-apple-system,sans-serif;cursor:pointer;padding:8px;}',
-      '#tchiloMediaPicker .mp-top .mp-title{font:700 17px system-ui,-apple-system,sans-serif;}',
-      '#tchiloMediaPicker .mp-top .mp-next{color:#3897f0;font-weight:700;}',
-      '#tchiloMediaPicker .mp-top .mp-next:disabled{opacity:.35;}',
-      '#tchiloMediaPicker .mp-tabs{display:flex;gap:8px;padding:0 14px 10px;flex-shrink:0;}',
-      '#tchiloMediaPicker .mp-tab{padding:8px 14px;border-radius:10px;border:0;background:rgba(255,255,255,.12);color:#fff;font:600 13px system-ui,sans-serif;cursor:pointer;}',
-      '#tchiloMediaPicker .mp-tab.on{background:rgba(255,255,255,.22);}',
-      '#tchiloMediaPicker .mp-tools{display:flex;gap:10px;padding:0 14px 12px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;}',
-      '#tchiloMediaPicker .mp-tools::-webkit-scrollbar{display:none;}',
-      '#tchiloMediaPicker .mp-tool{min-width:88px;padding:14px 12px;border-radius:14px;background:rgba(255,255,255,.1);border:0;color:#fff;text-align:center;cursor:pointer;font:600 12px system-ui,sans-serif;}',
-      '#tchiloMediaPicker .mp-tool svg{display:block;margin:0 auto 6px;stroke:#34c759;}',
+      /* top */
+      '#tchiloMediaPicker .mp-top{display:flex;align-items:center;gap:8px;padding:10px 12px;',
+      'padding-top:max(10px,env(safe-area-inset-top));flex-shrink:0;}',
+      '#tchiloMediaPicker .mp-icon-btn{width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.1);',
+      'color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;}',
+      '#tchiloMediaPicker .mp-icon-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;}',
+      '#tchiloMediaPicker .mp-top-title{flex:1;text-align:center;font:700 16px system-ui,-apple-system,sans-serif;}',
+      '#tchiloMediaPicker .mp-chip{border:0;border-radius:999px;padding:8px 14px;font:600 13px system-ui,sans-serif;',
+      'background:rgba(255,255,255,.12);color:#fff;cursor:pointer;}',
+      '#tchiloMediaPicker .mp-chip.on{background:#fff;color:#0B0B0C;}',
+      '#tchiloMediaPicker .mp-publish{border:0;border-radius:999px;padding:8px 16px;font:700 14px system-ui,sans-serif;',
+      'background:#3897f0;color:#fff;cursor:pointer;}',
+      '#tchiloMediaPicker .mp-publish:disabled{opacity:.4;}',
+      /* body steps */
+      '#tchiloMediaPicker .mp-step{display:none;flex:1;min-height:0;flex-direction:column;}',
+      '#tchiloMediaPicker .mp-step.on{display:flex!important;}',
+      /* hub actions */
+      '#tchiloMediaPicker .mp-actions{display:flex;gap:12px;padding:12px 14px;flex-shrink:0;}',
+      '#tchiloMediaPicker .mp-action{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;',
+      'padding:18px 10px;border-radius:16px;border:0;background:rgba(255,255,255,.08);color:#fff;cursor:pointer;',
+      'font:600 13px system-ui,sans-serif;}',
+      '#tchiloMediaPicker .mp-action svg{width:28px;height:28px;stroke:#fff;fill:none;}',
+      '#tchiloMediaPicker .mp-section{padding:0 14px 8px;font:600 13px system-ui,sans-serif;opacity:.7;flex-shrink:0;}',
+      /* grid */
       '#tchiloMediaPicker .mp-grid-wrap{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}',
-      '#tchiloMediaPicker .mp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#111;}',
-      '#tchiloMediaPicker .mp-cell{position:relative;aspect-ratio:1;background:#1a1a1a;overflow:hidden;cursor:pointer;border:0;padding:0;}',
-      '#tchiloMediaPicker .mp-cell img{width:100%;height:100%;object-fit:cover;display:block;background:#222;}',
-      '#tchiloMediaPicker .mp-cell.cam{background:#0d0d0d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#fff;}',
-      '#tchiloMediaPicker .mp-cell.cam svg{width:36px;height:36px;stroke:#fff;fill:none;}',
-      '#tchiloMediaPicker .mp-cell.cam span{font:600 12px system-ui,sans-serif;}',
-      '#tchiloMediaPicker .mp-cell .mp-dur{position:absolute;right:4px;bottom:4px;font:600 11px system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.8);}',
-      '#tchiloMediaPicker .mp-cell .mp-check{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1.5px solid #fff;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font:700 11px system-ui,sans-serif;color:#fff;}',
-      '#tchiloMediaPicker .mp-cell.on .mp-check{background:#3897f0;border-color:#3897f0;}',
+      '#tchiloMediaPicker .mp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:#111;}',
+      '#tchiloMediaPicker .mp-cell{position:relative;aspect-ratio:1;background:#1a1a1a;border:0;padding:0;overflow:hidden;cursor:pointer;}',
+      '#tchiloMediaPicker .mp-cell img{width:100%;height:100%;object-fit:cover;display:block;}',
+      '#tchiloMediaPicker .mp-cell .mp-dur{position:absolute;right:4px;bottom:4px;font:600 11px system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000;}',
       '#tchiloMediaPicker .mp-cell.on::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 3px #3897f0;pointer-events:none;}',
-      '#tchiloMediaPicker .mp-bottom{flex-shrink:0;padding:10px 14px;padding-bottom:max(12px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;background:#0a0a0a;}',
-      '#tchiloMediaPicker .mp-recent{background:none;border:0;color:#fff;font:600 15px system-ui,sans-serif;cursor:pointer;}',
-      '#tchiloMediaPicker .mp-select{padding:10px 18px;border-radius:999px;border:0;background:rgba(255,255,255,.14);color:#fff;font:600 14px system-ui,sans-serif;cursor:pointer;}',
-      '#tchiloMediaPicker .mp-modes{position:absolute;left:50%;bottom:max(72px,calc(56px + env(safe-area-inset-bottom)));transform:translateX(-50%);display:flex;padding:4px;border-radius:999px;background:rgba(40,40,40,.92);backdrop-filter:blur(12px);}',
-      '#tchiloMediaPicker .mp-mode{border:0;background:transparent;color:rgba(255,255,255,.45);font:700 12px system-ui,sans-serif;letter-spacing:.06em;padding:10px 16px;border-radius:999px;cursor:pointer;}',
-      '#tchiloMediaPicker .mp-mode.on{background:rgba(255,255,255,.16);color:#fff;}',
-      '#tchiloMediaPicker .mp-empty{padding:40px 24px;text-align:center;color:rgba(255,255,255,.55);font:500 14px system-ui,sans-serif;line-height:1.5;}',
-      '#tchiloMediaPicker .mp-empty button{margin-top:14px;padding:12px 20px;border-radius:12px;border:0;background:#3897f0;color:#fff;font:600 14px system-ui,sans-serif;cursor:pointer;}',
-      '#tchiloMediaPicker .mp-album{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);cursor:pointer;background:transparent;border-left:0;border-right:0;border-top:0;width:100%;color:#fff;text-align:left;}',
-      '#tchiloMediaPicker .mp-album img{width:56px;height:56px;object-fit:cover;border-radius:6px;background:#222;}',
-      '#tchiloMediaPicker .mp-album b{display:block;font:600 15px system-ui,sans-serif;}',
-      '#tchiloMediaPicker .mp-album span{font:500 12px system-ui,sans-serif;opacity:.55;}',
-      '#tchiloMediaPicker .mp-hidden-input{position:fixed;left:-9999px;width:1px;height:1px;opacity:0;}'
+      '#tchiloMediaPicker .mp-cell .mp-check{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;',
+      'border:1.5px solid #fff;background:rgba(0,0,0,.3);color:#fff;font:700 11px system-ui,sans-serif;',
+      'display:flex;align-items:center;justify-content:center;}',
+      '#tchiloMediaPicker .mp-cell.on .mp-check{background:#3897f0;border-color:#3897f0;}',
+      '#tchiloMediaPicker .mp-empty{padding:32px 20px;text-align:center;color:rgba(255,255,255,.55);font:500 14px system-ui,sans-serif;line-height:1.45;}',
+      '#tchiloMediaPicker .mp-empty button{margin-top:12px;padding:12px 18px;border:0;border-radius:12px;background:#3897f0;color:#fff;font:600 14px system-ui,sans-serif;cursor:pointer;}',
+      /* theme */
+      '#tchiloMediaPicker .mp-theme-preview{margin:12px 16px;border-radius:16px;min-height:42vh;display:flex;align-items:center;justify-content:center;',
+      'padding:24px;text-align:center;font:700 28px system-ui,-apple-system,sans-serif;line-height:1.2;word-break:break-word;}',
+      '#tchiloMediaPicker .mp-theme-colors{display:flex;gap:10px;padding:8px 16px;overflow-x:auto;flex-shrink:0;}',
+      '#tchiloMediaPicker .mp-swatch{width:36px;height:36px;border-radius:50%;border:2px solid transparent;cursor:pointer;flex-shrink:0;}',
+      '#tchiloMediaPicker .mp-swatch.on{border-color:#fff;box-shadow:0 0 0 2px #3897f0;}',
+      '#tchiloMediaPicker .mp-theme-input{margin:8px 16px;width:calc(100% - 32px);border:0;border-radius:12px;padding:14px;',
+      'background:rgba(255,255,255,.1);color:#fff;font:500 16px system-ui,sans-serif;outline:none;}',
+      '#tchiloMediaPicker .mp-theme-input::placeholder{color:rgba(255,255,255,.4);}',
+      /* compose */
+      '#tchiloMediaPicker .mp-compose-body{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;}',
+      '#tchiloMediaPicker .mp-preview{flex:1;min-height:0;background:#000;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}',
+      '#tchiloMediaPicker .mp-preview img,#tchiloMediaPicker .mp-preview video{max-width:100%;max-height:100%;object-fit:contain;}',
+      '#tchiloMediaPicker .mp-side{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:2;}',
+      '#tchiloMediaPicker .mp-side button{width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.45);',
+      'color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);}',
+      '#tchiloMediaPicker .mp-side button svg{width:20px;height:20px;stroke:currentColor;fill:none;}',
+      '#tchiloMediaPicker .mp-caption-bar{flex-shrink:0;padding:12px 14px;padding-bottom:max(12px,env(safe-area-inset-bottom));',
+      'background:#111;border-top:1px solid rgba(255,255,255,.08);}',
+      '#tchiloMediaPicker .mp-caption{width:100%;border:0;border-radius:12px;padding:12px 14px;background:rgba(255,255,255,.08);',
+      'color:#fff;font:500 15px system-ui,sans-serif;outline:none;resize:none;min-height:44px;max-height:100px;}',
+      '#tchiloMediaPicker .mp-caption::placeholder{color:rgba(255,255,255,.4);}',
+      /* story compose — vertical full */
+      '#tchiloMediaPicker .mp-story-preview{flex:1;margin:0;background:#111;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}',
+      '#tchiloMediaPicker .mp-story-preview img,#tchiloMediaPicker .mp-story-preview video{width:100%;height:100%;object-fit:cover;}',
+      /* publishing */
+      '#tchiloMediaPicker .mp-pub{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;}',
+      '#tchiloMediaPicker .mp-ring{width:88px;height:88px;border-radius:50%;border:4px solid rgba(255,255,255,.15);',
+      'border-top-color:#3897f0;animation:mpSpin 0.9s linear infinite;}',
+      '@keyframes mpSpin{to{transform:rotate(360deg)}}',
+      '#tchiloMediaPicker .mp-pct{font:700 28px system-ui,-apple-system,sans-serif;letter-spacing:-0.02em;}',
+      '#tchiloMediaPicker .mp-pub-label{font:500 14px system-ui,sans-serif;opacity:.65;}',
+      '#tchiloMediaPicker .mp-hidden{position:fixed;left:-9999px;width:1px;height:1px;opacity:0;}'
     ].join('');
     (document.head || document.documentElement).appendChild(st);
+  }
+
+  function svg(paths) {
+    return '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + paths + '</svg>';
   }
 
   function ensureDOM() {
@@ -102,42 +160,112 @@
     var root = document.createElement('div');
     root.id = 'tchiloMediaPicker';
     root.innerHTML =
-      '<div class="mp-top">' +
-      '<button type="button" class="mp-cancel" data-a="cancel">Cancelar</button>' +
-      '<div class="mp-title">Novo post</div>' +
-      '<button type="button" class="mp-next" data-a="next" disabled>Avançar</button></div>' +
-      '<div class="mp-tabs">' +
-      '<button type="button" class="mp-tab on" data-tab="fotos">Fotos</button>' +
-      '<button type="button" class="mp-tab" data-tab="albuns">Álbuns</button></div>' +
-      '<div class="mp-tools">' +
-      '<button type="button" class="mp-tool" data-tool="text"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5h16v2M12 5v14M9 19h6"/></svg>Texto</button>' +
-      '<button type="button" class="mp-tool" data-tool="music"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Música</button>' +
-      '<button type="button" class="mp-tool" data-tool="layout"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>Layout</button></div>' +
+      /* TOP */
+      '<div class="mp-top" id="mpTop">' +
+      '<button type="button" class="mp-icon-btn" data-a="back" aria-label="Voltar">' +
+      svg('<path d="M15 18l-6-6 6-6"/>') + '</button>' +
+      '<div class="mp-top-title" id="mpTitle">Criar</div>' +
+      '<button type="button" class="mp-chip" data-a="theme" id="mpThemeBtn">Tema</button>' +
+      '<button type="button" class="mp-chip" data-a="story-mode" id="mpStoryBtn">Story</button>' +
+      '<button type="button" class="mp-publish" data-a="do-publish" id="mpPublishBtn" style="display:none">Publicar</button>' +
+      '</div>' +
+
+      /* HUB */
+      '<div class="mp-step on" id="mpStepHub" data-step="hub">' +
+      '<div class="mp-actions">' +
+      '<button type="button" class="mp-action" data-a="camera">' +
+      svg('<path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>') +
+      '<span>Câmara</span></button>' +
+      '<button type="button" class="mp-action" data-a="gallery">' +
+      svg('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>') +
+      '<span>Galeria</span></button>' +
+      '</div>' +
+      '<div class="mp-section">Recentes</div>' +
       '<div class="mp-grid-wrap" id="mpGridWrap"><div class="mp-grid" id="mpGrid"></div></div>' +
-      '<div class="mp-modes">' +
-      '<button type="button" class="mp-mode on" data-mode="post">POST</button>' +
-      '<button type="button" class="mp-mode" data-mode="story">STORY</button>' +
-      '<button type="button" class="mp-mode" data-mode="instant">INSTANT</button></div>' +
-      '<div class="mp-bottom">' +
-      '<button type="button" class="mp-recent" data-a="library">Recentes ›</button>' +
-      '<button type="button" class="mp-select" data-a="select">Selecionar</button></div>' +
-      '<input class="mp-hidden-input" id="mpFileInput" type="file" accept="image/*,video/*" multiple />' +
-      '<input class="mp-hidden-input" id="mpCamInput" type="file" accept="image/*,video/*" capture="environment" />';
+      '</div>' +
+
+      /* THEME */
+      '<div class="mp-step" id="mpStepTheme" data-step="theme">' +
+      '<div class="mp-theme-preview" id="mpThemePreview">Escreve algo…</div>' +
+      '<div class="mp-theme-colors" id="mpThemeColors"></div>' +
+      '<input class="mp-theme-input" id="mpThemeTitle" maxlength="40" placeholder="Título (opcional)" />' +
+      '<textarea class="mp-theme-input" id="mpThemeText" rows="3" maxlength="200" placeholder="Escreve o teu texto…"></textarea>' +
+      '</div>' +
+
+      /* COMPOSE POST */
+      '<div class="mp-step" id="mpStepCompose" data-step="compose">' +
+      '<div class="mp-compose-body">' +
+      '<div class="mp-preview" id="mpComposePreview"></div>' +
+      '<div class="mp-side">' +
+      '<button type="button" data-a="music" title="Música">' + svg('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>') + '</button>' +
+      '<button type="button" data-a="crop" title="Cortar">' + svg('<path d="M6 3v15h15"/><path d="M3 6h15v15"/>') + '</button>' +
+      '</div>' +
+      '<div class="mp-caption-bar">' +
+      '<textarea class="mp-caption" id="mpCaption" rows="2" placeholder="Escreve uma descrição…"></textarea>' +
+      '</div></div></div>' +
+
+      /* STORY */
+      '<div class="mp-step" id="mpStepStory" data-step="story">' +
+      '<div class="mp-story-preview" id="mpStoryPreview">' +
+      '<div class="mp-empty">Escolhe uma foto ou vídeo<br>ou usa a câmara</div></div>' +
+      '<div class="mp-caption-bar">' +
+      '<textarea class="mp-caption" id="mpStoryCaption" rows="2" placeholder="Adiciona texto ao story…"></textarea>' +
+      '</div></div>' +
+
+      /* PUBLISHING */
+      '<div class="mp-step" id="mpStepPublishing" data-step="publishing">' +
+      '<div class="mp-pub">' +
+      '<div class="mp-ring" id="mpRing"></div>' +
+      '<div class="mp-pct" id="mpPct">0%</div>' +
+      '<div class="mp-pub-label" id="mpPubLabel">A publicar…</div>' +
+      '</div></div>' +
+
+      '<input class="mp-hidden" id="mpFileInput" type="file" accept="image/*,video/*" multiple />' +
+      '<input class="mp-hidden" id="mpCamInput" type="file" accept="image/*,video/*" capture="environment" />';
+
     document.body.appendChild(root);
-    root.addEventListener('click', onRootClick);
+    root.addEventListener('click', onClick);
     $('mpGridWrap').addEventListener('scroll', onScroll);
-    $('mpFileInput').addEventListener('change', onFilesPicked);
-    $('mpCamInput').addEventListener('change', onFilesPicked);
+    $('mpFileInput').addEventListener('change', onFiles);
+    $('mpCamInput').addEventListener('change', onFiles);
+    $('mpThemeText').addEventListener('input', syncThemePreview);
+    $('mpThemeTitle').addEventListener('input', syncThemePreview);
+
+    var colors = $('mpThemeColors');
+    THEME_COLORS.forEach(function (c, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'mp-swatch' + (i === 0 ? ' on' : '');
+      b.style.background = c.bg;
+      b.setAttribute('data-a', 'swatch');
+      b.setAttribute('data-bg', c.id);
+      b.setAttribute('data-color', c.bg);
+      colors.appendChild(b);
+    });
+    themeBg = THEME_COLORS[0].bg;
   }
 
-  function setTitle() {
-    var t = $('tchiloMediaPicker').querySelector('.mp-title');
-    if (t) t.textContent = MODE === 'story' ? 'Novo story' : MODE === 'instant' ? 'Instant' : 'Novo post';
-  }
+  function setStep(step) {
+    STEP = step;
+    document.querySelectorAll('#tchiloMediaPicker .mp-step').forEach(function (el) {
+      el.classList.toggle('on', el.getAttribute('data-step') === step);
+    });
+    var title = $('mpTitle');
+    var themeBtn = $('mpThemeBtn');
+    var storyBtn = $('mpStoryBtn');
+    var pubBtn = $('mpPublishBtn');
 
-  function updateNext() {
-    var btn = $('tchiloMediaPicker').querySelector('.mp-next');
-    if (btn) btn.disabled = selected.length === 0;
+    themeBtn.style.display = step === 'hub' ? '' : 'none';
+    storyBtn.style.display = step === 'hub' ? '' : 'none';
+    pubBtn.style.display = (step === 'compose' || step === 'story' || step === 'theme') ? '' : 'none';
+
+    if (step === 'hub') title.textContent = MODE === 'story' ? 'Story' : 'Criar';
+    if (step === 'theme') title.textContent = 'Tema';
+    if (step === 'compose') title.textContent = 'Nova publicação';
+    if (step === 'story') title.textContent = 'Novo story';
+    if (step === 'publishing') title.textContent = 'Publicar';
+
+    storyBtn.classList.toggle('on', MODE === 'story');
   }
 
   function formatDur(sec) {
@@ -149,10 +277,10 @@
   }
 
   function uid() {
-    return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   }
 
-  function mapNativeItem(n) {
+  function mapNative(n) {
     return {
       id: String(n.id),
       url: n.uri || n.thumbUri || '',
@@ -160,8 +288,7 @@
       type: n.mediaType === 'video' ? 'video' : 'image',
       duration: n.duration || 0,
       file: null,
-      name: (n.mediaType === 'video' ? 'video' : 'foto') + '_' + n.id,
-      native: true
+      name: 'media_' + n.id
     };
   }
 
@@ -188,26 +315,17 @@
   async function loadRecent(reset) {
     if (loading) return;
     loading = true;
-    if (reset) {
-      page = 0;
-      items = [];
-      hasMore = true;
-      selected = [];
-    }
+    if (reset) { page = 0; items = []; hasMore = true; }
     var gal = nativeGallery();
     if (gal) {
       var ok = await ensurePermission();
-      if (!ok) {
-        loading = false;
-        renderGrid();
-        return;
-      }
+      if (!ok) { loading = false; renderGrid(); return; }
       try {
         var res = await gal.getRecentMedia({ limit: PAGE_SIZE, offset: page * PAGE_SIZE, mediaType: 'all' });
         var list = (res && res.items) || [];
         if (res && res.limited) limitedAccess = true;
         list.forEach(function (n) {
-          var it = mapNativeItem(n);
+          var it = mapNative(n);
           if (it.thumb) thumbCache[it.id] = it.thumb;
           items.push(it);
         });
@@ -215,180 +333,156 @@
         page += 1;
         loading = false;
         renderGrid();
-        updateNext();
         return;
       } catch (e) {
-        console.warn('native gallery', e);
-        if (String(e && e.message || e).toLowerCase().indexOf('permission') >= 0) {
-          permDenied = true;
-          loading = false;
-          renderGrid();
-          return;
-        }
+        if (String(e && e.message || e).toLowerCase().indexOf('permission') >= 0) permDenied = true;
       }
     }
     loading = false;
-    // web fallback: empty until user picks files
     renderGrid();
-  }
-
-  async function loadAlbums() {
-    var gal = nativeGallery();
-    if (!gal) {
-      albums = [];
-      renderAlbums();
-      return;
-    }
-    var ok = await ensurePermission();
-    if (!ok) {
-      renderAlbums();
-      return;
-    }
-    try {
-      var res = await gal.getAlbums();
-      albums = (res && res.albums) || [];
-    } catch (e) {
-      albums = [];
-    }
-    renderAlbums();
-  }
-
-  async function openAlbum(albumId) {
-    TAB = 'fotos';
-    $('tchiloMediaPicker').querySelectorAll('.mp-tab').forEach(function (el) {
-      el.classList.toggle('on', el.getAttribute('data-tab') === 'fotos');
-    });
-    loading = true;
-    items = [];
-    selected = [];
-    page = 0;
-    var gal = nativeGallery();
-    try {
-      var res = await gal.getAlbumMedia({ albumId: albumId, limit: PAGE_SIZE, offset: 0 });
-      var list = (res && res.items) || [];
-      list.forEach(function (n) {
-        var it = mapNativeItem(n);
-        if (it.thumb) thumbCache[it.id] = it.thumb;
-        items.push(it);
-      });
-      hasMore = list.length >= PAGE_SIZE;
-      page = 1;
-    } catch (e) {
-      toast('Não foi possível abrir o álbum');
-    }
-    loading = false;
-    renderGrid();
-    updateNext();
-  }
-
-  function renderAlbums() {
-    var grid = $('mpGrid');
-    if (!grid) return;
-    if (permDenied) {
-      grid.innerHTML = '<div class="mp-empty" style="grid-column:1/-1">Sem acesso à galeria.<br><button type="button" data-a="library">Pedir permissão</button></div>';
-      return;
-    }
-    if (!albums.length) {
-      grid.innerHTML = '<div class="mp-empty" style="grid-column:1/-1">Sem álbuns.<br><button type="button" data-a="library">Recarregar</button></div>';
-      return;
-    }
-    var html = albums.map(function (a) {
-      return '<button type="button" class="mp-album" data-a="album" data-id="' + a.id + '">' +
-        (a.coverUri ? '<img src="' + a.coverUri + '" alt=""/>' : '<img alt=""/>') +
-        '<div><b>' + (a.title || 'Álbum') + '</b><span>' + (a.count || 0) + ' itens</span></div></button>';
-    }).join('');
-    grid.style.display = 'block';
-    grid.innerHTML = html;
   }
 
   function renderGrid() {
     var grid = $('mpGrid');
     if (!grid) return;
-    grid.style.display = 'grid';
-    var html = [];
-    html.push(
-      '<button type="button" class="mp-cell cam" data-a="camera">' +
-      '<svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
-      '<path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>' +
-      '<span>Câmara</span></button>'
-    );
     if (permDenied) {
-      grid.innerHTML = html.join('') +
-        '<div class="mp-empty" style="grid-column:1/-1">Sem acesso à galeria.<br>Permite nas definições do telemóvel.' +
-        '<br><button type="button" data-a="perm">Pedir permissão</button></div>';
+      grid.innerHTML = '<div class="mp-empty" style="grid-column:1/-1">Sem acesso à galeria.<br><button type="button" data-a="gallery">Abrir galeria</button></div>';
       return;
     }
     if (!items.length) {
-      grid.innerHTML = html.join('') +
-        '<div class="mp-empty" style="grid-column:1/-1">' +
-        (limitedAccess ? 'Acesso limitado.<br>' : '') +
-        (nativeGallery()
-          ? 'A carregar a galeria… ou toca para permitir acesso.'
-          : 'No browser usa <b>Selecionar</b> para escolher ficheiros.') +
-        '<br><button type="button" data-a="library">Abrir galeria</button></div>';
+      grid.innerHTML = '<div class="mp-empty" style="grid-column:1/-1">' +
+        (nativeGallery() ? 'A carregar recentes…' : 'Toca em Galeria para escolher fotos ou vídeos.') +
+        '<br><button type="button" data-a="gallery">Abrir galeria</button></div>';
       return;
     }
-    items.forEach(function (it) {
+    var html = items.map(function (it) {
       var on = selected.some(function (s) { return s.id === it.id; });
       var num = selected.findIndex(function (s) { return s.id === it.id; });
       var badge = on ? String(num + 1) : '';
       var dur = it.type === 'video' && it.duration ? formatDur(it.duration) : '';
       var src = thumbCache[it.id] || it.thumb || it.url;
-      html.push(
-        '<button type="button" class="mp-cell' + (on ? ' on' : '') + '" data-a="toggle" data-id="' + it.id + '">' +
+      return '<button type="button" class="mp-cell' + (on ? ' on' : '') + '" data-a="pick" data-id="' + it.id + '">' +
         '<img src="' + src + '" alt="" loading="lazy"/>' +
         (dur ? '<span class="mp-dur">' + dur + '</span>' : '') +
-        '<span class="mp-check">' + badge + '</span></button>'
-      );
-    });
-    grid.innerHTML = html.join('');
+        '<span class="mp-check">' + badge + '</span></button>';
+    }).join('');
+    grid.innerHTML = html;
   }
 
   function onScroll() {
     var wrap = $('mpGridWrap');
-    if (!wrap || loading || !hasMore || TAB !== 'fotos') return;
-    if (wrap.scrollTop + wrap.clientHeight > wrap.scrollHeight - 240) {
-      loadRecent(false);
-    }
+    if (!wrap || loading || !hasMore || STEP !== 'hub') return;
+    if (wrap.scrollTop + wrap.clientHeight > wrap.scrollHeight - 200) loadRecent(false);
   }
 
   function fileToItem(file) {
     return new Promise(function (resolve) {
       var url = URL.createObjectURL(file);
       var isVid = (file.type || '').indexOf('video/') === 0 || /\.(mp4|mov|m4v|webm)$/i.test(file.name || '');
-      var item = { id: uid(), url: url, thumb: url, type: isVid ? 'video' : 'image', file: file, name: file.name || 'media', duration: 0, native: false };
+      var item = { id: uid(), url: url, thumb: url, type: isVid ? 'video' : 'image', file: file, name: file.name || 'media', duration: 0 };
       if (!isVid) { resolve(item); return; }
       var v = document.createElement('video');
       v.preload = 'metadata';
       v.muted = true;
-      v.onloadedmetadata = function () {
-        item.duration = v.duration || 0;
-        resolve(item);
-      };
+      v.onloadedmetadata = function () { item.duration = v.duration || 0; resolve(item); };
       v.onerror = function () { resolve(item); };
       setTimeout(function () { resolve(item); }, 2000);
       v.src = url;
     });
   }
 
-  async function addFiles(fileList) {
-    if (!fileList || !fileList.length) return;
-    var arr = Array.prototype.slice.call(fileList);
+  async function onFiles(e) {
+    var files = e.target && e.target.files;
+    if (!files || !files.length) return;
+    var arr = Array.prototype.slice.call(files);
+    var picked = [];
     for (var i = 0; i < arr.length; i++) {
-      var it = await fileToItem(arr[i]);
-      items.unshift(it);
-      if (selected.length < 10) selected.push(it);
+      picked.push(await fileToItem(arr[i]));
     }
-    renderGrid();
-    updateNext();
-  }
-
-  function onFilesPicked(e) {
-    addFiles(e.target.files);
     try { e.target.value = ''; } catch (err) {}
+    selected = picked.slice(0, 10);
+    goAfterPick();
   }
 
-  async function openCamera() {
+  function goAfterPick() {
+    if (!selected.length) return;
+    if (MODE === 'story') {
+      paintStory();
+      setStep('story');
+    } else {
+      paintCompose();
+      setStep('compose');
+    }
+  }
+
+  function paintCompose() {
+    var box = $('mpComposePreview');
+    if (!box || !selected[0]) return;
+    box.innerHTML = '';
+    var m = selected[0];
+    if (m.type === 'video') {
+      var v = document.createElement('video');
+      v.src = m.url;
+      v.controls = true;
+      v.playsInline = true;
+      v.setAttribute('playsinline', '');
+      v.muted = false;
+      box.appendChild(v);
+    } else {
+      var img = document.createElement('img');
+      img.src = m.url;
+      img.alt = '';
+      box.appendChild(img);
+    }
+  }
+
+  function paintStory() {
+    var box = $('mpStoryPreview');
+    if (!box) return;
+    box.innerHTML = '';
+    if (!selected[0]) {
+      box.innerHTML = '<div class="mp-empty">Escolhe uma foto ou vídeo</div>';
+      return;
+    }
+    var m = selected[0];
+    if (m.type === 'video') {
+      var v = document.createElement('video');
+      v.src = m.url;
+      v.autoplay = true;
+      v.loop = true;
+      v.muted = true;
+      v.playsInline = true;
+      box.appendChild(v);
+    } else {
+      var img = document.createElement('img');
+      img.src = m.url;
+      img.alt = '';
+      box.appendChild(img);
+    }
+  }
+
+  function syncThemePreview() {
+    var title = ($('mpThemeTitle').value || '').trim();
+    var text = ($('mpThemeText').value || '').trim();
+    var el = $('mpThemePreview');
+    el.style.background = themeBg;
+    el.style.color = (themeBg === '#0B0B0C' || themeBg === '#FF4B75') ? '#fff' : '#0B0B0C';
+    if (!title && !text) el.textContent = 'Escreve algo…';
+    else el.innerHTML = (title ? title + (text ? '<br>' : '') : '') + (text || '');
+  }
+
+  async function openCameraEffects() {
+    // Prefer in-app camera with effects
+    if (typeof window.tchiloOpenCamera === 'function') {
+      closePicker(false);
+      window.tchiloOpenCamera();
+      return;
+    }
+    if (typeof window.openFaceEffects === 'function') {
+      closePicker(false);
+      window.openFaceEffects();
+      return;
+    }
     var Cam = getCamera();
     if (Cam && typeof Cam.getPhoto === 'function') {
       try {
@@ -398,7 +492,8 @@
           var resp = await fetch(path);
           var blob = await resp.blob();
           var file = new File([blob], 'camera.jpg', { type: blob.type || 'image/jpeg' });
-          await addFiles([file]);
+          selected = [await fileToItem(file)];
+          goAfterPick();
           return;
         }
       } catch (e) {}
@@ -407,167 +502,297 @@
     if (cam) cam.click();
   }
 
-  function toggleItem(id) {
-    var it = items.find(function (x) { return x.id === id; });
-    if (!it) return;
-    var idx = selected.findIndex(function (s) { return s.id === id; });
-    if (idx >= 0) selected.splice(idx, 1);
-    else {
-      if (selected.length >= 10) { toast('Máximo 10 itens'); return; }
-      selected.push(it);
+  function openGalleryPicker() {
+    if (nativeGallery()) {
+      // already showing recent grid — also allow system file picker
+      var inp = $('mpFileInput');
+      if (inp) inp.click();
+      return;
     }
-    renderGrid();
-    updateNext();
+    var inp2 = $('mpFileInput');
+    if (inp2) inp2.click();
   }
 
-  async function resolveSelectedFiles() {
+  async function resolveFiles(list) {
     var out = [];
-    for (var i = 0; i < selected.length; i++) {
-      var s = selected[i];
+    for (var i = 0; i < list.length; i++) {
+      var s = list[i];
       if (s.file) {
-        out.push({ type: s.type, url: s.url, file: s.file, name: s.name, duration: s.duration || 0 });
+        out.push(s);
         continue;
       }
-      // native uri → fetch blob
       try {
         var resp = await fetch(s.url);
         var blob = await resp.blob();
-        var ext = s.type === 'video' ? 'mp4' : 'jpg';
-        var file = new File([blob], (s.name || 'media') + '.' + ext, { type: blob.type || (s.type === 'video' ? 'video/mp4' : 'image/jpeg') });
-        var url = URL.createObjectURL(file);
-        out.push({ type: s.type, url: url, file: file, name: file.name, duration: s.duration || 0 });
+        var file = new File([blob], (s.name || 'media') + (s.type === 'video' ? '.mp4' : '.jpg'), {
+          type: blob.type || (s.type === 'video' ? 'video/mp4' : 'image/jpeg')
+        });
+        out.push({
+          id: s.id,
+          type: s.type,
+          url: URL.createObjectURL(file),
+          file: file,
+          name: file.name,
+          duration: s.duration || 0
+        });
       } catch (e) {
-        out.push({ type: s.type, url: s.url, file: null, name: s.name, duration: s.duration || 0 });
+        out.push(s);
       }
     }
     return out;
   }
 
-  async function handoffToCreate() {
-    if (!selected.length) return;
-    var list = await resolveSelectedFiles();
-    window.__tchiloPendingMedia = list[0];
-    window.createMediaFiles = list.map(function (x) { return x.file; }).filter(Boolean);
-    window.createMediaData = { type: list[0].type, items: list, src: list[0].url, file: list[0].file };
-    try { (0, eval)('createMediaData = window.createMediaData'); } catch (e) {}
-    closePicker();
-    if (typeof goTo === 'function') {
-      window.__mpSkipPicker = true;
-      goTo('create');
-      setTimeout(function () { window.__mpSkipPicker = false; }, 300);
+  function animatePublish(done) {
+    setStep('publishing');
+    publishPct = 0;
+    $('mpPct').textContent = '0%';
+    $('mpPubLabel').textContent = 'A publicar…';
+    var t0 = Date.now();
+    var dur = 1600;
+    function tick() {
+      var p = Math.min(1, (Date.now() - t0) / dur);
+      // ease out
+      var e = 1 - Math.pow(1 - p, 3);
+      publishPct = Math.round(e * 100);
+      $('mpPct').textContent = publishPct + '%';
+      if (p < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        $('mpPubLabel').textContent = 'Concluído';
+        setTimeout(done, 280);
+      }
     }
-    setTimeout(function () {
-      try {
-        var preview = document.getElementById('createPreview');
-        if (!preview || !list[0]) return;
-        preview.classList.add('has-media');
-        preview.querySelectorAll('img,video,.multi-preview').forEach(function (n) { try { n.remove(); } catch (e) {} });
-        if (list[0].type === 'video') {
-          var v = document.createElement('video');
-          v.src = list[0].url; v.muted = true; v.playsInline = true; v.controls = true;
-          preview.appendChild(v);
-        } else {
-          var img = document.createElement('img');
-          img.src = list[0].url; img.alt = '';
-          preview.appendChild(img);
-        }
-      } catch (e) {}
-    }, 100);
+    requestAnimationFrame(tick);
   }
 
-  function onRootClick(e) {
-    var t = e.target.closest('[data-a],[data-tab],[data-mode],[data-tool]');
+  async function doPublish() {
+    if (STEP === 'theme') {
+      var title = ($('mpThemeTitle').value || '').trim();
+      var text = ($('mpThemeText').value || '').trim();
+      if (!title && !text) {
+        toast('Escreve um texto');
+        return;
+      }
+      animatePublish(function () {
+        // try existing themed story/post helpers
+        try {
+          if (typeof publishThemedStory === 'function') {
+            var st = document.getElementById('storyThemeTitle');
+            var stx = document.getElementById('storyThemeText');
+            if (st) st.value = title;
+            if (stx) stx.value = text;
+            publishThemedStory();
+          } else if (typeof publishPost === 'function') {
+            window.createMediaData = {
+              type: 'theme',
+              theme: themeBg,
+              title: title,
+              text: text,
+              items: []
+            };
+            var cap = document.getElementById('createCaption');
+            if (cap) cap.value = text || title;
+            publishPost();
+          }
+        } catch (e) {}
+        finishAndReturn();
+      });
+      return;
+    }
+
+    if (STEP === 'compose' || STEP === 'story') {
+      if (!selected.length) {
+        toast('Escolhe uma foto ou vídeo');
+        return;
+      }
+      var list = await resolveFiles(selected);
+      var caption = STEP === 'story'
+        ? (($('mpStoryCaption').value || '').trim())
+        : (($('mpCaption').value || '').trim());
+
+      window.__tchiloPendingMedia = list[0];
+      window.createMediaFiles = list.map(function (x) { return x.file; }).filter(Boolean);
+      window.createMediaData = {
+        type: list[0].type,
+        items: list,
+        src: list[0].url,
+        file: list[0].file,
+        caption: caption,
+        mode: STEP === 'story' ? 'story' : 'post'
+      };
+      try { (0, eval)('createMediaData = window.createMediaData'); } catch (e) {}
+
+      animatePublish(function () {
+        try {
+          if (STEP === 'story' && typeof publishStory === 'function') {
+            publishStory();
+          } else if (typeof publishPost === 'function') {
+            var capEl = document.getElementById('createCaption');
+            if (capEl) capEl.value = caption;
+            // paint create preview then publish
+            var preview = document.getElementById('createPreview');
+            if (preview && list[0]) {
+              preview.classList.add('has-media');
+              preview.querySelectorAll('img,video,.multi-preview').forEach(function (n) {
+                try { n.remove(); } catch (e) {}
+              });
+              if (list[0].type === 'video') {
+                var v = document.createElement('video');
+                v.src = list[0].url;
+                preview.appendChild(v);
+              } else {
+                var img = document.createElement('img');
+                img.src = list[0].url;
+                preview.appendChild(img);
+              }
+            }
+            publishPost();
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+        finishAndReturn();
+      });
+    }
+  }
+
+  function finishAndReturn() {
+    closePicker(true);
+    try {
+      if (typeof goTo === 'function') goTo(returnScreen || 'feed');
+    } catch (e) {}
+  }
+
+  function onClick(e) {
+    var t = e.target.closest('[data-a]');
     if (!t) return;
     var a = t.getAttribute('data-a');
-    var tab = t.getAttribute('data-tab');
-    var mode = t.getAttribute('data-mode');
-    var tool = t.getAttribute('data-tool');
 
-    if (tab === 'fotos') {
-      TAB = 'fotos';
-      $('tchiloMediaPicker').querySelectorAll('.mp-tab').forEach(function (el) {
-        el.classList.toggle('on', el.getAttribute('data-tab') === 'fotos');
-      });
-      loadRecent(true);
+    if (a === 'back') {
+      if (STEP === 'hub') closePicker(true);
+      else if (STEP === 'publishing') return;
+      else {
+        selected = [];
+        setStep('hub');
+        loadRecent(false);
+      }
       return;
     }
-    if (tab === 'albuns') {
-      TAB = 'albuns';
-      $('tchiloMediaPicker').querySelectorAll('.mp-tab').forEach(function (el) {
-        el.classList.toggle('on', el.getAttribute('data-tab') === 'albuns');
-      });
-      loadAlbums();
+    if (a === 'theme') {
+      MODE = 'post';
+      setStep('theme');
+      syncThemePreview();
       return;
     }
-    if (mode) {
-      MODE = mode;
-      $('tchiloMediaPicker').querySelectorAll('.mp-mode').forEach(function (el) {
-        el.classList.toggle('on', el.getAttribute('data-mode') === mode);
-      });
-      setTitle();
+    if (a === 'story-mode') {
+      MODE = MODE === 'story' ? 'post' : 'story';
+      $('mpStoryBtn').classList.toggle('on', MODE === 'story');
+      $('mpTitle').textContent = MODE === 'story' ? 'Story' : 'Criar';
+      toast(MODE === 'story' ? 'Modo Story' : 'Modo Post');
       return;
     }
-    if (tool === 'text') { closePicker(); if (typeof goTo === 'function') { window.__mpSkipPicker = true; goTo('create'); setTimeout(function () { window.__mpSkipPicker = false; }, 300); } return; }
-    if (tool === 'music') { toast('Música'); return; }
-    if (tool === 'layout') { toast('Layout'); return; }
-    if (a === 'cancel') { closePicker(); return; }
-    if (a === 'next') { handoffToCreate(); return; }
-    if (a === 'camera') { openCamera(); return; }
-    if (a === 'perm') { ensurePermission().then(function () { loadRecent(true); }); return; }
-    if (a === 'library' || a === 'select') {
-      if (nativeGallery()) loadRecent(true);
-      else { var inp = $('mpFileInput'); if (inp) inp.click(); }
+    if (a === 'camera') {
+      openCameraEffects();
       return;
     }
-    if (a === 'album') {
-      var aid = t.getAttribute('data-id');
-      if (aid) openAlbum(aid);
+    if (a === 'gallery') {
+      openGalleryPicker();
       return;
     }
-    if (a === 'toggle') {
+    if (a === 'pick') {
       var id = t.getAttribute('data-id');
-      if (id) toggleItem(id);
+      var it = items.find(function (x) { return x.id === id; });
+      if (!it) return;
+      // single select for flow (multi optional: toggle)
+      selected = [it];
+      goAfterPick();
+      return;
+    }
+    if (a === 'swatch') {
+      themeBg = t.getAttribute('data-color') || themeBg;
+      document.querySelectorAll('#mpThemeColors .mp-swatch').forEach(function (el) {
+        el.classList.toggle('on', el === t);
+      });
+      syncThemePreview();
+      return;
+    }
+    if (a === 'music') {
+      toast('Música');
+      try {
+        if (typeof openMusicPicker === 'function') openMusicPicker();
+        else if (typeof window.tchiloOpenMusic === 'function') window.tchiloOpenMusic();
+      } catch (err) {}
+      return;
+    }
+    if (a === 'crop') {
+      toast('Cortar');
+      return;
+    }
+    if (a === 'do-publish') {
+      doPublish();
     }
   }
 
   function openPicker(opts) {
     opts = opts || {};
     if (opts.mode) MODE = opts.mode;
+    rememberReturn();
     ensureDOM();
-    setTitle();
-    $('tchiloMediaPicker').querySelectorAll('.mp-mode').forEach(function (el) {
-      el.classList.toggle('on', el.getAttribute('data-mode') === MODE);
-    });
-    TAB = 'fotos';
-    $('tchiloMediaPicker').querySelectorAll('.mp-tab').forEach(function (el) {
-      el.classList.toggle('on', el.getAttribute('data-tab') === 'fotos');
-    });
+    selected = [];
+    setStep('hub');
     $('tchiloMediaPicker').classList.add('open');
     try { document.body.style.overflow = 'hidden'; } catch (e) {}
     loadRecent(true);
   }
 
-  function closePicker() {
+  function closePicker(restoreScroll) {
     var el = $('tchiloMediaPicker');
     if (el) el.classList.remove('open');
-    try { document.body.style.overflow = ''; } catch (e) {}
+    if (restoreScroll !== false) {
+      try { document.body.style.overflow = ''; } catch (e) {}
+    }
   }
+
+  // Allow camera pipeline to hand media back into this flow
+  window.tchiloReceiveCreateMedia = function (fileOrItem) {
+    ensureDOM();
+    function go(item) {
+      selected = [item];
+      $('tchiloMediaPicker').classList.add('open');
+      goAfterPick();
+    }
+    if (fileOrItem && fileOrItem.file) {
+      go(fileOrItem);
+    } else if (fileOrItem instanceof File || (fileOrItem && fileOrItem.name && fileOrItem.size != null)) {
+      fileToItem(fileOrItem).then(go);
+    } else if (fileOrItem && fileOrItem.url) {
+      go({
+        id: uid(),
+        url: fileOrItem.url,
+        thumb: fileOrItem.url,
+        type: fileOrItem.type || 'image',
+        file: fileOrItem.file || null,
+        name: fileOrItem.name || 'media',
+        duration: fileOrItem.duration || 0
+      });
+    }
+  };
 
   window.tchiloOpenMediaPicker = openPicker;
   window.tchiloCloseMediaPicker = closePicker;
 
   function wirePlus() {
     document.querySelectorAll('.nav-post, #navPost').forEach(function (btn) {
-      if (btn.__mpWired) return;
-      btn.__mpWired = true;
+      if (btn.__mpWired3) return;
+      btn.__mpWired3 = true;
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
         openPicker({ mode: 'post' });
       }, true);
     });
-    if (!window.__mpGoToWrap && typeof window.goTo === 'function') {
-      window.__mpGoToWrap = true;
+    if (!window.__mpGoToWrap3 && typeof window.goTo === 'function') {
+      window.__mpGoToWrap3 = true;
       var _go = window.goTo;
       window.goTo = function (screen) {
         if (screen === 'create' && !window.__mpSkipPicker) {
@@ -586,5 +811,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
   setTimeout(boot, 400);
-  setTimeout(boot, 1500);
+  setTimeout(boot, 1600);
 })();

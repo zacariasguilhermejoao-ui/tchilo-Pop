@@ -1,7 +1,8 @@
 /** Light paper theme for create flow, story compose, login — black icons */
 (function () {
   'use strict';
-  if (window.__TCHILO_LIGHT_CREATE_V1) return;
+  if (window.__TCHILO_LIGHT_CREATE_V2) return;
+  window.__TCHILO_LIGHT_CREATE_V2 = true;
   window.__TCHILO_LIGHT_CREATE_V1 = true;
 
   var PAPER = 'var(--paper,#F3F1E9)';
@@ -11,13 +12,16 @@
     /* ===== CREATE / MEDIA PICKER ===== */
     '#tchiloMediaPicker{background:' + PAPER + '!important;color:' + INK + '!important}' +
     '#tchiloMediaPicker .mp-top{background:' + PAPER + '!important;color:' + INK + '!important}' +
-    '#tchiloMediaPicker .mp-icon-btn{background:rgba(11,11,12,.06)!important;color:' + INK + '!important;border:0!important;box-shadow:none!important}' +
+    '#tchiloMediaPicker .mp-icon-btn{background:transparent!important;color:' + INK + '!important;border:0!important;box-shadow:none!important}' +
     '#tchiloMediaPicker .mp-icon-btn svg{stroke:' + INK + '!important;color:' + INK + '!important}' +
     '#tchiloMediaPicker .mp-top-title{color:' + INK + '!important}' +
-    '#tchiloMediaPicker .mp-chip{background:rgba(11,11,12,.06)!important;color:' + INK + '!important;border:0!important;box-shadow:none!important}' +
+    '#tchiloMediaPicker .mp-modes{background:transparent!important;}' +
+    '#tchiloMediaPicker .mp-mode{background:transparent!important;border:0!important;box-shadow:none!important;color:rgba(11,11,12,.28)!important;}' +
+    '#tchiloMediaPicker .mp-mode.on{color:' + INK + '!important;}' +
+    '#tchiloMediaPicker .mp-chip{display:none!important;background:transparent!important;color:' + INK + '!important;border:0!important;box-shadow:none!important}' +
     '#tchiloMediaPicker .mp-chip.on{background:' + INK + '!important;color:#fff!important}' +
     '#tchiloMediaPicker .mp-publish{background:' + INK + '!important;color:#fff!important;border:0!important;box-shadow:none!important}' +
-    '#tchiloMediaPicker .mp-action{background:rgba(11,11,12,.05)!important;color:' + INK + '!important;border:0!important;box-shadow:none!important}' +
+    '#tchiloMediaPicker .mp-action{background:transparent!important;color:' + INK + '!important;border:0!important;box-shadow:none!important;border-radius:0!important}' +
     '#tchiloMediaPicker .mp-action svg{stroke:' + INK + '!important}' +
     '#tchiloMediaPicker .mp-section{color:rgba(11,11,12,.55)!important}' +
     '#tchiloMediaPicker .mp-grid{background:rgba(11,11,12,.06)!important;gap:2px!important}' +

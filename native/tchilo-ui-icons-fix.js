@@ -1,10 +1,11 @@
 /**
- * Tchilo — SMS topbar + lupa — v6
- * Nao substitui o sms-icon.svg do utilizador; so garante tamanho e ordem.
+ * Tchilo — SMS topbar + lupa — v7
+ * SMS e lupa 38px (igual ao feed); preserva sms-icon.svg do utilizador.
  */
 (function () {
   'use strict';
-  if (window.__tchiloUiIconsFixV6) return;
+  if (window.__tchiloUiIconsFixV7) return;
+  window.__tchiloUiIconsFixV7 = true;
   window.__tchiloUiIconsFixV6 = true;
   window.__tchiloUiIconsFixV5 = true;
   window.__tchiloUiIconsFixV4 = true;
@@ -13,8 +14,8 @@
   window.__tchiloUiIconsFixV1 = true;
 
   var SMS_SRC = 'sms-icon.svg?v=20';
-  var SMS_SIZE = 36;
-  var SEARCH_SIZE = 34;
+  var SMS_SIZE = 38;
+  var SEARCH_SIZE = 38;
 
   function injectCSS() {
     var st = document.getElementById('tchiloUiIconsCSS');

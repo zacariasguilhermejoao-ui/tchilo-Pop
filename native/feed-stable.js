@@ -67,12 +67,12 @@
     add('native/tchilo-reels-icon.js?v=2');
     add('native/tchilo-share-target.js?v=1');
     add('native/nav-layout.js?v=4');
-    add('native/tchilo-feed-icon.js?v=4');
+    add('native/tchilo-feed-icon.js?v=5');
     add('native/tchilo-ui-icons-fix.js?v=6');
     add('native/reels-follow-fix.js?v=2');
     add('native/tchilo-profile-avatar-plus.js?v=1');
     add('native/topbar-border-thin.js?v=2');
-    add('native/fee-sms-final.js?v=9');
+    add('native/fee-sms-final.js?v=10');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);

@@ -1,52 +1,65 @@
 /**
- * Fee + Sms (ícones de texto pedidos pelo user)
- * Remove casa e balão antigos
- * v9
+ * Ícones gráficos Feed + SMS (não texto)
+ * v10 — força imagens visíveis, remove casa/balão genéricos
  */
 (function () {
   'use strict';
-  if (window.__tchiloFeeSmsFinalV9) return;
-  window.__tchiloFeeSmsFinalV9 = true;
+  if (window.__tchiloFeeSmsFinalV10) return;
+  window.__tchiloFeeSmsFinalV10 = true;
 
-  var FEE = '<span class="nav-text-icon nav-fee" aria-hidden="true">Fee</span>';
-  var SMS = '<span class="nav-sms-text" aria-hidden="true">Sms</span>';
+  var FEED_SRC = 'native/icons/feed.svg?v=10';
+  var SMS_SRC = 'sms-icon.svg?v=10';
+
+  var FEED_HTML =
+    '<img class="nav-feed-icon" src="' + FEED_SRC + '" alt="Feed" width="28" height="28" ' +
+    'style="width:28px;height:28px;object-fit:contain;display:block;">';
+
+  var SMS_HTML =
+    '<img class="nav-sms-icon" src="' + SMS_SRC + '" alt="SMS" width="28" height="28" ' +
+    'style="width:28px;height:28px;object-fit:contain;display:block;">';
 
   function css() {
-    if (document.getElementById('tchiloFeeSmsFinalCSS')) return;
-    var st = document.createElement('style');
-    st.id = 'tchiloFeeSmsFinalCSS';
+    var st = document.getElementById('tchiloFeeSmsFinalCSS');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'tchiloFeeSmsFinalCSS';
+      (document.head || document.documentElement).appendChild(st);
+    }
     st.textContent =
-      '.nav-item .nav-fee,.nav-fee{' +
-      'display:inline-flex!important;align-items:center;justify-content:center;' +
-      'font:900 20px "Segoe Script","Apple Chancery",cursive,system-ui,sans-serif!important;' +
-      'color:currentColor!important;opacity:1!important;visibility:visible!important;' +
-      'letter-spacing:-0.02em;}' +
-      '.nav-item[data-screen="feed"] > svg,' +
-      '.nav-item[data-screen="feed"] .nav-feed-icon{display:none!important;}' +
-      '.topbar-icons .nav-sms-text,' +
-      '[data-top-messages] .nav-sms-text,' +
-      '.nav-sms-text{' +
-      'display:inline-flex!important;align-items:center;justify-content:center;' +
-      'font:900 18px Inter,system-ui,sans-serif!important;' +
-      'letter-spacing:0.02em;color:currentColor!important;' +
-      'opacity:1!important;visibility:visible!important;' +
-      'border:none!important;background:none!important;}' +
-      '[data-top-messages] img.nav-sms-icon,' +
-      '.topbar-icons img[src*="sms-icon"]{display:none!important;}';
-    (document.head || document.documentElement).appendChild(st);
+      '.nav-item .nav-feed-icon,img.nav-feed-icon{' +
+      'display:block!important;width:28px!important;height:28px!important;' +
+      'object-fit:contain!important;opacity:1!important;visibility:visible!important;}' +
+      '.nav-sms-icon,img.nav-sms-icon,[data-top-messages] img{' +
+      'display:block!important;width:28px!important;height:28px!important;' +
+      'object-fit:contain!important;opacity:1!important;visibility:visible!important;}' +
+      '.nav-fee,.nav-text-icon.nav-fee,.nav-sms-text{display:none!important;}' +
+      '.nav-item[data-screen="feed"] > svg:not(.nav-feed-icon){display:none!important;}' +
+      '[data-top-messages]{display:inline-flex!important;align-items:center;justify-content:center;' +
+      'opacity:1!important;visibility:visible!important;}';
   }
 
   function fixFee() {
     var btn = document.querySelector('.navbar .nav-item[data-screen="feed"]');
     if (!btn) return;
-    btn.querySelectorAll('svg, .nav-feed-icon').forEach(function (n) {
+    btn.querySelectorAll('.nav-fee, .nav-text-icon').forEach(function (n) {
       try { n.remove(); } catch (e) {}
     });
-    if (!btn.querySelector('.nav-fee')) {
+    btn.querySelectorAll('svg').forEach(function (n) {
+      try { n.remove(); } catch (e) {}
+    });
+    var img = btn.querySelector('img.nav-feed-icon');
+    if (!img) {
       var dot = btn.querySelector('.dot');
-      if (dot) dot.insertAdjacentHTML('beforebegin', FEE);
-      else btn.insertAdjacentHTML('afterbegin', FEE);
+      var w = document.createElement('div');
+      w.innerHTML = FEED_HTML;
+      img = w.firstChild;
+      if (dot) btn.insertBefore(img, dot);
+      else btn.insertBefore(img, btn.firstChild);
+    } else {
+      img.src = FEED_SRC;
+      img.style.cssText = 'width:28px;height:28px;object-fit:contain;display:block;';
     }
+    btn.setAttribute('aria-label', 'Feed');
   }
 
   function fixSms() {
@@ -66,11 +79,19 @@
       if (search) bar.insertBefore(el, search);
       else bar.appendChild(el);
     }
-    el.querySelectorAll('img.nav-sms-icon, img[src*="sms-icon"], svg').forEach(function (n) {
+    el.querySelectorAll('.nav-sms-text, svg').forEach(function (n) {
       try { n.remove(); } catch (e) {}
     });
-    if (!el.querySelector('.nav-sms-text')) {
-      el.insertAdjacentHTML('afterbegin', SMS);
+    var img = el.querySelector('img.nav-sms-icon, img[src*="sms-icon"]');
+    if (!img) {
+      var w = document.createElement('div');
+      w.innerHTML = SMS_HTML;
+      img = w.firstChild;
+      el.insertBefore(img, el.firstChild);
+    } else {
+      img.src = SMS_SRC;
+      img.className = 'nav-sms-icon';
+      img.style.cssText = 'width:28px;height:28px;object-fit:contain;display:block;';
     }
   }
 
@@ -84,7 +105,7 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', run);
   }
-  [100, 300, 700, 1500, 2800].forEach(function (ms) {
+  [100, 400, 900, 1800, 3000].forEach(function (ms) {
     setTimeout(run, ms);
   });
 })();

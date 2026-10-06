@@ -1,5 +1,5 @@
 /**
- * Bridge: camera + crop + music → create flow v3
+ * Bridge v2: camera + crop + music → create flow
  */
 (function () {
   'use strict';
@@ -39,7 +39,6 @@
     return false;
   }
 
-  /** Sync createMediaData so post-music isPhotoOnlyCreate works */
   window.tchiloSyncCreateMediaForMusic = function (item) {
     if (!item) return;
     var list = [
@@ -60,7 +59,6 @@
     try {
       (0, eval)('createMediaData = window.createMediaData');
     } catch (e) {}
-    // paint classic create preview so getCreateItems sees image
     try {
       var preview = document.getElementById('createPreview');
       if (preview && list[0].type === 'image') {
@@ -163,22 +161,17 @@
     window.tchiloOpenMediaEditor(opts);
   };
 
-  /** Open real post music sheet (lists Deezer tracks, plays preview, sets _pendingMusic) */
   window.tchiloOpenCreateMusic = function (item) {
     window.__tchiloCreateFlowActive = true;
     if (item) window.tchiloSyncCreateMediaForMusic(item);
 
     if (typeof window.tchiloOpenPostMusic === 'function') {
       try {
-        // bypass photo-only gate if needed by temporarily ensuring items
         window.tchiloOpenPostMusic();
-        // if sheet didn't open, force it
         setTimeout(function () {
           var sheet = document.getElementById('tchiloPostMusicSheet');
-          if (!sheet || !sheet.classList.contains('open')) {
-            forceOpenPostMusicSheet();
-          }
-        }, 100);
+          if (!sheet || !sheet.classList.contains('open')) forceOpenPostMusicSheet();
+        }, 120);
         return;
       } catch (e) {
         console.warn(e);
@@ -194,26 +187,24 @@
       try {
         if (typeof window.tchiloUpdatePostMusicBtn === 'function') window.tchiloUpdatePostMusicBtn();
       } catch (e) {}
-      // trigger load if search exists
       var search = document.getElementById('pmSearch');
       if (search) {
-        var ev = new Event('input', { bubbles: true });
-        search.dispatchEvent(ev);
+        try {
+          search.dispatchEvent(new Event('input', { bubbles: true }));
+        } catch (e2) {}
       }
       return;
     }
     toast('Lista de música a carregar…');
-    // retry once after post-music script boots
     setTimeout(function () {
       if (typeof window.tchiloOpenPostMusic === 'function') {
         try {
           window.tchiloOpenPostMusic();
-        } catch (e2) {}
+        } catch (e3) {}
       }
     }, 600);
   }
 
-  /** After user picks music, update compose chip */
   function watchMusicSelection() {
     var last = null;
     setInterval(function () {

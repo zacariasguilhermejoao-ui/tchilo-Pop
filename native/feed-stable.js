@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v28 */
+/** tchilo-Pop loaders v29 */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V28) return;
-  window.__TCHILO_FEED_STABLE_V28 = true;
+  if (window.__TCHILO_FEED_STABLE_V29) return;
+  window.__TCHILO_FEED_STABLE_V29 = true;
 
   function add(src) {
     try {
@@ -26,7 +26,7 @@
   }
 
   function load() {
-    add('native/tchilo-default-avatar.js?v=1');
+    add('native/tchilo-default-avatar.js?v=2');
     add('native/tchilo-settings-icons.js?v=24');
     add('native/tchilo-product-copy.js?v=2');
     add('native/tchilo-legal-links.js?v=1');
@@ -77,6 +77,7 @@
     add('native/topbar-border-thin.js?v=2');
     add('native/feed-stories-scroll.js?v=3');
     add('native/fee-sms-final.js?v=14');
+    add('native/tchilo-ui-polish.js?v=1');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);

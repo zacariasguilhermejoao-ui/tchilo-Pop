@@ -155,11 +155,14 @@
           'click',
           function (e) {
             if (e.target.closest('.cover-play, .playbtn, .favbtn, .usebtn, .cover-ico, button')) {
-              e.stopPropagation();
-              // do not select when control clicked
+              // only stop row-select for play controls; fav must bubble to its own handler
               if (e.target.closest('.cover-play, .playbtn, .cover-ico')) {
+                e.stopPropagation();
                 e.preventDefault();
+              } else if (e.target.closest('.usebtn')) {
+                e.stopPropagation();
               }
+              // favbtn: do NOT stopPropagation here — fav handler needs the event
             }
           },
           true
@@ -326,7 +329,7 @@
             title: t.title || t.title_short || 'Música',
             artist: (t.artist && t.artist.name) || 'Artista',
             preview: t.preview || '',
-            cover: (t.album && (t.album.cover_big || t.album.cover_big || t.album.cover_big || t.album.cover_medium || t.album.cover)) || '',
+            cover: (t.album && (t.album.cover_big || t.album.cover_big || t.album.cover_big || t.album.cover_big || t.album.cover_medium || t.album.cover)) || '',
             duration: t.duration || 0
           };
         });
@@ -452,7 +455,7 @@
                 title: t.title || t.title_short || 'Música',
                 artist: (t.artist && t.artist.name) || 'Artista',
                 preview: t.preview || '',
-                cover: (t.album && (t.album.cover_big || t.album.cover_big || t.album.cover_big || t.album.cover_medium || t.album.cover)) || '',
+                cover: (t.album && (t.album.cover_big || t.album.cover_big || t.album.cover_big || t.album.cover_big || t.album.cover_medium || t.album.cover)) || '',
                 duration: t.duration || 0
               };
             });

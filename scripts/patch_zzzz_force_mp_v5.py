@@ -18,7 +18,6 @@ s = Path("scripts/patch_zzzw_media_picker_v5.py")
 if s.exists() and s.stat().st_size > 500:
     runpy.run_path(str(s))
 
-# Always fix setStep after surgical
 t = dest.read_text(encoding="utf-8", errors="replace")
 NEW = """  function setStep(step) {
     STEP = step;
@@ -45,7 +44,17 @@ if m:
     dest.write_text(t, encoding="utf-8")
     print("setStep hide modes OK")
 else:
-    print("setStep pattern miss")
+    # fallback: inject modes hide after STEP = step
+    if "mp-modes-hidden" not in t or "modes.classList.add('mp-modes-hidden')" not in t:
+        t = t.replace(
+            "    STEP = step;\n    document.querySelectorAll('#tchiloMediaPicker .mp-step')",
+            "    STEP = step;\n    var __modes = $('mpModes'); if (__modes) { if (step === 'hub') __modes.classList.remove('mp-modes-hidden'); else __modes.classList.add('mp-modes-hidden'); }\n    document.querySelectorAll('#tchiloMediaPicker .mp-step')",
+            1,
+        )
+        dest.write_text(t, encoding="utf-8")
+        print("setStep inject fallback")
+    else:
+        print("setStep pattern miss")
 
 final = dest.stat().st_size
 print("FINAL", final)

@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v29 */
+/** tchilo-Pop loaders v30 — stable-ui primeiro */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V29) return;
-  window.__TCHILO_FEED_STABLE_V29 = true;
+  if (window.__TCHILO_FEED_STABLE_V30) return;
+  window.__TCHILO_FEED_STABLE_V30 = true;
 
   function add(src) {
     try {
@@ -26,7 +26,8 @@
   }
 
   function load() {
-    add('native/tchilo-default-avatar.js?v=2');
+    /* PRIMEIRO: UI estavel (icones, avatares, anti-flicker) */
+    add('native/tchilo-stable-ui.js?v=1');
     add('native/tchilo-settings-icons.js?v=24');
     add('native/tchilo-product-copy.js?v=2');
     add('native/tchilo-legal-links.js?v=1');
@@ -69,15 +70,12 @@
     add('native/tchilo-feed-to-reels.js?v=2');
     add('native/tchilo-reels-icon.js?v=2');
     add('native/tchilo-share-target.js?v=1');
-    add('native/nav-layout.js?v=4');
     add('native/tchilo-feed-icon.js?v=5');
-    add('native/tchilo-ui-icons-fix.js?v=7');
     add('native/reels-follow-fix.js?v=2');
     add('native/tchilo-profile-avatar-plus.js?v=1');
     add('native/topbar-border-thin.js?v=2');
     add('native/feed-stories-scroll.js?v=3');
-    add('native/fee-sms-final.js?v=14');
-    add('native/tchilo-ui-polish.js?v=1');
+    /* NAO carregar fee-sms / ui-icons / default-avatar / polish / nav-layout — causam flicker */
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);

@@ -1,11 +1,12 @@
 /**
- * Tchilo compose + music sheet polish v8
+ * Tchilo compose + music sheet polish v8b
  * - PUBLICAR right, same style as POST/STORY/TEMA
- * - Mode tabs clickable on hub
+ * - Mode tabs clickable (does NOT block native handlers)
  * - Music list: no soft shadows, larger hi-res covers
  */
 (function () {
-  if (window.__TCHILO_COMPOSE_MUSIC_V8) return;
+  if (window.__TCHILO_COMPOSE_MUSIC_V8b) return;
+  window.__TCHILO_COMPOSE_MUSIC_V8b = true;
   window.__TCHILO_COMPOSE_MUSIC_V8 = true;
   window.__TCHILO_COMPOSE_MUSIC_V7 = true;
   window.__TCHILO_COMPOSE_MUSIC_V6 = true;
@@ -276,23 +277,19 @@
     var host = root.querySelector('#mpModes');
     if (!host) return;
     host.style.pointerEvents = 'auto';
+    host.style.zIndex = '6';
     host.querySelectorAll('.mp-mode').forEach(function (btn) {
       btn.style.pointerEvents = 'auto';
-      if (btn.__v8Bound) return;
-      btn.__v8Bound = true;
-      btn.addEventListener(
-        'click',
-        function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          var mode = btn.getAttribute('data-mode');
-          try {
-            if (window.__tchiloSetCreateMode) window.__tchiloSetCreateMode(mode);
-            else if (typeof window.setCreateMode === 'function') window.setCreateMode(mode);
-          } catch (err) {}
-        },
-        true
-      );
+      btn.style.cursor = 'pointer';
+      if (btn.__v8bound) return;
+      btn.__v8bound = true;
+      /* bubble phase only — never capture/stop so native bindModeTabs runs */
+      btn.addEventListener('click', function () {
+        var mode = btn.getAttribute('data-mode');
+        if (window.__tchiloSetCreateMode) {
+          try { window.__tchiloSetCreateMode(mode); } catch (err) {}
+        }
+      }, false);
     });
   }
 

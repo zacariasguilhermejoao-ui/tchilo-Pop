@@ -472,6 +472,7 @@
   }
 
   async function openCameraEffects() {
+    window.__tchiloCreateFlowActive = true;
     // Prefer in-app camera with effects
     if (typeof window.tchiloOpenCamera === 'function') {
       closePicker(false);
@@ -717,11 +718,10 @@
       return;
     }
     if (a === 'music') {
-      toast('Música');
-      try {
-        if (typeof openMusicPicker === 'function') openMusicPicker();
-        else if (typeof window.tchiloOpenMusic === 'function') window.tchiloOpenMusic();
-      } catch (err) {}
+      if (typeof window.tchiloOpenCreateMusic === 'function') window.tchiloOpenCreateMusic();
+      else {
+        try { if (typeof openMusicPicker === 'function') openMusicPicker(); } catch (err) {}
+      }
       return;
     }
     if (a === 'crop') {
@@ -734,6 +734,7 @@
   }
 
   function openPicker(opts) {
+    window.__tchiloCreateFlowActive = true;
     opts = opts || {};
     if (opts.mode) MODE = opts.mode;
     rememberReturn();

@@ -1,0 +1,28 @@
+name: Build Fee SMS icons
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/write_fee_sms_js.py'
+      - 'scripts/fee_sms_js_*.txt'
+      - '.github/workflows/build-fee-sms.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/write_fee_sms_js.py
+      - name: Commit
+        run: |
+          git config user.name "tchilo-bot"
+          git config user.email "bot@tchilopop.com"
+          git add native/fee-sms-final.js native/icons/feed.svg
+          if git diff --cached --quiet; then echo "No changes"; else
+            git commit -m "fix(ui): icones graficos Feed+SMS visiveis (v10)"
+            git push
+          fi

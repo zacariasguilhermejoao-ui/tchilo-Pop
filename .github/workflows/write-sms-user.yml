@@ -1,0 +1,27 @@
+name: Write user SMS icon
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/write_sms_user.py'
+      - '.github/workflows/write-sms-user.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  write:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/write_sms_user.py
+      - name: Commit
+        run: |
+          git config user.name "tchilo-bot"
+          git config user.email "bot@tchilopop.com"
+          git add sms-icon.svg
+          if git diff --cached --quiet; then echo "No changes"; else
+            git commit -m "fix(ui): SMS SVG do user"
+            git push
+          fi

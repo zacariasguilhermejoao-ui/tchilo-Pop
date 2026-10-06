@@ -1,9 +1,10 @@
 /**
- * Bridge: camera-with-effects + media-editor crop/music → create flow v3
+ * Bridge: camera + crop + music → create flow v3
  */
 (function () {
   'use strict';
-  if (window.__TCHILO_CREATE_BRIDGE_V1) return;
+  if (window.__TCHILO_CREATE_BRIDGE_V2) return;
+  window.__TCHILO_CREATE_BRIDGE_V2 = true;
   window.__TCHILO_CREATE_BRIDGE_V1 = true;
 
   function toast(m) {
@@ -25,7 +26,6 @@
     }
   }
 
-  /** After camera capture during create flow → compose screen */
   function handoffToCreate(file, url, mediaType) {
     if (typeof window.tchiloReceiveCreateMedia === 'function') {
       window.tchiloReceiveCreateMedia({
@@ -39,9 +39,51 @@
     return false;
   }
 
-  /** Patch camera deliver so create flow gets media back */
+  /** Sync createMediaData so post-music isPhotoOnlyCreate works */
+  window.tchiloSyncCreateMediaForMusic = function (item) {
+    if (!item) return;
+    var list = [
+      {
+        type: item.type === 'video' ? 'video' : 'image',
+        url: item.url,
+        file: item.file || null,
+        name: item.name || 'media'
+      }
+    ];
+    window.createMediaData = {
+      type: list[0].type,
+      items: list,
+      src: list[0].url,
+      file: list[0].file
+    };
+    window.__tchiloPendingMedia = list[0];
+    try {
+      (0, eval)('createMediaData = window.createMediaData');
+    } catch (e) {}
+    // paint classic create preview so getCreateItems sees image
+    try {
+      var preview = document.getElementById('createPreview');
+      if (preview && list[0].type === 'image') {
+        preview.classList.add('has-media');
+        preview.querySelectorAll('img,video,.multi-preview').forEach(function (n) {
+          try {
+            n.remove();
+          } catch (e2) {}
+        });
+        var img = document.createElement('img');
+        img.src = list[0].url;
+        img.alt = '';
+        preview.appendChild(img);
+      }
+    } catch (e3) {}
+    if (typeof window.tchiloUpdatePostMusicBtn === 'function') {
+      try {
+        window.tchiloUpdatePostMusicBtn();
+      } catch (e4) {}
+    }
+  };
+
   function patchCameraDeliver() {
-    // Hook tchiloDeliverFaceFxPhoto if present
     var prevFx = window.tchiloDeliverFaceFxPhoto;
     window.tchiloDeliverFaceFxPhoto = function (file, url) {
       if (window.__tchiloCreateFlowActive) {
@@ -50,15 +92,11 @@
       if (typeof prevFx === 'function') return prevFx.apply(this, arguments);
     };
 
-    // Wrap open media editor when create flow is active — return to compose instead of publish
     if (typeof window.tchiloOpenMediaEditor === 'function' && !window.tchiloOpenMediaEditor.__bridge) {
       var _open = window.tchiloOpenMediaEditor;
       window.tchiloOpenMediaEditor = function (opts) {
         opts = opts || {};
-        if (window.__tchiloCreateFlowActive && !opts.__fromCrop) {
-          // Camera went to editor — after user publishes in editor, send to create compose
-          armEditorReturnToCompose(opts);
-        }
+        if (window.__tchiloCreateFlowActive) armEditorReturnToCompose(opts);
         return _open.apply(this, arguments);
       };
       window.tchiloOpenMediaEditor.__bridge = true;
@@ -66,22 +104,18 @@
   }
 
   function armEditorReturnToCompose(opts) {
-    // Intercept mePublish once
     setTimeout(function () {
       var btn = document.getElementById('mePublish');
       if (!btn || btn.__bridgeHooked) return;
       btn.__bridgeHooked = true;
-      var orig = btn.onclick;
       btn.textContent = 'Pronto';
       btn.onclick = async function (e) {
         e && e.preventDefault && e.preventDefault();
         try {
-          // Prefer canvas export from editor stage
           var img = document.getElementById('meImage');
           var src = opts.src;
           var file = opts.file || null;
           var mediaType = opts.mediaType || 'image';
-
           if (img && mediaType === 'image') {
             try {
               var canvas = document.createElement('canvas');
@@ -91,33 +125,24 @@
               var scale = Math.min(1, max / Math.max(w, h));
               canvas.width = Math.max(1, Math.round(w * scale));
               canvas.height = Math.max(1, Math.round(h * scale));
-              var ctx = canvas.getContext('2d');
-              // apply stage filter class roughly via css filter on draw is limited — draw as-is
-              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
               src = canvas.toDataURL('image/jpeg', 0.92);
               file = dataUrlToFile(src, 'edit.jpg');
             } catch (err) {}
           }
-
-          // close editor
-          if (typeof window.tchiloCloseMediaEditor === 'function') {
-            window.tchiloCloseMediaEditor();
-          } else {
-            var ed = document.getElementById('tchiloMediaEd');
-            if (ed) ed.classList.remove('open');
-            try { document.body.style.overflow = ''; } catch (e2) {}
-          }
-
+          var ed = document.getElementById('tchiloMediaEd');
+          if (ed) ed.classList.remove('open');
+          try {
+            document.body.style.overflow = '';
+          } catch (e2) {}
           handoffToCreate(file, src, mediaType);
         } catch (err) {
           toast('Erro ao aplicar edição');
-          if (typeof orig === 'function') orig.call(btn, e);
         }
       };
     }, 200);
   }
 
-  /** Open crop editor for current create selection */
   window.tchiloOpenCreateCrop = function (item) {
     if (!item || !item.url) {
       toast('Sem media para cortar');
@@ -128,60 +153,86 @@
       toast('Editor indisponível');
       return;
     }
-    // Keep picker open underneath; editor is higher z-index
-    armEditorReturnToCompose({
+    var opts = {
       mode: 'post',
       mediaType: item.type === 'video' ? 'video' : 'image',
       src: item.url,
-      file: item.file || null,
-      __fromCrop: true
-    });
-    window.tchiloOpenMediaEditor({
-      mode: 'post',
-      mediaType: item.type === 'video' ? 'video' : 'image',
-      src: item.url,
-      file: item.file || null,
-      __fromCrop: true
-    });
-  };
-
-  /** Open music from create compose */
-  window.tchiloOpenCreateMusic = function () {
-    try {
-      if (typeof openMusicPicker === 'function') {
-        openMusicPicker();
-        return;
-      }
-      if (typeof window.tchiloOpenMusic === 'function') {
-        window.tchiloOpenMusic();
-        return;
-      }
-      // open media editor music sheet if possible
-      var sheet = document.getElementById('meMusicSheet');
-      if (sheet) {
-        sheet.classList.add('open');
-        return;
-      }
-    } catch (e) {}
-    toast('Música');
-  };
-
-  /** Mark create flow when picker opens camera */
-  var _openCam = null;
-  function patchOpenCamera() {
-    if (typeof window.tchiloOpenCamera !== 'function') return;
-    if (window.tchiloOpenCamera.__bridge) return;
-    _openCam = window.tchiloOpenCamera;
-    window.tchiloOpenCamera = function () {
-      // leave flag as set by caller
-      return _openCam.apply(this, arguments);
+      file: item.file || null
     };
-    window.tchiloOpenCamera.__bridge = true;
+    armEditorReturnToCompose(opts);
+    window.tchiloOpenMediaEditor(opts);
+  };
+
+  /** Open real post music sheet (lists Deezer tracks, plays preview, sets _pendingMusic) */
+  window.tchiloOpenCreateMusic = function (item) {
+    window.__tchiloCreateFlowActive = true;
+    if (item) window.tchiloSyncCreateMediaForMusic(item);
+
+    if (typeof window.tchiloOpenPostMusic === 'function') {
+      try {
+        // bypass photo-only gate if needed by temporarily ensuring items
+        window.tchiloOpenPostMusic();
+        // if sheet didn't open, force it
+        setTimeout(function () {
+          var sheet = document.getElementById('tchiloPostMusicSheet');
+          if (!sheet || !sheet.classList.contains('open')) {
+            forceOpenPostMusicSheet();
+          }
+        }, 100);
+        return;
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+    forceOpenPostMusicSheet();
+  };
+
+  function forceOpenPostMusicSheet() {
+    var sheet = document.getElementById('tchiloPostMusicSheet');
+    if (sheet) {
+      sheet.classList.add('open');
+      try {
+        if (typeof window.tchiloUpdatePostMusicBtn === 'function') window.tchiloUpdatePostMusicBtn();
+      } catch (e) {}
+      // trigger load if search exists
+      var search = document.getElementById('pmSearch');
+      if (search) {
+        var ev = new Event('input', { bubbles: true });
+        search.dispatchEvent(ev);
+      }
+      return;
+    }
+    toast('Lista de música a carregar…');
+    // retry once after post-music script boots
+    setTimeout(function () {
+      if (typeof window.tchiloOpenPostMusic === 'function') {
+        try {
+          window.tchiloOpenPostMusic();
+        } catch (e2) {}
+      }
+    }, 600);
+  }
+
+  /** After user picks music, update compose chip */
+  function watchMusicSelection() {
+    var last = null;
+    setInterval(function () {
+      var cur = window._pendingMusic || null;
+      if (cur === last) return;
+      last = cur;
+      try {
+        window.dispatchEvent(
+          new CustomEvent('tchilo-music-selected', {
+            detail: { label: cur, meta: window._pendingMusicMeta || null }
+          })
+        );
+      } catch (e) {}
+    }, 400);
   }
 
   function boot() {
     patchCameraDeliver();
-    patchOpenCamera();
+    watchMusicSelection();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

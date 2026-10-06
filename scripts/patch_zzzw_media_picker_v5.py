@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import base64
-parts = sorted(Path("native").glob("mp-v5-b64-*.txt"), key=lambda p: int(p.stem.split("-")[-1]))
-if not parts:
-    print("no b64 parts"); raise SystemExit(0)
-data = base64.b64decode("".join(p.read_text(encoding="ascii").strip() for p in parts))
-Path("native/tchilo-media-picker.js").write_bytes(data)
-print("media-picker v5 written", len(data))
-for p in parts:
-    try: p.unlink()
-    except Exception: pass
+import runpy
+a = Path("native/zzzw-part-a.txt")
+b = Path("native/zzzw-part-b.txt")
+if a.exists() and b.exists():
+    Path("scripts/_zzzw_run.py").write_text(a.read_text(encoding="utf-8")+b.read_text(encoding="utf-8"), encoding="utf-8")
+    runpy.run_path("scripts/_zzzw_run.py")
+    for p in [a, b, Path("scripts/_zzzw_run.py")]:
+        try: p.unlink()
+        except Exception: pass
+else:
+    print("zzzw parts missing")

@@ -1,10 +1,11 @@
 /**
  * Tchilo Stable UI — fonte unica (anti-flicker, anti-?)
- * v1 — carregar PRIMEIRO; desativa scripts rivais
+ * v2 — lupa menor (28px); mensagem 48px
  */
 (function () {
   'use strict';
-  if (window.__tchiloStableUiV1) return;
+  if (window.__tchiloStableUiV2) return;
+  window.__tchiloStableUiV2 = true;
   window.__tchiloStableUiV1 = true;
 
   window.__tchiloFeeSmsFinalV14 = true;
@@ -17,7 +18,8 @@
   window.__tchiloUiPolishV1 = true;
   window.__tchiloNavLayoutV2 = true;
 
-  var ICON = 48;
+  var SMS_SIZE = 48;
+  var SEARCH_SIZE = 28;
   var AV_LIGHT = 'avatar-claro.svg?v=3';
   var AV_DARK = 'avatar-escuro.svg?v=3';
   var AV_VIOLET = 'avatar-roxo.svg?v=3';
@@ -36,28 +38,38 @@
   }
 
   function injectCSS() {
-    if (document.getElementById('tchiloStableUiCSS')) return;
-    var st = document.createElement('style');
-    st.id = 'tchiloStableUiCSS';
+    var st = document.getElementById('tchiloStableUiCSS');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'tchiloStableUiCSS';
+      (document.head || document.documentElement).appendChild(st);
+    }
     st.textContent =
       '#screen-feed .topbar-icons [data-top-messages] img,' +
       '#screen-feed .topbar-icons .nav-sms-icon,' +
       '.topbar-icons [data-top-messages] img,' +
       '.topbar-icons img.nav-sms-icon,' +
       '.topbar-icons .icon-btn[data-top-messages] img{' +
-      'width:' + ICON + 'px!important;height:' + ICON + 'px!important;' +
+      'width:' + SMS_SIZE + 'px!important;height:' + SMS_SIZE + 'px!important;' +
       'max-width:none!important;max-height:none!important;' +
-      'min-width:' + ICON + 'px!important;min-height:' + ICON + 'px!important;' +
+      'min-width:' + SMS_SIZE + 'px!important;min-height:' + SMS_SIZE + 'px!important;' +
       'object-fit:contain!important;display:block!important;}' +
       '#screen-feed .topbar-icons .icon-btn[onclick*="search"] svg,' +
       '.topbar-icons .icon-btn[onclick*="search"] svg,' +
       '.topbar-icons .icon-btn[aria-label*="esquisar"] svg,' +
-      '.topbar-icons .icon-btn[aria-label*="Pesquisar"] svg{' +
-      'width:' + ICON + 'px!important;height:' + ICON + 'px!important;' +
-      'min-width:' + ICON + 'px!important;min-height:' + ICON + 'px!important;}' +
+      '.topbar-icons .icon-btn[aria-label*="Pesquisar"] svg,' +
+      '.topbar-icons .icon-btn[aria-label*="Search"] svg{' +
+      'width:' + SEARCH_SIZE + 'px!important;height:' + SEARCH_SIZE + 'px!important;' +
+      'min-width:' + SEARCH_SIZE + 'px!important;min-height:' + SEARCH_SIZE + 'px!important;' +
+      'max-width:' + SEARCH_SIZE + 'px!important;max-height:' + SEARCH_SIZE + 'px!important;}' +
       '.topbar-icons .icon-btn{width:auto!important;height:auto!important;' +
-      'min-width:48px!important;min-height:48px!important;' +
       'border:0!important;background:transparent!important;box-shadow:none!important;}' +
+      '.topbar-icons .icon-btn[onclick*="search"],' +
+      '.topbar-icons .icon-btn[aria-label*="esquisar"],' +
+      '.topbar-icons .icon-btn[aria-label*="Pesquisar"]{' +
+      'min-width:' + SEARCH_SIZE + 'px!important;min-height:' + SEARCH_SIZE + 'px!important;}' +
+      '.topbar-icons .icon-btn[data-top-messages]{' +
+      'min-width:' + SMS_SIZE + 'px!important;min-height:' + SMS_SIZE + 'px!important;}' +
       '.avatar,.post .avatar,#screen-feed .avatar,#screen-profile .profile-avatar,' +
       '.profile-avatar,.story-profile-initials{' +
       'border:0!important;border-width:0!important;outline:0!important;' +
@@ -71,7 +83,6 @@
       'background:transparent!important;}' +
       '.nav-fee,.nav-sms-text,[data-top-messages] span{display:none!important;}' +
       '.nav-item .nav-feed-icon{width:38px!important;height:38px!important;display:block!important;opacity:1!important;}';
-    (document.head || document.documentElement).appendChild(st);
   }
 
   function safeUrl(u) {
@@ -173,19 +184,19 @@
       if (img) {
         var s = img.getAttribute('src') || '';
         if (s.indexOf('sms-icon') === -1) img.src = 'sms-icon.svg?v=40';
-        img.width = ICON;
-        img.height = ICON;
+        img.width = SMS_SIZE;
+        img.height = SMS_SIZE;
         img.style.cssText =
-          'width:' + ICON + 'px;height:' + ICON + 'px;object-fit:contain;display:block';
+          'width:' + SMS_SIZE + 'px;height:' + SMS_SIZE + 'px;object-fit:contain;display:block';
       } else {
         img = document.createElement('img');
         img.className = 'nav-sms-icon';
         img.src = 'sms-icon.svg?v=40';
         img.alt = '';
-        img.width = ICON;
-        img.height = ICON;
+        img.width = SMS_SIZE;
+        img.height = SMS_SIZE;
         img.style.cssText =
-          'width:' + ICON + 'px;height:' + ICON + 'px;object-fit:contain;display:block';
+          'width:' + SMS_SIZE + 'px;height:' + SMS_SIZE + 'px;object-fit:contain;display:block';
         msg.appendChild(img);
       }
     }
@@ -193,10 +204,10 @@
       var oc = ((c.getAttribute('onclick') || '') + (c.getAttribute('aria-label') || '')).toLowerCase();
       if (oc.indexOf('search') < 0 && oc.indexOf('pesquis') < 0) return;
       c.querySelectorAll('svg').forEach(function (svg) {
-        svg.setAttribute('width', String(ICON));
-        svg.setAttribute('height', String(ICON));
-        svg.style.width = ICON + 'px';
-        svg.style.height = ICON + 'px';
+        svg.setAttribute('width', String(SEARCH_SIZE));
+        svg.setAttribute('height', String(SEARCH_SIZE));
+        svg.style.width = SEARCH_SIZE + 'px';
+        svg.style.height = SEARCH_SIZE + 'px';
       });
     });
   }

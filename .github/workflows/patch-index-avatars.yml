@@ -1,0 +1,77 @@
+name: Patch index avatars and plus
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'native/tchilo-stable-ui.js'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index.html
+        run: |
+          python3 << 'PY'
+          h=open('index.html').read()
+          changed=False
+          old_css='background:var(--yellow,#C8F560);color:var(--ink,#0B0B0C);'
+          new_css='background:#0B0B0C;color:#FFFFFF;'
+          if old_css in h:
+            h=h.replace(old_css, new_css)
+            changed=True
+            print('plus color patched')
+          if "username || '?'" in h or 'onerror="this.remove()"' in h:
+            old_r='''const ini = String(initials || username || '?').slice(0, 2).toUpperCase().replace(/</g, '&lt;');
+  const color = bg || ((getProfileExtra(username)||{}).avatarColor) || 'var(--mint)';
+  if (url) {
+    return '<div class="avatar" style="background:' + color + ';overflow:hidden"><img src="' + String(url).replace(/"/g, '&quot;') + '" alt="" loading="lazy" onerror="this.remove()"></div>';
+  }
+  return '<div class="avatar" style="background:' + color + '">' + ini + '</div>';'''
+            new_r='''const def = (typeof tchiloDefaultAvatarSrc==='function'?tchiloDefaultAvatarSrc():'avatar-claro.svg?v=5');
+  const src = url || def;
+  return '<div class="avatar" style="background:transparent;overflow:hidden;border:none"><img src="' + String(src).replace(/"/g, '&quot;') + '" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'' + def + '\'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;border:none"></div>';'''
+            if old_r in h:
+              h=h.replace(old_r, new_r, 1)
+              changed=True
+              print('render patched')
+            if 'function tchiloDefaultAvatarSrc' not in h:
+              inject="function tchiloDefaultAvatarSrc(){try{var t=((document.documentElement&&document.documentElement.getAttribute('data-theme'))||(document.body&&document.body.getAttribute('data-theme'))||'').toLowerCase();if(t==='dark')return 'avatar-escuro.svg?v=5';if(t==='violet')return 'avatar-roxo.svg?v=5';}catch(e){}return 'avatar-claro.svg?v=5';}\n"
+              h=h.replace('function renderUserAvatarHTML', inject+'function renderUserAvatarHTML', 1)
+              changed=True
+              print('def src injected')
+            old_a='''const ini = String(initials || username || '?').slice(0, 2).toUpperCase();
+  const color = bg || ((getProfileExtra(username)||{}).avatarColor) || 'var(--mint)';
+  el.style.background = color;
+  el.style.overflow = 'hidden';
+  if (url) {
+    el.innerHTML = '<img src="' + String(url).replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.remove()">';
+  } else {
+    el.textContent = ini;
+  }'''
+            new_a='''const def = (typeof tchiloDefaultAvatarSrc==='function'?tchiloDefaultAvatarSrc():'avatar-claro.svg?v=5');
+  el.style.background = 'transparent';
+  el.style.overflow = 'hidden';
+  el.style.border = 'none';
+  el.style.color = 'transparent';
+  el.style.fontSize = '0';
+  const src = url || def;
+  el.innerHTML = '<img src="' + String(src).replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;border:none" onerror="this.onerror=null;this.src=\'' + def + '\'">';'''
+            if old_a in h:
+              h=h.replace(old_a, new_a, 1)
+              changed=True
+              print('apply patched')
+            h=h.replace('onerror="this.remove()"', "onerror=\"this.onerror=null;this.src=(typeof tchiloDefaultAvatarSrc==='function'?tchiloDefaultAvatarSrc():'avatar-claro.svg?v=5')\"")
+            changed=True
+          if changed:
+            open('index.html','w').write(h)
+            print('index.html updated', len(h))
+          else:
+            print('no changes needed')
+          PY
+      - name: Commit
+        run: |
+          git config user.name "tchilo-bot"
+          git config user.email "bot@tchilopop.com"
+          git add index.html
+          git diff --staged --quiet || git commit -m "index: avatares sem ?, + preto, sem onerror remove"
+          git push || true

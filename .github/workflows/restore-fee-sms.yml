@@ -1,0 +1,33 @@
+name: Restore Fee + SMS icons
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/restore_fee_sms_a.py'
+      - 'scripts/restore_fee_sms_b.py'
+      - '.github/workflows/restore-fee-sms.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore part A
+        run: python3 scripts/restore_fee_sms_a.py
+      - name: Restore part B
+        run: python3 scripts/restore_fee_sms_b.py
+      - name: Commit
+        run: |
+          git config user.name "tchilo-bot"
+          git config user.email "bot@tchilopop.com"
+          git add sms-icon.svg native/nav-layout.js native/feed-noflicker.js native/tchilo-ui-icons-fix.js native/face-effects.js
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "fix(ui): Fee + SMS SVG do user (restore completo)"
+            git push
+          fi

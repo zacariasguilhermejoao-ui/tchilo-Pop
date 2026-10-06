@@ -725,7 +725,8 @@
       return;
     }
     if (a === 'crop') {
-      toast('Cortar');
+      if (typeof window.tchiloOpenCreateCrop === 'function') window.tchiloOpenCreateCrop(selected[0]);
+      else toast('Cortar');
       return;
     }
     if (a === 'do-publish') {

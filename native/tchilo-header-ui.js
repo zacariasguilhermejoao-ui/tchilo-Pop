@@ -1,14 +1,15 @@
 /**
- * Tchilo header UI v1
- * 1) Linha do cabeçalho (.screen-header) fina 1px em todas as páginas
- * 2) Botão voltar profissional (seta) em todos os .back-btn
+ * Tchilo header UI v2
+ * 1) Linha fina só no .screen-header (NÃO no .profile-header)
+ * 2) Botão voltar profissional
+ * 3) Botão + do avatar FORA da foto
  */
 (function () {
   'use strict';
-  if (window.__tchiloHeaderUiV1) return;
+  if (window.__tchiloHeaderUiV2) return;
+  window.__tchiloHeaderUiV2 = true;
   window.__tchiloHeaderUiV1 = true;
 
-  /* Seta esquerda profissional (estilo Lucide/Feather arrow-left) */
   var BACK_SVG =
     '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" ' +
     'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -17,20 +18,32 @@
     '</svg>';
 
   function injectCSS() {
-    if (document.getElementById('tchilo-header-ui-css')) return;
-    var st = document.createElement('style');
-    st.id = 'tchilo-header-ui-css';
+    var st = document.getElementById('tchilo-header-ui-css');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'tchilo-header-ui-css';
+      (document.head || document.documentElement).appendChild(st);
+    }
     st.textContent =
-      /* Linha fina sob o cabeçalho em TODAS as páginas */
+      /* Linha fina só no cabeçalho de ecrã — NÃO em .profile-header */
       '.screen-header,' +
       '.screen > .screen-header,' +
-      '[id^="screen-"] > .screen-header,' +
-      '.profile-header,' +
-      '.edit-header,' +
-      '.create-header{' +
+      '[id^="screen-"] > .screen-header{' +
       'border-bottom-width:1px!important;' +
       'border-bottom-style:solid!important;' +
       'border-bottom-color:var(--line,rgba(0,0,0,.12))!important;}' +
+      /* Remove a linha entre stats e Iniciar Live */
+      '.profile-header{' +
+      'border-bottom:none!important;' +
+      'border-bottom-width:0!important;' +
+      'box-shadow:none!important;}' +
+      '.profile-stats{' +
+      'border-bottom:none!important;' +
+      'border-top:none!important;}' +
+      '.profile-actions{' +
+      'border-top:none!important;' +
+      'border-bottom:none!important;' +
+      'box-shadow:none!important;}' +
       /* Botão voltar */
       '.back-btn{' +
       'width:40px!important;height:40px!important;' +
@@ -41,16 +54,60 @@
       'flex-shrink:0!important;padding:0!important;}' +
       '.back-btn svg{' +
       'width:22px!important;height:22px!important;' +
-      'display:block!important;stroke:currentColor!important;}';
-    (document.head || document.documentElement).appendChild(st);
+      'display:block!important;stroke:currentColor!important;}' +
+      /* Avatar: overflow visível para o + ficar fora */
+      '.profile-avatar,' +
+      '#profileBody .profile-avatar,' +
+      '.profile-header .profile-avatar{' +
+      'overflow:visible!important;' +
+      'position:relative!important;}' +
+      /* Botão + FORA da foto (canto inferior direito, exterior) */
+      '#tchiloProfileAvatarPlus,' +
+      '#tchiloProfileAvatarPlus.tchilo-av-add,' +
+      'button#tchiloProfileAvatarPlus{' +
+      'position:absolute!important;' +
+      'right:-6px!important;' +
+      'bottom:-4px!important;' +
+      'left:auto!important;' +
+      'top:auto!important;' +
+      'z-index:8!important;' +
+      'width:30px!important;' +
+      'height:30px!important;' +
+      'min-width:30px!important;' +
+      'min-height:30px!important;' +
+      'border-radius:50%!important;' +
+      'background:#0B0B0C!important;' +
+      'color:#fff!important;' +
+      'border:2.5px solid var(--paper,#F6F1E7)!important;' +
+      'box-shadow:0 1px 4px rgba(0,0,0,.2)!important;' +
+      'display:flex!important;' +
+      'align-items:center!important;' +
+      'justify-content:center!important;' +
+      'padding:0!important;' +
+      'margin:0!important;' +
+      'cursor:pointer!important;' +
+      'animation:none!important;' +
+      'transform:none!important;}' +
+      '#tchiloProfileAvatarPlus svg,' +
+      '#tchiloProfileAvatarPlus.tchilo-av-add svg{' +
+      'width:16px!important;' +
+      'height:16px!important;' +
+      'stroke:#fff!important;' +
+      'color:#fff!important;' +
+      'display:block!important;}';
   }
 
   function patchBackButtons(root) {
     root = root || document;
     try {
       root.querySelectorAll('.back-btn').forEach(function (btn) {
-        if (btn.getAttribute('data-tchilo-back') === '1') return;
-        /* preservar onclick / listeners — só troca o SVG */
+        if (btn.getAttribute('data-tchilo-back') === '1') {
+          /* garantir SVG atualizado */
+          if (!btn.querySelector('svg path[d^="M19"]')) {
+            btn.innerHTML = BACK_SVG;
+          }
+          return;
+        }
         btn.innerHTML = BACK_SVG;
         btn.setAttribute('data-tchilo-back', '1');
         btn.setAttribute('aria-label', btn.getAttribute('aria-label') || 'Voltar');
@@ -71,8 +128,7 @@
     setTimeout(run, ms);
   });
 
-  /* ao mudar de ecrã */
-  if (typeof window.goTo === 'function' && !window.goTo.__headerUi) {
+  if (typeof window.goTo === 'function' && !window.goTo.__headerUiV2) {
     var g = window.goTo;
     window.goTo = function () {
       var r = g.apply(this, arguments);
@@ -80,19 +136,22 @@
       setTimeout(run, 120);
       return r;
     };
-    window.goTo.__headerUi = true;
+    window.goTo.__headerUiV2 = true;
+  }
+
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__headerUiV2) {
+    var rp = window.renderProfile;
+    window.renderProfile = function () {
+      var r = rp.apply(this, arguments);
+      setTimeout(run, 40);
+      return r;
+    };
+    window.renderProfile.__headerUiV2 = true;
   }
 
   try {
-    new MutationObserver(function (muts) {
-      var need = false;
-      for (var i = 0; i < muts.length; i++) {
-        if (muts[i].addedNodes && muts[i].addedNodes.length) {
-          need = true;
-          break;
-        }
-      }
-      if (need) setTimeout(patchBackButtons, 40);
+    new MutationObserver(function () {
+      setTimeout(patchBackButtons, 40);
     }).observe(document.body || document.documentElement, {
       childList: true,
       subtree: true

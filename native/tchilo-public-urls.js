@@ -1,6 +1,6 @@
 /**
  * Tchilo — links públicos de posts e perfis (partilha tipo TikTok/Facebook)
- * v1
+ * v1 — perf: sem setInterval
  */
 (function () {
   'use strict';
@@ -136,8 +136,7 @@
   }
 
   boot();
-  setTimeout(boot, 300);
-  setTimeout(boot, 1000);
-  setTimeout(boot, 2500);
-  setInterval(boot, 5000);
+  setTimeout(boot, 400);
+  setTimeout(boot, 1500);
+  setTimeout(boot, 4000);
 })();

@@ -1,4 +1,4 @@
-/** media-editor bootstrap + UI overlay + login fix */
+/** media-editor bootstrap + UI overlay + login fix v5 */
 (function () {
   'use strict';
   if (window.__tchiloMediaEditorBoot) return;
@@ -13,15 +13,13 @@
     (document.head || document.documentElement).appendChild(s);
   }
 
+  // Login fix FIRST (home buttons Entrar / Criar conta)
+  loadScript('native/tchilo-login-click-fix.js?v=5');
+
   var SHA = 'acac5780f3459d23c0c9dd06e46340567fbb685b';
   var BASE = 'https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/' + SHA + '/native/media-editor.js';
 
-  // 1) Full media-editor from known-good
   loadScript(BASE + '?t=' + Date.now(), function () {
-    // 2) UI overlay
     loadScript('native/tchilo-media-editor-ui-v10.js?v=2');
   });
-
-  // 3) Login fix v4 — não intercepta o formulário
-  loadScript('native/tchilo-login-click-fix.js?v=4');
 })();

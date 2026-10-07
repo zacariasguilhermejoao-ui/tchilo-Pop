@@ -1,0 +1,117 @@
+/**
+ * Media editor UI v10 — white bg, full-bleed media, side icons, PUBLICAR, auto music
+ * Runtime overlay on top of media-editor.js (no full file replace needed).
+ */
+(function () {
+  'use strict';
+  if (window.__tchiloMeUiV10) return;
+  window.__tchiloMeUiV10 = true;
+
+  var CSS = '' +
+    '#tchiloMediaEd{background:#fff!important;color:#0B0B0C!important;}' +
+    '#tchiloMediaEd *{box-shadow:none!important;text-shadow:none!important;}' +
+    '#tchiloMediaEd .me-stage{background:#fff!important;}' +
+    '#tchiloMediaEd .me-stage img,#tchiloMediaEd .me-stage video{' +
+    'position:absolute!important;inset:0!important;width:100%!important;height:100%!important;' +
+    'max-width:none!important;max-height:none!important;object-fit:cover!important;}' +
+    '#tchiloMediaEd .me-publish{' +
+    'border:0!important;border-radius:0!important;background:transparent!important;' +
+    'color:#0B0B0C!important;font:800 17px/1.1 system-ui,-apple-system,sans-serif!important;' +
+    'letter-spacing:.04em!important;text-transform:uppercase!important;' +
+    'padding:8px 4px!important;margin-left:auto!important;}' +
+    '#tchiloMediaEd .me-top b,#tchiloMediaEd #meTitle{display:none!important;}' +
+    '#tchiloMediaEd .me-iconbtn{border:0!important;background:rgba(0,0,0,.45)!important;color:#fff!important;border-radius:50%!important;}' +
+    '#tchiloMediaEd .me-tools{display:none!important;}' +
+    '#tchiloMediaEd .me-musicbar{display:none!important;}' +
+    '#tchiloMediaEd .me-tool{box-shadow:none!important;}' +
+    '#tchiloMediaEd .me-chip{box-shadow:none!important;border:1.5px solid rgba(0,0,0,.12)!important;' +
+    'background:#fff!important;color:#0B0B0C!important;}' +
+    '#tchiloMediaEd .me-chip.active{border-color:#0B0B0C!important;background:#0B0B0C!important;color:#fff!important;}' +
+    '#tchiloMediaEd .me-side-v10{position:absolute;right:10px;top:50%;transform:translateY(-50%);' +
+    'display:flex;flex-direction:column;gap:12px;z-index:5;}' +
+    '#tchiloMediaEd .me-side-v10 button{width:48px;height:48px;border:0;border-radius:50%;' +
+    'background:rgba(255,255,255,.92);color:#0B0B0C;display:flex;flex-direction:column;' +
+    'align-items:center;justify-content:center;cursor:pointer;gap:2px;font-size:9px;font-weight:700;padding:0;}' +
+    '#tchiloMediaEd .me-side-v10 button.active{background:#0B0B0C;color:#fff;}' +
+    '#tchiloMediaEd .me-music-slot-v10{position:absolute;left:50%;top:calc(12px + env(safe-area-inset-top));' +
+    'transform:translateX(-50%);z-index:6;display:flex;align-items:center;justify-content:center;max-width:70vw;}' +
+    '#tchiloMediaEd .me-music-chip-v10{display:none;align-items:center;gap:8px;padding:6px 10px;' +
+    'border-radius:999px;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;}' +
+    '#tchiloMediaEd .me-music-chip-v10.show{display:flex;}' +
+    '#tchiloMediaEd .me-music-chip-v10 img{width:28px;height:28px;border-radius:6px;object-fit:cover;}' +
+    '#tchiloMediaEd .me-music-chip-v10 .meta{flex:1;min-width:0;}' +
+    '#tchiloMediaEd .me-music-chip-v10 .meta b{display:block;font-size:12px;font-weight:700;' +
+    'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+    '#tchiloMediaEd .me-music-chip-v10 .meta span{display:block;font-size:10px;opacity:.8;' +
+    'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+    '#tchiloMediaEd .me-music-chip-v10 .x{width:22px;height:22px;border:0;border-radius:50%;' +
+    'background:rgba(255,255,255,.2);color:#fff;font-size:14px;line-height:1;cursor:pointer;}' +
+    '#tchiloMediaEd .me-spin-v10{width:18px;height:18px;border:2px solid rgba(0,0,0,.15);' +
+    'border-top-color:#0B0B0C;border-radius:50%;animation:meSpinV10 .7s linear infinite;}' +
+    '@keyframes meSpinV10{to{transform:rotate(360deg);}}';
+
+  function injectCSS() {
+    if (document.getElementById('tchiloMeUiV10CSS')) return;
+    var st = document.createElement('style');
+    st.id = 'tchiloMeUiV10CSS';
+    st.textContent = CSS;
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  function fixPublishBtn(ed) {
+    var btn = ed.querySelector('#mePublish') || ed.querySelector('.me-publish');
+    if (btn) {
+      btn.textContent = 'PUBLICAR';
+      btn.style.cssText = 'border:0;background:transparent;color:#0B0B0C;font:800 17px/1.1 system-ui,-apple-system,sans-serif;letter-spacing:.04em;text-transform:uppercase;padding:8px 4px;margin-left:auto;cursor:pointer;';
+    }
+    var title = ed.querySelector('#meTitle') || ed.querySelector('.me-top b');
+    if (title) title.style.display = 'none';
+  }
+
+  function ensureSide(ed) {
+    if (ed.querySelector('.me-side-v10')) return;
+    var side = document.createElement('div');
+    side.className = 'me-side-v10';
+    var tools = ed.querySelector('#meTools') || ed.querySelector('.me-tools');
+    if (tools) {
+      tools.querySelectorAll('button, .me-tool').forEach(function (t) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.innerHTML = t.innerHTML;
+        b.onclick = function () { t.click(); };
+        side.appendChild(b);
+      });
+    } else {
+      ['Filtros', 'Recortar', 'Música', 'Mencionar'].forEach(function (label) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.onclick = function () {
+          if (label.indexOf('M') === 0 && label.length > 4) {
+            var ms = document.getElementById('meMusicSheet');
+            if (ms) ms.classList.add('open');
+          }
+        };
+        side.appendChild(b);
+      });
+    }
+    ed.appendChild(side);
+  }
+
+  function ensureMusicSlot(ed) {
+    if (ed.querySelector('.me-music-slot-v10')) return ed.querySelector('.me-music-slot-v10');
+    var slot = document.createElement('div');
+    slot.className = 'me-music-slot-v10';
+    slot.innerHTML =
+      '<div class="me-music-chip-v10" id="meMusicChipV10"></div>';
+    ed.appendChild(slot);
+    return slot;
+  }
+
+  var _audio = null;
+  function stopAudio() {
+    if (_audio) {
+      try { _audio.pause(); } catch (e) {}
+      _audio = null;
+    }
+  }

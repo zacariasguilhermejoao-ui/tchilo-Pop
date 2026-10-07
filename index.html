@@ -1826,6 +1826,7 @@
 
 
 
+
 /* tchilo-system-titles — all headings use system font */
 h1,h2,h3,h4,h5,h6,
 .screen-header h1,
@@ -8109,7 +8110,7 @@ function renderUserAvatarHTML(username, initials, bg) {
   const ini = String(initials || username || '?').slice(0, 2).toUpperCase().replace(/</g, '&lt;');
   const color = bg || ((getProfileExtra(username)||{}).avatarColor) || 'var(--mint)';
   if (url) {
-    return '<div class="avatar" style="background:' + color + ';overflow:hidden"><img src="' + String(url).replace(/"/g, '&quot;') + '" alt="" loading="lazy" onerror="this.remove()"></div>';
+    return '<div class="avatar" style="background:' + color + ';overflow:hidden"><img src="' + String(url).replace(/"/g, '&quot;') + '" alt="" loading="lazy" onerror="this.onerror=null;this.src=(window.tchiloDefaultAvatarSrc&&window.tchiloDefaultAvatarSrc())||'avatar-claro.svg';this.classList.add('tchilo-default-avatar')"></div>';
   }
   return '<div class="avatar" style="background:' + color + '">' + ini + '</div>';
 }
@@ -8123,7 +8124,7 @@ function applyAvatarToElement(el, username, initials, bg) {
   el.style.background = color;
   el.style.overflow = 'hidden';
   if (url) {
-    el.innerHTML = '<img src="' + String(url).replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.remove()">';
+    el.innerHTML = '<img src="' + String(url).replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.onerror=null;this.src=(window.tchiloDefaultAvatarSrc&&window.tchiloDefaultAvatarSrc())||'avatar-claro.svg';this.classList.add('tchilo-default-avatar')">';
   } else {
     el.textContent = ini;
   }
@@ -11120,10 +11121,12 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/story-ui-pro.js?v=2"></script>
 <script src="native/tchilo-cloud-persist.js?v=1"></script>
 <script src="native/profile-avatar-cloud.js?v=2"></script>
+<script src="native/tchilo-avatar-stable.js?v=1" defer></script>
 <script src="native/tchilo-profile-avatar-plus.js?v=3"></script>
 <script src="native/tchilo-legal-urls.js?v=2"></script>
 <script src="native/tchilo-settings-icons.js?v=26"></script>
 <script src="native/tchilo-media-picker.js?v=15" defer></script>
+<script src="native/tchilo-compose-music-v9.js?v=1" defer></script>
 <script src="native/tchilo-compose-music-v9.js?v=1" defer></script>
 <script src="native/tchilo-compose-music-v9.js?v=1" defer></script>
 <script src="native/tchilo-compose-music-v9.js?v=1" defer></script>

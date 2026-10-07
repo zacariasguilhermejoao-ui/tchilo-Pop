@@ -1,6 +1,63 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
+<style id="tchilo-click-fix-v1">
+/* CRITICAL: overlays nunca bloqueiam a app */
+#storyViewer:not(.open),
+.story-viewer:not(.open){
+  display:none!important;
+  pointer-events:none!important;
+  visibility:hidden!important;
+  z-index:-1!important;
+  opacity:0!important;
+}
+.login-gate.hidden,
+#loginGate.hidden{
+  display:none!important;
+  pointer-events:none!important;
+  visibility:hidden!important;
+  z-index:-1!important;
+}
+body.tchilo-session-on .login-gate,
+body.tchilo-session-on #loginGate{
+  display:none!important;
+  pointer-events:none!important;
+  visibility:hidden!important;
+  z-index:-1!important;
+}
+/* Chrome sempre clicavel com sessao */
+body.tchilo-session-on .navbar,
+body.tchilo-session-on .navbar *,
+body.tchilo-session-on .topbar,
+body.tchilo-session-on .topbar *,
+body.tchilo-session-on .nav-item,
+body.tchilo-session-on .nav-post,
+body.tchilo-session-on .icon-btn,
+body.tchilo-session-on .logo-img{
+  pointer-events:auto!important;
+  cursor:pointer!important;
+}
+body.tchilo-session-on .navbar{
+  display:flex!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+  height:auto!important;
+  max-height:none!important;
+}
+body.tchilo-session-on.tchilo-logged-out .navbar{
+  display:flex!important;
+  pointer-events:auto!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+.sheet:not(.open),
+.profile-action-sheet:not(.open),
+#tchiloModalHost[aria-hidden="true"]{
+  pointer-events:none!important;
+}
+</style>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Feed</title>
@@ -2263,6 +2320,77 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
 <style id="tchilo-story-ui-pro-inline">/* tchilo-story-ui-pro-inline-v3 */#storyViewer.story-viewer{position:fixed!important;inset:0!important;background:#000;display:none!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;opacity:0!important;}#storyViewer.story-viewer.open{display:flex!important;visibility:visible!important;pointer-events:auto!important;z-index:200!important;opacity:1!important;}#storyViewer.open .story-viewer-body{position:absolute!important;inset:0!important;padding:0!important;}#storyViewer.open .story-viewer-body .story-media,#storyViewer.open .story-viewer-body.has-media .story-media{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:0!important;}</style>
 </head>
 <body>
+<script id="tchilo-click-fix-js-v1">
+(function(){
+  function hasSession(){
+    try{
+      var raw=localStorage.getItem('tchilo_session');
+      if(!raw)return false;
+      var o=JSON.parse(raw);
+      return !!(o&&(o.id||o.username||o.email));
+    }catch(e){return false;}
+  }
+  function unlock(){
+    try{
+      if(!hasSession())return;
+      document.body.classList.add('tchilo-session-on');
+      document.body.classList.remove('tchilo-logged-out','login-locked','legal-screen-open','legal-from-login','tchilo-no-bottom-nav');
+      document.body.style.overflow='';
+      document.body.style.position='';
+      document.body.style.pointerEvents='';
+      var g=document.getElementById('loginGate');
+      if(g){g.classList.add('hidden');g.style.setProperty('display','none','important');g.style.setProperty('pointer-events','none','important');}
+      var sv=document.getElementById('storyViewer');
+      if(sv&&!sv.classList.contains('open')){
+        sv.style.setProperty('display','none','important');
+        sv.style.setProperty('pointer-events','none','important');
+        sv.style.setProperty('z-index','-1','important');
+      }
+      var nav=document.querySelector('.navbar');
+      if(nav){
+        nav.style.setProperty('display','flex','important');
+        nav.style.setProperty('pointer-events','auto','important');
+        nav.style.setProperty('opacity','1','important');
+        nav.style.setProperty('visibility','visible','important');
+      }
+    }catch(e){}
+  }
+  /* Clique forçado nos icones — mesmo se algo cobrir, captura na fase capture */
+  function onPointer(e){
+    try{
+      var t=e.target;
+      if(!t||!t.closest)return;
+      var btn=t.closest('.nav-item,.nav-post,.icon-btn,.logo-img,button[data-screen]');
+      if(!btn)return;
+      unlock();
+      /* deixa o onclick normal correr; se nao houver, forca */
+      var oc=btn.getAttribute('onclick');
+      if(oc&&typeof window.goTo==='function'){
+        /* nao interfere se onclick existir */
+        return;
+      }
+      var screen=btn.getAttribute('data-screen');
+      if(screen&&typeof window.goTo==='function'){
+        e.preventDefault();
+        e.stopPropagation();
+        if(screen==='feed'&&typeof window.onNavFeed==='function')window.onNavFeed();
+        else if(screen==='profile'){window.viewingProfileUser=null;window.goTo('profile');}
+        else window.goTo(screen);
+      }
+    }catch(err){}
+  }
+  document.addEventListener('click',onPointer,true);
+  document.addEventListener('touchend',onPointer,true);
+  unlock();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',unlock);
+  setTimeout(unlock,100);
+  setTimeout(unlock,500);
+  setTimeout(unlock,1500);
+  setTimeout(unlock,3000);
+  setInterval(function(){if(hasSession())unlock();},4000);
+})();
+</script>
+
 
 <div class="login-gate" id="loginGate">
   <video class="login-video" id="loginVideo" autoplay muted loop playsinline preload="auto" aria-hidden="true">

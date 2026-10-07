@@ -1,11 +1,12 @@
-/* LOGIN + CLICK FIX v14 */
+/* LOGIN + STABILITY v15 — sem storm de bootApp apos login */
 (function () {
   'use strict';
-  if (window.__tchiloLoginSessionFixV14) return;
+  if (window.__tchiloLoginSessionFixV15) return;
+  window.__tchiloLoginSessionFixV15 = true;
   window.__tchiloLoginSessionFixV14 = true;
-  window.__tchiloLoginSessionFixV13 = true;
 
   var JUST_MS = 90000;
+  var hideOnce = false;
 
   function markJust() {
     window.__tchiloJustLoggedIn = true;
@@ -38,169 +39,78 @@
     }
   }
 
-  function injectClickCss() {
-    if (document.getElementById('tchilo-click-fix-v14')) return;
+  function injectCss() {
+    if (document.getElementById('tchilo-stable-v15')) return;
     var st = document.createElement('style');
-    st.id = 'tchilo-click-fix-v14';
+    st.id = 'tchilo-stable-v15';
     st.textContent =
       '#storyViewer:not(.open),.story-viewer:not(.open){' +
-      'display:none!important;pointer-events:none!important;visibility:hidden!important;z-index:-1!important;opacity:0!important;}' +
-      '.login-gate.hidden,#loginGate.hidden,body.tchilo-session-on .login-gate,body.tchilo-session-on #loginGate{' +
-      'display:none!important;pointer-events:none!important;visibility:hidden!important;z-index:-1!important;}' +
+      'display:none!important;pointer-events:none!important;z-index:-1!important;}' +
+      '.login-gate.hidden,#loginGate.hidden,body.tchilo-session-on #loginGate{' +
+      'display:none!important;pointer-events:none!important;z-index:-1!important;}' +
       'body.tchilo-session-on .navbar,body.tchilo-session-on .navbar *,' +
       'body.tchilo-session-on .topbar,body.tchilo-session-on .topbar *,' +
       'body.tchilo-session-on .nav-item,body.tchilo-session-on .nav-post,' +
-      'body.tchilo-session-on .icon-btn,body.tchilo-session-on .logo-img{' +
-      'pointer-events:auto!important;cursor:pointer!important;}' +
-      'body.tchilo-session-on .navbar{' +
-      'display:flex!important;opacity:1!important;visibility:visible!important;transform:none!important;}' +
-      'body.tchilo-session-on.tchilo-logged-out .navbar{' +
-      'display:flex!important;pointer-events:auto!important;opacity:1!important;visibility:visible!important;}' +
-      '.sheet:not(.open),.profile-action-sheet:not(.open){pointer-events:none!important;}';
+      'body.tchilo-session-on .icon-btn{pointer-events:auto!important;cursor:pointer!important;}' +
+      'body.tchilo-session-on .navbar{display:flex!important;opacity:1!important;visibility:visible!important;}';
     (document.head || document.documentElement).appendChild(st);
   }
 
-  function restoreAppChrome() {
-    injectClickCss();
+  function restoreChrome() {
+    injectCss();
+    if (!localSession()) return;
     try {
       var b = document.body;
-      if (!localSession()) return;
       b.classList.remove('login-locked', 'legal-screen-open', 'legal-from-login', 'tchilo-logged-out', 'tchilo-no-bottom-nav');
       b.classList.add('tchilo-session-on');
       b.style.overflow = '';
       b.style.position = '';
       b.style.pointerEvents = '';
-      b.style.touchAction = '';
-      b.style.width = '';
-      b.style.height = '';
     } catch (e) {}
-
     try {
       var g = document.getElementById('loginGate');
       if (g) {
         g.classList.add('hidden');
         g.style.setProperty('display', 'none', 'important');
         g.style.setProperty('pointer-events', 'none', 'important');
-        g.style.setProperty('visibility', 'hidden', 'important');
-        g.style.setProperty('z-index', '-1', 'important');
       }
     } catch (e2) {}
-
     try {
       var sv = document.getElementById('storyViewer');
       if (sv && !sv.classList.contains('open')) {
         sv.style.setProperty('display', 'none', 'important');
         sv.style.setProperty('pointer-events', 'none', 'important');
-        sv.style.setProperty('z-index', '-1', 'important');
-        sv.style.setProperty('opacity', '0', 'important');
       }
     } catch (e3) {}
-
     try {
       var nav = document.querySelector('.navbar');
       if (nav) {
         nav.style.setProperty('display', 'flex', 'important');
         nav.style.setProperty('pointer-events', 'auto', 'important');
-        nav.style.setProperty('opacity', '1', 'important');
-        nav.style.setProperty('visibility', 'visible', 'important');
-        nav.style.setProperty('transform', 'none', 'important');
       }
-      document.querySelectorAll('.nav-item,.nav-post,.icon-btn,.logo-img,.topbar').forEach(function (el) {
-        el.style.pointerEvents = 'auto';
-        el.style.cursor = 'pointer';
-      });
     } catch (e4) {}
-
-    try {
-      if (typeof window.tchiloUiUnlock === 'function') window.tchiloUiUnlock();
-    } catch (e5) {}
   }
 
   function forceHideGate() {
-    restoreAppChrome();
-    try { if (typeof bootApp === 'function') bootApp(); } catch (e) {}
-    try { if (typeof goTo === 'function') goTo('feed'); } catch (e2) {}
+    restoreChrome();
+    if (hideOnce) return;
+    hideOnce = true;
+    try {
+      if (typeof bootApp === 'function') bootApp();
+    } catch (e) {}
+    try {
+      if (typeof goTo === 'function') {
+        var orig = window.goTo._orig || window.goTo;
+        /* chamar original se existir para evitar loops de router */
+        if (window.goTo._orig) window.goTo._orig.call(window, 'feed');
+        else goTo('feed');
+      }
+    } catch (e2) {}
     try {
       if (typeof renderFeed === 'function') renderFeed();
-      if (typeof renderStories === 'function') renderStories();
     } catch (e3) {}
-    setTimeout(restoreAppChrome, 0);
-    setTimeout(restoreAppChrome, 100);
-    setTimeout(function () {
-      restoreAppChrome();
-      try { if (typeof renderFeed === 'function') renderFeed(); } catch (e4) {}
-    }, 400);
-    setTimeout(restoreAppChrome, 1200);
-  }
-
-  /* FORCE click on nav/topbar icons */
-  function handleNavClick(e) {
-    try {
-      var t = e.target;
-      if (!t || !t.closest) return;
-      var btn = t.closest('.nav-item, .nav-post, .icon-btn, .logo-img, button[data-screen]');
-      if (!btn) return;
-
-      restoreAppChrome();
-
-      var screen = btn.getAttribute('data-screen');
-      var oc = btn.getAttribute('onclick') || '';
-
-      /* Force navigation so nothing can block it */
-      if (screen === 'feed' || /onNavFeed/.test(oc)) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (typeof window.onNavFeed === 'function') window.onNavFeed();
-        else if (typeof window.goTo === 'function') window.goTo('feed');
-        return;
-      }
-      if (screen === 'profile' || /goTo\(['\"]profile['\"]\)/.test(oc)) {
-        e.preventDefault();
-        e.stopPropagation();
-        window.viewingProfileUser = null;
-        if (typeof window.goTo === 'function') window.goTo('profile');
-        return;
-      }
-      if (screen === 'notifs' || /goTo\(['\"]notifs['\"]\)/.test(oc)) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (typeof window.goTo === 'function') window.goTo('notifs');
-        return;
-      }
-      if (screen === 'messages' || /goTo\(['\"]messages['\"]\)/.test(oc)) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (typeof window.goTo === 'function') window.goTo('messages');
-        return;
-      }
-      if (screen === 'reels' || /goTo\(['\"]reels['\"]\)/.test(oc)) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (typeof window.goTo === 'function') window.goTo('reels');
-        return;
-      }
-      if (/goTo\(['\"]create['\"]\)/.test(oc) || (btn.classList && btn.classList.contains('nav-post'))) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (typeof window.goTo === 'function') window.goTo('create');
-        return;
-      }
-      if (screen && typeof window.goTo === 'function') {
-        e.preventDefault();
-        e.stopPropagation();
-        window.goTo(screen);
-      }
-    } catch (err) {}
-  }
-
-  function installClickForce() {
-    if (window.__tchiloClickForceV14) return;
-    window.__tchiloClickForceV14 = true;
-    document.addEventListener('click', handleNavClick, true);
-    document.addEventListener('touchend', function (e) {
-      /* small delay so click also fires; only unlock on touch */
-      restoreAppChrome();
-    }, true);
+    /* Uma unica limpeza extra — sem storm */
+    setTimeout(restoreChrome, 300);
   }
 
   function fallbackProfile(user) {
@@ -218,21 +128,19 @@
 
   async function safeProfile(user) {
     if (!user) return fallbackProfile({ id: 'unknown', user_metadata: {} });
-    var SB = window.tchiloSupabase;
     var profile = null;
     try {
       if (typeof window.tchiloEnsureProfile === 'function') {
         profile = await window.tchiloEnsureProfile(user);
       }
     } catch (e) {}
-    if (!profile && SB) {
+    if (!profile && window.tchiloSupabase) {
       try {
-        var pr = await SB.from('profiles').select('*').eq('id', user.id).maybeSingle();
+        var pr = await window.tchiloSupabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
         profile = pr && pr.data;
       } catch (e2) {}
     }
-    if (!profile) profile = fallbackProfile(user);
-    return profile;
+    return profile || fallbackProfile(user);
   }
 
   function applyUser(user, profile) {
@@ -265,33 +173,34 @@
   }
 
   function installGuards() {
-    if (typeof window.showLoginGate === 'function' && !window.showLoginGate.__v14) {
+    if (typeof window.showLoginGate === 'function' && !window.showLoginGate.__v15) {
       var _sg = window.showLoginGate;
       window.showLoginGate = function () {
         if (window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) {
-          forceHideGate();
+          restoreChrome();
           return;
         }
         if (localSession() && !window.__tchiloLoggingOut) {
-          forceHideGate();
+          restoreChrome();
           return;
         }
         return _sg.apply(this, arguments);
       };
-      window.showLoginGate.__v14 = true;
+      window.showLoginGate.__v15 = true;
       window.showLoginGate.__raw = _sg;
     }
-    if (typeof window.clearSession === 'function' && !window.clearSession.__v14) {
+    if (typeof window.hideLoginGate === 'function' && !window.hideLoginGate.__v15) {
+      window.hideLoginGate = function () { forceHideGate(); };
+      window.hideLoginGate.__v15 = true;
+    }
+    if (typeof window.clearSession === 'function' && !window.clearSession.__v15) {
       var _cs = window.clearSession;
       window.clearSession = function () {
         if (window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) return;
+        hideOnce = false;
         return _cs.apply(this, arguments);
       };
-      window.clearSession.__v14 = true;
-    }
-    if (typeof window.hideLoginGate === 'function' && !window.hideLoginGate.__v14) {
-      window.hideLoginGate = function () { forceHideGate(); };
-      window.hideLoginGate.__v14 = true;
+      window.clearSession.__v15 = true;
     }
   }
 
@@ -306,7 +215,7 @@
       var email = identifier;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
         email = await resolveEmail(identifier);
-        if (!email) throw new Error('Para entrar, usa o email da conta (ex: teu@gmail.com), nao o @username.');
+        if (!email) throw new Error('Para entrar, usa o email da conta.');
       }
 
       var res = await SB.auth.signInWithPassword({ email: email, password: password });
@@ -314,14 +223,13 @@
         var msg = res.error.message || 'Nao foi possivel iniciar sessao.';
         if (/invalid login|invalid credentials|invalid_credentials/i.test(msg))
           msg = 'Email ou palavra-passe incorretos.';
-        if (/email not confirmed/i.test(msg))
-          msg = 'Confirma o teu email antes de entrar.';
         throw new Error(msg);
       }
       var user = res.data && res.data.user;
       if (!user) throw new Error('Nao foi possivel iniciar sessao.');
 
       markJust();
+      hideOnce = false;
       writeSession({
         id: user.id,
         username: (user.user_metadata && user.user_metadata.username) || ('user_' + String(user.id).slice(0, 8)),
@@ -360,7 +268,7 @@
       try {
         await window.tchiloSupabaseLogin(identifier, password);
       } catch (err) {
-        console.error('[login-v14]', err);
+        console.error('[login-v15]', err);
         if (error) error.textContent = (err && err.message) || 'Nao foi possivel iniciar sessao.';
       } finally {
         try {
@@ -374,52 +282,72 @@
     window.tchiloSyncAuthSession = async function () {
       try {
         if (window.__tchiloPasswordRecoveryActive) return;
-        if (typeof tchiloIsPasswordRecoveryUrl === 'function' && tchiloIsPasswordRecoveryUrl()) return;
       } catch (e) {}
       var SB = window.tchiloSupabase;
       if (!SB || !SB.auth) {
-        if (localSession()) forceHideGate();
+        if (localSession()) restoreChrome();
         return;
       }
       try {
         var out = await SB.auth.getSession();
         var session = out && out.data && out.data.session;
         if (session && session.user) {
+          if (localSession()) {
+            restoreChrome();
+            return;
+          }
           var profile = await safeProfile(session.user);
           applyUser(session.user, profile);
           return;
         }
         if (window.__tchiloJustLoggedIn || localSession()) {
-          forceHideGate();
+          restoreChrome();
           return;
         }
-        window.__tchiloLoggingOut = true;
-        try {
-          if (typeof window.showLoginGate.__raw === 'function') window.showLoginGate.__raw();
-        } catch (e2) {}
-        window.__tchiloLoggingOut = false;
       } catch (err) {
-        if (localSession()) forceHideGate();
+        if (localSession()) restoreChrome();
       }
     };
   }
 
+  /* Clique nos icones — sem preventDefault agressivo se onclick existe */
+  function onNav(e) {
+    try {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var btn = t.closest('.nav-item, .nav-post');
+      if (!btn) return;
+      restoreChrome();
+      var screen = btn.getAttribute('data-screen');
+      var oc = btn.getAttribute('onclick') || '';
+      if (!screen && !oc) return;
+      /* Se ja tem onclick, so garante chrome; deixa o handler nativo */
+      if (oc) return;
+      if (screen && typeof window.goTo === 'function') {
+        e.preventDefault();
+        if (screen === 'feed' && typeof window.onNavFeed === 'function') window.onNavFeed();
+        else if (screen === 'profile') {
+          window.viewingProfileUser = null;
+          window.goTo('profile');
+        } else window.goTo(screen);
+      }
+    } catch (err) {}
+  }
+
   function run() {
-    injectClickCss();
-    installClickForce();
+    injectCss();
     installGuards();
     installLogin();
     installSync();
-    if (localSession()) restoreAppChrome();
+    document.addEventListener('click', onNav, true);
+    if (localSession()) {
+      restoreChrome();
+      if (!hideOnce) forceHideGate();
+    }
   }
 
   run();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
-  setTimeout(run, 50);
-  setTimeout(run, 300);
-  setTimeout(run, 1000);
-  setTimeout(run, 2500);
-  setInterval(function () {
-    if (localSession()) restoreAppChrome();
-  }, 5000);
+  setTimeout(run, 100);
+  setTimeout(run, 800);
 })();

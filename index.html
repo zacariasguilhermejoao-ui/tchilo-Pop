@@ -1384,21 +1384,25 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   .profile-action-icon{width:24px;height:24px;border:0;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink)}
   /* ----- PROFILE GRID ----- */
   .profile-grid{
-    display:grid; grid-template-columns:1fr 1fr; gap:8px;
+    display:grid; grid-template-columns:1fr 1fr; gap:5px !important;
     margin-top:20px;
   }
   .profile-grid-item{
-    aspect-ratio:1; border:2.5px solid var(--ink);
+    aspect-ratio:1;
+    border:1px solid var(--line) !important;
+    border:1px solid color-mix(in srgb, var(--ink) 40%, transparent) !important;
+    box-shadow:none !important;
     display:flex; align-items:center; justify-content:center;
     font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif; font-size:14px;
     text-align:center; line-height:1.1; cursor:pointer;
     position:relative; overflow:hidden;
   }
   .profile-post-views{
-    position:absolute; right:7px; bottom:7px; min-width:26px; height:26px;
-    padding:0 7px; border:2px solid var(--ink); border-radius:999px;
-    background:rgba(255,255,255,.92); display:flex; align-items:center; justify-content:center;
-    font:800 11px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; line-height:1; z-index:2;
+    position:absolute; right:8px; bottom:6px; min-width:0; height:auto;
+    padding:0 !important; border:0 !important; border-radius:0 !important;
+    background:transparent !important; display:block;
+    color:#fff !important; text-shadow:0 1px 3px rgba(0,0,0,.65);
+    font:800 13px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; line-height:1; z-index:2;
   }
 
 
@@ -1987,7 +1991,7 @@ body { overflow:hidden; }
   .post { width:min(100%, 720px); margin-inline:auto; }
   .post-media { margin-left:18px; margin-right:18px; }
   .stories { gap:12px; padding-left:24px; padding-right:24px; }
-  .profile-grid { grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; }
+  .profile-grid { grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px !important; }
   .navbar { padding-left:24px; padding-right:24px; }
 }
 
@@ -2008,7 +2012,7 @@ body { overflow:hidden; }
   .feed { padding-bottom:108px; }
   .post { width:min(100%, 760px); }
   .post-media { margin-left:24px; margin-right:24px; }
-  .profile-grid { grid-template-columns:repeat(4, minmax(0, 1fr)); gap:12px; }
+  .profile-grid { grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px !important; }
   .navbar { left:50%; right:auto; transform:translateX(-50%); width:min(100%, 760px); border-left:3px solid var(--line); border-right:3px solid var(--line); border-top-left-radius:16px; border-top-right-radius:16px; }
   #appFrame.chrome-hidden .navbar { transform:translate(-50%,110%); }
 }
@@ -2318,6 +2322,14 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
 <style id="tchilo-avatar-plus-static">#tchiloProfileAvatarPlus{animation:none!important;transition:none!important;transform:none!important;}</style>
 <style id="tchilo-chat-bar-clean">#chatScreen .chat-input-bar .chat-gif-btn,#chatScreen .chat-input-bar .chat-sticker-btn,#chatScreen .chat-input-bar [data-chat-extra="gif"],#chatScreen .chat-input-bar [data-chat-extra="sticker"],#chatScreen .chat-input-bar [data-tchilo-gif],#chatScreen .chat-input-bar [data-tchilo-sticker]{display:none!important;width:0!important;height:0!important;opacity:0!important;pointer-events:none!important;position:absolute!important;left:-9999px!important;}#chatScreen .chat-input-bar > button:not(#chatAttachBtn):not(#chatMicBtn):not(.chat-send){display:none!important;}</style>
 <style id="tchilo-story-ui-pro-inline">/* tchilo-story-ui-pro-inline-v3 */#storyViewer.story-viewer{position:fixed!important;inset:0!important;background:#000;display:none!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;opacity:0!important;}#storyViewer.story-viewer.open{display:flex!important;visibility:visible!important;pointer-events:auto!important;z-index:200!important;opacity:1!important;}#storyViewer.open .story-viewer-body{position:absolute!important;inset:0!important;padding:0!important;}#storyViewer.open .story-viewer-body .story-media,#storyViewer.open .story-viewer-body.has-media .story-media{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:0!important;}</style>
+<style id="tchilo-def-avatar-css">
+:root{--dav-bg:#E4E6EB;--dav-fg:#9AA0A6;}
+[data-theme="dark"]{--dav-bg:#2B2D31;--dav-fg:#6B6F76;}
+[data-theme="violet"]{--dav-bg:#6D28D9;--dav-fg:#C4B5FD;}
+svg.tchilo-def-avatar{display:block;width:100%;height:100%;border-radius:50%;}
+svg.tchilo-def-avatar .dav-bg{fill:var(--dav-bg);}
+svg.tchilo-def-avatar .dav-fg{fill:var(--dav-fg);}
+</style>
 </head>
 <body>
 <script id="tchilo-click-fix-js-v1">
@@ -2709,12 +2721,29 @@ body.legal-screen-open .stories, body.legal-from-login .stories {
     </button>
     <button class="nav-post" type="button" onclick="goTo('create')" aria-label="Nova publicação"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     <button class="nav-item" data-screen="notifs" onclick="goTo('notifs')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 5 5.5 5c2 0 3.3 1 4.5 2.6C11.2 6 12.5 5 14.5 5 18 5 19.6 8.4 22 11.7 19.5 16.1 12 21 12 21z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="none">
+        <defs><mask id="tchiloBellMask"><rect width="24" height="24" fill="#fff"/><circle cx="18" cy="6" r="6.2" fill="#000"/></mask></defs>
+        <g mask="url(#tchiloBellMask)" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2.8V4"/>
+          <path d="M12 4a6 6 0 0 0-6 6v3.2c0 .9-.3 1.7-.9 2.4L4 17h16l-1.1-1.4c-.6-.7-.9-1.5-.9-2.4V10a6 6 0 0 0-6-6z"/>
+          <path d="M9.6 19.6a2.4 2.4 0 0 0 4.8 0"/>
+        </g>
+        <circle cx="18" cy="6" r="4.6" fill="currentColor"/>
+        <g style="stroke:var(--paper)" stroke-width=".75" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="16.3" cy="4.9" r=".95"/>
+          <path d="M14.9 8.2c0-1 .6-1.7 1.4-1.7s1.4.7 1.4 1.7"/>
+          <path d="M19.3 4.6v2.4M18.1 5.8h2.4"/>
+        </g>
+      </svg>
       <span class="badge badge-dot" id="badge-notif"></span>
       <div class="dot"></div>
     </button>
     <button class="nav-item" data-screen="profile" onclick="viewingProfileUser=null;goTo('profile')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+      <svg viewBox="0 0 512 512" fill="none" stroke="none">
+        <rect width="512" height="512" rx="128" fill="currentColor"/>
+        <circle cx="256" cy="190" r="74" style="fill:var(--paper)"/>
+        <path d="M110 420c8-82 70-130 146-130s138 48 146 130z" style="fill:var(--paper)"/>
+      </svg>
       <div class="dot"></div>
     </button>
   </div>
@@ -7550,7 +7579,7 @@ function renderProfile() {
 
     let avatarHtml = avatar
       ? '<img src="' + String(avatar).replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
-      : initials;
+      : tchiloDefaultAvatarImg('width:100%;height:100%;object-fit:cover;border-radius:50%;display:block');
 
     let grid = '';
     if (posts.length) {
@@ -8238,11 +8267,37 @@ async function hydrateFeedDisplayNames(posts) {
   }
 }
 
+/* ===== Avatar padrão (contas sem foto) — muda com o tema ===== */
+const TCHILO_DEFAULT_AVATARS = {
+  light:"data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20512%20512%22%3E%3Cdefs%3E%3CclipPath%20id=%22c%22%3E%3Ccircle%20cx=%22256%22%20cy=%22256%22%20r=%22256%22/%3E%3C/clipPath%3E%3C/defs%3E%3Ccircle%20cx=%22256%22%20cy=%22256%22%20r=%22256%22%20fill=%22%23E4E6EB%22/%3E%3Cg%20clip-path=%22url(%23c)%22%20fill=%22%239AA0A6%22%3E%3Ccircle%20cx=%22256%22%20cy=%22196%22%20r=%2288%22/%3E%3Cpath%20d=%22M64%20512c0-106%2086-190%20192-190s192%2084%20192%20190z%22/%3E%3C/g%3E%3C/svg%3E",
+  dark:"data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20512%20512%22%3E%3Cdefs%3E%3CclipPath%20id=%22c%22%3E%3Ccircle%20cx=%22256%22%20cy=%22256%22%20r=%22256%22/%3E%3C/clipPath%3E%3C/defs%3E%3Ccircle%20cx=%22256%22%20cy=%22256%22%20r=%22256%22%20fill=%22%232B2D31%22/%3E%3Cg%20clip-path=%22url(%23c)%22%20fill=%22%236B6F76%22%3E%3Ccircle%20cx=%22256%22%20cy=%22196%22%20r=%2288%22/%3E%3Cpath%20d=%22M64%20512c0-106%2086-190%20192-190s192%2084%20192%20190z%22/%3E%3C/g%3E%3C/svg%3E",
+  violet:"data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20512%20512%22%3E%3Cdefs%3E%3CclipPath%20id=%22c%22%3E%3Ccircle%20cx=%22256%22%20cy=%22256%22%20r=%22256%22/%3E%3C/clipPath%3E%3C/defs%3E%3Ccircle%20cx=%22256%22%20cy=%22256%22%20r=%22256%22%20fill=%22%236D28D9%22/%3E%3Cg%20clip-path=%22url(%23c)%22%20fill=%22%23C4B5FD%22%3E%3Ccircle%20cx=%22256%22%20cy=%22196%22%20r=%2288%22/%3E%3Cpath%20d=%22M64%20512c0-106%2086-190%20192-190s192%2084%20192%20190z%22/%3E%3C/g%3E%3C/svg%3E"
+};
+function tchiloDefaultAvatarSrc(){
+  var theme='classic';
+  try{ theme=(typeof getAppTheme==='function'?getAppTheme():document.documentElement.getAttribute('data-theme'))||'classic'; }catch(e){}
+  if(theme==='dark') return TCHILO_DEFAULT_AVATARS.dark;
+  if(theme==='violet') return TCHILO_DEFAULT_AVATARS.violet;
+  return TCHILO_DEFAULT_AVATARS.light;
+}
+function tchiloDefaultAvatarImg(style,cls){
+  return '<svg class="'+(cls||'')+' tchilo-def-avatar" viewBox="0 0 512 512" aria-hidden="true" style="'+(style||'')+'"><rect class="dav-bg" width="512" height="512"/><circle class="dav-fg" cx="256" cy="196" r="88"/><path class="dav-fg" d="M64 512c0-106 86-190 192-190s192 84 192 190z"/></svg>';
+}
+function tchiloRefreshDefaultAvatars(){
+  try{
+    var src=tchiloDefaultAvatarSrc();
+    document.querySelectorAll('img[data-def-avatar="1"]').forEach(function(im){ if(im.getAttribute('src')!==src) im.setAttribute('src',src); });
+  }catch(e){}
+}
+
 function renderUserAvatarHTML(username, initials, bg) {
   const url = resolveUserAvatarUrl(username);
   const def = (typeof tchiloDefaultAvatarSrc === 'function') ? tchiloDefaultAvatarSrc() : 'avatar-claro.svg';
   const src = url || def;
-  return '<div class="avatar" style="background:transparent;overflow:hidden;border:none;box-shadow:none"><img src="' + String(src).replace(/"/g, '&quot;') + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;border:none"></div>';
+  const inner = url
+    ? '<img src="' + String(url).replace(/"/g, '&quot;') + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;border:none">'
+    : tchiloDefaultAvatarImg('');
+  return '<div class="avatar" style="background:transparent;overflow:hidden;border:none;box-shadow:none">' + inner + '</div>';
 }
 
 /** Aplica foto real (ou iniciais) a um elemento .avatar já no DOM. */
@@ -8257,7 +8312,9 @@ function applyAvatarToElement(el, username, initials, bg) {
   el.style.color = 'transparent';
   el.style.fontSize = '0';
   const src = url || def;
-  el.innerHTML = '<img src="' + String(src).replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;border:none">';
+  el.innerHTML = url
+    ? '<img src="' + String(url).replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;border:none">'
+    : tchiloDefaultAvatarImg('');
 }
 
 /** Se a foto ainda não está em cache, busca no Supabase profiles e atualiza UI. */
@@ -8355,8 +8412,8 @@ function refreshEditAvatarPreview() {
     const rb = document.getElementById('removeAvatarBtn');
     if (rb) rb.style.display = '';
   } else {
-    const initials = session ? session.username.slice(0,2).toUpperCase() : '?';
-    box.textContent = initials;
+    box.style.background = 'transparent';
+    box.innerHTML = tchiloDefaultAvatarImg('width:100%;height:100%;object-fit:cover;border-radius:50%;display:block');
     const rb = document.getElementById('removeAvatarBtn');
     if (rb) rb.style.display = 'none';
   }
@@ -9041,6 +9098,7 @@ function applyAppTheme(){
   if (frame) frame.setAttribute('data-theme', theme);
   const label = document.getElementById('currentThemeLabel');
   if (label) label.textContent = THEME_LABELS[theme] || 'Clássico';
+  try{ tchiloRefreshDefaultAvatars(); }catch(e){}
   ['classic','dark','yellow','violet','red'].forEach(function(code){
     const el = document.getElementById('theme-check-' + code);
     if (el) el.textContent = (theme === code) ? '✓' : '';
@@ -9626,7 +9684,7 @@ function openSharedStoryFromChat(username,createdAt){
   openStory([{name:username,initials:username.slice(0,2).toUpperCase(),text:st.text||'',color:st.media?getThemeColor('m1'):getThemeColor(st.color||'m1'),themeColor:st.media?null:(st.color||null),media:st.media||null,mediaType:st.mediaType||null,createdAt:st.createdAt}]);
 }
 
-function getStoryProfileAvatar(username, fallbackInitials, fallbackColor){ const url=resolveUserAvatarUrl(username); if(url){ return '<img class="story-profile-thumb" src="'+String(url).replace(/"/g,'&quot;')+'" alt="" />'; } return '<span class="story-profile-initials">'+String(fallbackInitials||username||'ST').slice(0,2).toUpperCase().replace(/</g,'&lt;')+'</span>'; }
+function getStoryProfileAvatar(username, fallbackInitials, fallbackColor){ const url=resolveUserAvatarUrl(username); if(url){ return '<img class="story-profile-thumb" src="'+String(url).replace(/"/g,'&quot;')+'" alt="" />'; } return tchiloDefaultAvatarImg('','story-profile-thumb'); }
 function getStorySeenMap(){
   try{ return JSON.parse(localStorage.getItem('tchilo_story_seen')||'{}')||{}; }catch(e){ return {}; }
 }
@@ -9663,7 +9721,7 @@ function buildStoryCardFooter(uname, showAvatar){
     if(url){
       avatarHtml='<div class="story-card-avatar"><img src="'+String(url).replace(/"/g,'&quot;')+'" alt=""></div>';
     } else {
-      avatarHtml='<div class="story-card-avatar"><span>'+String(uname||'').slice(0,2).toUpperCase().replace(/</g,'&lt;')+'</span></div>';
+      avatarHtml='<div class="story-card-avatar">'+tchiloDefaultAvatarImg('')+'</div>';
     }
   }
   return '<div class="story-card-gradient"></div><div class="story-card-footer">'+avatarHtml+'<span class="story-card-name">'+String(uname||'').replace(/</g,'&lt;')+'</span></div>';

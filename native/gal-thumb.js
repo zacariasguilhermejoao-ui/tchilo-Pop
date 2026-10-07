@@ -1,5 +1,6 @@
 /**
  * tchilo-Pop — miniatura da foto recente no botão da galeria
+ * perf: deixa de polir a cada 400ms; só verifica quando a câmara está aberta
  */
 (function () {
   "use strict";
@@ -116,7 +117,16 @@
     if (input) hookFile(input);
   }
 
-  setInterval(tick, 400);
+  /* só enquanto a câmara/galeria pode aparecer — intervalo longo */
+  var tries = 0;
+  var iv = setInterval(function () {
+    tick();
+    tries++;
+    var btn = document.getElementById("tscGal");
+    if ((btn && btn.__galThumbLoaded && btn.__galThumbStyled) || tries > 40) {
+      clearInterval(iv);
+    }
+  }, 1500);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", tick);
   else tick();
 })();

@@ -2,6 +2,7 @@
  * Tchilo login session v9
  * Problema: login processa e volta a Entrar/Criar conta
  * Solucao: gravar sessao + esconder gate imediatamente; nunca expulsar nos 20s apos login
+ * (v9.1 trigger inject)
  */
 (function () {
   'use strict';
@@ -123,12 +124,10 @@
       var _sg = window.showLoginGate;
       window.showLoginGate = function () {
         if (window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) {
-          console.warn('[login-v9] bloqueado showLoginGate (login recente)');
           forceHideGate();
           return;
         }
         if (localSession() && !window.__tchiloLoggingOut) {
-          console.warn('[login-v9] bloqueado showLoginGate (ha sessao local)');
           forceHideGate();
           return;
         }
@@ -151,10 +150,7 @@
     if (typeof window.clearSession === 'function' && !window.clearSession.__v9) {
       var _cs = window.clearSession;
       window.clearSession = function () {
-        if (window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) {
-          console.warn('[login-v9] bloqueado clearSession');
-          return;
-        }
+        if (window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) return;
         return _cs.apply(this, arguments);
       };
       window.clearSession.__v9 = true;
@@ -178,12 +174,11 @@
       var SB = window.tchiloSupabase;
       if (!SB || !SB.auth) throw new Error('Servico de autenticacao indisponivel. Recarrega a pagina.');
 
-      var email = identifier;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
         throw new Error('Para entrar, usa o email da conta (nao o nome de utilizador).');
       }
 
-      var res = await SB.auth.signInWithPassword({ email: email, password: password });
+      var res = await SB.auth.signInWithPassword({ email: identifier, password: password });
       if (res.error) {
         var msg = res.error.message || 'Nao foi possivel iniciar sessao.';
         if (/invalid login|invalid credentials|invalid_credentials/i.test(msg)) {
@@ -201,7 +196,7 @@
       writeSession({
         id: user.id,
         username: (user.user_metadata && user.user_metadata.username) || ('user_' + String(user.id).slice(0, 8)),
-        email: user.email || email,
+        email: user.email || identifier,
         displayName: (user.user_metadata && user.user_metadata.display_name) || '',
         avatar: null,
         privateAccount: false,
@@ -279,12 +274,6 @@
               if (typeof window.tchiloSyncAuthSession === 'function') window.tchiloSyncAuthSession();
             } catch (e) {}
           }, 50);
-        }
-        if (event === 'SIGNED_OUT') {
-          if (window.__tchiloJustLoggedIn) {
-            console.warn('[login-v9] ignorar SIGNED_OUT logo apos login');
-            return;
-          }
         }
       });
       window.__tchiloAuthListenerV9 = true;

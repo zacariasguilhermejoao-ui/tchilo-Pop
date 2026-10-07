@@ -1,5 +1,5 @@
 /**
- * Tchilo — ícone Reels (claquete + play, SVG) no tamanho do ícone antigo (26px)
+ * Tchilo — ícone Reels (claquete + play, SVG) no mesmo tamanho do ícone de notificações (34px)
  */
 (function () {
   'use strict';
@@ -15,7 +15,7 @@
     st.textContent =
       '.nav-item .nav-reels-icon,' +
       '.nav-item img.nav-reels-icon{' +
-      'width:26px!important;height:26px!important;' +
+      'width:34px!important;height:34px!important;' +
       'display:block!important;object-fit:contain;' +
       'flex-shrink:0;}' +
       '.nav-item svg.nav-reels-icon{display:none!important;}';
@@ -35,8 +35,8 @@
     var img = document.createElement('img');
     img.className = 'nav-reels-icon';
     img.alt = 'Reels';
-    img.width = 26;
-    img.height = 26;
+    img.width = 34;
+    img.height = 34;
     img.src = ICON_SRC;
     img.draggable = false;
     var dot = btn.querySelector('.dot');

@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v33 — login-session-fix v9 primeiro */
+/** tchilo-Pop loaders v34 — ui-unlock first */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V33) return;
-  window.__TCHILO_FEED_STABLE_V33 = true;
+  if (window.__TCHILO_FEED_STABLE_V34) return;
+  window.__TCHILO_FEED_STABLE_V34 = true;
 
   function add(src, sync) {
     try {
@@ -14,9 +14,8 @@
         var oldV = (cur.match(/[?&]v=([^&]+)/) || [])[1];
         var newV = (src.match(/[?&]v=([^&]+)/) || [])[1];
         if (oldV && newV && oldV !== newV) existing.remove();
-        else if (cur.split('?')[0].split('/').pop() === name && newV) {
-          existing.remove();
-        } else if (cur.split('?')[0].split('/').pop() === name) return;
+        else if (cur.split('?')[0].split('/').pop() === name && newV) existing.remove();
+        else if (cur.split('?')[0].split('/').pop() === name) return;
       }
       var s = document.createElement('script');
       s.src = src;
@@ -26,8 +25,10 @@
   }
 
   function load() {
-    /* LOGIN primeiro — evita bounce para Entrar/Criar conta */
+    /* UNLOCK primeiro — icones clicaveis + feed */
+    add('native/tchilo-ui-unlock.js?v=1', true);
     add('native/tchilo-login-session-fix.js?v=9', true);
+    add('native/tchilo-hide-nav.js?v=4');
     add('native/tchilo-stable-ui.js?v=3');
     add('native/tchilo-settings-icons.js?v=24');
     add('native/tchilo-product-copy.js?v=2');
@@ -37,7 +38,6 @@
     add('native/tchilo-site-url-fix.js?v=1');
     add('native/tchilo-no-busy-select.js?v=1');
     add('native/tchilo-ui-stable.js?v=1');
-    add('native/tchilo-hide-nav.js?v=3');
     add('native/tchilo-chat-composer.js?v=1');
     add('native/tchilo-password-reset.js?v=6');
     add('native/tchilo-router.js?v=3');

@@ -18,10 +18,10 @@
 
   // 1) Full media-editor from known-good
   loadScript(BASE + '?t=' + Date.now(), function () {
-    // 2) UI overlay (white bg, PUBLICAR, side icons, auto music)
-    loadScript('native/tchilo-media-editor-ui-v10.js?v=1');
+    // 2) UI overlay
+    loadScript('native/tchilo-media-editor-ui-v10.js?v=2');
   });
 
-  // 3) Login click fix (Entrar / Criar conta)
-  loadScript('native/tchilo-login-click-fix.js?v=3');
+  // 3) Login fix v4 — não intercepta o formulário
+  loadScript('native/tchilo-login-click-fix.js?v=4');
 })();

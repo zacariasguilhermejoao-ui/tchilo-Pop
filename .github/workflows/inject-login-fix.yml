@@ -1,0 +1,36 @@
+name: Inject login session fix early
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'native/tchilo-login-session-fix.js'
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inject script in index head
+        run: |
+          python3 << 'PY'
+          h=open('index.html').read()
+          tag='<script src="native/tchilo-login-session-fix.js?v=9"></script>'
+          if 'tchilo-login-session-fix.js?v=9' in h:
+            print('already injected v9')
+          else:
+            # remove old versions
+            import re
+            h=re.sub(r'<script[^>]*tchilo-login-session-fix\.js[^>]*></script>\s*','',h)
+            if '</head>' in h:
+              h=h.replace('</head>', tag+'\n</head>', 1)
+              open('index.html','w').write(h)
+              print('injected in head', len(h))
+            else:
+              print('no head')
+          PY
+      - name: Commit
+        run: |
+          git config user.name "tchilo-bot"
+          git config user.email "bot@tchilopop.com"
+          git add index.html
+          git diff --staged --quiet || git commit -m "index: load login-session-fix v9 early in head"
+          git push || true

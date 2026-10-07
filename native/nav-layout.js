@@ -43,7 +43,7 @@
       'display:block!important;border:none!important;background:none!important;}' +
       '.nav-sms-text{display:none!important;}' +
 
-      '.nav-item .nav-reels-icon{width:26px;height:26px;display:block;}' +
+      '.nav-item .nav-reels-icon{width:34px;height:34px;display:block;}' +
 
       '#screen-feed .topbar .topbar-icons .icon-btn,' +
       '#screen-feed .topbar-icons .icon-btn,' +
@@ -177,7 +177,6 @@
       btn.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
-        if (typeof goTo === 'function') goTo('messages');
       };
       icons.appendChild(btn);
     }

@@ -1,10 +1,10 @@
-/** tchilo-Pop loaders v32 — stable-ui v3 */
+/** tchilo-Pop loaders v33 — login-session-fix v9 primeiro */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V32) return;
-  window.__TCHILO_FEED_STABLE_V32 = true;
+  if (window.__TCHILO_FEED_STABLE_V33) return;
+  window.__TCHILO_FEED_STABLE_V33 = true;
 
-  function add(src) {
+  function add(src, sync) {
     try {
       var name = src.split('?')[0].split('/').pop();
       var existing = document.querySelector('script[src*="' + name + '"]');
@@ -20,12 +20,14 @@
       }
       var s = document.createElement('script');
       s.src = src;
-      s.async = true;
+      if (!sync) s.async = true;
       (document.body || document.documentElement).appendChild(s);
     } catch (e) {}
   }
 
   function load() {
+    /* LOGIN primeiro — evita bounce para Entrar/Criar conta */
+    add('native/tchilo-login-session-fix.js?v=9', true);
     add('native/tchilo-stable-ui.js?v=3');
     add('native/tchilo-settings-icons.js?v=24');
     add('native/tchilo-product-copy.js?v=2');

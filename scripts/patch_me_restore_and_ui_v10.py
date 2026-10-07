@@ -5,8 +5,7 @@ import re
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-# Last known good media-editor before PLACEHOLDER accident
-SHA = "0b966a9baa18e27fd929c6257318319bcaf25dc3"
+SHA = "acac5780f3459d23c0c9dd06e46340567fbb685b"
 URL = f"https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/{SHA}/native/media-editor.js"
 
 def restore_media_editor():
@@ -16,24 +15,11 @@ def restore_media_editor():
             data = r.read()
         if len(data) > 10000 and b"tchiloOpenMediaEditor" in data:
             dest.write_bytes(data)
-            print("restored media-editor from SHA", SHA, len(data))
+            print("restored media-editor from", SHA, len(data))
             return True
         print("download looked invalid", len(data))
     except Exception as e:
         print("download failed", e)
-    # fallback: local b64 chunks if present
-    chunks = sorted(ROOT.glob("scripts/me_orig_*.b64"), key=lambda p: int(p.stem.split("_")[-1]))
-    if chunks:
-        import base64
-        data = "".join(p.read_text().strip() for p in chunks)
-        try:
-            raw = base64.b64decode(data)
-            if len(raw) > 10000:
-                dest.write_bytes(raw)
-                print("restored media-editor from b64", len(raw))
-                return True
-        except Exception as e:
-            print("b64 failed", e)
     return False
 
 def wire_index():

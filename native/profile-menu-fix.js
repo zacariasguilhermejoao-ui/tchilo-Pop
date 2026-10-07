@@ -1,12 +1,45 @@
 /**
- * tchilo-Pop — Editar perfil + Definições no menu ⋯; limpa botões da página
- * v2 — sem setInterval (evita Live a piscar)
+ * tchilo-Pop — menu ⋯ perfil
+ * v3 — ícone Definições = engrenagem preta profissional; Live = vermelho
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileMenuFixV2) return;
+  if (window.__tchiloProfileMenuFixV3) return;
+  window.__tchiloProfileMenuFixV3 = true;
   window.__tchiloProfileMenuFixV2 = true;
-  window.__tchiloProfileMenuFix = true;
+
+  /* Engrenagem clássica (settings) — stroke preto via currentColor */
+  var GEAR_SVG =
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<circle cx="12" cy="12" r="3"></circle>' +
+    '<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>' +
+    '</svg>';
+
+  var EDIT_SVG =
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M12 20h9"></path>' +
+    '<path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>' +
+    '</svg>';
+
+  function injectLiveCss() {
+    if (document.getElementById('tchilo-live-red-css')) return;
+    var st = document.createElement('style');
+    st.id = 'tchilo-live-red-css';
+    st.textContent =
+      '#profileBody .profile-actions button[data-tchilo-live],' +
+      '#profileBody .profile-actions button.profile-btn[data-tchilo-live],' +
+      '#profileBody button[data-tchilo-live]{' +
+      'background:#e11d48!important;' +
+      'background-color:#e11d48!important;' +
+      'color:#fff!important;' +
+      'border-color:#e11d48!important;' +
+      'border:2px solid #e11d48!important;}' +
+      /* ícone definições no menu: preto */
+      '#tchiloProfileShareSheet .opt[data-act="settings"] .ic,' +
+      '#tchiloProfileShareSheet .opt[data-act="settings"] .ic svg{' +
+      'color:#0B0B0C!important;stroke:#0B0B0C!important;}';
+    (document.head || document.documentElement).appendChild(st);
+  }
 
   function isOwnProfile() {
     try {
@@ -43,9 +76,24 @@
     } catch (e) {}
   }
 
+  function paintLiveRed() {
+    injectLiveCss();
+    try {
+      document.querySelectorAll('#profileBody [data-tchilo-live], #profileBody .profile-actions button').forEach(function (btn) {
+        var t = (btn.textContent || '').trim();
+        if (!/Live/i.test(t) && !btn.getAttribute('data-tchilo-live')) return;
+        btn.setAttribute('data-tchilo-live', '1');
+        btn.style.setProperty('background', '#e11d48', 'important');
+        btn.style.setProperty('background-color', '#e11d48', 'important');
+        btn.style.setProperty('color', '#fff', 'important');
+        btn.style.setProperty('border-color', '#e11d48', 'important');
+      });
+    } catch (e) {}
+  }
+
   function patchSheet() {
     if (typeof window.tchiloOpenProfileShare !== 'function') return;
-    if (window.tchiloOpenProfileShare.__menuFix) return;
+    if (window.tchiloOpenProfileShare.__menuFixV3) return;
     var orig = window.tchiloOpenProfileShare;
     window.tchiloOpenProfileShare = function () {
       var r = orig.apply(this, arguments);
@@ -53,6 +101,7 @@
       setTimeout(injectMenuItems, 150);
       return r;
     };
+    window.tchiloOpenProfileShare.__menuFixV3 = true;
     window.tchiloOpenProfileShare.__menuFix = true;
   }
 
@@ -61,11 +110,19 @@
     if (!sheet) return;
     var panel = sheet.querySelector('.tchilo-ps-panel');
     if (!panel) return;
-    if (panel.querySelector('[data-act="edit"]')) return;
     if (!isOwnProfile()) return;
 
     var title = panel.querySelector('h3');
     if (title) title.textContent = 'Opções';
+
+    /* Atualizar ícone se já existir */
+    var existingSet = panel.querySelector('[data-act="settings"]');
+    if (existingSet) {
+      var ic = existingSet.querySelector('.ic');
+      if (ic) ic.innerHTML = GEAR_SVG;
+      return;
+    }
+    if (panel.querySelector('[data-act="edit"]')) return;
 
     function makeOpt(act, label, svg) {
       var btn = document.createElement('button');
@@ -85,13 +142,8 @@
       return btn;
     }
 
-    var editSvg =
-      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
-    var setSvg =
-      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>';
-
-    var editBtn = makeOpt('edit', 'Editar perfil', editSvg);
-    var setBtn = makeOpt('settings', 'Definições', setSvg);
+    var editBtn = makeOpt('edit', 'Editar perfil', EDIT_SVG);
+    var setBtn = makeOpt('settings', 'Definições', GEAR_SVG);
 
     var firstOpt = panel.querySelector('.opt');
     if (firstOpt) {
@@ -104,48 +156,58 @@
   }
 
   function fixLiveInject() {
+    injectLiveCss();
     try {
       var actions = document.querySelector('#profileBody .profile-actions');
-      if (!actions || actions.querySelector('[data-tchilo-live]')) return;
+      if (!actions) return;
       if (!isOwnProfile()) return;
+
+      var existing = actions.querySelector('[data-tchilo-live]');
+      if (existing) {
+        paintLiveRed();
+        return;
+      }
       if (typeof window.tchiloOpenLiveSetup !== 'function') return;
+
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'profile-btn';
       btn.setAttribute('data-tchilo-live', '1');
       btn.textContent = 'Iniciar Live';
-      btn.style.background = '#e11d48';
-      btn.style.color = '#fff';
-      btn.style.borderColor = '#e11d48';
+      btn.style.setProperty('background', '#e11d48', 'important');
+      btn.style.setProperty('color', '#fff', 'important');
+      btn.style.setProperty('border-color', '#e11d48', 'important');
       btn.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
         window.tchiloOpenLiveSetup();
       };
       actions.insertBefore(btn, actions.firstChild);
+      paintLiveRed();
     } catch (e) {}
   }
 
   function run() {
+    injectLiveCss();
     stripProfileButtons();
     patchSheet();
     fixLiveInject();
+    paintLiveRed();
   }
 
   run();
   [100, 500, 1200].forEach(function (ms) {
     setTimeout(run, ms);
   });
-  /* sem setInterval — evita Live a piscar */
 
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__menuFix) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__menuFixV3) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
       setTimeout(run, 40);
       return r;
     };
-    window.renderProfile.__menuFix = true;
+    window.renderProfile.__menuFixV3 = true;
   }
 
   document.addEventListener(

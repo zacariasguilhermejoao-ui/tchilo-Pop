@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v35 — ui-unlock v2 first */
+/** tchilo-Pop loaders v36 — router v4 anti-404 */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V35) return;
-  window.__TCHILO_FEED_STABLE_V35 = true;
+  if (window.__TCHILO_FEED_STABLE_V36) return;
+  window.__TCHILO_FEED_STABLE_V36 = true;
 
   function add(src, sync) {
     try {
@@ -28,6 +28,7 @@
     add('native/tchilo-ui-unlock.js?v=2', true);
     add('native/tchilo-login-session-fix.js?v=9', true);
     add('native/tchilo-hide-nav.js?v=4');
+    add('native/tchilo-router.js?v=4');
     add('native/tchilo-stable-ui.js?v=3');
     add('native/tchilo-settings-icons.js?v=24');
     add('native/tchilo-product-copy.js?v=2');
@@ -39,7 +40,6 @@
     add('native/tchilo-ui-stable.js?v=1');
     add('native/tchilo-chat-composer.js?v=1');
     add('native/tchilo-password-reset.js?v=6');
-    add('native/tchilo-router.js?v=3');
     add('native/tchilo-public-urls.js?v=1');
     add('native/tchilo-og-meta.js?v=1');
     add('native/tchilo-avatar-cloud.js?v=4');

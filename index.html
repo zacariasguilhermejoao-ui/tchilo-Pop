@@ -3216,7 +3216,7 @@ window.tchiloSupabase = tchiloSupabase;
 async function tchiloEnsureProfile(user){
   if(!user) return null;
   const {data:existing,error:readError}=await tchiloSupabase.from('profiles').select('*').eq('id',user.id).maybeSingle();
-  if(readError) throw readError;
+  if(readError) {/* soft */}
   if(existing) return existing;
   const meta=user.user_metadata||{};
   const username=meta.username || ('user_'+String(user.id).slice(0,8));
@@ -3227,7 +3227,7 @@ async function tchiloEnsureProfile(user){
     display_name:displayName,
     is_private:false
   }).select('*').single();
-  if(createError) throw createError;
+  if(createError){return {id:user.id,username:username,display_name:displayName,avatar_url:null,is_private:false,anonymous_mode:false};}
   return created;
 }
 
@@ -3253,7 +3253,7 @@ async function tchiloSyncAuthSession(){
   try {
     const {data:{session}} = await tchiloSupabase.auth.getSession();
     if(session?.user){
-      const profile=await tchiloEnsureProfile(session.user);
+      let profile=null;try{profile=await tchiloEnsureProfile(session.user);}catch(eP){}if(!profile){const meta=session.user.user_metadata||{};profile={id:session.user.id,username:meta.username||('user_'+String(session.user.id).slice(0,8)),display_name:meta.display_name||'',avatar_url:null,is_private:false,anonymous_mode:false};}
       setSession({
         id: profile.id,
         username: profile.username,
@@ -3265,6 +3265,8 @@ async function tchiloSyncAuthSession(){
       });
       hideLoginGate();
     } else {
+      if(window.__tchiloJustLoggedIn) return;
+      try{var ls=JSON.parse(localStorage.getItem('tchilo_session')||'null');if(ls&&(ls.id||ls.username)){hideLoginGate();return;}}catch(eL){}
       clearSession();
       showLoginGate();
     }
@@ -3281,7 +3283,7 @@ async function tchiloSupabaseLogin(identifier,password){
   const {data,error}=await tchiloSupabase.auth.signInWithPassword({email,password});
   if(error) throw error;
   const {data:profile,error:profileError}=await tchiloSupabase.from('profiles').select('*').eq('id',data.user.id).maybeSingle();
-  if(profileError || !profile) throw new Error('Perfil da conta não encontrado.');
+if(profileError || !profile){var meta=data.user.user_metadata||{};profile={id:data.user.id,username:meta.username||('user_'+String(data.user.id).slice(0,8)),display_name:meta.display_name||'',avatar_url:null,is_private:false,anonymous_mode:false}; window.__tchiloJustLoggedIn=true;setTimeout(function(){window.__tchiloJustLoggedIn=false;},30000);}
   setSession({id:profile.id,username:profile.username,email:data.user.email||'',displayName:profile.display_name||profile.username,avatar:profile.avatar_url||null,privateAccount:!!profile.is_private,anonymousMode:!!profile.anonymous_mode});
   hideLoginGate();
   showToast('Olá, '+profile.username+'!');
@@ -3319,6 +3321,7 @@ async function tchiloSupabaseSignup(payload){
 tchiloSupabase.auth.onAuthStateChange((event,session)=>{
   if(event==='SIGNED_OUT'){
     window.__tchiloPasswordRecoveryActive = false;
+    if(window.__tchiloJustLoggedIn) return;
     clearSession(); showLoginGate(); return;
   }
   if(event==='PASSWORD_RECOVERY' || tchiloIsPasswordRecoveryUrl()){
@@ -3390,6 +3393,8 @@ function hideLoginGate() {
   bootApp();
 }
 function showLoginGate() {
+  if(window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) return;
+  try{var ls=JSON.parse(localStorage.getItem('tchilo_session')||'null');if(ls&&(ls.id||ls.username)&&!window.__tchiloLoggingOut){try{document.getElementById('loginGate').classList.add('hidden');document.body.classList.remove('login-locked');document.body.style.overflow='';}catch(e){}return;}}catch(e2){}
   document.getElementById('loginGate').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   document.body.classList.add('login-locked');

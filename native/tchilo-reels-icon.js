@@ -1,5 +1,6 @@
 /**
- * Tchilo — ícone Reels (claquete + play, SVG) no mesmo tamanho do ícone de notificações (34px)
+ * Tchilo — ícone Reels (claquete + play, SVG) 34px
+ * perf: aplica no boot; observer com debounce; não reescreve se já estiver certo
  */
 (function () {
   'use strict';
@@ -25,8 +26,9 @@
   function replaceIn(btn) {
     if (!btn) return;
     var existing = btn.querySelector('img.nav-reels-icon');
+    if (existing && existing.getAttribute('src') === ICON_SRC) return;
     if (existing) {
-      if (existing.getAttribute('src') !== ICON_SRC) existing.src = ICON_SRC;
+      existing.src = ICON_SRC;
       return;
     }
     btn.querySelectorAll('svg, .nav-text-icon, .nav-sms-text').forEach(function (n) {
@@ -56,18 +58,24 @@
     if (btn) replaceIn(btn);
   }
 
+  var _t = null;
+  function debouncedApply() {
+    if (_t) return;
+    _t = setTimeout(function () {
+      _t = null;
+      apply();
+    }, 200);
+  }
+
   function boot() {
     apply();
-    setTimeout(apply, 400);
-    setTimeout(apply, 1200);
-    setTimeout(apply, 3000);
+    setTimeout(apply, 500);
+    setTimeout(apply, 2000);
     try {
       var nav = document.querySelector('.navbar');
       if (nav && !nav.__reelsIconObs) {
         nav.__reelsIconObs = true;
-        new MutationObserver(function () {
-          apply();
-        }).observe(nav, { childList: true, subtree: true });
+        new MutationObserver(debouncedApply).observe(nav, { childList: true, subtree: true });
       }
     } catch (e) {}
   }

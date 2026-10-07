@@ -1,0 +1,88 @@
+name: Patch login in index
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/patch-login-index.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch login functions in index.html
+        run: |
+          python3 << 'PY'
+          h=open('index.html').read()
+          orig=len(h)
+          tag='<script src="native/tchilo-login-session-fix.js?v=10"></script>\n'
+          if 'tchilo-login-session-fix.js?v=10' not in h:
+            import re
+            h=re.sub(r'<script[^>]*tchilo-login-session-fix\.js[^>]*></script>\s*','',h)
+            if '</head>' in h:
+              h=h.replace('</head>', tag+'</head>', 1)
+              print('injected head')
+          # remove profile required throw
+          old_throw="if(profileError || !profile) throw new Error('Perfil da conta n\u00e3o encontrado.');"
+          # try common forms
+          for t in [
+            "if(profileError || !profile) throw new Error('Perfil da conta n\xe3o encontrado.');",
+            "if(profileError || !profile) throw new Error('Perfil da conta não encontrado.');",
+          ]:
+            if t in h:
+              h=h.replace(t, '/* profile optional */', 1)
+              print('removed throw')
+          # full login replace
+          needle="const {data:profile,error:profileError}=await tchiloSupabase.from('profiles').select('*').eq('id',data.user.id).maybeSingle();"
+          if needle in h and 'window.__tchiloJustLoggedIn=true' not in h[h.find('async function tchiloSupabaseLogin'):h.find('async function tchiloSupabaseLogin')+1200]:
+            replacement='''let profile=null;
+  try{const pr=await tchiloSupabase.from('profiles').select('*').eq('id',data.user.id).maybeSingle();profile=pr&&pr.data;}catch(e){}
+  if(!profile){try{profile=await tchiloEnsureProfile(data.user);}catch(e2){}}
+  if(!profile){const meta=data.user.user_metadata||{};profile={id:data.user.id,username:meta.username||('user_'+String(data.user.id).slice(0,8)),display_name:meta.display_name||'',avatar_url:null,is_private:false,anonymous_mode:false};}
+  window.__tchiloJustLoggedIn=true;setTimeout(function(){window.__tchiloJustLoggedIn=false;},20000);'''
+            h=h.replace(needle, replacement, 1)
+            print('login body patched')
+          # guard showLoginGate
+          old_sg='''function showLoginGate() {
+  document.getElementById('loginGate').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  document.body.classList.add('login-locked');
+  tchiloClearLoginFields();
+  showLoginHome();
+  playLoginVideo();
+}'''
+          new_sg='''function showLoginGate() {
+  if(window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) return;
+  try{var ls=null;try{ls=JSON.parse(localStorage.getItem('tchilo_session')||'null');}catch(e){} if(ls&&(ls.id||ls.username)&&!window.__tchiloLoggingOut){try{document.getElementById('loginGate').classList.add('hidden');document.body.classList.remove('login-locked');document.body.style.overflow='';}catch(e2){} return;}}catch(e3){}
+  document.getElementById('loginGate').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  document.body.classList.add('login-locked');
+  tchiloClearLoginFields();
+  showLoginHome();
+  playLoginVideo();
+}'''
+          if old_sg in h:
+            h=h.replace(old_sg, new_sg, 1)
+            print('showLoginGate guarded')
+          # SIGNED_OUT guard
+          old_so="if(event==='SIGNED_OUT'){\n    window.__tchiloPasswordRecoveryActive = false;\n    clearSession(); showLoginGate(); return;\n  }"
+          new_so="if(event==='SIGNED_OUT'){\n    window.__tchiloPasswordRecoveryActive = false;\n    if(window.__tchiloJustLoggedIn){return;}\n    clearSession(); showLoginGate(); return;\n  }"
+          if old_so in h:
+            h=h.replace(old_so, new_so, 1)
+            print('SIGNED_OUT guarded')
+          # sync ensureProfile soft
+          if 'const profile=await tchiloEnsureProfile(session.user);' in h:
+            h=h.replace(
+              'const profile=await tchiloEnsureProfile(session.user);\n      setSession({',
+              '''let profile=null;\n      try{profile=await tchiloEnsureProfile(session.user);}catch(eProf){}\n      if(!profile){const meta=session.user.user_metadata||{};profile={id:session.user.id,username:meta.username||('user_'+String(session.user.id).slice(0,8)),display_name:meta.display_name||'',avatar_url:null,is_private:false,anonymous_mode:false};}\n      setSession({''',
+              1)
+            print('sync soft profile')
+          open('index.html','w').write(h)
+          print('done', orig, '->', len(h))
+          PY
+      - name: Commit
+        run: |
+          git config user.name "tchilo-bot"
+          git config user.email "bot@tchilopop.com"
+          git add index.html
+          git diff --staged --quiet || git commit -m "index: fix login bounce - profile optional + gate guard"
+          git push

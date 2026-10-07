@@ -1,30 +1,69 @@
 #!/usr/bin/env python3
+"""Restore media-editor.js from known-good commit and wire overlay + login."""
 from pathlib import Path
-import base64, re
+import re
+import urllib.request
+
 ROOT = Path(__file__).resolve().parents[1]
-chunks = sorted(ROOT.glob("scripts/me_orig_*.b64"), key=lambda p: int(p.stem.split("_")[-1]))
-if chunks:
-    data = "".join(p.read_text().strip() for p in chunks)
-    (ROOT / "native" / "media-editor.js").write_bytes(base64.b64decode(data))
-    print("restored media-editor", (ROOT/"native"/"media-editor.js").stat().st_size)
-idx = ROOT / "index.html"
-s = idx.read_text(encoding="utf-8")
-s2 = re.sub(r'<script src="native/media-editor\.js[^"]*"></script>',
-            '<script src="native/media-editor.js?v=10"></script>', s)
-if "tchilo-media-editor-ui-v10" not in s2:
-    s2 = s2.replace(
+# Last known good media-editor before PLACEHOLDER accident
+SHA = "0b966a9baa18e27fd929c6257318319bcaf25dc3"
+URL = f"https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/{SHA}/native/media-editor.js"
+
+def restore_media_editor():
+    dest = ROOT / "native" / "media-editor.js"
+    try:
+        with urllib.request.urlopen(URL, timeout=30) as r:
+            data = r.read()
+        if len(data) > 10000 and b"tchiloOpenMediaEditor" in data:
+            dest.write_bytes(data)
+            print("restored media-editor from SHA", SHA, len(data))
+            return True
+        print("download looked invalid", len(data))
+    except Exception as e:
+        print("download failed", e)
+    # fallback: local b64 chunks if present
+    chunks = sorted(ROOT.glob("scripts/me_orig_*.b64"), key=lambda p: int(p.stem.split("_")[-1]))
+    if chunks:
+        import base64
+        data = "".join(p.read_text().strip() for p in chunks)
+        try:
+            raw = base64.b64decode(data)
+            if len(raw) > 10000:
+                dest.write_bytes(raw)
+                print("restored media-editor from b64", len(raw))
+                return True
+        except Exception as e:
+            print("b64 failed", e)
+    return False
+
+def wire_index():
+    idx = ROOT / "index.html"
+    s = idx.read_text(encoding="utf-8")
+    s2 = re.sub(
+        r'<script src="native/media-editor\.js[^"]*"></script>',
         '<script src="native/media-editor.js?v=10"></script>',
-        '<script src="native/media-editor.js?v=10"></script>\n<script src="native/tchilo-media-editor-ui-v10.js?v=1"></script>',
-        1,
+        s,
     )
-if "tchilo-login-click-fix" not in s2:
-    s2 = s2.replace(
-        '<script src="native/media-editor.js?v=10"></script>',
-        '<script src="native/media-editor.js?v=10"></script>\n<script src="native/tchilo-login-click-fix.js?v=3"></script>',
-        1,
-    )
-if s2 != s:
-    idx.write_text(s2, encoding="utf-8")
-    print("index wired")
-else:
-    print("index unchanged")
+    if "tchilo-media-editor-ui-v10" not in s2:
+        s2 = s2.replace(
+            '<script src="native/media-editor.js?v=10"></script>',
+            '<script src="native/media-editor.js?v=10"></script>\n'
+            '<script src="native/tchilo-media-editor-ui-v10.js?v=1"></script>',
+            1,
+        )
+    if "tchilo-login-click-fix" not in s2:
+        s2 = s2.replace(
+            '<script src="native/media-editor.js?v=10"></script>',
+            '<script src="native/media-editor.js?v=10"></script>\n'
+            '<script src="native/tchilo-login-click-fix.js?v=3"></script>',
+            1,
+        )
+    if s2 != s:
+        idx.write_text(s2, encoding="utf-8")
+        print("index wired")
+    else:
+        print("index unchanged")
+
+if __name__ == "__main__":
+    restore_media_editor()
+    wire_index()

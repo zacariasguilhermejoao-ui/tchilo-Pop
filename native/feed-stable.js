@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v39 — reels v8 + feed video v2 */
+/** tchilo-Pop loaders v40 — settings icons v27 */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V39) return;
-  window.__TCHILO_FEED_STABLE_V39 = true;
+  if (window.__TCHILO_FEED_STABLE_V40) return;
+  window.__TCHILO_FEED_STABLE_V40 = true;
 
   function add(src, sync) {
     try {
@@ -33,7 +33,7 @@
     add('native/tchilo-reels-open-fix.js?v=8');
     add('native/tchilo-feed-video-ui.js?v=2');
     add('native/tchilo-stable-ui.js?v=3');
-    add('native/tchilo-settings-icons.js?v=24');
+    add('native/tchilo-settings-icons.js?v=27');
     add('native/tchilo-product-copy.js?v=2');
     add('native/tchilo-legal-links.js?v=1');
     add('native/tchilo-session-lock.js?v=1');

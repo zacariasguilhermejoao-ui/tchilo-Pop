@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v38 — story pick + reels v7 */
+/** tchilo-Pop loaders v39 — reels v8 + feed video v2 */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V38) return;
-  window.__TCHILO_FEED_STABLE_V38 = true;
+  if (window.__TCHILO_FEED_STABLE_V39) return;
+  window.__TCHILO_FEED_STABLE_V39 = true;
 
   function add(src, sync) {
     try {
@@ -30,7 +30,8 @@
     add('native/tchilo-hide-nav.js?v=4');
     add('native/tchilo-router.js?v=5');
     add('native/tchilo-story-pick-fix.js?v=1');
-    add('native/tchilo-reels-open-fix.js?v=7');
+    add('native/tchilo-reels-open-fix.js?v=8');
+    add('native/tchilo-feed-video-ui.js?v=2');
     add('native/tchilo-stable-ui.js?v=3');
     add('native/tchilo-settings-icons.js?v=24');
     add('native/tchilo-product-copy.js?v=2');
@@ -51,7 +52,6 @@
     add('native/paddle-ad-guard.js?v=1');
     add('native/tchilo-theme-premium-gate.js?v=1');
     add('native/tchilo-verified.js?v=2');
-    add('native/tchilo-feed-video-ui.js?v=1');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=1');
     add('native/tchilo-music-sheet.js?v=1');

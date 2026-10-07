@@ -1,13 +1,15 @@
 /**
- * Tchilo Reels v7 — abre sem colar o telemovel
- * Limita slides iniciais, DOM em batches, close fiavel
+ * Tchilo Reels v8
+ * - Usa openReels ORIGINAL (botoes like/comentar/partilhar/seguir/X)
+ * - Limita a 8 videos para nao colar
+ * - Fallback com UI completa se original falhar
  */
 (function () {
   'use strict';
-  if (window.__tchiloReelsOpenFixV7) return;
-  window.__tchiloReelsOpenFixV7 = true;
+  if (window.__tchiloReelsOpenFixV8) return;
+  window.__tchiloReelsOpenFixV8 = true;
 
-  var MAX_INITIAL = 6;
+  var MAX = 8;
   var opening = false;
 
   function toast(msg) {
@@ -28,48 +30,16 @@
       'position:fixed!important;inset:0!important;z-index:2147483000!important;' +
       'background:#000!important;flex-direction:column!important;}' +
       '#reelsViewer:not(.open){display:none!important;pointer-events:none!important;visibility:hidden!important;}' +
-      '#reelsViewer.open{display:flex!important;visibility:visible!important;opacity:1!important;' +
-      'pointer-events:auto!important;}' +
+      '#reelsViewer.open{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;}' +
       '#reelsTrack{flex:1!important;height:100%!important;overflow-y:scroll!important;' +
       'scroll-snap-type:y mandatory!important;-webkit-overflow-scrolling:touch!important;}' +
-      '#reelsTrack .reel-slide{height:100%!important;min-height:100%!important;' +
-      'scroll-snap-align:start!important;position:relative!important;background:#000;}' +
-      '#reelsTrack .reel-slide video{width:100%!important;height:100%!important;' +
-      'object-fit:cover!important;background:#000!important;}' +
-      '#reelsViewer .reels-close{position:fixed!important;top:max(12px,env(safe-area-inset-top)+8px)!important;' +
-      'left:max(12px,env(safe-area-inset-left)+8px)!important;z-index:50!important;' +
-      'width:40px;height:40px;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;' +
-      'font:700 22px system-ui,sans-serif;pointer-events:auto!important;}' +
-      '#reelsTrack .reel-actions{z-index:30!important;pointer-events:auto!important;}';
+      '#reelsTrack .reel-slide{height:100%!important;min-height:100%!important;scroll-snap-align:start!important;position:relative!important;}' +
+      '#reelsTrack .reel-slide video{width:100%!important;height:100%!important;object-fit:cover!important;}' +
+      '#reelsViewer .reels-close{z-index:50!important;pointer-events:auto!important;}' +
+      '#reelsTrack .reel-actions,#reelsTrack .reel-follow,#reelsTrack .reel-meta{pointer-events:auto!important;}';
   }
 
-  function ensureDom() {
-    var viewer = document.getElementById('reelsViewer');
-    if (!viewer) {
-      viewer = document.createElement('div');
-      viewer.id = 'reelsViewer';
-      viewer.className = 'reels-viewer';
-      viewer.innerHTML =
-        '<button class="reels-close" type="button" aria-label="Fechar">×</button>' +
-        '<div class="reels-track" id="reelsTrack"></div>';
-      document.body.appendChild(viewer);
-      viewer.querySelector('.reels-close').onclick = function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        closeSafe();
-      };
-    }
-    var track = document.getElementById('reelsTrack');
-    if (!track) {
-      track = document.createElement('div');
-      track.id = 'reelsTrack';
-      track.className = 'reels-track';
-      viewer.appendChild(track);
-    }
-    return { viewer: viewer, track: track };
-  }
-
-  function mediaUrlOf(p) {
+  function mediaUrl(p) {
     if (!p) return '';
     try {
       if (typeof resolveMedia === 'function') {
@@ -80,21 +50,20 @@
     return p.media_url || p.video_url || (typeof p.media === 'string' ? p.media : '') || '';
   }
 
-  function isVideoPost(p) {
+  function isVideo(p) {
     if (!p) return false;
     var t = String(p.mediaType || p.media_type || '').toLowerCase();
     if (t === 'video' || t.indexOf('video/') === 0) return true;
     try {
       if (typeof resolveMedia === 'function') {
         var m = resolveMedia(p);
-        if (m && (m.type === 'video' || (m.url && /\.(mp4|webm|mov)/i.test(m.url)))) return true;
+        if (m && m.type === 'video') return true;
       }
     } catch (e) {}
-    var u = mediaUrlOf(p);
-    return !!(u && /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u));
+    return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(mediaUrl(p));
   }
 
-  function collectVideos(startId) {
+  function collect(startId) {
     var list = [];
     try {
       if (typeof getVideoPosts === 'function') list = getVideoPosts() || [];
@@ -102,7 +71,7 @@
     if (!list.length) {
       try {
         var all = typeof getPosts === 'function' ? getPosts() || [] : [];
-        list = all.filter(isVideoPost);
+        list = all.filter(isVideo);
       } catch (e2) {}
     }
     if (startId) {
@@ -114,35 +83,113 @@
         list.unshift(one);
       }
     }
-    return list;
+    return list.slice(0, MAX);
+  }
+
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/"/g, '&quot;');
   }
 
   function slideHtml(p) {
-    var src = mediaUrlOf(p);
+    var src = mediaUrl(p);
     if (!src) return '';
-    var id = p.id || '';
-    var user = p.username || p.user || '';
+    var id = esc(p.id);
+    var user = esc(p.username || '');
+    var cap = esc((p.caption || '').slice(0, 120));
+    var likes = 0;
+    var isLiked = false;
+    try {
+      var L = typeof getLikes === 'function' ? getLikes() : {};
+      isLiked = !!L[p.id];
+      likes = (p.likes || 0) + (isLiked ? 1 : 0);
+    } catch (e) {}
+    var me = '';
+    try {
+      var s = typeof getSession === 'function' ? getSession() : null;
+      me = s && s.username ? s.username : '';
+    } catch (e2) {}
+    var followBtn =
+      me && user && me !== p.username
+        ? '<button class="reel-follow" data-username="' +
+          user +
+          '" onclick="event.stopPropagation();if(typeof toggleReelFollow===\'function\')toggleReelFollow(this)">Seguir</button>'
+        : '';
     return (
       '<div class="reel-slide" data-id="' +
-      String(id).replace(/"/g, '') +
+      id +
       '">' +
+      followBtn +
       '<video src="' +
-      String(src).replace(/"/g, '&quot;') +
-      '" playsinline webkit-playsinline loop preload="metadata" muted></video>' +
-      '<div class="reel-meta" style="position:absolute;left:12px;bottom:88px;color:#fff;text-shadow:0 1px 4px #000;font:700 14px system-ui,sans-serif">@' +
-      String(user).replace(/</g, '') +
+      esc(src) +
+      '" loop playsinline webkit-playsinline muted preload="metadata" ' +
+      'onclick="if(typeof toggleReelPlayback===\'function\')toggleReelPlayback(this)"></video>' +
+      '<div class="reel-meta">' +
+      '<b class="user-tap" data-user="' +
+      user +
+      '" onclick="event.stopPropagation();if(typeof openUserProfile===\'function\')openUserProfile(this.getAttribute(\'data-user\'))">@' +
+      user +
+      '</b>' +
+      (cap ? '<span>' + cap + '</span>' : '') +
+      '</div>' +
+      '<div class="reel-actions">' +
+      '<button class="reel-main-action' +
+      (isLiked ? ' liked' : '') +
+      '" onclick="event.stopPropagation();if(typeof toggleReelLike===\'function\')toggleReelLike(\'' +
+      id +
+      '\')">♥<span class="reel-action-count">' +
+      likes +
+      '</span></button>' +
+      '<button class="reel-main-action" onclick="event.stopPropagation();if(typeof openComments===\'function\')openComments(\'' +
+      id +
+      '\')">💬</button>' +
+      '<button class="reel-main-action" onclick="event.stopPropagation();if(typeof openShare===\'function\')openShare(\'' +
+      id +
+      '\')">↗</button>' +
+      '<button class="reel-more" onclick="event.stopPropagation();if(typeof openReelMenu===\'function\')openReelMenu(\'' +
+      id +
+      '\')">⋯</button>' +
       '</div></div>'
     );
   }
 
-  function playFirst(track) {
+  function openFallback(startId, startTime) {
+    injectCSS();
+    var viewer = document.getElementById('reelsViewer');
+    var track = document.getElementById('reelsTrack');
+    if (!viewer || !track) {
+      toast('Reels indisponível');
+      return;
+    }
+    var list = collect(startId);
+    if (!list.length) {
+      toast('Sem vídeos');
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < list.length; i++) html += slideHtml(list[i]);
+    track.innerHTML = html;
+    viewer.classList.add('open');
+    viewer.style.setProperty('display', 'flex', 'important');
+
+    var first = track.querySelector('video');
+    if (first) {
+      first.muted = true;
+      first.loop = true;
+      var play = function () {
+        try {
+          if (typeof startTime === 'number' && startTime > 0.15) first.currentTime = startTime;
+        } catch (e) {}
+        first.play().catch(function () {});
+      };
+      if (first.readyState >= 1) play();
+      else first.addEventListener('loadedmetadata', play, { once: true });
+    }
     try {
-      var v = track.querySelector('video');
-      if (!v) return;
-      v.muted = true;
-      var p = v.play();
-      if (p && p.catch) p.catch(function () {});
-    } catch (e) {}
+      if (typeof setupReelsObserver === 'function') setupReelsObserver();
+    } catch (e2) {}
   }
 
   function openSafe(startId, startTime) {
@@ -150,113 +197,124 @@
     opening = true;
     setTimeout(function () {
       opening = false;
-    }, 800);
+    }, 600);
 
     injectCSS();
-    var dom = ensureDom();
-    var list = collectVideos(startId);
+    var list = collect(startId);
     if (!list.length) {
       toast('Sem vídeos');
       opening = false;
       return;
     }
 
-    /* So os primeiros N — evita colar o telemovel */
-    var initial = list.slice(0, MAX_INITIAL);
-    var html = '';
-    for (var i = 0; i < initial.length; i++) {
-      html += slideHtml(initial[i]);
+    /* Preferir o openReels nativo do index (UI completa) com lista limitada */
+    var native = window.__tchiloOpenReelsNative;
+    if (typeof native === 'function') {
+      var origGet = window.getVideoPosts;
+      window.getVideoPosts = function () {
+        return list;
+      };
+      try {
+        native.call(window, startId, startTime);
+        /* garantir open e play */
+        setTimeout(function () {
+          var v = document.getElementById('reelsViewer');
+          if (v) {
+            v.classList.add('open');
+            v.style.setProperty('display', 'flex', 'important');
+          }
+          var vid = document.querySelector('#reelsTrack video');
+          if (vid) {
+            vid.muted = true;
+            vid.play().catch(function () {});
+          }
+        }, 50);
+        return;
+      } catch (e) {
+        console.warn('[reels-v8] native fail', e);
+      } finally {
+        if (origGet) window.getVideoPosts = origGet;
+      }
     }
-    dom.track.innerHTML = html;
-    dom.viewer.classList.add('open');
-    dom.viewer.style.setProperty('display', 'flex', 'important');
-
-    /* play no primeiro frame seguinte */
-    requestAnimationFrame(function () {
-      playFirst(dom.track);
-    });
-
-    /* carregar mais em idle, se houver */
-    if (list.length > MAX_INITIAL) {
-      setTimeout(function () {
-        try {
-          var more = list.slice(MAX_INITIAL, MAX_INITIAL + 10);
-          var frag = '';
-          for (var j = 0; j < more.length; j++) frag += slideHtml(more[j]);
-          if (frag) dom.track.insertAdjacentHTML('beforeend', frag);
-        } catch (e) {}
-      }, 600);
-    }
+    openFallback(startId, startTime);
   }
 
   function closeSafe() {
     try {
-      var viewer = document.getElementById('reelsViewer');
-      if (viewer) {
-        viewer.classList.remove('open');
-        viewer.style.setProperty('display', 'none', 'important');
+      var v = document.getElementById('reelsViewer');
+      if (v) {
+        v.classList.remove('open');
+        v.style.removeProperty('display');
       }
-      document.querySelectorAll('#reelsTrack video').forEach(function (v) {
+      document.querySelectorAll('#reelsTrack video').forEach(function (vid) {
         try {
-          v.pause();
-          v.removeAttribute('src');
-          v.load();
+          vid.pause();
         } catch (e) {}
       });
-      var track = document.getElementById('reelsTrack');
-      if (track) track.innerHTML = '';
+      if (window._reelsObs) window._reelsObs.disconnect();
     } catch (e2) {}
     opening = false;
   }
 
+  function captureNative() {
+    if (typeof window.openReels === 'function' && !window.openReels.__tchiloWrapper && !window.openReels.__patchedV8) {
+      window.__tchiloOpenReelsNative = window.openReels;
+      return true;
+    }
+    return !!window.__tchiloOpenReelsNative;
+  }
+
   function install() {
     injectCSS();
-    ensureDom();
+    captureNative();
 
     window.openReels = function (startId, startTime) {
       openSafe(startId, startTime);
     };
-    window.openReels.__patchedV7 = true;
+    window.openReels.__patchedV8 = true;
+    window.openReels.__tchiloWrapper = true;
 
+    var prevClose = window.closeReels;
     window.closeReels = function () {
+      try {
+        if (typeof prevClose === 'function' && !prevClose.__patchedV8) prevClose.apply(this, arguments);
+      } catch (e) {}
       closeSafe();
     };
-    window.closeReels.__patchedV7 = true;
+    window.closeReels.__patchedV8 = true;
 
-    /* Botao visual de reels (2o nav) — se for messages com icone reels, abre reels */
+    /* botao X no viewer */
     try {
-      var items = document.querySelectorAll('.navbar .nav-item');
-      var reelsBtn =
-        document.querySelector('.navbar .nav-item[data-screen="reels"]') ||
-        document.querySelector('.navbar .nav-item[aria-label="Reels"]');
-      if (!reelsBtn && items.length >= 2) {
-        /* nao forcar o 2o botao (mensagens) a ser reels — so se tiver aria/img reels */
-        var cand = items[1];
-        if (
-          cand &&
-          (cand.querySelector('img[src*="reels"], img[alt*="[Rr]eel"]') ||
-            /reels/i.test(cand.getAttribute('aria-label') || ''))
-        ) {
-          reelsBtn = cand;
-        }
-      }
-      if (reelsBtn && !reelsBtn.__reelsNavV7) {
-        reelsBtn.__reelsNavV7 = true;
-        reelsBtn.addEventListener(
-          'click',
-          function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            openSafe();
-          },
-          true
-        );
+      var btn = document.querySelector('#reelsViewer .reels-close');
+      if (btn && !btn.__v8) {
+        btn.__v8 = true;
+        btn.onclick = function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeSafe();
+        };
       }
     } catch (e) {}
   }
 
-  install();
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install);
-  setTimeout(install, 500);
-  setTimeout(install, 2000);
+  /* Capturar nativo cedo, depois instalar wrapper */
+  var tries = 0;
+  var iv = setInterval(function () {
+    captureNative();
+    if (window.__tchiloOpenReelsNative || ++tries > 40) {
+      clearInterval(iv);
+      install();
+    }
+  }, 50);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      captureNative();
+      install();
+    });
+  } else {
+    captureNative();
+    install();
+  }
+  setTimeout(install, 1500);
 })();

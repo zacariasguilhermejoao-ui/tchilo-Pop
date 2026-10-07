@@ -1,6 +1,7 @@
 /**
  * tchilo-Pop — Seguir no topo direito; X no topo esquerdo
  * v2 — sobrescreve .reel-follow{left:18px} do index
+ * perf: sem setInterval; MutationObserver + patch openReels basta
  */
 (function () {
   'use strict';
@@ -100,9 +101,14 @@
     if (!viewer.__followPinV2) {
       viewer.__followPinV2 = true;
       try {
+        var _t = null;
         new MutationObserver(function () {
-          pinAll();
-        }).observe(viewer, { childList: true, subtree: true, attributes: true });
+          if (_t) return;
+          _t = setTimeout(function () {
+            _t = null;
+            pinAll();
+          }, 50);
+        }).observe(viewer, { childList: true, subtree: true });
       } catch (e) {}
     }
     var track = document.getElementById('reelsTrack');
@@ -146,12 +152,7 @@
   }
 
   boot();
-  setTimeout(boot, 300);
-  setTimeout(boot, 1000);
-  setTimeout(boot, 2000);
-  setInterval(function () {
-    injectCSS();
-    pinAll();
-    patchOpen();
-  }, 2000);
+  setTimeout(boot, 400);
+  setTimeout(boot, 1500);
+  /* sem setInterval contínuo */
 })();

@@ -1,5 +1,6 @@
 /**
  * tchilo-Pop — documentos legais com URL limpa (sem .html)
+ * perf: sem setInterval contínuo
  */
 (function () {
   "use strict";
@@ -108,8 +109,16 @@
     injectLegalClicks();
   }
 
-  setInterval(boot, 1500);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
   setTimeout(boot, 500);
+  setTimeout(boot, 2000);
+  /* reaplicar só quando abrir definições legais */
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    if (t.closest("#screen-settings-legal, [data-screen=\"settings-legal\"]")) {
+      setTimeout(boot, 50);
+    }
+  }, true);
 })();

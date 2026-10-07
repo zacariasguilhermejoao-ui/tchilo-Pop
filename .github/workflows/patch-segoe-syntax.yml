@@ -1,0 +1,23 @@
+name: Fix Segoe UI JS syntax across native
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'native/patch-segoe-syntax.py'
+      - '.github/workflows/patch-segoe-syntax.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix Segoe quotes in all native JS
+        run: python3 native/patch-segoe-syntax.py
+      - name: Commit
+        run: |
+          git config user.name tchilo-bot
+          git config user.email bot@tchilopop.com
+          git add native
+          git diff --staged --quiet || git commit -m "native: fix Segoe UI quote syntax errors in JS"
+          git push

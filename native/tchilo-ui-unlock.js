@@ -1,11 +1,11 @@
 /**
- * Tchilo UI Unlock v1
- * Corrige: icones nao clicaveis + feed vazio apos login
- * Remove overlays, classes bloqueadoras e forca render do feed
+ * Tchilo UI Unlock v2 — ultra
+ * Mata overlays (storyViewer, loginGate, sheets) e restaura cliques
  */
 (function () {
   'use strict';
-  if (window.__tchiloUiUnlockV1) return;
+  if (window.__tchiloUiUnlockV2) return;
+  window.__tchiloUiUnlockV2 = true;
   window.__tchiloUiUnlockV1 = true;
 
   function hasSession() {
@@ -34,94 +34,107 @@
       (document.head || document.documentElement).appendChild(st);
     }
     st.textContent =
-      /* Login gate nunca bloqueia quando escondido */
-      '.login-gate.hidden,#loginGate.hidden{' +
-      'display:none!important;pointer-events:none!important;visibility:hidden!important;z-index:-1!important;}' +
-      /* Com sessao: gate fora de jogo */
+      /* Login gate morto com sessao */
       'body.tchilo-session-on .login-gate,body.tchilo-session-on #loginGate{' +
       'display:none!important;pointer-events:none!important;visibility:hidden!important;z-index:-1!important;}' +
-      /* Nunca pointer-events none no chrome principal com sessao */
+      '.login-gate.hidden,#loginGate.hidden{' +
+      'display:none!important;pointer-events:none!important;visibility:hidden!important;z-index:-1!important;}' +
+      /* Story viewer FECHADO nunca cobre a app */
+      '#storyViewer:not(.open),.story-viewer:not(.open){' +
+      'display:none!important;pointer-events:none!important;visibility:hidden!important;z-index:-1!important;opacity:0!important;}' +
+      /* Chrome clicavel com sessao */
       'body.tchilo-session-on .navbar,body.tchilo-session-on .navbar *,' +
       'body.tchilo-session-on .topbar,body.tchilo-session-on .topbar *,' +
       'body.tchilo-session-on .nav-item,body.tchilo-session-on .nav-post,' +
-      'body.tchilo-session-on .icon-btn,body.tchilo-session-on .topbar-icons{' +
-      'pointer-events:auto!important;visibility:visible!important;}' +
+      'body.tchilo-session-on .icon-btn,body.tchilo-session-on .logo-img{' +
+      'pointer-events:auto!important;cursor:pointer!important;}' +
       'body.tchilo-session-on .navbar{' +
-      'display:flex!important;opacity:1!important;height:auto!important;max-height:none!important;' +
-      'transform:none!important;}' +
-      /* Remover estados logged-out falsos */
+      'display:flex!important;opacity:1!important;visibility:visible!important;' +
+      'transform:none!important;height:auto!important;max-height:none!important;}' +
       'body.tchilo-session-on.tchilo-logged-out .navbar{' +
-      'display:flex!important;pointer-events:auto!important;opacity:1!important;' +
-      'visibility:visible!important;height:auto!important;max-height:none!important;transform:none!important;}' +
-      'body.tchilo-session-on #appFrame,body.tchilo-session-on .frame{' +
+      'display:flex!important;pointer-events:auto!important;opacity:1!important;visibility:visible!important;}' +
+      'body.tchilo-session-on #appFrame,body.tchilo-session-on #feedList,body.tchilo-session-on #screen-feed{' +
       'pointer-events:auto!important;}' +
-      'body.tchilo-session-on #feedList,body.tchilo-session-on #screen-feed{' +
-      'pointer-events:auto!important;visibility:visible!important;}';
+      /* Sheets fechados */
+      '.sheet:not(.open),#tchiloModalHost:not(.open){' +
+      'pointer-events:none!important;}' ;
   }
 
-  function killGate() {
+  function killEl(el) {
+    if (!el) return;
     try {
-      var g = document.getElementById('loginGate');
-      if (!g) return;
-      g.classList.add('hidden');
-      g.style.setProperty('display', 'none', 'important');
-      g.style.setProperty('pointer-events', 'none', 'important');
-      g.style.setProperty('visibility', 'hidden', 'important');
-      g.style.setProperty('z-index', '-1', 'important');
-      g.setAttribute('aria-hidden', 'true');
+      el.classList.remove('open');
+      el.classList.add('hidden');
+      el.style.setProperty('display', 'none', 'important');
+      el.style.setProperty('pointer-events', 'none', 'important');
+      el.style.setProperty('visibility', 'hidden', 'important');
+      el.style.setProperty('z-index', '-1', 'important');
+      el.style.setProperty('opacity', '0', 'important');
     } catch (e) {}
   }
 
-  function clearBlockingClasses() {
+  function killOverlays() {
+    try {
+      /* Story viewer se nao estiver open de proposito */
+      var sv = document.getElementById('storyViewer');
+      if (sv && !sv.classList.contains('open')) killEl(sv);
+
+      if (hasSession()) {
+        killEl(document.getElementById('loginGate'));
+        document.querySelectorAll('.login-gate').forEach(killEl);
+      }
+
+      /* Sheets e modais fechados */
+      document.querySelectorAll('.sheet').forEach(function (el) {
+        if (!el.classList.contains('open') && !el.classList.contains('show')) {
+          el.style.setProperty('pointer-events', 'none', 'important');
+        }
+      });
+
+      /* Qualquer fixed full-screen transparente a bloquear */
+      document.querySelectorAll('body > div, #appFrame > div').forEach(function (el) {
+        try {
+          if (el.id === 'appFrame' || el.id === 'feedList') return;
+          if (el.classList && el.classList.contains('navbar')) return;
+          if (el.classList && el.classList.contains('screen')) return;
+          var st = window.getComputedStyle(el);
+          if (st.position !== 'fixed') return;
+          var zi = parseInt(st.zIndex, 10) || 0;
+          if (zi < 50) return;
+          var r = el.getBoundingClientRect();
+          if (r.width < window.innerWidth * 0.85 || r.height < window.innerHeight * 0.85) return;
+          if (st.pointerEvents === 'none') return;
+          if (st.display === 'none' || st.visibility === 'hidden') return;
+          /* se esta invisivel ou vazio e nao e login/story open */
+          var op = parseFloat(st.opacity);
+          var isOpen = el.classList.contains('open') || el.classList.contains('show');
+          if (isOpen) return;
+          if (el.id === 'storyViewer' || el.id === 'loginGate' || (el.classList && el.classList.contains('login-gate'))) {
+            killEl(el);
+            return;
+          }
+          if (op === 0 || el.getAttribute('aria-hidden') === 'true') {
+            el.style.setProperty('pointer-events', 'none', 'important');
+          }
+        } catch (e1) {}
+      });
+    } catch (e) {}
+  }
+
+  function restoreChrome() {
     try {
       var b = document.body;
-      b.classList.remove('login-locked');
-      b.classList.remove('legal-screen-open');
-      b.classList.remove('legal-from-login');
-      b.classList.remove('tchilo-logged-out');
-      b.classList.remove('tchilo-no-bottom-nav');
-      b.style.overflow = '';
-      b.style.position = '';
-      b.style.pointerEvents = '';
-      b.style.touchAction = '';
-      b.style.width = '';
-      b.style.height = '';
-      if (hasSession()) b.classList.add('tchilo-session-on');
-      else b.classList.remove('tchilo-session-on');
-    } catch (e) {}
-  }
-
-  function unlockChrome() {
-    try {
-      var selectors = [
-        '.navbar',
-        'nav.navbar',
-        '.topbar',
-        '.stories',
-        '#appFrame',
-        '.frame',
-        '#screen-feed',
-        '#feedList',
-        '.nav-item',
-        '.nav-post',
-        '.icon-btn',
-        '.topbar-icons',
-        '.logo-img'
-      ];
-      selectors.forEach(function (sel) {
-        document.querySelectorAll(sel).forEach(function (el) {
-          try {
-            el.style.removeProperty('pointer-events');
-            el.style.removeProperty('display');
-            el.style.removeProperty('visibility');
-            el.style.removeProperty('opacity');
-            el.style.removeProperty('transform');
-            el.style.removeProperty('height');
-            el.style.removeProperty('max-height');
-            el.style.pointerEvents = 'auto';
-          } catch (e) {}
-        });
-      });
+      if (hasSession()) {
+        b.classList.add('tchilo-session-on');
+        b.classList.remove('tchilo-logged-out');
+        b.classList.remove('login-locked');
+        b.classList.remove('legal-screen-open');
+        b.classList.remove('legal-from-login');
+        b.classList.remove('tchilo-no-bottom-nav');
+        b.style.overflow = '';
+        b.style.position = '';
+        b.style.pointerEvents = '';
+      }
       var nav = document.querySelector('.navbar');
       if (nav && hasSession()) {
         nav.style.setProperty('display', 'flex', 'important');
@@ -131,40 +144,9 @@
         nav.style.setProperty('transform', 'none', 'important');
         nav.removeAttribute('data-legal-hidden');
       }
-    } catch (e) {}
-  }
-
-  function killStuckOverlays() {
-    try {
-      /* Camadas full-screen transparentes que bloqueiam cliques */
-      document.querySelectorAll('div,section,aside').forEach(function (el) {
-        try {
-          if (el.id === 'loginGate' || (el.classList && el.classList.contains('login-gate'))) return;
-          if (el.id === 'tchiloModalHost' || el.id === 'imageFullscreen') return;
-          var st = window.getComputedStyle(el);
-          if (st.position !== 'fixed' && st.position !== 'absolute') return;
-          var zi = parseInt(st.zIndex, 10) || 0;
-          if (zi < 500) return;
-          var r = el.getBoundingClientRect();
-          if (r.width < window.innerWidth * 0.9 || r.height < window.innerHeight * 0.9) return;
-          /* overlay quase invisivel a bloquear */
-          var op = parseFloat(st.opacity);
-          var bg = st.backgroundColor || '';
-          var pe = st.pointerEvents;
-          if (pe === 'none') return;
-          var transparent =
-            op === 0 ||
-            bg === 'transparent' ||
-            bg === 'rgba(0, 0, 0, 0)' ||
-            bg === 'rgba(0,0,0,0)';
-          var empty = !el.innerText || el.innerText.trim().length < 2;
-          if (transparent || (empty && zi >= 9999)) {
-            el.style.setProperty('pointer-events', 'none', 'important');
-            if (transparent && empty) {
-              el.style.setProperty('display', 'none', 'important');
-            }
-          }
-        } catch (e1) {}
+      document.querySelectorAll('.nav-item,.nav-post,.icon-btn,.logo-img,.topbar').forEach(function (el) {
+        el.style.pointerEvents = 'auto';
+        el.style.cursor = 'pointer';
       });
     } catch (e) {}
   }
@@ -173,63 +155,34 @@
     if (!hasSession()) return;
     try {
       if (typeof goTo === 'function') {
-        var active = document.querySelector('.screen.active');
-        if (!active || active.id === 'screen-feed' || !active.id) {
-          goTo('feed');
-        }
+        var a = document.querySelector('.screen.active');
+        if (!a || a.id === 'screen-feed') goTo('feed');
       }
     } catch (e) {}
     try {
       if (typeof renderFeed === 'function') renderFeed();
     } catch (e2) {}
-    try {
-      if (typeof renderStories === 'function') renderStories();
-    } catch (e3) {}
-    try {
-      var feed = document.getElementById('feedList');
-      if (feed) {
-        feed.style.pointerEvents = 'auto';
-        feed.style.visibility = 'visible';
-        feed.style.display = '';
-      }
-      var screen = document.getElementById('screen-feed');
-      if (screen) {
-        screen.classList.add('active');
-        screen.style.pointerEvents = 'auto';
-      }
-    } catch (e4) {}
   }
 
   function unlock() {
     injectCSS();
     if (!hasSession()) {
-      try {
-        document.body.classList.remove('tchilo-session-on');
-      } catch (e) {}
+      try { document.body.classList.remove('tchilo-session-on'); } catch (e) {}
       return;
     }
-    clearBlockingClasses();
-    killGate();
-    unlockChrome();
-    killStuckOverlays();
+    restoreChrome();
+    killOverlays();
     ensureFeed();
   }
 
-  /* Expor para login fix chamar */
   window.tchiloUiUnlock = unlock;
 
   unlock();
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', unlock);
-  }
-  setTimeout(unlock, 50);
-  setTimeout(unlock, 200);
-  setTimeout(unlock, 600);
-  setTimeout(unlock, 1500);
-  setTimeout(unlock, 3000);
-  setTimeout(unlock, 5000);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', unlock);
+  [50, 200, 600, 1500, 3000, 5000].forEach(function (ms) {
+    setTimeout(unlock, ms);
+  });
 
-  /* Observer: se alguem voltar a meter logged-out ou gate, desbloqueia */
   try {
     var mo = new MutationObserver(function () {
       if (!hasSession()) return;
@@ -241,15 +194,12 @@
       ) {
         unlock();
       }
-      var g = document.getElementById('loginGate');
-      if (g && !g.classList.contains('hidden')) {
-        unlock();
+      var sv = document.getElementById('storyViewer');
+      if (sv && !sv.classList.contains('open')) {
+        var pe = window.getComputedStyle(sv).pointerEvents;
+        if (pe !== 'none') unlock();
       }
     });
-    mo.observe(document.documentElement, {
-      attributes: true,
-      subtree: true,
-      attributeFilter: ['class', 'style']
-    });
+    mo.observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
   } catch (e) {}
 })();

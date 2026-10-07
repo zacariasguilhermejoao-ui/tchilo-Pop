@@ -1,6 +1,7 @@
 /**
  * tchilo-Pop — câmara legada desativada (usa camera-tiktok)
  * Sem efeitos faciais.
+ * perf: sem setInterval
  */
 (function () {
   'use strict';
@@ -19,10 +20,11 @@
   };
   function boot() {
     hideLegacy();
-    setInterval(hideLegacy, 2000);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
+  setTimeout(boot, 500);
+  setTimeout(boot, 2000);
 })();
 
 /* Ícone custom do Feed */

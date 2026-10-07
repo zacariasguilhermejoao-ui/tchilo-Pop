@@ -157,11 +157,11 @@
       '#tchiloPremiumSheet.open{display:flex!important;}' +
       '#tchiloPremiumSheet .tp-top{display:flex;align-items:center;gap:10px;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));border-bottom:2.5px solid var(--ink,#0B0B0C);background:var(--paper,#F6F1E7);flex-shrink:0;}' +
       '#tchiloPremiumSheet .tp-back{width:40px;height:40px;border-radius:12px;border:0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}' +
-      '#tchiloPremiumSheet .tp-top h1{margin:0;font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:22px;flex:1;}' +
+      '#tchiloPremiumSheet .tp-top h1{margin:0;font-family:system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:22px;flex:1;}' +
       '#tchiloPremiumSheet .tp-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 18px calc(28px + env(safe-area-inset-bottom));}' +
       '#tchiloPremiumSheet .tp-hero{text-align:center;padding:8px 0 20px;}' +
       '#tchiloPremiumSheet .tp-hero-icon{width:72px;height:72px;margin:0 auto 14px;border-radius:18px;background:var(--ink,#0B0B0C);color:#fff;display:flex;align-items:center;justify-content:center;border:0;box-shadow:none;font-size:32px;}' +
-      '#tchiloPremiumSheet .tp-hero h2{margin:0 0 8px;font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:28px;}' +
+      '#tchiloPremiumSheet .tp-hero h2{margin:0 0 8px;font-family:system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:28px;}' +
       '#tchiloPremiumSheet .tp-hero p{margin:0 auto;max-width:320px;font-size:14.5px;line-height:1.45;font-weight:600;opacity:.75;}' +
       '#tchiloPremiumSheet .tp-card{background:#fff;border:0;border-radius:18px;padding:16px;margin:0 0 14px;box-shadow:none;}' +
       '#tchiloPremiumSheet .tp-card h3{margin:0 0 12px;font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;opacity:.55;}' +

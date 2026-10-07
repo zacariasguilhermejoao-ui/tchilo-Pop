@@ -10,7 +10,7 @@
   var css =
     '#tchiloPostMusicSheet{display:none!important;position:fixed!important;inset:0!important;z-index:10060!important;' +
     'background:' + PAPER + '!important;align-items:stretch!important;justify-content:stretch!important;' +
-    'font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif!important;color:' + INK + '!important}' +
+    'font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif!important;color:' + INK + '!important}' +
     '#tchiloPostMusicSheet.open{display:flex!important}' +
     '#tchiloPostMusicSheet .panel{width:100%!important;max-width:none!important;max-height:none!important;height:100%!important;' +
     'background:' + PAPER + '!important;color:' + INK + '!important;border:0!important;border-radius:0!important;' +

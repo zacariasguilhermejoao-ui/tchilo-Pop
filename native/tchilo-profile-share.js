@@ -148,10 +148,10 @@
       '#tchiloProfileShareSheet .tchilo-ps-handle{' +
       'width:40px;height:4px;border-radius:2px;background:#c8c4b8;margin:0 auto 12px;}' +
       '#tchiloProfileShareSheet .tchilo-ps-panel h3{' +
-      'margin:0 0 4px;font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:22px;text-align:center;}' +
+      'margin:0 0 4px;font-family:system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:22px;text-align:center;}' +
       '#tchiloProfileShareSheet .tchilo-ps-user{' +
       'text-align:center;margin:0 0 14px;font-size:13px;font-weight:600;opacity:.55;}' +
-      '#tchiloProfileShareSheet .opt{display:flex;align-items:center;gap:14px;width:100%;padding:14px 4px;margin:0;border:0;border-bottom:0.5px solid rgba(11,11,12,.08);border-radius:0;background:transparent;box-shadow:none;text-align:left;font:400 16px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink,#0B0B0C);cursor:pointer;}' +
+      '#tchiloProfileShareSheet .opt{display:flex;align-items:center;gap:14px;width:100%;padding:14px 4px;margin:0;border:0;border-bottom:0.5px solid rgba(11,11,12,.08);border-radius:0;background:transparent;box-shadow:none;text-align:left;font:400 16px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;color:var(--ink,#0B0B0C);cursor:pointer;}' +
       '#tchiloProfileShareSheet .opt .ic{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;min-width:24px;border-radius:0;border:0;background:transparent;color:var(--ink,#0B0B0C);}' +
       '#tchiloProfileShareSheet .opt.opt-close{background:transparent;}' +
       '#tchiloQrModal{position:fixed;inset:0;z-index:2147483647;display:none;' +
@@ -160,7 +160,7 @@
       '#tchiloQrModal .card{background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);border-radius:20px;' +
       'padding:18px;max-width:360px;width:100%;border:0;' +
       'box-shadow:0 12px 40px rgba(0,0,0,.2);}' +
-      '#tchiloQrModal .qr-title{font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:20px;text-align:center;margin:0 0 6px;}' +
+      '#tchiloQrModal .qr-title{font-family:system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:20px;text-align:center;margin:0 0 6px;}' +
       '#tchiloQrModal .qr-user{text-align:center;font-weight:700;opacity:.55;margin:0 0 12px;font-size:13px;}' +
       '#tchiloQrModal .actions{display:flex;flex-direction:column;gap:10px;margin-top:14px;}' +
       '#tchiloQrModal .actions button{padding:13px;border-radius:14px;font-weight:800;cursor:pointer;' +
@@ -247,11 +247,11 @@
         ctx.drawImage(img, qrPad, qrPad, size - qrPad * 2, size - qrPad * 2);
         drawThreeDots(ctx, size / 2, size / 2, size * 0.22);
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = '700 28px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif';
+        ctx.font = '700 28px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('@' + String(username || ''), size / 2, size + 36);
-        ctx.font = '600 18px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif';
+        ctx.font = '600 18px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif';
         ctx.fillStyle = '#C8F560';
         ctx.fillText('Tchilo', size / 2, size + 68);
         cb(null, c);

@@ -13,10 +13,10 @@
     var st = document.createElement('style');
     st.id = 'tchiloCriticalCSS';
     st.textContent =
-      '.nav-item .nav-text-icon.nav-fee{display:inline-flex;align-items:center;justify-content:center;width:36px;height:32px;font:900 19px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;letter-spacing:-.04em;color:currentColor}' +
+      '.nav-item .nav-text-icon.nav-fee{display:inline-flex;align-items:center;justify-content:center;width:36px;height:32px;font:900 19px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;letter-spacing:-.04em;color:currentColor}' +
       '.nav-item .nav-reels-icon,.nav-item img.nav-reels-icon{width:26px!important;height:26px!important;display:block!important;object-fit:contain;flex-shrink:0}' +
       '.nav-item svg.nav-reels-icon{display:none!important}' +
-      '.nav-sms-text{display:inline-flex;align-items:center;justify-content:center;font:900 18px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif!important;color:currentColor;border:none!important;background:none!important}' +
+      '.nav-sms-text{display:inline-flex;align-items:center;justify-content:center;font:900 18px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif!important;color:currentColor;border:none!important;background:none!important}' +
       '#screen-feed .topbar-icons .icon-btn,.topbar-icons .icon-btn{width:auto!important;height:auto!important;min-width:0!important;border:0!important;background:transparent!important;box-shadow:none!important;padding:4px!important}';
     (document.head || document.documentElement).appendChild(st);
   }

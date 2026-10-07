@@ -143,7 +143,7 @@
     st.id = 'tchilo-mp-css';
     st.textContent = [
       '#tchiloMediaPicker{position:fixed;inset:0;z-index:10050;display:none;flex-direction:column;background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);',
-      'font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}',
+      'font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;}',
       '#tchiloMediaPicker.open{display:flex!important;}',
       '#tchiloMediaPicker *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}',
       /* top */

@@ -1,0 +1,43 @@
+name: Fix avatar SyntaxError in index
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'native/patch-avatar-syntax.py'
+      - '.github/workflows/patch-avatar-syntax.yml'
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix avatar syntax
+        run: |
+          python3 native/patch-avatar-syntax.py
+          # verify main script parses
+          python3 - <<'PY'
+          import re, subprocess
+          h=open('index.html').read()
+          scripts=re.findall(r'<script(?![^>]*src=)[^>]*>([\s\S]*?)</script>', h)
+          ok=True
+          for s in scripts:
+            if len(s)<100000: continue
+            open('/tmp/main.js','w').write(s)
+            r=subprocess.run(['node','--check','/tmp/main.js'],capture_output=True,text=True)
+            print('main check', r.returncode)
+            if r.returncode!=0:
+              print(r.stderr[:500])
+              ok=False
+          if not ok:
+            raise SystemExit('syntax still broken')
+          PY
+      - name: Commit
+        run: |
+          git config user.name "tchilo-bot"
+          git config user.email "bot@tchilopop.com"
+          git add index.html
+          git status
+          git diff --staged --stat
+          git diff --staged --quiet || git commit -m "index: CRITICAL fix avatar SyntaxError - restores icons and feed"
+          git push

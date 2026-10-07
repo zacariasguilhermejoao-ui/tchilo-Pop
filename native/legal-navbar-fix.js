@@ -1,9 +1,9 @@
-/* LOGIN FIX v12 + legal navbar — sem ecran branco, icones clicaveis */
+/* LOGIN FIX v13 + legal navbar */
 (function () {
   'use strict';
-  if (window.__tchiloLoginSessionFixV12) return;
+  if (window.__tchiloLoginSessionFixV13) return;
+  window.__tchiloLoginSessionFixV13 = true;
   window.__tchiloLoginSessionFixV12 = true;
-  window.__tchiloLoginSessionFixV11 = true;
 
   var JUST_MS = 60000;
 
@@ -38,16 +38,21 @@
     }
   }
 
-  /* Restaura UI completa apos login — critico */
   function restoreAppChrome() {
     try {
-      document.body.classList.remove('login-locked');
-      document.body.classList.remove('legal-screen-open');
-      document.body.classList.remove('legal-from-login');
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.pointerEvents = '';
-      document.body.style.touchAction = '';
+      var b = document.body;
+      b.classList.remove('login-locked');
+      b.classList.remove('legal-screen-open');
+      b.classList.remove('legal-from-login');
+      b.classList.remove('tchilo-logged-out');
+      b.classList.remove('tchilo-no-bottom-nav');
+      b.classList.add('tchilo-session-on');
+      b.style.overflow = '';
+      b.style.position = '';
+      b.style.pointerEvents = '';
+      b.style.touchAction = '';
+      b.style.width = '';
+      b.style.height = '';
     } catch (e) {}
 
     try {
@@ -55,54 +60,51 @@
       if (g) {
         g.classList.add('hidden');
         g.style.setProperty('display', 'none', 'important');
-        g.style.pointerEvents = 'none';
+        g.style.setProperty('pointer-events', 'none', 'important');
+        g.style.setProperty('visibility', 'hidden', 'important');
+        g.style.setProperty('z-index', '-1', 'important');
         g.setAttribute('aria-hidden', 'true');
       }
     } catch (e2) {}
 
-    /* Navbar + topbar + stories visiveis e clicaveis */
     try {
       var nav = document.querySelector('.navbar');
       if (nav) {
-        nav.style.removeProperty('display');
-        nav.style.removeProperty('visibility');
-        nav.style.removeProperty('pointer-events');
-        nav.style.removeProperty('opacity');
+        nav.style.setProperty('display', 'flex', 'important');
+        nav.style.setProperty('pointer-events', 'auto', 'important');
+        nav.style.setProperty('opacity', '1', 'important');
+        nav.style.setProperty('visibility', 'visible', 'important');
+        nav.style.setProperty('transform', 'none', 'important');
         nav.style.removeProperty('height');
         nav.style.removeProperty('max-height');
-        nav.style.removeProperty('transform');
         nav.removeAttribute('data-legal-hidden');
-        nav.style.pointerEvents = 'auto';
       }
-      var topbar = document.querySelector('.topbar');
-      if (topbar) {
-        topbar.style.removeProperty('display');
-        topbar.style.removeProperty('visibility');
-        topbar.style.removeProperty('pointer-events');
-        topbar.style.pointerEvents = 'auto';
-      }
-      var stories = document.querySelector('.stories');
-      if (stories) {
-        stories.style.removeProperty('display');
-        stories.style.removeProperty('visibility');
-        stories.style.removeProperty('pointer-events');
-      }
-      /* Todos os botoes da nav clicaveis */
-      document.querySelectorAll('.navbar .nav-item, .navbar .nav-post, .topbar-icons .icon-btn, .topbar .icon-btn').forEach(function (el) {
+      document.querySelectorAll('.navbar .nav-item, .navbar .nav-post, .topbar .icon-btn, .topbar-icons .icon-btn, .logo-img').forEach(function (el) {
         el.style.pointerEvents = 'auto';
         el.style.cursor = 'pointer';
       });
+      var topbar = document.querySelector('.topbar');
+      if (topbar) {
+        topbar.style.pointerEvents = 'auto';
+        topbar.style.removeProperty('display');
+      }
+      var feed = document.getElementById('feedList');
+      if (feed) {
+        feed.style.pointerEvents = 'auto';
+        feed.style.visibility = 'visible';
+      }
     } catch (e3) {}
+
+    try {
+      if (typeof window.tchiloUiUnlock === 'function') window.tchiloUiUnlock();
+    } catch (e4) {}
   }
 
   function forceHideGate() {
     restoreAppChrome();
     try {
       if (typeof bootApp === 'function') bootApp();
-    } catch (e) {
-      console.warn('[login-v12] bootApp', e);
-    }
-    /* Garantir feed visivel */
+    } catch (e) {}
     try {
       if (typeof goTo === 'function') goTo('feed');
     } catch (e2) {}
@@ -110,7 +112,6 @@
       if (typeof renderFeed === 'function') renderFeed();
       if (typeof renderStories === 'function') renderStories();
     } catch (e3) {}
-    /* Segunda passagem apos bootApp (pode ter reaplicado classes) */
     setTimeout(restoreAppChrome, 0);
     setTimeout(restoreAppChrome, 100);
     setTimeout(function () {
@@ -119,6 +120,7 @@
         if (typeof renderFeed === 'function') renderFeed();
       } catch (e4) {}
     }, 400);
+    setTimeout(restoreAppChrome, 1200);
   }
 
   function fallbackProfile(user) {
@@ -186,7 +188,7 @@
   }
 
   function installGuards() {
-    if (typeof window.showLoginGate === 'function' && !window.showLoginGate.__v12) {
+    if (typeof window.showLoginGate === 'function' && !window.showLoginGate.__v13) {
       var _sg = window.showLoginGate;
       window.showLoginGate = function () {
         if (window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) {
@@ -199,25 +201,22 @@
         }
         return _sg.apply(this, arguments);
       };
-      window.showLoginGate.__v12 = true;
+      window.showLoginGate.__v13 = true;
       window.showLoginGate.__raw = _sg;
     }
-
-    if (typeof window.clearSession === 'function' && !window.clearSession.__v12) {
+    if (typeof window.clearSession === 'function' && !window.clearSession.__v13) {
       var _cs = window.clearSession;
       window.clearSession = function () {
         if (window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) return;
         return _cs.apply(this, arguments);
       };
-      window.clearSession.__v12 = true;
+      window.clearSession.__v13 = true;
     }
-
-    if (typeof window.hideLoginGate === 'function' && !window.hideLoginGate.__v12) {
-      var _hg = window.hideLoginGate;
+    if (typeof window.hideLoginGate === 'function' && !window.hideLoginGate.__v13) {
       window.hideLoginGate = function () {
         forceHideGate();
       };
-      window.hideLoginGate.__v12 = true;
+      window.hideLoginGate.__v13 = true;
     }
   }
 
@@ -276,11 +275,6 @@
       var password = passwordEl ? passwordEl.value : '';
       var error = document.getElementById('loginError');
       if (error) error.textContent = '';
-      try {
-        if (typeof tchiloClearFieldErrors === 'function') {
-          tchiloClearFieldErrors(document.getElementById('accessPanel') || document);
-        }
-      } catch (e0) {}
       if (!String(identifier).trim() || !password) {
         if (error) error.textContent = 'Preenche os dois campos.';
         return;
@@ -295,7 +289,7 @@
       try {
         await window.tchiloSupabaseLogin(identifier, password);
       } catch (err) {
-        console.error('[login-v12]', err);
+        console.error('[login-v13]', err);
         if (error) error.textContent = (err && err.message) || 'Nao foi possivel iniciar sessao.';
       } finally {
         try {
@@ -311,13 +305,11 @@
         if (window.__tchiloPasswordRecoveryActive) return;
         if (typeof tchiloIsPasswordRecoveryUrl === 'function' && tchiloIsPasswordRecoveryUrl()) return;
       } catch (e) {}
-
       var SB = window.tchiloSupabase;
       if (!SB || !SB.auth) {
         if (localSession()) forceHideGate();
         return;
       }
-
       try {
         var out = await SB.auth.getSession();
         var session = out && out.data && out.data.session;
@@ -345,9 +337,7 @@
     installGuards();
     installLogin();
     installSync();
-    if (localSession()) {
-      restoreAppChrome();
-    }
+    if (localSession()) restoreAppChrome();
   }
 
   run();
@@ -358,85 +348,24 @@
   setTimeout(run, 2500);
 })();
 
-/* Legal navbar — so esconde nav em paginas legais, NUNCA apos login */
+/* Legal navbar minimal */
 (function () {
   'use strict';
-  if (window.__tchiloLegalNavV12) return;
-  window.__tchiloLegalNavV12 = true;
-
-  var LEGAL_SCREENS = { terms: 1, privacy: 1, child: 1, community: 1, about: 1 };
-
+  if (window.__tchiloLegalNavV13) return;
+  window.__tchiloLegalNavV13 = true;
+  var LEGAL = { terms: 1, privacy: 1, child: 1, community: 1, about: 1 };
   function injectCss() {
     if (document.getElementById('tchilo-legal-navbar-fix')) return;
     var style = document.createElement('style');
     style.id = 'tchilo-legal-navbar-fix';
     style.textContent =
-      'body.legal-screen-open .navbar,body.legal-from-login .navbar,' +
-      'body.legal-screen-open .topbar,body.legal-from-login .topbar,' +
-      'body.legal-screen-open .stories,body.legal-from-login .stories{' +
-      'display:none!important;visibility:hidden!important;pointer-events:none!important;}' +
-      'body.legal-screen-open .screen.active,body.legal-from-login .screen.active{padding-bottom:0!important;}';
+      'body.legal-screen-open:not(.tchilo-session-on) .navbar,' +
+      'body.legal-from-login:not(.tchilo-session-on) .navbar{display:none!important;pointer-events:none!important;}';
     (document.head || document.documentElement).appendChild(style);
   }
-
-  function isLegalScreen(name) {
-    if (!name) return false;
-    return !!LEGAL_SCREENS[String(name).replace(/^screen-/, '')];
-  }
-
-  function hideNav() {
-    document.body.classList.add('legal-screen-open');
-  }
-
-  function showNav() {
-    document.body.classList.remove('legal-screen-open');
-    document.body.classList.remove('legal-from-login');
-    try {
-      var nav = document.querySelector('.navbar');
-      if (nav) {
-        nav.style.removeProperty('display');
-        nav.style.removeProperty('pointer-events');
-        nav.removeAttribute('data-legal-hidden');
-      }
-    } catch (e) {}
-  }
-
-  function syncNavWithScreen() {
-    /* Nunca esconder nav se ha sessao e login gate fechado */
-    try {
-      var gate = document.getElementById('loginGate');
-      var gateOpen = gate && !gate.classList.contains('hidden') && gate.style.display !== 'none';
-      if (!gateOpen) {
-        var active = document.querySelector('.screen.active');
-        var name = active && active.id ? active.id.replace(/^screen-/, '') : '';
-        if (isLegalScreen(name) || document.body.classList.contains('legal-from-login')) {
-          hideNav();
-          return;
-        }
-        showNav();
-        return;
-      }
-    } catch (e) {}
-    hideNav();
-  }
-
   function boot() {
     injectCss();
-    if (typeof window.goTo === 'function' && !window.goTo.__legalNavV12) {
-      var orig = window.goTo;
-      window.goTo = function (name) {
-        var r = orig.apply(this, arguments);
-        try {
-          setTimeout(syncNavWithScreen, 0);
-        } catch (e) {}
-        return r;
-      };
-      window.goTo.__legalNavV12 = true;
-    }
-    syncNavWithScreen();
-    setTimeout(syncNavWithScreen, 400);
   }
-
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();

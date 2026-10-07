@@ -1,5 +1,6 @@
 /**
  * tchilo-Pop — boot critico (Reels icon + loaders)
+ * perf: aplica uma vez no boot; observer com debounce (sem setInterval)
  */
 (function () {
   'use strict';
@@ -40,11 +41,14 @@
       };
     }
 
+    /* já tem o ícone certo — não mexer (evita piscar) */
+    var img = btn.querySelector('img.nav-reels-icon');
+    if (img && img.getAttribute('src') === REELS_ICON) return;
+
     btn.querySelectorAll('svg, .nav-text-icon, .nav-sms-text').forEach(function (n) {
       try { n.remove(); } catch (e) {}
     });
 
-    var img = btn.querySelector('img.nav-reels-icon');
     if (!img) {
       img = document.createElement('img');
       img.className = 'nav-reels-icon';
@@ -56,7 +60,7 @@
       if (dot) btn.insertBefore(img, dot);
       else btn.insertBefore(img, btn.firstChild);
     }
-    if (img.getAttribute('src') !== REELS_ICON) img.src = REELS_ICON;
+    img.src = REELS_ICON;
   }
 
   function setFee() {
@@ -74,19 +78,26 @@
     setReelsIcon();
   }
 
+  var _t = null;
+  function debouncedBoot() {
+    if (_t) return;
+    _t = setTimeout(function () {
+      _t = null;
+      bootUI();
+    }, 200);
+  }
+
   injectCriticalCSS();
   bootUI();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootUI);
-  setTimeout(bootUI, 100);
   setTimeout(bootUI, 400);
-  setTimeout(bootUI, 1000);
-  setTimeout(bootUI, 2500);
-  setInterval(bootUI, 3000);
+  setTimeout(bootUI, 1500);
+  /* sem setInterval — só observer com debounce */
   try {
     var nav = document.querySelector('.navbar');
     if (nav && !nav.__reelsObs) {
       nav.__reelsObs = true;
-      new MutationObserver(bootUI).observe(nav, { childList: true, subtree: true });
+      new MutationObserver(debouncedBoot).observe(nav, { childList: true, subtree: true });
     }
   } catch (e) {}
 })();

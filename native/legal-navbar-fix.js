@@ -1,9 +1,9 @@
-/* LOGIN FIX v11 + legal navbar */
+/* LOGIN FIX v12 + legal navbar — sem ecran branco, icones clicaveis */
 (function () {
   'use strict';
-  if (window.__tchiloLoginSessionFixV11) return;
+  if (window.__tchiloLoginSessionFixV12) return;
+  window.__tchiloLoginSessionFixV12 = true;
   window.__tchiloLoginSessionFixV11 = true;
-  window.__tchiloLoginSessionFixV10 = true;
 
   var JUST_MS = 60000;
 
@@ -38,21 +38,87 @@
     }
   }
 
-  function forceHideGate() {
+  /* Restaura UI completa apos login — critico */
+  function restoreAppChrome() {
+    try {
+      document.body.classList.remove('login-locked');
+      document.body.classList.remove('legal-screen-open');
+      document.body.classList.remove('legal-from-login');
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.pointerEvents = '';
+      document.body.style.touchAction = '';
+    } catch (e) {}
+
     try {
       var g = document.getElementById('loginGate');
       if (g) {
         g.classList.add('hidden');
         g.style.setProperty('display', 'none', 'important');
+        g.style.pointerEvents = 'none';
         g.setAttribute('aria-hidden', 'true');
       }
-      document.body.classList.remove('login-locked');
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-    } catch (e) {}
+    } catch (e2) {}
+
+    /* Navbar + topbar + stories visiveis e clicaveis */
+    try {
+      var nav = document.querySelector('.navbar');
+      if (nav) {
+        nav.style.removeProperty('display');
+        nav.style.removeProperty('visibility');
+        nav.style.removeProperty('pointer-events');
+        nav.style.removeProperty('opacity');
+        nav.style.removeProperty('height');
+        nav.style.removeProperty('max-height');
+        nav.style.removeProperty('transform');
+        nav.removeAttribute('data-legal-hidden');
+        nav.style.pointerEvents = 'auto';
+      }
+      var topbar = document.querySelector('.topbar');
+      if (topbar) {
+        topbar.style.removeProperty('display');
+        topbar.style.removeProperty('visibility');
+        topbar.style.removeProperty('pointer-events');
+        topbar.style.pointerEvents = 'auto';
+      }
+      var stories = document.querySelector('.stories');
+      if (stories) {
+        stories.style.removeProperty('display');
+        stories.style.removeProperty('visibility');
+        stories.style.removeProperty('pointer-events');
+      }
+      /* Todos os botoes da nav clicaveis */
+      document.querySelectorAll('.navbar .nav-item, .navbar .nav-post, .topbar-icons .icon-btn, .topbar .icon-btn').forEach(function (el) {
+        el.style.pointerEvents = 'auto';
+        el.style.cursor = 'pointer';
+      });
+    } catch (e3) {}
+  }
+
+  function forceHideGate() {
+    restoreAppChrome();
     try {
       if (typeof bootApp === 'function') bootApp();
+    } catch (e) {
+      console.warn('[login-v12] bootApp', e);
+    }
+    /* Garantir feed visivel */
+    try {
+      if (typeof goTo === 'function') goTo('feed');
     } catch (e2) {}
+    try {
+      if (typeof renderFeed === 'function') renderFeed();
+      if (typeof renderStories === 'function') renderStories();
+    } catch (e3) {}
+    /* Segunda passagem apos bootApp (pode ter reaplicado classes) */
+    setTimeout(restoreAppChrome, 0);
+    setTimeout(restoreAppChrome, 100);
+    setTimeout(function () {
+      restoreAppChrome();
+      try {
+        if (typeof renderFeed === 'function') renderFeed();
+      } catch (e4) {}
+    }, 400);
   }
 
   function fallbackProfile(user) {
@@ -104,36 +170,23 @@
     try {
       if (typeof showToast === 'function') showToast('Ola, ' + sess.username + '!');
     } catch (e) {}
-    try {
-      if (typeof renderFeed === 'function') renderFeed();
-      if (typeof renderStories === 'function') renderStories();
-      if (typeof renderProfile === 'function') renderProfile();
-    } catch (e2) {}
     return sess;
   }
 
   async function resolveEmail(identifier) {
     identifier = String(identifier || '').trim().toLowerCase();
     if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) return identifier;
-    /* username -> email via profiles (precisa de coluna email ou lookup) */
     var SB = window.tchiloSupabase;
     if (!SB) return null;
     try {
       var pr = await SB.from('profiles').select('id,username,email').eq('username', identifier).maybeSingle();
       if (pr && pr.data && pr.data.email) return String(pr.data.email).toLowerCase();
     } catch (e) {}
-    try {
-      var pr2 = await SB.from('profiles').select('id,username').eq('username', identifier).maybeSingle();
-      if (pr2 && pr2.data && pr2.data.id) {
-        /* sem email publico - nao da para signInWithPassword com username */
-        return null;
-      }
-    } catch (e2) {}
     return null;
   }
 
   function installGuards() {
-    if (typeof window.showLoginGate === 'function') {
+    if (typeof window.showLoginGate === 'function' && !window.showLoginGate.__v12) {
       var _sg = window.showLoginGate;
       window.showLoginGate = function () {
         if (window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) {
@@ -146,23 +199,25 @@
         }
         return _sg.apply(this, arguments);
       };
+      window.showLoginGate.__v12 = true;
       window.showLoginGate.__raw = _sg;
     }
 
-    if (typeof window.clearSession === 'function') {
+    if (typeof window.clearSession === 'function' && !window.clearSession.__v12) {
       var _cs = window.clearSession;
       window.clearSession = function () {
         if (window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) return;
         return _cs.apply(this, arguments);
       };
+      window.clearSession.__v12 = true;
     }
 
-    if (typeof window.hideLoginGate === 'function') {
+    if (typeof window.hideLoginGate === 'function' && !window.hideLoginGate.__v12) {
       var _hg = window.hideLoginGate;
       window.hideLoginGate = function () {
         forceHideGate();
-        try { return _hg.apply(this, arguments); } catch (e) {}
       };
+      window.hideLoginGate.__v12 = true;
     }
   }
 
@@ -213,7 +268,6 @@
       return res.data;
     };
 
-    /* Override form handler completo */
     window.tchiloLogin = async function (e) {
       if (e && e.preventDefault) e.preventDefault();
       var identifierEl = document.getElementById('loginIdentifier');
@@ -241,14 +295,8 @@
       try {
         await window.tchiloSupabaseLogin(identifier, password);
       } catch (err) {
-        console.error('[login-v11]', err);
+        console.error('[login-v12]', err);
         if (error) error.textContent = (err && err.message) || 'Nao foi possivel iniciar sessao.';
-        try {
-          if (typeof tchiloMarkInvalid === 'function') {
-            tchiloMarkInvalid(identifierEl);
-            tchiloMarkInvalid(passwordEl);
-          }
-        } catch (e2) {}
       } finally {
         try {
           if (typeof tchiloSetLoading === 'function') tchiloSetLoading(btn, false);
@@ -285,14 +333,6 @@
         window.__tchiloLoggingOut = true;
         try {
           if (typeof window.showLoginGate.__raw === 'function') window.showLoginGate.__raw();
-          else {
-            var g = document.getElementById('loginGate');
-            if (g) {
-              g.classList.remove('hidden');
-              g.style.removeProperty('display');
-            }
-            document.body.classList.add('login-locked');
-          }
         } catch (e2) {}
         window.__tchiloLoggingOut = false;
       } catch (err) {
@@ -305,7 +345,9 @@
     installGuards();
     installLogin();
     installSync();
-    if (localSession()) forceHideGate();
+    if (localSession()) {
+      restoreAppChrome();
+    }
   }
 
   run();
@@ -314,74 +356,87 @@
   setTimeout(run, 300);
   setTimeout(run, 1000);
   setTimeout(run, 2500);
-  setTimeout(run, 5000);
 })();
 
-/* Legal navbar (unchanged behaviour) */
+/* Legal navbar — so esconde nav em paginas legais, NUNCA apos login */
 (function () {
   'use strict';
+  if (window.__tchiloLegalNavV12) return;
+  window.__tchiloLegalNavV12 = true;
+
   var LEGAL_SCREENS = { terms: 1, privacy: 1, child: 1, community: 1, about: 1 };
+
   function injectCss() {
     if (document.getElementById('tchilo-legal-navbar-fix')) return;
     var style = document.createElement('style');
     style.id = 'tchilo-legal-navbar-fix';
     style.textContent =
-      'body.legal-screen-open .navbar,body.legal-from-login .navbar,body.legal-screen-open .topbar,body.legal-from-login .topbar,body.legal-screen-open .stories,body.legal-from-login .stories{display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;height:0!important;max-height:0!important;overflow:hidden!important;}' +
+      'body.legal-screen-open .navbar,body.legal-from-login .navbar,' +
+      'body.legal-screen-open .topbar,body.legal-from-login .topbar,' +
+      'body.legal-screen-open .stories,body.legal-from-login .stories{' +
+      'display:none!important;visibility:hidden!important;pointer-events:none!important;}' +
       'body.legal-screen-open .screen.active,body.legal-from-login .screen.active{padding-bottom:0!important;}';
     (document.head || document.documentElement).appendChild(style);
   }
+
   function isLegalScreen(name) {
     if (!name) return false;
     return !!LEGAL_SCREENS[String(name).replace(/^screen-/, '')];
   }
+
   function hideNav() {
     document.body.classList.add('legal-screen-open');
-    var nav = document.querySelector('.navbar');
-    if (nav) {
-      nav.style.setProperty('display', 'none', 'important');
-      nav.setAttribute('data-legal-hidden', '1');
-    }
   }
+
   function showNav() {
     document.body.classList.remove('legal-screen-open');
     document.body.classList.remove('legal-from-login');
-    var nav = document.querySelector('.navbar');
-    if (nav) {
-      nav.style.removeProperty('display');
-      nav.removeAttribute('data-legal-hidden');
-    }
+    try {
+      var nav = document.querySelector('.navbar');
+      if (nav) {
+        nav.style.removeProperty('display');
+        nav.style.removeProperty('pointer-events');
+        nav.removeAttribute('data-legal-hidden');
+      }
+    } catch (e) {}
   }
+
   function syncNavWithScreen() {
-    var active = document.querySelector('.screen.active');
-    var name = active && active.id ? active.id.replace(/^screen-/, '') : '';
-    if (isLegalScreen(name) || document.body.classList.contains('legal-from-login')) {
-      hideNav();
-      return;
-    }
-    var gate = document.getElementById('loginGate');
-    if (gate && !gate.classList.contains('hidden')) {
-      hideNav();
-      return;
-    }
-    showNav();
+    /* Nunca esconder nav se ha sessao e login gate fechado */
+    try {
+      var gate = document.getElementById('loginGate');
+      var gateOpen = gate && !gate.classList.contains('hidden') && gate.style.display !== 'none';
+      if (!gateOpen) {
+        var active = document.querySelector('.screen.active');
+        var name = active && active.id ? active.id.replace(/^screen-/, '') : '';
+        if (isLegalScreen(name) || document.body.classList.contains('legal-from-login')) {
+          hideNav();
+          return;
+        }
+        showNav();
+        return;
+      }
+    } catch (e) {}
+    hideNav();
   }
+
   function boot() {
     injectCss();
-    if (typeof window.goTo === 'function' && !window.goTo.__legalNavPatched) {
+    if (typeof window.goTo === 'function' && !window.goTo.__legalNavV12) {
       var orig = window.goTo;
       window.goTo = function (name) {
         var r = orig.apply(this, arguments);
         try {
-          if (isLegalScreen(name)) hideNav();
           setTimeout(syncNavWithScreen, 0);
         } catch (e) {}
         return r;
       };
-      window.goTo.__legalNavPatched = true;
+      window.goTo.__legalNavV12 = true;
     }
     syncNavWithScreen();
     setTimeout(syncNavWithScreen, 400);
   }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();

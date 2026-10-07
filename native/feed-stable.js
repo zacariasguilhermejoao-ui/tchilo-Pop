@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v41 — header-ui */
+/** tchilo-Pop loaders v42 — header-ui v2 */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V41) return;
-  window.__TCHILO_FEED_STABLE_V41 = true;
+  if (window.__TCHILO_FEED_STABLE_V42) return;
+  window.__TCHILO_FEED_STABLE_V42 = true;
 
   function add(src, sync) {
     try {
@@ -29,7 +29,7 @@
     add('native/tchilo-login-session-fix.js?v=9', true);
     add('native/tchilo-hide-nav.js?v=4');
     add('native/tchilo-router.js?v=5');
-    add('native/tchilo-header-ui.js?v=1');
+    add('native/tchilo-header-ui.js?v=2');
     add('native/tchilo-story-pick-fix.js?v=1');
     add('native/tchilo-reels-open-fix.js?v=8');
     add('native/tchilo-feed-video-ui.js?v=2');

@@ -27,9 +27,6 @@
     try {
       if (window.session && window.session.user) return window.session.user;
       if (window.tchiloSession && window.tchiloSession.user) return window.tchiloSession.user;
-      if (window.SB && window.SB.auth) {
-        /* async not here */
-      }
     } catch (e) {}
     return null;
   }
@@ -102,24 +99,16 @@
       }
       var existing = document.querySelector('script[data-tchilo-paddle]');
       if (existing) {
-        existing.addEventListener("load", function () {
-          resolve();
-        });
-        existing.addEventListener("error", function () {
-          reject(new Error("Paddle script fail"));
-        });
+        existing.addEventListener("load", function () { resolve(); });
+        existing.addEventListener("error", function () { reject(new Error("Paddle script fail")); });
         return;
       }
       var s = document.createElement("script");
       s.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
       s.async = true;
       s.setAttribute("data-tchilo-paddle", "1");
-      s.onload = function () {
-        resolve();
-      };
-      s.onerror = function () {
-        reject(new Error("Paddle script fail"));
-      };
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error("Paddle script fail")); };
       document.head.appendChild(s);
     });
   }
@@ -129,7 +118,6 @@
     return loadPaddleScript()
       .then(function () {
         if (!window.Paddle) throw new Error("Paddle em falta");
-        // Live token — sem Environment.set('sandbox')
         Paddle.Initialize({
           token: PADDLE_TOKEN,
           eventCallback: function (event) {
@@ -141,12 +129,7 @@
                 customerId: data.customer && data.customer.id ? data.customer.id : null,
                 at: new Date().toISOString()
               });
-              try {
-                Paddle.Checkout.close();
-              } catch (e) {}
-            }
-            if (event.name === "checkout.error") {
-              console.warn("[premium] checkout.error", event);
+              try { Paddle.Checkout.close(); } catch (e) {}
             }
           }
         });
@@ -162,22 +145,17 @@
 
   function openCheckout() {
     if (isPremiumLocal()) {
-      toast("Já tens Tchilo Premium");
+      toast("Ja tens Tchilo Premium");
       return;
     }
     initPaddle().then(function (ok) {
       if (!ok || !window.Paddle) {
-        toast("Não foi possível abrir o pagamento. Tenta de novo.");
+        toast("Nao foi possivel abrir o pagamento. Tenta de novo.");
         return;
       }
       var opts = {
         items: [{ priceId: PRICE_ID, quantity: 1 }],
-        settings: {
-          displayMode: "overlay",
-          theme: "light",
-          locale: "pt",
-          allowLogout: false
-        },
+        settings: { displayMode: "overlay", theme: "light", locale: "pt", allowLogout: false },
         customData: {
           app: "tchilo",
           product: PRODUCT_NAME,
@@ -186,12 +164,8 @@
         }
       };
       var email = getUserEmail();
-      if (email) {
-        opts.customer = { email: email };
-      }
-      try {
-        Paddle.Checkout.open(opts);
-      } catch (e) {
+      if (email) opts.customer = { email: email };
+      try { Paddle.Checkout.open(opts); } catch (e) {
         console.warn("[premium] open", e);
         toast("Erro ao abrir checkout");
       }
@@ -227,7 +201,7 @@
       var st = document.createElement("style");
       st.id = "tchiloPremiumCSS";
       st.textContent =
-        "#tchiloPremiumBtn{display:flex;align-items:center;gap:12px;width:calc(100% - 36px);margin:12px 18px 4px;padding:14px 14px;border:0;border-radius:16px;background:linear-gradient(135deg,#c8f560 0%,#9ee0ff 100%);color:var(--ink,#0B0B0C);font:800 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;text-align:left;cursor:pointer;box-shadow:none}" +
+        "#tchiloPremiumBtn{display:flex;align-items:center;gap:12px;width:calc(100% - 36px);margin:12px 18px 4px;padding:14px 14px;border:0;border-radius:16px;background:linear-gradient(135deg,#c8f560 0%,#9ee0ff 100%);color:var(--ink,#0B0B0C);font:800 14px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;text-align:left;cursor:pointer;box-shadow:none}" +
         "#tchiloPremiumBtn .prem-icon{width:42px;height:42px;border-radius:12px;border:0;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}" +
         "#tchiloPremiumBtn .prem-text{flex:1;min-width:0}" +
         "#tchiloPremiumBtn .prem-text b{display:block;font-size:15px}" +
@@ -250,14 +224,12 @@
       openCheckout();
     };
 
-    // inserir no topo da lista de definições
     if (list.firstChild) list.insertBefore(btn, list.firstChild);
     else list.appendChild(btn);
 
     updatePremiumUI();
   }
 
-  // API pública
   window.tchiloOpenPremiumCheckout = openCheckout;
   window.tchiloIsPremium = isPremiumLocal;
   window.tchiloMarkPremium = markPremium;
@@ -265,11 +237,8 @@
   function boot() {
     injectSettingsButton();
     updatePremiumUI();
-    // pré-carregar Paddle em idle
     setTimeout(function () {
-      try {
-        initPaddle();
-      } catch (e) {}
+      try { initPaddle(); } catch (e) {}
     }, 2500);
   }
 

@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v34 — ui-unlock first */
+/** tchilo-Pop loaders v35 — ui-unlock v2 first */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V34) return;
-  window.__TCHILO_FEED_STABLE_V34 = true;
+  if (window.__TCHILO_FEED_STABLE_V35) return;
+  window.__TCHILO_FEED_STABLE_V35 = true;
 
   function add(src, sync) {
     try {
@@ -25,8 +25,7 @@
   }
 
   function load() {
-    /* UNLOCK primeiro — icones clicaveis + feed */
-    add('native/tchilo-ui-unlock.js?v=1', true);
+    add('native/tchilo-ui-unlock.js?v=2', true);
     add('native/tchilo-login-session-fix.js?v=9', true);
     add('native/tchilo-hide-nav.js?v=4');
     add('native/tchilo-stable-ui.js?v=3');
@@ -46,7 +45,7 @@
     add('native/tchilo-avatar-cloud.js?v=4');
     add('native/tchilo-avatar-viewer.js?v=1');
     add('native/tchilo-premium.js?v=1');
-    add('native/paddle-premium.js?v=1');
+    add('native/paddle-premium.js?v=2');
     add('native/paddle-ad-guard.js?v=1');
     add('native/tchilo-theme-premium-gate.js?v=1');
     add('native/tchilo-verified.js?v=2');
@@ -61,9 +60,9 @@
     add('native/tchilo-deeplink.js?v=2');
     add('native/tchilo-profile-share.js?v=10');
     add('native/tchilo-profile-boost.js?v=1');
-    add('native/tchilo-ads-ui.js?v=5');
+    add('native/tchilo-ads-ui.js?v=6');
     add('native/tchilo-ads-force.js?v=2');
-    add('native/tchilo-ads-pro.js?v=2');
+    add('native/tchilo-ads-pro.js?v=3');
     add('native/tchilo-create-buttons.js?v=4');
     add('native/tchilo-cloud-force.js?v=1');
     add('native/tchilo-name-sync.js?v=1');

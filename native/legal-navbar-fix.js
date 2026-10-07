@@ -1,17 +1,11 @@
-/* LOGIN FIX v10 — loaded early with legal-navbar-fix */
-/**
- * Tchilo login session v10
- * Problema: login processa e volta a Entrar/Criar conta
- * Solucao: gravar sessao + esconder gate imediatamente
- */
+/* LOGIN FIX v11 + legal navbar */
 (function () {
   'use strict';
-  if (window.__tchiloLoginSessionFixV10) return;
+  if (window.__tchiloLoginSessionFixV11) return;
+  window.__tchiloLoginSessionFixV11 = true;
   window.__tchiloLoginSessionFixV10 = true;
-  window.__tchiloLoginSessionFixV9 = true;
-  window.__tchiloLoginSessionFixV8 = true;
 
-  var JUST_MS = 30000;
+  var JUST_MS = 60000;
 
   function markJust() {
     window.__tchiloJustLoggedIn = true;
@@ -118,8 +112,28 @@
     return sess;
   }
 
+  async function resolveEmail(identifier) {
+    identifier = String(identifier || '').trim().toLowerCase();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) return identifier;
+    /* username -> email via profiles (precisa de coluna email ou lookup) */
+    var SB = window.tchiloSupabase;
+    if (!SB) return null;
+    try {
+      var pr = await SB.from('profiles').select('id,username,email').eq('username', identifier).maybeSingle();
+      if (pr && pr.data && pr.data.email) return String(pr.data.email).toLowerCase();
+    } catch (e) {}
+    try {
+      var pr2 = await SB.from('profiles').select('id,username').eq('username', identifier).maybeSingle();
+      if (pr2 && pr2.data && pr2.data.id) {
+        /* sem email publico - nao da para signInWithPassword com username */
+        return null;
+      }
+    } catch (e2) {}
+    return null;
+  }
+
   function installGuards() {
-    if (typeof window.showLoginGate === 'function' && !window.showLoginGate.__v10) {
+    if (typeof window.showLoginGate === 'function') {
       var _sg = window.showLoginGate;
       window.showLoginGate = function () {
         if (window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) {
@@ -132,26 +146,23 @@
         }
         return _sg.apply(this, arguments);
       };
-      window.showLoginGate.__v10 = true;
       window.showLoginGate.__raw = _sg;
     }
 
-    if (typeof window.clearSession === 'function' && !window.clearSession.__v10) {
+    if (typeof window.clearSession === 'function') {
       var _cs = window.clearSession;
       window.clearSession = function () {
         if (window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) return;
         return _cs.apply(this, arguments);
       };
-      window.clearSession.__v10 = true;
     }
 
-    if (typeof window.hideLoginGate === 'function' && !window.hideLoginGate.__v10) {
+    if (typeof window.hideLoginGate === 'function') {
       var _hg = window.hideLoginGate;
       window.hideLoginGate = function () {
         forceHideGate();
         try { return _hg.apply(this, arguments); } catch (e) {}
       };
-      window.hideLoginGate.__v10 = true;
     }
   }
 
@@ -163,11 +174,15 @@
       var SB = window.tchiloSupabase;
       if (!SB || !SB.auth) throw new Error('Servico de autenticacao indisponivel. Recarrega a pagina.');
 
+      var email = identifier;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
-        throw new Error('Para entrar, usa o email da conta (nao o nome de utilizador).');
+        email = await resolveEmail(identifier);
+        if (!email) {
+          throw new Error('Para entrar, usa o email da conta (ex: teu@gmail.com), nao o @username.');
+        }
       }
 
-      var res = await SB.auth.signInWithPassword({ email: identifier, password: password });
+      var res = await SB.auth.signInWithPassword({ email: email, password: password });
       if (res.error) {
         var msg = res.error.message || 'Nao foi possivel iniciar sessao.';
         if (/invalid login|invalid credentials|invalid_credentials/i.test(msg)) {
@@ -185,7 +200,7 @@
       writeSession({
         id: user.id,
         username: (user.user_metadata && user.user_metadata.username) || ('user_' + String(user.id).slice(0, 8)),
-        email: user.email || identifier,
+        email: user.email || email,
         displayName: (user.user_metadata && user.user_metadata.display_name) || '',
         avatar: null,
         privateAccount: false,
@@ -197,7 +212,49 @@
       applyUser(user, profile);
       return res.data;
     };
-    window.tchiloSupabaseLogin.__v10 = true;
+
+    /* Override form handler completo */
+    window.tchiloLogin = async function (e) {
+      if (e && e.preventDefault) e.preventDefault();
+      var identifierEl = document.getElementById('loginIdentifier');
+      var passwordEl = document.getElementById('loginPassword');
+      var identifier = (identifierEl && identifierEl.value) || '';
+      var password = passwordEl ? passwordEl.value : '';
+      var error = document.getElementById('loginError');
+      if (error) error.textContent = '';
+      try {
+        if (typeof tchiloClearFieldErrors === 'function') {
+          tchiloClearFieldErrors(document.getElementById('accessPanel') || document);
+        }
+      } catch (e0) {}
+      if (!String(identifier).trim() || !password) {
+        if (error) error.textContent = 'Preenche os dois campos.';
+        return;
+      }
+      var btn =
+        (e && e.target && e.target.querySelector &&
+          (e.target.querySelector('button[type="submit"]') || e.target.querySelector('.login-button'))) ||
+        document.querySelector('#accessPanel button[type="submit"]');
+      try {
+        if (typeof tchiloSetLoading === 'function') tchiloSetLoading(btn, true);
+      } catch (e1) {}
+      try {
+        await window.tchiloSupabaseLogin(identifier, password);
+      } catch (err) {
+        console.error('[login-v11]', err);
+        if (error) error.textContent = (err && err.message) || 'Nao foi possivel iniciar sessao.';
+        try {
+          if (typeof tchiloMarkInvalid === 'function') {
+            tchiloMarkInvalid(identifierEl);
+            tchiloMarkInvalid(passwordEl);
+          }
+        } catch (e2) {}
+      } finally {
+        try {
+          if (typeof tchiloSetLoading === 'function') tchiloSetLoading(btn, false);
+        } catch (e3) {}
+      }
+    };
   }
 
   function installSync() {
@@ -242,7 +299,6 @@
         if (localSession()) forceHideGate();
       }
     };
-    window.tchiloSyncAuthSession.__v10 = true;
   }
 
   function run() {
@@ -258,62 +314,26 @@
   setTimeout(run, 300);
   setTimeout(run, 1000);
   setTimeout(run, 2500);
+  setTimeout(run, 5000);
 })();
 
-/*
- * Fix definitivo: Termos / Privacidade / Seguranca infantil / Diretrizes
- */
+/* Legal navbar (unchanged behaviour) */
 (function () {
   'use strict';
-
-  var LEGAL_SCREENS = {
-    terms: 1,
-    privacy: 1,
-    child: 1,
-    community: 1,
-    about: 1
-  };
-
+  var LEGAL_SCREENS = { terms: 1, privacy: 1, child: 1, community: 1, about: 1 };
   function injectCss() {
     if (document.getElementById('tchilo-legal-navbar-fix')) return;
     var style = document.createElement('style');
     style.id = 'tchilo-legal-navbar-fix';
-    style.textContent = [
-      'body.legal-screen-open .navbar,',
-      'body.legal-from-login .navbar,',
-      'body.legal-screen-open .topbar,',
-      'body.legal-from-login .topbar,',
-      'body.legal-screen-open .stories,',
-      'body.legal-from-login .stories {',
-      '  display: none !important;',
-      '  visibility: hidden !important;',
-      '  pointer-events: none !important;',
-      '  opacity: 0 !important;',
-      '  transform: translateY(120%) !important;',
-      '  height: 0 !important;',
-      '  max-height: 0 !important;',
-      '  overflow: hidden !important;',
-      '}',
-      'body.legal-screen-open .screen.active,',
-      'body.legal-from-login .screen.active {',
-      '  padding-bottom: 0 !important;',
-      '}'
-    ].join('\n');
+    style.textContent =
+      'body.legal-screen-open .navbar,body.legal-from-login .navbar,body.legal-screen-open .topbar,body.legal-from-login .topbar,body.legal-screen-open .stories,body.legal-from-login .stories{display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;height:0!important;max-height:0!important;overflow:hidden!important;}' +
+      'body.legal-screen-open .screen.active,body.legal-from-login .screen.active{padding-bottom:0!important;}';
     (document.head || document.documentElement).appendChild(style);
   }
-
   function isLegalScreen(name) {
     if (!name) return false;
-    name = String(name).replace(/^screen-/, '');
-    return !!LEGAL_SCREENS[name];
+    return !!LEGAL_SCREENS[String(name).replace(/^screen-/, '')];
   }
-
-  function getActiveScreenName() {
-    var active = document.querySelector('.screen.active');
-    if (!active || !active.id) return '';
-    return active.id.replace(/^screen-/, '');
-  }
-
   function hideNav() {
     document.body.classList.add('legal-screen-open');
     var nav = document.querySelector('.navbar');
@@ -321,12 +341,7 @@
       nav.style.setProperty('display', 'none', 'important');
       nav.setAttribute('data-legal-hidden', '1');
     }
-    var topbar = document.querySelector('.topbar');
-    if (topbar) topbar.style.setProperty('display', 'none', 'important');
-    var stories = document.querySelector('.stories');
-    if (stories) stories.style.setProperty('display', 'none', 'important');
   }
-
   function showNav() {
     document.body.classList.remove('legal-screen-open');
     document.body.classList.remove('legal-from-login');
@@ -335,122 +350,38 @@
       nav.style.removeProperty('display');
       nav.removeAttribute('data-legal-hidden');
     }
-    var topbar = document.querySelector('.topbar');
-    if (topbar) topbar.style.removeProperty('display');
-    var stories = document.querySelector('.stories');
-    if (stories) stories.style.removeProperty('display');
   }
-
   function syncNavWithScreen() {
-    var name = getActiveScreenName();
+    var active = document.querySelector('.screen.active');
+    var name = active && active.id ? active.id.replace(/^screen-/, '') : '';
     if (isLegalScreen(name) || document.body.classList.contains('legal-from-login')) {
       hideNav();
       return;
     }
     var gate = document.getElementById('loginGate');
-    var gateOpen = gate && !gate.classList.contains('hidden');
-    if (gateOpen) {
+    if (gate && !gate.classList.contains('hidden')) {
       hideNav();
       return;
     }
     showNav();
   }
-
-  function patchGoTo() {
-    if (typeof window.goTo !== 'function' || window.goTo.__legalNavPatched) return;
-    var orig = window.goTo;
-    window.goTo = function (name) {
-      var result = orig.apply(this, arguments);
-      try {
-        if (isLegalScreen(name)) hideNav();
-        else if (!document.body.classList.contains('legal-from-login')) {
-          var gate = document.getElementById('loginGate');
-          if (!gate || gate.classList.contains('hidden')) showNav();
-        }
-        setTimeout(syncNavWithScreen, 0);
-        setTimeout(syncNavWithScreen, 50);
-      } catch (e) {}
-      return result;
-    };
-    window.goTo.__legalNavPatched = true;
-  }
-
-  function patchLegalFromLogin() {
-    window.openLegalFromLogin = function (name) {
-      try {
-        window.legalReturnScreen = 'login';
-      } catch (e) {}
-      document.body.classList.add('legal-from-login');
-      var gate = document.getElementById('loginGate');
-      if (gate) gate.classList.add('hidden');
-      document.body.style.overflow = '';
-      hideNav();
-      if (typeof window.goTo === 'function') window.goTo(name);
-      setTimeout(hideNav, 0);
-      setTimeout(hideNav, 50);
-      setTimeout(hideNav, 200);
-    };
-
-    window.legalBack = function () {
-      var ret = window.legalReturnScreen;
-      if (ret === 'login') {
-        document.querySelectorAll('.screen').forEach(function (s) {
-          s.classList.remove('active');
-        });
-        var gate = document.getElementById('loginGate');
-        if (gate) gate.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-        document.body.classList.remove('legal-from-login');
-        document.body.classList.remove('legal-screen-open');
-        hideNav();
-        try {
-          if (typeof playLoginVideo === 'function') playLoginVideo();
-        } catch (e) {}
-        try {
-          window.legalReturnScreen = 'settings';
-        } catch (e2) {}
-      } else {
-        document.body.classList.remove('legal-from-login');
-        if (typeof window.goTo === 'function') {
-          window.goTo(ret || 'settings-legal');
-        }
-        setTimeout(syncNavWithScreen, 0);
-      }
-    };
-  }
-
-  function observeScreens() {
-    try {
-      var root = document.getElementById('appFrame') || document.body;
-      var obs = new MutationObserver(function () {
-        syncNavWithScreen();
-      });
-      obs.observe(root, {
-        attributes: true,
-        subtree: true,
-        attributeFilter: ['class']
-      });
-    } catch (e) {}
-  }
-
-  function patch() {
-    injectCss();
-    patchGoTo();
-    patchLegalFromLogin();
-    syncNavWithScreen();
-  }
-
   function boot() {
-    patch();
-    observeScreens();
-    setTimeout(patch, 400);
-    setTimeout(patch, 1200);
-    setTimeout(syncNavWithScreen, 100);
+    injectCss();
+    if (typeof window.goTo === 'function' && !window.goTo.__legalNavPatched) {
+      var orig = window.goTo;
+      window.goTo = function (name) {
+        var r = orig.apply(this, arguments);
+        try {
+          if (isLegalScreen(name)) hideNav();
+          setTimeout(syncNavWithScreen, 0);
+        } catch (e) {}
+        return r;
+      };
+      window.goTo.__legalNavPatched = true;
+    }
+    syncNavWithScreen();
+    setTimeout(syncNavWithScreen, 400);
   }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();

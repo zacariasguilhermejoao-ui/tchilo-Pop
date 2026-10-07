@@ -1,12 +1,13 @@
 /**
  * Tchilo — esconde barra inferior
- * v3: definições, ecrãs internos, e quando NÃO há sessão (login/logout)
+ * v4: NUNCA esconde nav quando ha sessao no feed/messages/etc.
+ * Corrige: body.tchilo-logged-out a bloquear cliques com sessao activa
  */
 (function () {
   'use strict';
-  if (window.__tchiloHideNavV3) return;
+  if (window.__tchiloHideNavV4) return;
+  window.__tchiloHideNavV4 = true;
   window.__tchiloHideNavV3 = true;
-  window.__tchiloHideNavV2 = true;
 
   var HIDE_EXACT = {
     settings: 1,
@@ -49,9 +50,7 @@
     st.textContent =
       'body.tchilo-no-bottom-nav .navbar,' +
       'body.tchilo-no-bottom-nav nav.navbar,' +
-      'html body.tchilo-no-bottom-nav .navbar,' +
-      'body.tchilo-logged-out .navbar,' +
-      'body.tchilo-logged-out nav.navbar{' +
+      'html body.tchilo-no-bottom-nav .navbar{' +
       'display:none!important;' +
       'visibility:hidden!important;' +
       'opacity:0!important;' +
@@ -61,12 +60,12 @@
       'max-height:0!important;' +
       'overflow:hidden!important;' +
       'transform:translateY(120%)!important;}' +
-      'body.tchilo-no-bottom-nav .screen.active,' +
-      'body.tchilo-logged-out .screen.active{' +
-      'padding-bottom:0!important;}' +
-      'body.tchilo-no-bottom-nav #appFrame,' +
-      'body.tchilo-logged-out #appFrame{' +
-      'padding-bottom:0!important;}';
+      'body.tchilo-no-bottom-nav .screen.active{padding-bottom:0!important;}' +
+      'body.tchilo-no-bottom-nav #appFrame{padding-bottom:0!important;}' +
+      /* logged-out so aplica se NAO houver tchilo-session-on */
+      'body.tchilo-logged-out:not(.tchilo-session-on) .navbar,' +
+      'body.tchilo-logged-out:not(.tchilo-session-on) nav.navbar{' +
+      'display:none!important;pointer-events:none!important;}' ;
   }
 
   function normalize(name) {
@@ -85,131 +84,91 @@
     } catch (e) {}
     try {
       var raw = localStorage.getItem('tchilo_session');
-      if (raw && raw !== 'null' && raw !== '{}') {
-        var o = JSON.parse(raw);
-        if (o && (o.username || o.id || o.email)) return true;
-      }
-    } catch (e2) {}
+      if (!raw) return false;
+      var o = JSON.parse(raw);
+      return !!(o && (o.id || o.username || o.email));
+    } catch (e2) {
+      return false;
+    }
+  }
+
+  function shouldHideNav(name) {
+    name = normalize(name);
+    if (!name) return false;
+    if (HIDE_EXACT[name]) return true;
+    if (name.indexOf('settings') === 0) return true;
+    if (name.indexOf('legal') === 0) return true;
     return false;
   }
 
-  function shouldHide(name) {
-    if (!hasSession()) return true; /* logout / ecrã de entrar */
-    var n = normalize(name);
-    if (!n) return false;
-    if (HIDE_EXACT[n]) return true;
-    if (n.indexOf('settings') === 0) return true;
-    if (n.indexOf('edit') >= 0 && n.indexOf('profile') >= 0) return true;
-    if (n.indexOf('access') >= 0) return true;
-    if (n.indexOf('login') >= 0 || n.indexOf('signup') >= 0) return true;
-    if (n.indexOf('legal') >= 0 || n.indexOf('term') >= 0) return true;
-    if (n.indexOf('privacy') >= 0 || n.indexOf('cookie') >= 0) return true;
-    if (n.indexOf('ad') === 0 || n.indexOf('ads') >= 0) return true;
-    return false;
-  }
-
-  function currentScreenName() {
+  function getActiveName() {
     try {
       var active = document.querySelector('.screen.active');
-      if (active && active.id) return active.id.replace(/^screen-/, '');
+      if (active && active.id) return normalize(active.id);
     } catch (e) {}
     return '';
   }
 
-  function apply(name) {
+  function sync() {
     injectCSS();
-    var hide = shouldHide(name || currentScreenName());
-    var loggedOut = !hasSession();
-    try {
-      document.body.classList.toggle('tchilo-no-bottom-nav', !!hide);
-      document.body.classList.toggle('tchilo-logged-out', !!loggedOut);
-      document.documentElement.classList.toggle('tchilo-no-bottom-nav', !!hide);
-      document.documentElement.classList.toggle('tchilo-logged-out', !!loggedOut);
-    } catch (e) {}
+    var session = hasSession();
+
+    if (session) {
+      document.body.classList.add('tchilo-session-on');
+      document.body.classList.remove('tchilo-logged-out');
+    } else {
+      document.body.classList.remove('tchilo-session-on');
+      document.body.classList.add('tchilo-logged-out');
+    }
+
+    /* Com sessao: so esconder em ecras internos (settings etc.) */
+    var name = getActiveName();
+    if (session && shouldHideNav(name)) {
+      document.body.classList.add('tchilo-no-bottom-nav');
+    } else if (session) {
+      document.body.classList.remove('tchilo-no-bottom-nav');
+      try {
+        var nav = document.querySelector('.navbar');
+        if (nav) {
+          nav.style.removeProperty('display');
+          nav.style.removeProperty('pointer-events');
+          nav.style.removeProperty('opacity');
+          nav.style.removeProperty('visibility');
+          nav.style.removeProperty('transform');
+        }
+      } catch (e) {}
+    } else {
+      document.body.classList.add('tchilo-no-bottom-nav');
+    }
 
     try {
-      document.querySelectorAll('.navbar, nav.navbar, .bottom-nav').forEach(function (nav) {
-        if (hide || loggedOut) {
-          nav.style.setProperty('display', 'none', 'important');
-          nav.style.setProperty('visibility', 'hidden', 'important');
-          nav.setAttribute('aria-hidden', 'true');
-          nav.setAttribute('data-tchilo-hidden', '1');
-        } else if (nav.getAttribute('data-tchilo-hidden') === '1') {
-          nav.style.removeProperty('display');
-          nav.style.removeProperty('visibility');
-          nav.removeAttribute('data-tchilo-hidden');
-          nav.setAttribute('aria-hidden', 'false');
-        }
-      });
+      if (typeof window.tchiloUiUnlock === 'function' && session) {
+        window.tchiloUiUnlock();
+      }
     } catch (e2) {}
   }
 
   function patchGoTo() {
-    if (typeof window.goTo !== 'function') return false;
-    if (window.goTo.__hideNavV3) return true;
+    if (typeof window.goTo !== 'function' || window.goTo.__hideNavV4) return;
     var orig = window.goTo;
     window.goTo = function (name) {
       var r = orig.apply(this, arguments);
-      try {
-        apply(name);
-      } catch (e) {}
-      setTimeout(function () {
-        apply(name);
-      }, 40);
+      setTimeout(sync, 0);
+      setTimeout(sync, 50);
       return r;
     };
-    window.goTo.__hideNavV3 = true;
-    window.goTo.__hideNavV2 = true;
-    return true;
-  }
-
-  function patchLogout() {
-    ['logout', 'signOut', 'tchiloLogout', 'doLogout', 'endSession'].forEach(function (fn) {
-      if (typeof window[fn] !== 'function' || window[fn].__hideNavV3) return;
-      var o = window[fn];
-      window[fn] = function () {
-        var r = o.apply(this, arguments);
-        try {
-          document.body.classList.add('tchilo-logged-out', 'tchilo-no-bottom-nav');
-        } catch (e) {}
-        setTimeout(function () {
-          apply('access');
-        }, 50);
-        setTimeout(function () {
-          apply('access');
-        }, 400);
-        return r;
-      };
-      window[fn].__hideNavV3 = true;
-    });
+    window.goTo.__hideNavV4 = true;
   }
 
   function boot() {
     injectCSS();
     patchGoTo();
-    patchLogout();
-    apply(currentScreenName());
+    sync();
+    setTimeout(sync, 200);
+    setTimeout(sync, 800);
+    setTimeout(sync, 2000);
   }
 
-  boot();
-  setTimeout(boot, 300);
-  setTimeout(boot, 1000);
-
-  try {
-    var root = document.getElementById('app') || document.body;
-    if (root && !root.__hideNavObsV3) {
-      root.__hideNavObsV3 = true;
-      new MutationObserver(function () {
-        apply(currentScreenName());
-      }).observe(root, {
-        attributes: true,
-        subtree: true,
-        attributeFilter: ['class', 'style']
-      });
-    }
-  } catch (e) {}
-
-  setInterval(function () {
-    apply(currentScreenName());
-  }, 1500);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();

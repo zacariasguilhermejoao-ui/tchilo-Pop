@@ -1,6 +1,7 @@
 /**
  * Tchilo — seleção de vídeo/foto da galeria (forçado)
  * Grava SEMPRE em window.createMediaData E tenta a variável lexical createMediaData
+ * perf: sem setInterval
  */
 (function () {
   'use strict';
@@ -109,12 +110,6 @@
 
     var rm = document.getElementById('removeMediaBtn');
     if (rm) rm.style.display = 'block';
-
-    try {
-      if (typeof window.tchiloGetCreateMediaData === 'function') {
-        /* trigger music btn */
-      }
-    } catch (e4) {}
   }
 
   function handleFiles(fileList) {
@@ -151,10 +146,9 @@
     btn.__tchiloPickV6 = true;
     btn.addEventListener(
       'click',
-      function (e) {
+      function () {
         var input = document.getElementById('mediaInput');
         if (input) {
-          /* deixa o handler nativo + o nosso change */
           try {
             input.accept = 'image/*,video/*';
           } catch (err) {}
@@ -170,7 +164,6 @@
   }
 
   boot();
-  setTimeout(boot, 300);
-  setTimeout(boot, 1000);
-  setInterval(boot, 3000);
+  setTimeout(boot, 400);
+  setTimeout(boot, 1500);
 })();

@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v43 — feed-lock + noflicker first */
+/** tchilo-Pop loaders v44 — feed-lock + LIVE + nav sizes first */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V43) return;
-  window.__TCHILO_FEED_STABLE_V43 = true;
+  if (window.__TCHILO_FEED_STABLE_V44) return;
+  window.__TCHILO_FEED_STABLE_V44 = true;
 
   function add(src, sync) {
     try {
@@ -25,10 +25,12 @@
   }
 
   function load() {
-    /* anti-piscar e fundo primeiro */
+    /* anti-piscar, LIVE e tamanhos de nav primeiro */
     add('native/tchilo-feed-lock.js?v=2', true);
     add('native/feed-noflicker.js?v=4', true);
     add('native/tchilo-ui-stable.js?v=1', true);
+    add('native/live-btn-stable.js?v=3', true);
+    add('native/tchilo-nav-size-fix.js?v=1', true);
 
     add('native/tchilo-ui-unlock.js?v=3', true);
     add('native/tchilo-login-session-fix.js?v=9', true);
@@ -85,5 +87,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
   else load();
-  setTimeout(load, 600);
+  setTimeout(load, 700);
 })();

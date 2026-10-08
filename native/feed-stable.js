@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v45 — logo original + anti-piscar first */
+/** tchilo-Pop loaders v46 — perf throttle first */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V45) return;
-  window.__TCHILO_FEED_STABLE_V45 = true;
+  if (window.__TCHILO_FEED_STABLE_V46) return;
+  window.__TCHILO_FEED_STABLE_V46 = true;
 
   function add(src, sync) {
     try {
@@ -25,7 +25,8 @@
   }
 
   function load() {
-    /* logo original primeiro (remove bloco preto live-icon) */
+    /* PERFORMANCE: throttle global primeiro */
+    add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-logo-restore.js?v=1', true);
     add('native/tchilo-feed-lock.js?v=2', true);
     add('native/feed-noflicker.js?v=4', true);
@@ -61,7 +62,7 @@
     add('native/tchilo-theme-premium-gate.js?v=1');
     add('native/tchilo-verified.js?v=2');
     add('native/music-catalog-fix.js?v=1');
-    add('native/tchilo-music-picker-fix.js?v=1');
+    add('native/tchilo-music-picker-fix.js?v=2');
     add('native/tchilo-music-sheet.js?v=1');
     add('native/tchilo-music-feed-fix.js?v=3');
     add('native/tchilo-publish-fix.js?v=5');
@@ -69,11 +70,11 @@
     add('native/tchilo-deeplink.js?v=2');
     add('native/tchilo-profile-share.js?v=10');
     add('native/tchilo-profile-boost.js?v=1');
-    add('native/tchilo-ads-ui.js?v=6');
+    add('native/tchilo-ads-ui.js?v=7');
     add('native/tchilo-ads-force.js?v=2');
-    add('native/tchilo-ads-pro.js?v=3');
-    add('native/tchilo-create-buttons.js?v=4');
-    add('native/tchilo-cloud-force.js?v=1');
+    add('native/tchilo-ads-pro.js?v=4');
+    add('native/tchilo-create-buttons.js?v=5');
+    add('native/tchilo-cloud-force.js?v=2');
     add('native/tchilo-name-sync.js?v=1');
     add('native/tchilo-cloud-hydrate.js?v=3');
     add('native/tchilo-feed-to-reels.js?v=2');
@@ -88,5 +89,6 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
   else load();
-  setTimeout(load, 700);
+  /* uma só vez extra — evita double load agressivo */
+  setTimeout(load, 1200);
 })();

@@ -1,40 +1,16 @@
 /**
- * Tchilo Stable UI v4
- * - + do perfil: preto com + branco
- * - avatares: nunca ?, nunca letras; fallback avatar-*.svg
- * - NÃO mexe em tamanho/resolução de ícones do navbar ou topbar (index manda)
+ * Tchilo Stable UI v5
+ * - Só estilo do botão + no perfil
+ * - NÃO sobrescreve renderUserAvatarHTML / applyAvatarToElement (index manda)
+ * - NÃO mexe em ícones nav/topbar
  */
 (function () {
   'use strict';
-  if (window.__tchiloStableUiV4) return;
+  if (window.__tchiloStableUiV5) return;
+  window.__tchiloStableUiV5 = true;
   window.__tchiloStableUiV4 = true;
   window.__tchiloStableUiV3 = true;
-  window.__tchiloStableUiV2 = true;
-
-  window.__tchiloFeeSmsFinalV14 = true;
-  window.__tchiloFeeSmsFinalV13 = true;
-  window.__tchiloUiIconsFixV7 = true;
-  window.__tchiloDefaultAvatarV1 = true;
-  window.__tchiloUiPolishV1 = true;
-  window.__tchiloNavLayoutV2 = true;
-  window.__tchiloAvatarPlusV3 = true;
-
-  var AV_LIGHT = 'avatar-claro.svg?v=5';
-  var AV_DARK = 'avatar-escuro.svg?v=5';
-  var AV_VIOLET = 'avatar-roxo.svg?v=5';
-
-  function defAvatar() {
-    try {
-      var t = (
-        (document.documentElement && document.documentElement.getAttribute('data-theme')) ||
-        (document.body && document.body.getAttribute('data-theme')) ||
-        ''
-      ).toLowerCase();
-      if (t === 'dark') return AV_DARK;
-      if (t === 'violet') return AV_VIOLET;
-    } catch (e) {}
-    return AV_LIGHT;
-  }
+  window.__tchiloUiPolishV1 = true; /* bloqueia polish antigo se carregar */
 
   function injectCSS() {
     var st = document.getElementById('tchiloStableUiCSS');
@@ -43,7 +19,6 @@
       st.id = 'tchiloStableUiCSS';
       (document.head || document.documentElement).appendChild(st);
     }
-    /* Só perfil + e avatares — zero regras de width/height em nav/topbar icons */
     st.textContent =
       '#tchiloProfileAvatarPlus.tchilo-av-add,#tchiloProfileAvatarPlus{' +
       'background:#0B0B0C!important;color:#FFFFFF!important;' +
@@ -51,126 +26,12 @@
       'animation:none!important;transition:none!important;transform:none!important;}' +
       '#tchiloProfileAvatarPlus.tchilo-av-add svg,#tchiloProfileAvatarPlus svg{' +
       'stroke:#FFFFFF!important;color:#FFFFFF!important;}' +
-      '.avatar,.post .avatar,#screen-feed .avatar,#screen-profile .profile-avatar,.profile-avatar{' +
-      'border:0!important;box-shadow:none!important;outline:0!important;overflow:hidden!important;}' +
-      '.avatar img,.profile-avatar img,.post .avatar img{' +
-      'border:0!important;box-shadow:none!important;' +
-      'width:100%!important;height:100%!important;object-fit:cover!important;' +
-      'border-radius:50%!important;display:block!important;}' +
-      '.avatar.tchilo-stable-av{color:transparent!important;font-size:0!important;background:transparent!important;}' +
-      '.nav-fee,.nav-sms-text,[data-top-messages] span{display:none!important;}';
-  }
-
-  function safeUrl(u) {
-    return String(u || '').replace(/"/g, '"').replace(/'/g, '&#39;');
-  }
-
-  function avatarHTML(url) {
-    var src = url || defAvatar();
-    var fallback = defAvatar();
-    return (
-      '<div class="avatar tchilo-stable-av" style="background:transparent;overflow:hidden;border:none;box-shadow:none">' +
-      '<img src="' +
-      safeUrl(src) +
-      '" alt="" loading="lazy" ' +
-      'style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;border:none" ' +
-      'onerror="this.onerror=null;this.src=\'' +
-      fallback +
-      '\'">' +
-      '</div>'
-    );
-  }
-
-  function patchAvatarFns() {
-    window.tchiloDefaultAvatarSrc = defAvatar;
-    window.renderUserAvatarHTML = function (username) {
-      var url = null;
-      try {
-        if (typeof window.resolveUserAvatarUrl === 'function') {
-          url = window.resolveUserAvatarUrl(username);
-        }
-      } catch (e) {}
-      return avatarHTML(url);
-    };
-    window.renderUserAvatarHTML.__tchiloStable = true;
-
-    window.applyAvatarToElement = function (el, username) {
-      if (!el) return;
-      var url = null;
-      try {
-        if (typeof window.resolveUserAvatarUrl === 'function') {
-          url = window.resolveUserAvatarUrl(username);
-        }
-      } catch (e) {}
-      el.classList.add('tchilo-stable-av');
-      el.style.border = 'none';
-      el.style.boxShadow = 'none';
-      el.style.overflow = 'hidden';
-      el.style.background = 'transparent';
-      el.style.color = 'transparent';
-      el.style.fontSize = '0';
-      var src = url || defAvatar();
-      var fb = defAvatar();
-      el.innerHTML =
-        '<img src="' +
-        safeUrl(src) +
-        '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;border:none" ' +
-        'onerror="this.onerror=null;this.src=\'' +
-        fb +
-        '\'">';
-      el.dataset.tchiloAvOk = '1';
-    };
-    window.applyAvatarToElement.__tchiloStable = true;
-  }
-
-  function needsDefault(el) {
-    if (!el) return true;
-    var img = el.querySelector('img');
-    var src = img ? img.getAttribute('src') || '' : '';
-    var text = (el.textContent || '').replace(/\s+/g, '');
-    if (text === '?' || text === '??') return true;
-    if (!img) return true;
-    if (!src) return true;
-    if (img.naturalWidth === 0 && img.complete) return true;
-    if (
-      text.length > 0 &&
-      text.length <= 2 &&
-      !/avatar-(escuro|claro|roxo)/.test(src) &&
-      !/https?:|supabase|\.jpg|\.jpeg|\.png|\.webp|storage|data:image/i.test(src)
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  function fixExistingAvatars() {
-    var nodes = document.querySelectorAll('.avatar, .profile-avatar, .story-profile-initials');
-    for (var i = 0; i < nodes.length; i++) {
-      var el = nodes[i];
-      var img = el.querySelector('img');
-      var src = img ? img.getAttribute('src') || '' : '';
-      el.style.border = 'none';
-      el.style.boxShadow = 'none';
-
-      var hasPhoto =
-        !!src &&
-        !/avatar-(escuro|claro|roxo)/.test(src) &&
-        (src.indexOf('data:image') === 0 ||
-          /https?:|supabase|\.jpg|\.jpeg|\.png|\.webp|storage/i.test(src));
-
-      if (hasPhoto && img && !(img.complete && img.naturalWidth === 0)) {
-        el.dataset.tchiloAvOk = '1';
-        el.classList.add('tchilo-stable-av');
-        img.onerror = function () {
-          this.onerror = null;
-          this.src = defAvatar();
-        };
-        continue;
-      }
-      if (needsDefault(el) || el.dataset.tchiloAvOk !== '1') {
-        window.applyAvatarToElement(el, null);
-      }
-    }
+      '.nav-fee,.nav-sms-text,[data-top-messages] span{display:none!important;}' +
+      /* sem badges de play/pause na fila de stories */
+      '#storiesBar .tchilo-play-badge,#storiesBar .tchilo-feed-play,' +
+      '#storiesBar .tchilo-play-mini,.story-card .tchilo-play-badge,' +
+      '.story-card .tchilo-feed-play,.story-card .tchilo-play-mini,' +
+      '.story-card-reel .tchilo-play-badge{display:none!important;opacity:0!important;visibility:hidden!important;}';
   }
 
   function fixPlusBtn() {
@@ -191,24 +52,29 @@
     }
   }
 
-  /* NÃO tocar em width/height de mensagem, lupa, feed, reels, etc. */
+  function stripStoryBadges() {
+    try {
+      document
+        .querySelectorAll(
+          '#storiesBar .tchilo-play-badge, #storiesBar .tchilo-feed-play, #storiesBar .tchilo-play-mini,' +
+            '.story-card .tchilo-play-badge, .story-card .tchilo-feed-play, .story-card .tchilo-play-mini'
+        )
+        .forEach(function (n) {
+          try {
+            n.remove();
+          } catch (e) {}
+        });
+    } catch (e2) {}
+  }
 
   function boot() {
     injectCSS();
-    patchAvatarFns();
     fixPlusBtn();
-    fixExistingAvatars();
+    stripStoryBadges();
   }
 
-  injectCSS();
-  patchAvatarFns();
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+  boot();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   setTimeout(boot, 200);
-  setTimeout(boot, 800);
-  setTimeout(boot, 2000);
+  setTimeout(boot, 1000);
 })();

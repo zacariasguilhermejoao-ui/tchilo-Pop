@@ -2565,7 +2565,7 @@ body .navbar .nav-item[data-screen="feed"] svg{width:34px !important; height:34p
   <div class="screen active" id="screen-feed">
     <div class="feed" id="feedList">
     <div class="topbar">
-      <img class="logo-img" src="live-icon.svg" alt="LIVE" style="cursor:pointer;height:68px;width:auto;object-fit:contain;" onclick="if(typeof tchiloOpenLiveSetup==='function'){tchiloOpenLiveSetup()}else if(typeof openLiveScreen==='function'){openLiveScreen()}else if(typeof openSetup==='function'){openSetup()}else{alert('Lives em breve')}" role="button" title="Lives">
+      <img class="logo-img" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2256 176 400 160%22 width=%22400%22 height=%22160%22%3E%3Crect x=%2256%22 y=%22176%22 width=%22400%22 height=%22160%22 rx=%2280%22 fill=%22%23000000%22/%3E%3Ccircle cx=%22148%22 cy=%22256%22 r=%2226%22 fill=%22%23FFFFFF%22/%3E%3Ctext x=%22290%22 y=%22284%22 text-anchor=%22middle%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22800%22 font-size=%2284%22 letter-spacing=%224%22 fill=%22%23FFFFFF%22%3ELIVE%3C/text%3E%3C/svg%3E%0A" alt="LIVE" style="cursor:pointer;height:28px;width:auto;object-fit:contain;" onclick="if(typeof tchiloOpenLiveSetup==='function'){tchiloOpenLiveSetup()}else if(typeof openLiveScreen==='function'){openLiveScreen()}else if(typeof openSetup==='function'){openSetup()}else{alert('Lives em breve')}" role="button" title="Lives">
             <div class="topbar-icons">
         <div class="icon-btn" onclick="goTo('messages')" title="SMS" aria-label="SMS" data-top-messages="1" style="border:none;background:transparent;width:50px;height:50px;">
           <svg viewBox="0 0 1024 1024" width="46" height="46" style="width:46px;height:46px;display:block;" aria-hidden="true">
@@ -2800,6 +2800,75 @@ body .navbar .nav-item[data-screen="feed"] svg{width:34px !important; height:34p
   
   
   
+  <style id="tchilo-icon-lock-css">
+    /* Ícones protegidos: tamanho fixo, nenhum script de native/ o altera */
+    html body .navbar .nav-item[data-screen="feed"] svg,
+    html body .navbar .nav-item[data-screen="reels"] svg,
+    html body .navbar .nav-item[data-screen="notifs"] svg{width:34px!important;height:34px!important;max-width:none!important;max-height:none!important;}
+    html body .topbar [data-top-messages] svg{width:46px!important;height:46px!important;}
+    html body .topbar img.logo-img{height:28px!important;max-height:28px!important;width:auto!important;}
+  </style>
+  <script id="tchilo-icon-lock-js">
+  /* Bloqueio de ícones: os scripts de native/ continuam a ligar os cliques (endereços),
+     mas se tentarem trocar/redimensionar o desenho do ícone, o original é reposto. */
+  (function(){
+    var targets=[
+      {sel:'.navbar .nav-item[data-screen="feed"]',type:'wrap'},
+      {sel:'.navbar .nav-item[data-screen="reels"]',type:'wrap'},
+      {sel:'.navbar .nav-item[data-screen="notifs"]',type:'wrap'},
+      {sel:'.topbar [data-top-messages]',type:'wrap'},
+      {sel:'.topbar img.logo-img',type:'img'}
+    ];
+    var locks=[],restores=0,t0=Date.now(),off=false;
+    targets.forEach(function(t){
+      var el=document.querySelector(t.sel); if(!el) return;
+      var L={el:el,type:t.type};
+      if(t.type==='wrap'){ var sv=el.querySelector('svg'); if(!sv) return; L.svg=sv.outerHTML; }
+      else { L.src=el.getAttribute('src'); L.style=el.getAttribute('style')||''; L.alt=el.getAttribute('alt')||''; }
+      locks.push(L);
+    });
+    function check(L){
+      var el=L.el, changed=false;
+      if(L.type==='wrap'){
+        var extra=el.querySelectorAll('img,canvas,i');
+        for(var i=0;i<extra.length;i++){ extra[i].parentNode.removeChild(extra[i]); changed=true; }
+        var sv=el.querySelector('svg');
+        if(!sv || sv.outerHTML!==L.svg){
+          var tpl=document.createElement('template'); tpl.innerHTML=L.svg;
+          var fresh=tpl.content.firstChild;
+          if(sv) sv.parentNode.replaceChild(fresh,sv); else el.insertBefore(fresh,el.firstChild);
+          changed=true;
+        }
+      } else {
+        if(el.getAttribute('src')!==L.src){ el.setAttribute('src',L.src); changed=true; }
+        if((el.getAttribute('style')||'')!==L.style){ el.setAttribute('style',L.style); changed=true; }
+      }
+      return changed;
+    }
+    if(!locks.length||!window.MutationObserver) return;
+    var mo=new MutationObserver(function(){
+      if(off) return;
+      var any=false;
+      mo.disconnect();
+      locks.forEach(function(L){ if(check(L)) any=true; });
+      if(any){
+        restores++;
+        if(Date.now()-t0>3000){ t0=Date.now(); restores=1; }
+        if(restores>30){ off=true; console.warn('Tchilo icon-lock: conflito repetido, guarda desligada'); return; }
+      }
+      observe();
+    });
+    function observe(){
+      locks.forEach(function(L){
+        mo.observe(L.el,L.type==='wrap'
+          ?{childList:true,subtree:true,attributes:true,attributeFilter:['style','src','width','height','viewBox','d','fill','stroke','class']}
+          :{attributes:true,attributeFilter:['src','style']});
+      });
+    }
+    observe();
+  })();
+  </script>
+
   <!-- EDIT PROFILE -->
   <div class="screen" id="screen-editprofile">
     <div class="screen-header">
@@ -4514,11 +4583,11 @@ async function loadPublicFeedFromSupabase(force) {
     let postsError = null;
     /* Tentar join com profiles; se a FK não existir, cai para select simples */
     try {
-      const res = await SB.from('posts').select('*, profiles:user_id(id,username,display_name,avatar_url,is_private)').order('created_at', {ascending:false}).limit(200);
+      const res = await SB.from('posts').select('*, profiles:user_id(id,username,display_name,avatar_url,is_private)').order('created_at', {ascending:false}).limit(50);
       if (res.error) throw res.error;
       rows = res.data;
     } catch (joinErr) {
-      const res = await SB.from('posts').select('*').order('created_at', {ascending:false}).limit(200);
+      const res = await SB.from('posts').select('*').order('created_at', {ascending:false}).limit(50);
       postsError = res.error;
       rows = res.data;
     }
@@ -4560,7 +4629,7 @@ async function loadPublicFeedFromSupabase(force) {
 
     /* Também carregar um lote de profiles públicos se possível */
     try {
-      const { data: allProfs } = await SB.from('profiles').select('id,username,display_name,avatar_url,is_private').limit(1000);
+      const { data: allProfs } = await SB.from('profiles').select('id,username,display_name,avatar_url,is_private').limit(300);
       (allProfs || []).forEach(function(pr){
         if (!profileMap[pr.id]) profileMap[pr.id] = pr;
         try {
@@ -4615,11 +4684,13 @@ function rankFeedPosts(posts) {
   const session = getSession();
   const following = getFollowing();
   const now = Date.now();
+  const __views = getViews();
+  const __pv = function(id){ const e = __views[id]; return !e ? 0 : (typeof e === 'number' ? e : (e.total || 0)); };
   return posts.map(function(p, idx){
     const created = p.createdAt ? new Date(p.createdAt).getTime() : now - idx * 60000;
     const ageHours = Math.max(0, (now - created) / 3600000);
     const recency = Math.max(0, 48 - ageHours) / 48;
-    const engagement = Math.min(1, (Number(p.likes)||0) / 100 + (Number(p.comments)||0) / 40 + getPostViews(p.id) / 200);
+    const engagement = Math.min(1, (Number(p.likes)||0) / 100 + (Number(p.comments)||0) / 40 + __pv(p.id) / 200);
     const relationship = session && p.username === session.username ? 0.8 : (following.indexOf(p.username)>=0 ? 1 : 0);
     const exploration = p.cloud ? 0.18 : 0;
     const diversity = (String(p.id).length % 17) / 1000;
@@ -6551,6 +6622,10 @@ function renderFeed() {
     return p.cloud === true || following.indexOf(p.username) >= 0 || !!(p.media || p.mediaItems || p.caption);
   });
   posts = rankFeedPosts(posts);
+  /* Paginação: só desenha um lote e vai buscando mais ao rolar */
+  const __feedLimit = window.__tchiloFeedLimit || 8;
+  const __feedTotal = posts.length;
+  posts = posts.slice(0, __feedLimit);
   const likes = getLikes();
   const saves = getSaves();
   renderSuggestions();
@@ -6609,10 +6684,25 @@ function renderFeed() {
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>' +
       '</div>' + viewHtml + '<div class="post-caption"><b class="user-tap" data-user="' + String(p.username).replace(/"/g,'&quot;') + '" onclick="event.stopPropagation();openUserProfile(this.getAttribute(\'data-user\'))" style="cursor:pointer">' + shownName + '</b> ' + formatPostCaptionHtml(captionText, tagsHtmlFixed) + '</div></div>';
   });
+  if (__feedTotal > __feedLimit) htmlOut += '<div class="tchilo-feed-more" style="height:2px;width:100%"></div>';
   /* Anti-piscar: se o HTML do feed é idêntico ao anterior, não reconstrói (evita recarregar imagens/vídeos) */
   if (feed.__tchiloLastHtml === htmlOut && feed.children.length) { return; }
   feed.__tchiloLastHtml = htmlOut;
   feed.innerHTML = htmlOut;
+  try{
+    const __more = feed.querySelector('.tchilo-feed-more');
+    if (__more && 'IntersectionObserver' in window) {
+      if (feed.__tchiloMoreIO) { try{ feed.__tchiloMoreIO.disconnect(); }catch(e){} }
+      feed.__tchiloMoreIO = new IntersectionObserver(function(entries){
+        if (entries[0] && entries[0].isIntersecting) {
+          try{ feed.__tchiloMoreIO.disconnect(); }catch(e){}
+          window.__tchiloFeedLimit = (window.__tchiloFeedLimit || 8) + 8;
+          renderFeed();
+        }
+      }, { rootMargin: '900px 0px' });
+      feed.__tchiloMoreIO.observe(__more);
+    }
+  }catch(e){}
   setupMultiPhotoCarousels(feed);
   setupFeedVideoAutoplay();
   markFeedMediaReady(feed);
@@ -10248,9 +10338,10 @@ function initTchiloRealtime() {
     /* polling de segurança (mesmo se realtime falhar) */
     if (!window.__tchiloLivePoll) {
       window.__tchiloLivePoll = setInterval(function(){
+        if (document.hidden) return;
         pullLatestMessagesOnce();
         pullLatestNotificationsOnce();
-      }, 4000);
+      }, 15000);
     }
     /* primeira carga */
     pullLatestMessagesOnce();
@@ -11086,12 +11177,12 @@ document.addEventListener('DOMContentLoaded', function() {
       const since=new Date(Date.now()-24*60*60*1000).toISOString();
       let rows=[];
       try{
-        const {data,error}=await SB.from('stories').select('*').gte('created_at',since).order('created_at',{ascending:false}).limit(300);
+        const {data,error}=await SB.from('stories').select('*').gte('created_at',since).order('created_at',{ascending:false}).limit(60);
         if(error) throw error;
         rows=data||[];
       }catch(e){
         console.warn('Tchilo stories query 1 falhou:',e&&e.message||e);
-        const r2=await SB.from('stories').select('*').order('created_at',{ascending:false}).limit(300);
+        const r2=await SB.from('stories').select('*').order('created_at',{ascending:false}).limit(60);
         if(r2.error) console.warn('Tchilo stories query 2 falhou:',r2.error.message);
         rows=(r2.data||[]).filter(function(r){
           const t=r.created_at?Date.parse(r.created_at):0;
@@ -11175,7 +11266,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const ids=posts.map(function(p){return String(p.id);});
       let rows=[];
       try{
-        const {data,error}=await SB.from('comments').select('*').in('post_id',ids).order('created_at',{ascending:true}).limit(1000);
+        const {data,error}=await SB.from('comments').select('*').in('post_id',ids).order('created_at',{ascending:true}).limit(400);
         if(error) throw error;
         rows=data||[];
       }catch(e){ return; }

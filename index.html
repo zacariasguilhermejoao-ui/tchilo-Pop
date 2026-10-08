@@ -471,6 +471,14 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   .post-media.m10{ background:#B9A7FF !important; color:var(--ink); }
   .post-media.m11{ background:#17171A !important; color:var(--paper); }
   .post-media.m12{ background:#D8C3A5 !important; color:var(--ink); }
+  /* FIX: posts com foto/vídeo nunca mostram cor de tema (verde etc.) enquanto carregam */
+  .post-media.m1:has(img), .post-media.m2:has(img), .post-media.m3:has(img), .post-media.m4:has(img),
+  .post-media.m5:has(img), .post-media.m6:has(img), .post-media.m7:has(img), .post-media.m8:has(img),
+  .post-media.m9:has(img), .post-media.m10:has(img), .post-media.m11:has(img), .post-media.m12:has(img),
+  .post-media.m1:has(video), .post-media.m2:has(video), .post-media.m3:has(video), .post-media.m4:has(video),
+  .post-media.m5:has(video), .post-media.m6:has(video), .post-media.m7:has(video), .post-media.m8:has(video),
+  .post-media.m9:has(video), .post-media.m10:has(video), .post-media.m11:has(video), .post-media.m12:has(video),
+  .post-media.has-real-media{ background:#e4e2da !important; }
 
   .navbar{
     position:absolute;
@@ -6588,7 +6596,7 @@ function renderFeed() {
       renderUserAvatarHTML(p.username, p.initials || p.username, (getProfileExtra(p.username)||{}).avatarColor || 'var(--mint)') +
       '<div class="who"><b>' + shownName + '</b><span>@' + String(p.username).replace(/</g,'&lt;') + ' · ' + p.time + (p.location ? ' · ' + p.location : '') + '</span></div>' +
       '</div>' + followBtn + '<button class="post-menu-btn" onclick="event.stopPropagation();openPostMenu(\'' + p.id + '\')">⋯</button></div>' +
-      '<div class="post-media ' + (p.color||'') + ' ' + (resolveMediaItems(p).length>1 ? 'multi-media' : '') + '" data-view-post="' + p.id + '" onclick="onPostMediaClick(\'' + p.id + '\')">' + renderPostMedia(p) + '</div>' +
+      '<div class="post-media ' + (resolveMediaItems(p).length ? 'has-real-media' : (p.color||'')) + ' ' + (resolveMediaItems(p).length>1 ? 'multi-media' : '') + '" data-view-post="' + p.id + '" onclick="onPostMediaClick(\'' + p.id + '\')">' + renderPostMedia(p) + '</div>' +
       '<div class="post-actions">' +
       '<button class="act ' + (liked ? 'liked' : '') + '" onclick="toggleLike(\'' + p.id + '\', this)">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 5 5.5 5c2 0 3.3 1 4.5 2.6C11.2 6 12.5 5 14.5 5 18 5 19.6 8.4 22 11.7 19.5 16.1 12 21 12 21z"/></svg>' +

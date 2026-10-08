@@ -1,16 +1,15 @@
 /**
- * Stop Live button from blinking + topbar LIVE logo
- * - dedupe profile buttons
- * - block aggressive inject intervals
- * - LIVE icon: red pill, height 32px (not huge black box)
+ * Stop Live button from blinking on profile
+ * - dedupe buttons
+ * - block setInterval that re-injects Live
+ * NÃO substitui o logo do topbar (logo original fica)
  */
 (function () {
   'use strict';
-  if (window.__tchiloLiveBtnStableV3) return;
-  window.__tchiloLiveBtnStableV3 = true;
+  if (window.__tchiloLiveBtnStableV4) return;
+  window.__tchiloLiveBtnStableV4 = true;
   window.__tchiloLiveBtnStable = true;
 
-  /* Intercept setInterval used by old live.js inject loop */
   var _si = window.setInterval;
   window.setInterval = function (fn, ms) {
     try {
@@ -54,42 +53,4 @@
     };
     window.renderProfile.__liveStable = true;
   }
-})();
-
-/* Topbar LIVE logo — red pill, tamanho normal */
-(function () {
-  'use strict';
-  if (window.__tchiloLiveLogoV3) return;
-  window.__tchiloLiveLogoV3 = true;
-
-  var LIVE_SRC = 'live-icon.svg?v=3';
-
-  function applyLiveLogo() {
-    try {
-      var img = document.querySelector('.topbar .logo-img, .topbar img.logo-img');
-      if (!img) return;
-      if (img.getAttribute('src') && img.getAttribute('src').indexOf('live-icon.svg') >= 0 && img.style.height === '32px') return;
-      img.src = LIVE_SRC;
-      img.alt = 'LIVE';
-      img.title = 'Lives';
-      img.style.cssText = 'cursor:pointer;height:32px;width:auto;max-height:32px;object-fit:contain;display:block;';
-      img.setAttribute('role', 'button');
-      if (!img.__liveClick) {
-        img.__liveClick = true;
-        img.addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (typeof window.tchiloOpenLiveSetup === 'function') window.tchiloOpenLiveSetup();
-          else if (typeof window.openLiveScreen === 'function') window.openLiveScreen();
-          else if (typeof window.openSetup === 'function') window.openSetup();
-          else alert('Lives — em breve.');
-        });
-      }
-    } catch (err) {}
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyLiveLogo);
-  else applyLiveLogo();
-  setTimeout(applyLiveLogo, 200);
-  setTimeout(applyLiveLogo, 900);
 })();

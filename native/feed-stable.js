@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v52 — avatares/stories/ícones só do index */
+/** tchilo-Pop loaders v53 — + perfil fora da foto */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V52) return;
-  window.__TCHILO_FEED_STABLE_V52 = true;
+  if (window.__TCHILO_FEED_STABLE_V53) return;
+  window.__TCHILO_FEED_STABLE_V53 = true;
 
   function add(src, sync) {
     try {
@@ -37,7 +37,7 @@
     add('native/tchilo-login-session-fix.js?v=9', true);
     add('native/tchilo-hide-nav.js?v=4');
     add('native/tchilo-router.js?v=5');
-    add('native/tchilo-header-ui.js?v=2');
+    add('native/tchilo-header-ui.js?v=3');
     add('native/tchilo-story-pick-fix.js?v=1');
     add('native/tchilo-reels-open-fix.js?v=8');
     add('native/tchilo-feed-video-ui.js?v=3');
@@ -79,7 +79,7 @@
     add('native/tchilo-feed-to-reels.js?v=2');
     add('native/tchilo-share-target.js?v=1');
     add('native/reels-follow-fix.js?v=2');
-    add('native/tchilo-profile-avatar-plus.js?v=1');
+    add('native/tchilo-profile-avatar-plus.js?v=4');
     add('native/topbar-border-thin.js?v=2');
     add('native/feed-stories-scroll.js?v=3');
   }

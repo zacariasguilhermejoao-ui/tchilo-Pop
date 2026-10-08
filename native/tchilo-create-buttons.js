@@ -1,6 +1,7 @@
 /**
  * Tchilo — ecrã Criar: Câmara + Galeria
  * v3 — não esconde música; grava File para upload real
+ * perf: setInterval 20s
  */
 (function () {
   'use strict';
@@ -46,7 +47,6 @@
       file: file
     };
     window.createMediaData = data;
-    /* tenta sincronizar a variável lexical do index */
     try {
       (0, eval)('createMediaData = window.createMediaData');
     } catch (e) {}
@@ -175,7 +175,6 @@
     var st = document.createElement('style');
     st.id = 'tchiloCreateBtnsCSS';
     st.textContent =
-      /* esconder botões antigos — NÃO esconder música nem publish */
       '#screen-create #faceFxOpenBtn,' +
       '#screen-create #galleryBtn,' +
       '#screen-create #tchiloOpenCamBtn,' +
@@ -183,7 +182,6 @@
       '#screen-create #tchiloPickVideoBtn,' +
       '#screen-create #tchiloPickPhotoBtn{' +
       'display:none!important;visibility:hidden!important;height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;}' +
-      /* botões antigos gallery-btn genéricos, mas preservar música e remover media */
       '#screen-create .gallery-btn:not(#removeMediaBtn):not(#tchiloBtnCam):not(#tchiloBtnGal):not(#tchiloCreateMusicBtn):not(.tchilo-music-btn){' +
       'display:none!important;}' +
       '#tchiloCreateMusicBtn,.tchilo-music-btn{' +
@@ -354,5 +352,5 @@
   setTimeout(boot, 200);
   setTimeout(boot, 800);
   setTimeout(boot, 2000);
-  setInterval(boot, 3000);
+  setInterval(boot, 20000); /* perf: era 3s */
 })();

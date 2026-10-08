@@ -32,22 +32,17 @@
       btn.innerHTML = '<img src="' + s.url + '" alt=""/>';
       btn.onclick = function () {
         try {
-          // reutilizar envio: simular contexto chat se sheet aberto
           if (typeof window.tchiloOpenStickers === "function") {
-            /* send via same path as built-in: dispatch synthetic */
           }
-          // enviar como mensagem/sticker
           var target = "chat";
           try {
             var sheet = document.getElementById("tchiloSGSheet");
             if (sheet && sheet.__sgTarget) target = sheet.__sgTarget;
           } catch (e0) {}
-          // fallback: usar API interna se exposta
           if (typeof window.__tchiloSendSticker === "function") {
             window.__tchiloSendSticker(s.url, s.label);
             return;
           }
-          // enviar direto no chat
           if (typeof currentChatUser !== "undefined" && currentChatUser) {
             var chats = typeof getChats === "function" ? getChats() : {};
             if (!chats[currentChatUser]) chats[currentChatUser] = [];
@@ -73,11 +68,18 @@
     else grid.appendChild(frag);
   }
 
-  // observar abertura da grelha
+  /* perf: sem poll 400ms — observer + check lento só se sheet existir */
+  try {
+    var _sgObs = new MutationObserver(function () {
+      var sheet = document.getElementById("tchiloSGSheet");
+      if (sheet && sheet.classList.contains("open")) enhanceRender();
+    });
+    _sgObs.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+  } catch (e) {}
   setInterval(function () {
     var sheet = document.getElementById("tchiloSGSheet");
     if (sheet && sheet.classList.contains("open")) enhanceRender();
-  }, 400);
+  }, 3000);
 
   window.addEventListener("tchilo-stickers-updated", function () {
     setTimeout(enhanceRender, 100);

@@ -1,5 +1,6 @@
 /**
  * Tchilo — trava o feed contra piscar (re-renders e injeções em cascata)
+ * perf: sem setInterval 400ms — só boot + observer com debounce
  */
 (function () {
   'use strict';
@@ -8,9 +9,8 @@
 
   var lastFingerprint = '';
   var lastRenderAt = 0;
-  var MIN_RENDER_GAP = 900;
+  var MIN_RENDER_GAP = 1200;
   var pendingRender = null;
-  var renderCount = 0;
 
   function injectCSS() {
     if (document.getElementById('tchiloFeedLockCSS')) return;
@@ -41,8 +41,9 @@
       'background:#111;' +
       '}' +
       /* evita flash verde/branco de fundo */
-      '#screen-feed,#feedList,.post-media{background-color:var(--paper,#F7F6F2);}' +
-      '#feedList .post-media{background:#111!important;}';
+      'html,body,#appFrame,#screen-feed,#feedList{background-color:var(--paper,#F7F6F2)!important;}' +
+      '#feedList .post-media{background:#111!important;}' +
+      '.post{background:var(--paper,#F7F6F2)!important;}';
     (document.head || document.documentElement).appendChild(st);
   }
 
@@ -87,16 +88,16 @@
       var domFp = fingerprintDOM();
 
       /* Mesmos posts e DOM já está alinhado → não re-renderiza */
-      if (fp && fp === lastFingerprint && domFp && domFp === fp.split('|').map(function (x) { return x.split(':')[0]; }).join('|')) {
-        return;
+      if (fp && fp === lastFingerprint && domFp) {
+        var ids = fp.split('|').map(function (x) { return x.split(':')[0]; }).join('|');
+        if (ids === domFp) return;
       }
 
-      /* DOM já tem os mesmos IDs na mesma ordem → skip */
       if (fp && domFp) {
-        var ids = fp.split('|').map(function (x) {
+        var ids2 = fp.split('|').map(function (x) {
           return x.split(':')[0];
         }).join('|');
-        if (ids === domFp && now - lastRenderAt < 4000) {
+        if (ids2 === domFp && now - lastRenderAt < 5000) {
           lastFingerprint = fp;
           return;
         }
@@ -106,7 +107,7 @@
         clearTimeout(pendingRender);
         pendingRender = setTimeout(function () {
           pendingRender = null;
-          lastRenderAt = 0; /* força na próxima */
+          lastRenderAt = 0;
           window.renderFeed();
         }, MIN_RENDER_GAP - (now - lastRenderAt));
         return;
@@ -114,7 +115,6 @@
 
       lastRenderAt = now;
       lastFingerprint = fp;
-      renderCount++;
       return orig.apply(this, arguments);
     };
     window.renderFeed.__feedLocked = true;
@@ -125,7 +125,6 @@
     return true;
   }
 
-  /** Evita trocar src de img/video se for o mesmo URL (causa flash) */
   function hardenMediaNodes(root) {
     root = root || document.getElementById('feedList');
     if (!root) return;
@@ -133,8 +132,6 @@
       if (el.__srcGuard) return;
       el.__srcGuard = true;
       try {
-        var desc = Object.getOwnPropertyDescriptor(el.__proto__ || HTMLImageElement.prototype, 'src');
-        /* não reescreve prototype global — só marca data */
         el.addEventListener(
           'load',
           function () {
@@ -146,7 +143,6 @@
     });
   }
 
-  /** Bloqueia observers que disparam inject a cada mutação no feed */
   function quietMusicInject() {
     try {
       if (typeof window.__tchiloStableMusicInject === 'function') {
@@ -156,12 +152,12 @@
         var last = 0;
         window.__tchiloStableMusicInject = function () {
           var now = Date.now();
-          if (now - last < 1200) {
+          if (now - last < 2000) {
             clearTimeout(t);
             t = setTimeout(function () {
               last = Date.now();
               inject();
-            }, 1200);
+            }, 2000);
             return;
           }
           last = now;
@@ -172,7 +168,6 @@
     } catch (e) {}
   }
 
-  /** Video fix: não regenerar poster em loop */
   function quietVideoPosters() {
     try {
       var feed = document.getElementById('feedList');
@@ -202,31 +197,28 @@
     quietMusicInject();
     quietVideoPosters();
     hardenMediaNodes();
-
-    var n = 0;
-    var iv = setInterval(function () {
-      patchRenderFeed();
-      quietMusicInject();
-      lockChrome();
-      if (++n > 40) clearInterval(iv);
-    }, 400);
-
-    try {
-      var feed = document.getElementById('feedList');
-      if (feed && !feed.__lockObs) {
-        feed.__lockObs = true;
-        var deb = null;
-        new MutationObserver(function () {
-          clearTimeout(deb);
-          deb = setTimeout(function () {
-            hardenMediaNodes(feed);
-            quietVideoPosters();
-          }, 200);
-        }).observe(feed, { childList: true, subtree: true });
-      }
-    } catch (e) {}
   }
 
+  /* só boot pontual — SEM setInterval contínuo */
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
+  setTimeout(boot, 300);
+  setTimeout(boot, 900);
+  setTimeout(boot, 2000);
+
+  try {
+    var feed = document.getElementById('feedList');
+    if (feed && !feed.__lockObs) {
+      feed.__lockObs = true;
+      var deb = null;
+      new MutationObserver(function () {
+        clearTimeout(deb);
+        deb = setTimeout(function () {
+          hardenMediaNodes(feed);
+          quietVideoPosters();
+          patchRenderFeed();
+        }, 250);
+      }).observe(feed, { childList: true, subtree: true });
+    }
+  } catch (e) {}
 })();

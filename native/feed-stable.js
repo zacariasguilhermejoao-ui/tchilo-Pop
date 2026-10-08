@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v48 — index.html is source of truth for icons + feed */
+/** tchilo-Pop loaders v49 — LIVE 38px + nav icons do index */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V48) return;
-  window.__TCHILO_FEED_STABLE_V48 = true;
+  if (window.__TCHILO_FEED_STABLE_V49) return;
+  window.__TCHILO_FEED_STABLE_V49 = true;
 
   function add(src, sync) {
     try {
@@ -25,16 +25,13 @@
   }
 
   function load() {
-    /* PERFORMANCE first */
     add('native/tchilo-perf-throttle.js?v=1', true);
-    /* logo-restore = no-op (index controls topbar icon) */
-    add('native/tchilo-logo-restore.js?v=3', true);
-    /* feed-lock = CSS only, no renderFeed patch */
+    add('native/tchilo-logo-restore.js?v=4', true);
     add('native/tchilo-feed-lock.js?v=4', true);
     add('native/feed-noflicker.js?v=4', true);
     add('native/tchilo-ui-stable.js?v=1', true);
     add('native/live-btn-stable.js?v=4', true);
-    add('native/tchilo-nav-size-fix.js?v=2', true);
+    add('native/tchilo-nav-size-fix.js?v=3', true);
 
     add('native/tchilo-ui-unlock.js?v=3', true);
     add('native/tchilo-login-session-fix.js?v=9', true);

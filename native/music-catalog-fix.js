@@ -1,6 +1,7 @@
 /**
  * tchilo-Pop — força catálogo de músicas via JSONP Deezer
  * Corrige "Não foi possível carregar músicas" (allorigins offline)
+ * perf: poll 5s em vez de 800ms (já tem MutationObserver)
  */
 (function () {
   'use strict';
@@ -151,9 +152,10 @@
   try {
     obs.observe(document.documentElement, { childList: true, subtree: true });
   } catch (e) {}
+  /* perf: 5s backup (observer já cobre) */
   setInterval(function () {
     if (document.getElementById('tchiloMusicList')) fixFallbackList();
-  }, 800);
+  }, 5000);
 
   setTimeout(function () {
     loadTop(false).catch(function () {});

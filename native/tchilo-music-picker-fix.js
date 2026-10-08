@@ -1,5 +1,6 @@
 /**
  * tchilo — corrige seletor de músicas (estilo, z-index, seleção, capas)
+ * perf: setInterval 20s
  */
 (function () {
   'use strict';
@@ -115,5 +116,5 @@
   setInterval(function () {
     injectCSS();
     patchOpen();
-  }, 3000);
+  }, 20000); /* perf: era 3s */
 })();

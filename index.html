@@ -1941,9 +1941,9 @@ h1,h2,h3,h4,h5,h6,
   width:50px!important;height:50px!important;border-radius:50%!important;
   display:flex!important;align-items:center!important;justify-content:center!important;
   border:3px solid transparent!important;
-  background:linear-gradient(#0B0B0C,#0B0B0C) padding-box,conic-gradient(from 200deg,#2EE6A6,#FF3F6E,#9B6BFF,#2EE6A6) border-box!important;
-  color:#fff!important;
-  box-shadow:0 6px 16px rgba(11,11,12,.28)!important;
+  background:linear-gradient(#fff,#fff) padding-box,conic-gradient(from 200deg,#2EE6A6,#FF3F6E,#9B6BFF,#2EE6A6) border-box!important;
+  color:#0B0B0C!important;
+  box-shadow:0 6px 16px rgba(11,11,12,.18)!important;
   transition:transform .15s ease,box-shadow .15s ease!important;
 }
 .story-card-create .story-card-plus svg{width:22px!important;height:22px!important;stroke-width:2.6!important;display:block;}
@@ -2351,8 +2351,10 @@ svg.tchilo-def-avatar .dav-fg{fill:var(--dav-fg);}
 body .navbar button.nav-post{
   width:56px !important; height:40px !important; min-width:56px; padding:0 !important;
   display:flex !important; align-items:center; justify-content:center;
-  background:#0B0B0C !important; color:#fff !important;
-  border:0 !important; border-radius:14px !important; box-shadow:none !important;
+  box-sizing:border-box;
+  background:linear-gradient(#fff,#fff) padding-box,conic-gradient(from 200deg,#2EE6A6,#FF3F6E,#9B6BFF,#2EE6A6) border-box !important;
+  color:#0B0B0C !important;
+  border:3px solid transparent !important; border-radius:14px !important; box-shadow:none !important;
 }
 body .navbar button.nav-post svg{width:44px !important; height:44px !important; display:block;}
 body .navbar .nav-item[data-screen="feed"] svg{width:34px !important; height:34px !important;}
@@ -4085,6 +4087,10 @@ function softRefreshFeed(showToastMsg) {
   try {
     if (typeof loadPublicFeedFromSupabase === 'function') {
       return loadPublicFeedFromSupabase(true).then(function(){
+        /* buscar também os stories da nuvem (antes só apareciam ao entrar) */
+        try{ if (window.tchiloCloud && typeof window.tchiloCloud.loadCloudStories==='function') return window.tchiloCloud.loadCloudStories(); }catch(e){}
+      }).then(function(){
+        try { renderStories(); } catch (e) {}
         if (document.getElementById('screen-feed')?.classList.contains('active')) renderFeed();
       }).catch(function(){});
     }
@@ -5218,11 +5224,11 @@ function openReelMenu(postId) {
   const saves = getSaves();
   const saved = !!saves[postId];
   const html =
-    '<button class="share-opt" onclick="toggleReelSave()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 4h12v17l-6-3-6 3z"/></svg></div><b>' + (saved ? 'Remover dos guardados' : 'Guardar') + '</b></button>' +
-    '<button class="share-opt" onclick="reelDuet()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.1"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3 2.7-5 6-5s6 2 6 5M12 20c0-3 2.7-5 6-5s6 2 6 5"/></svg></div><b>Dueto</b></button>' +
-    '<button class="share-opt" onclick="reelUseMusic()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><b>Usar música</b></button>' +
-    '<button class="share-opt" onclick="downloadPostMedia(reelMenuPostId)"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></div><b>Baixar</b></button>' +
-    '<button class="share-opt" onclick="reelReport()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v4M12 17h.01"/></svg></div><b>Denunciar</b></button>';
+    '<button class="share-opt" onclick="toggleReelSave()"><div class="so-icon">' + (saved ? '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/><line x1="15" x2="9" y1="10" y2="10"/></svg>' : '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>') + '</div><b>' + (saved ? 'Remover dos guardados' : 'Guardar') + '</b></button>' +
+    '<button class="share-opt" onclick="reelDuet()"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/></svg></div><b>Dueto</b></button>' +
+    '<button class="share-opt" onclick="reelUseMusic()"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><b>Usar música</b></button>' +
+    '<button class="share-opt" onclick="downloadPostMedia(reelMenuPostId)"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></div><b>Baixar</b></button>' +
+    '<button class="share-opt" onclick="reelReport()"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></div><b>Denunciar</b></button>';
   document.getElementById('reelMenuOptions').innerHTML = html;
   document.getElementById('reelMenuSheet').classList.add('open');
 }
@@ -6337,21 +6343,21 @@ function openPostMenu(postId) {
   const isOwn = session && p.username === session.username;
   let html = '';
   if (isOwn) {
-    html += '<button class="share-opt" onclick="startEditPost(\'' + postId + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div><b>Editar publicação</b></button>';
-    html += '<button class="share-opt" onclick="deletePost(\'' + postId + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div><b>Eliminar publicação</b></button>';
+    html += '<button class="share-opt" onclick="startEditPost(\'' + postId + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></div><b>Editar publicação</b></button>';
+    html += '<button class="share-opt" onclick="deletePost(\'' + postId + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div><b>Eliminar publicação</b></button>';
   } else {
-    html += '<button class="share-opt" onclick="openReport(\'post\',\'' + postId + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v4M12 17h.01"/></svg></div><b>Denunciar publicação</b></button>';
-    html += '<button class="share-opt" onclick="openReport(\'user\',\'' + p.username + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c.6-3.6 2.6-5.5 5.5-5.5s4.9 1.9 5.5 5.5"/><path d="M16 7h5M18.5 4.5v5"/></svg></div><b>Denunciar @' + p.username + '</b></button>';
-    html += '<button class="share-opt" onclick="blockUser(\'' + p.username + '\');closePostMenu();renderFeed()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M5.5 5.5l13 13"/></svg></div><b>Bloquear @' + p.username + '</b></button>';
+    html += '<button class="share-opt" onclick="openReport(\'post\',\'' + postId + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></div><b>Denunciar publicação</b></button>';
+    html += '<button class="share-opt" onclick="openReport(\'user\',\'' + p.username + '\')"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></div><b>Denunciar @' + p.username + '</b></button>';
+    html += '<button class="share-opt" onclick="blockUser(\'' + p.username + '\');closePostMenu();renderFeed()"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></div><b>Bloquear @' + p.username + '</b></button>';
     if (!isFollowing(p.username)) {
-      html += '<button class="share-opt" onclick="toggleFollow(\'' + p.username + '\');closePostMenu();renderFeed()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></div><b>Seguir @' + p.username + '</b></button>';
+      html += '<button class="share-opt" onclick="toggleFollow(\'' + p.username + '\');closePostMenu();renderFeed()"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="M19 16v6"/><path d="M22 19h-6"/></svg></div><b>Seguir @' + p.username + '</b></button>';
     }
   }
-  html += '<button class="share-opt" onclick="openShare(\'' + postId + '\');closePostMenu()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><b>Partilhar</b></button>';
+  html += '<button class="share-opt" onclick="openShare(\'' + postId + '\');closePostMenu()"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg></div><b>Partilhar</b></button>';
   /* Baixar só para posts com foto/vídeo real — não em temas (stamp/cor) */
   var mediaItemsMenu = (typeof resolveMediaItems === 'function') ? resolveMediaItems(p) : [];
   if (mediaItemsMenu && mediaItemsMenu.length) {
-    html += '<button class="share-opt" onclick="downloadPostMedia(\'' + postId + '\');closePostMenu()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></div><b>Baixar</b></button>';
+    html += '<button class="share-opt" onclick="downloadPostMedia(\'' + postId + '\');closePostMenu()"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></div><b>Baixar</b></button>';
   }
   document.getElementById('postMenuOptions').innerHTML = html;
   document.getElementById('postMenuSheet').classList.add('open');
@@ -9586,8 +9592,49 @@ async function publishPost(){
 }
 
 function publishThemedStory(){ const title=(document.getElementById('storyThemeTitle').value||'NOVO STORY').trim(); const text=(document.getElementById('storyThemeText').value||'').trim(); publishStory({text:(title+(text?'\n'+text:'')),color:storyThemeColor}); closeStoryThemeComposer(); document.getElementById('storyThemeTitle').value=''; document.getElementById('storyThemeText').value=''; }
-function prepareStoryVideoThumbnail(video){ if(!video)return; const make=function(){ const duration=Number.isFinite(video.duration)?video.duration:0; if(!duration)return; const target=Math.min(10,Math.max(0,duration-0.05)); const capture=function(){ try{ const c=document.createElement('canvas'); const w=video.videoWidth||320,h=video.videoHeight||568; const max=720,scale=Math.min(1,max/Math.max(w,h)); c.width=Math.max(1,Math.round(w*scale)); c.height=Math.max(1,Math.round(h*scale)); const ctx=c.getContext('2d'); ctx.drawImage(video,0,0,c.width,c.height); video.setAttribute('poster',c.toDataURL('image/jpeg',0.82)); }catch(e){} video.currentTime=0; }; if(Math.abs(video.currentTime-target)<0.05){capture();}else{video.addEventListener('seeked',capture,{once:true}); video.currentTime=target;} }; if(video.readyState>=1)make(); else video.addEventListener('loadedmetadata',make,{once:true}); }
-function attachStoryVideoThumbnails(root){ if(!root)return; root.querySelectorAll('video').forEach(function(v){v.preload='metadata';v.muted=true;v.playsInline=true;prepareStoryVideoThumbnail(v);}); }
+function prepareStoryVideoThumbnail(video){ if(!video)return; window.__tchiloPosterCache=window.__tchiloPosterCache||{}; const __k=video.getAttribute('src')||''; if(__k&&window.__tchiloPosterCache[__k]){ video.setAttribute('poster',window.__tchiloPosterCache[__k]); return; } const make=function(){ const duration=Number.isFinite(video.duration)?video.duration:0; if(!duration)return; const target=Math.min(10,Math.max(0,duration-0.05)); const capture=function(){ try{ const c=document.createElement('canvas'); const w=video.videoWidth||320,h=video.videoHeight||568; const max=720,scale=Math.min(1,max/Math.max(w,h)); c.width=Math.max(1,Math.round(w*scale)); c.height=Math.max(1,Math.round(h*scale)); const ctx=c.getContext('2d'); ctx.drawImage(video,0,0,c.width,c.height); const __d=c.toDataURL('image/jpeg',0.82); video.setAttribute('poster',__d); if(__k) window.__tchiloPosterCache[__k]=__d; }catch(e){} video.currentTime=0; }; if(Math.abs(video.currentTime-target)<0.05){capture();}else{video.addEventListener('seeked',capture,{once:true}); video.currentTime=target;} }; if(video.readyState>=1)make(); else video.addEventListener('loadedmetadata',make,{once:true}); }
+function attachStoryVideoThumbnails(root){ if(!root)return; if(root.id==='storiesBar')return; root.querySelectorAll('video').forEach(function(v){v.preload='metadata';v.muted=true;v.playsInline=true;prepareStoryVideoThumbnail(v);}); }
+/* Vídeos dos cartões (stories/reels): arrancam sozinhos, mudos, em loop, só quando visíveis */
+function tchiloStoriesAutoplay(bar){
+  if(!bar) return;
+  try{ if(bar.__tchiloIO) bar.__tchiloIO.disconnect(); }catch(e){}
+  function prep(v){
+    v.muted=true; v.defaultMuted=true; v.loop=true; v.playsInline=true;
+    v.setAttribute('muted',''); v.setAttribute('playsinline',''); v.setAttribute('webkit-playsinline','');
+    v.preload='auto';
+  }
+  function play(v){ prep(v); try{ var pr=v.play(); if(pr&&pr.catch) pr.catch(function(){}); }catch(e){} }
+  function upgrade(img){
+    if(img.__tchiloVid) return img.__tchiloVid;
+    var v=document.createElement('video');
+    v.className='story-card-media video-thumb';
+    v.src=img.getAttribute('data-video');
+    var ps=img.getAttribute('src'); if(ps) v.poster=ps;
+    prep(v);
+    img.parentNode.insertBefore(v,img.nextSibling);
+    img.__tchiloVid=v;
+    return v;
+  }
+  if(!('IntersectionObserver' in window)){
+    bar.querySelectorAll('video.story-card-media').forEach(play);
+    return;
+  }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      var el=en.target, v=el;
+      if(el.tagName==='IMG'){
+        if(!en.isIntersecting) { if(el.__tchiloVid) try{el.__tchiloVid.pause();}catch(e){} return; }
+        v=upgrade(el);
+      }
+      if(en.isIntersecting) play(v); else { try{ v.pause(); }catch(e){} }
+    });
+  },{root:bar,threshold:0.4});
+  bar.__tchiloIO=io;
+  bar.querySelectorAll('video.story-card-media, img.story-card-media[data-video]').forEach(function(el){
+    if(el.tagName==='VIDEO') prep(el);
+    io.observe(el);
+  });
+}
 function onStoryMediaPicked(event){
   closeStoryCreateSheet();
   const input=event.target;
@@ -9798,20 +9845,20 @@ function tchiloSeededShuffle(arr, seed){
   for(let i=a.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; }
   return a;
 }
-function renderStories(){
+function __tchiloRenderStoriesNow(){
   const bar=document.getElementById('storiesBar');
   if(!bar) return;
   const session=getSession();
   const mine=getMyStories();
   const seed=tchiloStorySeed(false);
-  bar.innerHTML='';
+  const frag=document.createDocumentFragment();
 
   /* Criar story — mesmo tamanho dos outros cartões */
   const createEl=document.createElement('div');
   createEl.className='story-card story-card-create';
   createEl.onclick=openStoryCreateSheet;
   createEl.innerHTML='<div class="story-card-create-inner"><div class="story-card-plus" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div><span>Criar story</span></div>';
-  bar.appendChild(createEl);
+  frag.appendChild(createEl);
 
   /* O teu story (se existir) */
   if(mine.length){
@@ -9822,7 +9869,7 @@ function renderStories(){
     youEl.id='yourStory';
     youEl.onclick=onYourStoryClick;
     youEl.innerHTML=buildStoryCardMedia(latest, session?session.username:'Tu', latest.color||'m1')+buildStoryCardFooter('Tu', true);
-    bar.appendChild(youEl);
+    frag.appendChild(youEl);
   }
 
   /* 1) Stories de quem segues */
@@ -9837,6 +9884,7 @@ function renderStories(){
     if(!arr.length) return;
     storyCards.push({uname:uname, arr:arr});
   });
+  console.log('Tchilo stories: utilizadores com story='+Object.keys(store).length+', visiveis='+storyCards.length+', a seguir='+following.length+', meus='+mine.length);
   const storyEls=tchiloSeededShuffle(storyCards, seed).map(function(it){
     const uname=it.uname, arr=it.arr;
     const latest=arr[arr.length-1];
@@ -9898,11 +9946,28 @@ function renderStories(){
     if(si<storyEls.length) merged.push(storyEls[si++]);
     if(merged.length<MAX_CARDS && ri<reelEls.length) merged.push(reelEls[ri++]);
   }
-  merged.forEach(function(el){ bar.appendChild(el); });
+  merged.forEach(function(el){ frag.appendChild(el); });
 
+  /* Só substitui se o conteúdo mudou (evita piscar e recarregar vídeos) */
+  const sig=Array.prototype.map.call(frag.childNodes,function(el){return el.outerHTML;}).join('');
+  if(bar.__tchiloSig===sig && bar.children.length){ return; }
+  const prevLeft=bar.scrollLeft;
+  bar.__tchiloSig=sig;
+  bar.innerHTML='';
+  bar.appendChild(frag);
+  try{ bar.scrollLeft=prevLeft; }catch(e){}
   setupStoriesTouchGuard();
   attachStoryVideoThumbnails(bar);
+  tchiloStoriesAutoplay(bar);
 }
+/* Chamadas repetidas juntam-se numa só (a 1.ª é imediata) */
+function renderStories(){
+  const bar=document.getElementById('storiesBar');
+  if(bar && !bar.__tchiloSig){ __tchiloRenderStoriesNow(); return; }
+  clearTimeout(window.__tchiloStoriesTimer);
+  window.__tchiloStoriesTimer=setTimeout(function(){ try{ __tchiloRenderStoriesNow(); }catch(e){ console.warn('renderStories',e); } },80);
+}
+
 
 let activeStoryItems=[];let activeStoryIndex=0;let storyTimer=null;let storyPaused=false;let storyLikeState={};let storyTouchStartX=0;let storyTouchStartY=0;
 function openStory(s){
@@ -11017,12 +11082,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if(error) throw error;
         rows=data||[];
       }catch(e){
-        const {data}=await SB.from('stories').select('*').order('created_at',{ascending:false}).limit(300);
-        rows=(data||[]).filter(function(r){
+        console.warn('Tchilo stories query 1 falhou:',e&&e.message||e);
+        const r2=await SB.from('stories').select('*').order('created_at',{ascending:false}).limit(300);
+        if(r2.error) console.warn('Tchilo stories query 2 falhou:',r2.error.message);
+        rows=(r2.data||[]).filter(function(r){
           const t=r.created_at?Date.parse(r.created_at):0;
           return t>=Date.now()-24*60*60*1000;
         });
       }
+      console.log('Tchilo stories na nuvem (24h):',rows.length);
       if(!rows.length) return;
       const userIds={};
       rows.forEach(function(r){ if(r.user_id) userIds[r.user_id]=1; });
@@ -11160,22 +11228,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if(following.length){
         const names=[];
-        for(const f of following){
-          const id=f.following_id;
-          if(!id)continue;
-          const {data:p}=await SB.from('profiles').select('username').eq('id',id).maybeSingle();
-          if(p&&p.username)names.push(p.username);
+        const fids=following.map(function(f){return f.following_id;}).filter(Boolean);
+        if(fids.length){
+          const {data:ps}=await SB.from('profiles').select('id,username').in('id',fids);
+          (ps||[]).forEach(function(p){ if(p&&p.username)names.push(p.username); });
         }
         if(names.length){state.loading=true;setFollowing(names);state.loading=false;}
       }
 
       if(blocked.length){
         const names=[];
-        for(const b of blocked){
-          const id=b.blocked_id;
-          if(!id)continue;
-          const {data:p}=await SB.from('profiles').select('username').eq('id',id).maybeSingle();
-          if(p&&p.username)names.push(p.username);
+        const bids=blocked.map(function(b){return b.blocked_id;}).filter(Boolean);
+        if(bids.length){
+          const {data:ps}=await SB.from('profiles').select('id,username').in('id',bids);
+          (ps||[]).forEach(function(p){ if(p&&p.username)names.push(p.username); });
         }
         if(names.length){state.loading=true;setBlocked(names);state.loading=false;}
       }
@@ -11221,6 +11287,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.bootApp=async function(){
       if(!state.loading){
         state.loading=true;
+        /* stories carregam já em paralelo, sem esperar pelo resto */
+        try{ loadCloudStories().then(function(){ try{renderStories();}catch(e){} }).catch(function(){}); }catch(e){}
         try{await loadCloudPosts();await loadCloudUserData();initTchiloRealtime();}
         finally{state.loading=false;}
       }

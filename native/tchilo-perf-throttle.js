@@ -1,7 +1,7 @@
 /**
  * tchilo-Pop — trava global de performance
  * Intervalos curtos (< 2s) usados para inject/boot no DOM passam a 8s.
- * Não mexe em timers legítimos de chamada/áudio (pollIncoming, etc.).
+ * Nao mexe em timers de chamada/audio.
  */
 (function () {
   'use strict';
@@ -19,7 +19,6 @@
         try {
           src = fn.toString() || '';
         } catch (e) {}
-        // só abranda inject/boot de UI — não toca em timers de chamada
         if (
           /inject|boot|hookBtn|ensure|patch|renderFeed|settings|boost|chip|logo|nav/i.test(src) &&
           !/pollIncoming|callId|webrtc|rtc|audio|ring/i.test(src)

@@ -1,6 +1,7 @@
 /**
  * Tchilo — força gravação real na Supabase
  * likes, mensagens, comentários, views, follows, notificações
+ * perf: setInterval 30s
  */
 (function () {
   'use strict';
@@ -66,7 +67,6 @@
     }
   }
 
-  /** LIKE */
   window.tchiloCloudLike = async function (postId, liked) {
     var s = SB();
     var me = await uid();
@@ -80,7 +80,6 @@
         if (ins.error) {
           await s.from('likes').insert({ user_id: me, post_id: String(postId) });
         }
-        /* dono do post */
         try {
           var p = await s.from('posts').select('user_id,likes_count').eq('id', postId).maybeSingle();
           if (p.data && p.data.user_id) {
@@ -103,7 +102,6 @@
     }
   };
 
-  /** VIEW */
   window.tchiloCloudView = async function (postId) {
     var s = SB();
     var me = await uid();
@@ -126,7 +124,6 @@
     } catch (e) {}
   };
 
-  /** COMMENT */
   window.tchiloCloudComment = async function (postId, text) {
     var s = SB();
     var me = await uid();
@@ -159,7 +156,6 @@
     }
   };
 
-  /** FOLLOW */
   window.tchiloCloudFollow = async function (targetUsername, following) {
     var s = SB();
     var me = await uid();
@@ -183,7 +179,6 @@
     }
   };
 
-  /** MESSAGE */
   window.tchiloCloudMessage = async function (toUsername, payload) {
     var s = SB();
     var me = await uid();
@@ -202,7 +197,6 @@
     try {
       var r = await s.from('messages').insert(row).select('*').maybeSingle();
       if (r.error) {
-        /* fallback sem recipient_id */
         delete row.recipient_id;
         r = await s.from('messages').insert(row).select('*').maybeSingle();
       }
@@ -215,15 +209,12 @@
     }
   };
 
-  /** LOAD messages for chat */
   window.tchiloCloudLoadMessages = async function (otherUsername) {
     var s = SB();
     var me = await uid();
     if (!s || !me || !otherUsername) return [];
     var rid = await resolveUserIdByUsername(otherUsername);
     try {
-      var q = s.from('messages').select('*').order('created_at', { ascending: true }).limit(200);
-      /* sent by me to them OR sent by them to me */
       var r1 = await s
         .from('messages')
         .select('*')
@@ -252,7 +243,6 @@
     }
   };
 
-  /* ---- Patches UI ---- */
   function patchLikes() {
     if (typeof window.toggleLike === 'function' && !window.toggleLike.__cloud) {
       var orig = window.toggleLike;
@@ -315,7 +305,7 @@
   boot();
   setTimeout(boot, 500);
   setTimeout(boot, 2000);
-  setInterval(boot, 5000);
+  setInterval(boot, 30000); /* perf: era 5s */
 
   console.log('[Tchilo] cloud-force ativo');
 })();

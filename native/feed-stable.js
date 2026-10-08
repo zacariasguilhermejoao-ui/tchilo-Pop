@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v50 — ícones só do index (sem override native) */
+/** tchilo-Pop loaders v51 — ícones/LIVE só do index */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V50) return;
-  window.__TCHILO_FEED_STABLE_V50 = true;
+  if (window.__TCHILO_FEED_STABLE_V51) return;
+  window.__TCHILO_FEED_STABLE_V51 = true;
 
   function add(src, sync) {
     try {
@@ -26,7 +26,7 @@
 
   function load() {
     add('native/tchilo-perf-throttle.js?v=1', true);
-    add('native/tchilo-logo-restore.js?v=4', true);
+    add('native/tchilo-logo-restore.js?v=5', true);
     add('native/tchilo-feed-lock.js?v=4', true);
     add('native/feed-noflicker.js?v=4', true);
     add('native/tchilo-ui-stable.js?v=1', true);
@@ -77,7 +77,6 @@
     add('native/tchilo-name-sync.js?v=1');
     add('native/tchilo-cloud-hydrate.js?v=3');
     add('native/tchilo-feed-to-reels.js?v=2');
-    /* feed-icon e reels-icon NÃO carregados — ícones ficam só no index */
     add('native/tchilo-share-target.js?v=1');
     add('native/reels-follow-fix.js?v=2');
     add('native/tchilo-profile-avatar-plus.js?v=1');

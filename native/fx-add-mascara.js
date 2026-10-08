@@ -1,4 +1,6 @@
-/** Máscara balaclava — cobre a cara, furos olhos/boca transparentes */
+/** Máscara balaclava — cobre a cara, furos olhos/boca transparentes
+ * perf: poll 2s em vez de 400ms
+ */
 (function () {
   "use strict";
   var MASK = {
@@ -208,13 +210,14 @@
     loop();
   }
 
+  /* perf: 2s em vez de 400ms — só quando câmara aberta */
   setInterval(function () {
     var cam = document.getElementById("tchiloStableCam");
     if (cam && cam.classList.contains("on")) {
       ensureChip();
       startLoop();
     }
-  }, 400);
+  }, 2000);
   setTimeout(ensureChip, 600);
   setTimeout(ensureChip, 1500);
   setTimeout(ensureChip, 3000);

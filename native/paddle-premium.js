@@ -1,6 +1,7 @@
 /**
  * tchilo-Pop — Paddle: Tchilo Premium
  * Client token only (never API secret in frontend)
+ * perf: inject poll 15s em vez de 1.5s
  */
 (function () {
   "use strict";
@@ -242,7 +243,8 @@
     }, 2500);
   }
 
-  setInterval(injectSettingsButton, 1500);
+  /* perf: 15s em vez de 1.5s */
+  setInterval(injectSettingsButton, 15000);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
   setTimeout(boot, 800);

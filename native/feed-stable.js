@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v51 — ícones/LIVE só do index */
+/** tchilo-Pop loaders v52 — avatares/stories/ícones só do index */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V51) return;
-  window.__TCHILO_FEED_STABLE_V51 = true;
+  if (window.__TCHILO_FEED_STABLE_V52) return;
+  window.__TCHILO_FEED_STABLE_V52 = true;
 
   function add(src, sync) {
     try {
@@ -40,8 +40,8 @@
     add('native/tchilo-header-ui.js?v=2');
     add('native/tchilo-story-pick-fix.js?v=1');
     add('native/tchilo-reels-open-fix.js?v=8');
-    add('native/tchilo-feed-video-ui.js?v=2');
-    add('native/tchilo-stable-ui.js?v=4');
+    add('native/tchilo-feed-video-ui.js?v=3');
+    add('native/tchilo-stable-ui.js?v=5');
     add('native/tchilo-settings-icons.js?v=27');
     add('native/tchilo-product-copy.js?v=2');
     add('native/tchilo-legal-links.js?v=1');

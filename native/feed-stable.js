@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v47 — live icon + feed posts restored */
+/** tchilo-Pop loaders v48 — index.html is source of truth for icons + feed */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V47) return;
-  window.__TCHILO_FEED_STABLE_V47 = true;
+  if (window.__TCHILO_FEED_STABLE_V48) return;
+  window.__TCHILO_FEED_STABLE_V48 = true;
 
   function add(src, sync) {
     try {
@@ -25,10 +25,12 @@
   }
 
   function load() {
-    /* PERFORMANCE + correções críticas primeiro */
+    /* PERFORMANCE first */
     add('native/tchilo-perf-throttle.js?v=1', true);
-    add('native/tchilo-logo-restore.js?v=2', true);
-    add('native/tchilo-feed-lock.js?v=3', true);
+    /* logo-restore = no-op (index controls topbar icon) */
+    add('native/tchilo-logo-restore.js?v=3', true);
+    /* feed-lock = CSS only, no renderFeed patch */
+    add('native/tchilo-feed-lock.js?v=4', true);
     add('native/feed-noflicker.js?v=4', true);
     add('native/tchilo-ui-stable.js?v=1', true);
     add('native/live-btn-stable.js?v=4', true);
@@ -89,6 +91,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
   else load();
-  /* uma só vez extra — evita double load agressivo */
   setTimeout(load, 1200);
 })();

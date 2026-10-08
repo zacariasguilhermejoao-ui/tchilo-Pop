@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v49 — LIVE 38px + nav icons do index */
+/** tchilo-Pop loaders v50 — ícones só do index (sem override native) */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V49) return;
-  window.__TCHILO_FEED_STABLE_V49 = true;
+  if (window.__TCHILO_FEED_STABLE_V50) return;
+  window.__TCHILO_FEED_STABLE_V50 = true;
 
   function add(src, sync) {
     try {
@@ -31,7 +31,7 @@
     add('native/feed-noflicker.js?v=4', true);
     add('native/tchilo-ui-stable.js?v=1', true);
     add('native/live-btn-stable.js?v=4', true);
-    add('native/tchilo-nav-size-fix.js?v=3', true);
+    add('native/tchilo-nav-size-fix.js?v=4', true);
 
     add('native/tchilo-ui-unlock.js?v=3', true);
     add('native/tchilo-login-session-fix.js?v=9', true);
@@ -41,7 +41,7 @@
     add('native/tchilo-story-pick-fix.js?v=1');
     add('native/tchilo-reels-open-fix.js?v=8');
     add('native/tchilo-feed-video-ui.js?v=2');
-    add('native/tchilo-stable-ui.js?v=3');
+    add('native/tchilo-stable-ui.js?v=4');
     add('native/tchilo-settings-icons.js?v=27');
     add('native/tchilo-product-copy.js?v=2');
     add('native/tchilo-legal-links.js?v=1');
@@ -77,9 +77,8 @@
     add('native/tchilo-name-sync.js?v=1');
     add('native/tchilo-cloud-hydrate.js?v=3');
     add('native/tchilo-feed-to-reels.js?v=2');
-    add('native/tchilo-reels-icon.js?v=2');
+    /* feed-icon e reels-icon NÃO carregados — ícones ficam só no index */
     add('native/tchilo-share-target.js?v=1');
-    add('native/tchilo-feed-icon.js?v=5');
     add('native/reels-follow-fix.js?v=2');
     add('native/tchilo-profile-avatar-plus.js?v=1');
     add('native/topbar-border-thin.js?v=2');

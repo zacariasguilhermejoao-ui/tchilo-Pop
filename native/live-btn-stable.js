@@ -1,12 +1,13 @@
 /**
- * Stop Live button from blinking
- * - dedupe buttons
- * - block setInterval that re-injects Live
+ * Stop Live button from blinking + topbar LIVE logo
+ * - dedupe profile buttons
+ * - block aggressive inject intervals
+ * - LIVE icon: red pill, height 32px (not huge black box)
  */
 (function () {
   'use strict';
-  if (window.__tchiloLiveBtnStableV2) return;
-  window.__tchiloLiveBtnStableV2 = true;
+  if (window.__tchiloLiveBtnStableV3) return;
+  window.__tchiloLiveBtnStableV3 = true;
   window.__tchiloLiveBtnStable = true;
 
   /* Intercept setInterval used by old live.js inject loop */
@@ -21,7 +22,6 @@
           (/data-tchilo-live/.test(src) && /Iniciar Live/.test(src)) ||
           (/profile-actions/.test(src) && /Iniciar Live/.test(src)))
       ) {
-        console.log('[live-stable] blocked inject interval', ms);
         return 0;
       }
     } catch (e) {}
@@ -42,9 +42,8 @@
   }
 
   ensureOnce();
-  [300, 1000, 2500].forEach(function (ms) {
-    setTimeout(ensureOnce, ms);
-  });
+  setTimeout(ensureOnce, 400);
+  setTimeout(ensureOnce, 1500);
 
   if (typeof window.renderProfile === 'function' && !window.renderProfile.__liveStable) {
     var rp = window.renderProfile;
@@ -57,45 +56,40 @@
   }
 })();
 
-/* Also replace topbar logo with LIVE pill icon (user request) */
+/* Topbar LIVE logo — red pill, tamanho normal */
 (function () {
   'use strict';
-  if (window.__tchiloLiveLogoV2) return;
-  window.__tchiloLiveLogoV2 = true;
+  if (window.__tchiloLiveLogoV3) return;
+  window.__tchiloLiveLogoV3 = true;
+
+  var LIVE_SRC = 'live-icon.svg?v=3';
 
   function applyLiveLogo() {
     try {
       var img = document.querySelector('.topbar .logo-img, .topbar img.logo-img');
       if (!img) return;
-      img.src = 'live-icon.svg';
+      if (img.getAttribute('src') && img.getAttribute('src').indexOf('live-icon.svg') >= 0 && img.style.height === '32px') return;
+      img.src = LIVE_SRC;
       img.alt = 'LIVE';
       img.title = 'Lives';
-      img.style.cursor = 'pointer';
-      img.style.height = '68px';
-      img.style.width = 'auto';
+      img.style.cssText = 'cursor:pointer;height:32px;width:auto;max-height:32px;object-fit:contain;display:block;';
       img.setAttribute('role', 'button');
-      img.onclick = function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (typeof window.tchiloOpenLiveSetup === 'function') {
-          window.tchiloOpenLiveSetup();
-        } else if (typeof window.openLiveScreen === 'function') {
-          window.openLiveScreen();
-        } else if (typeof window.openSetup === 'function') {
-          window.openSetup();
-        } else {
-          alert('Lives — em breve. (botão CRIAR LIVE aparece após entrar)');
-        }
-      };
+      if (!img.__liveClick) {
+        img.__liveClick = true;
+        img.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (typeof window.tchiloOpenLiveSetup === 'function') window.tchiloOpenLiveSetup();
+          else if (typeof window.openLiveScreen === 'function') window.openLiveScreen();
+          else if (typeof window.openSetup === 'function') window.openSetup();
+          else alert('Lives — em breve.');
+        });
+      }
     } catch (err) {}
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', applyLiveLogo);
-  } else {
-    applyLiveLogo();
-  }
-  [150, 600, 1500, 3000].forEach(function (ms) {
-    setTimeout(applyLiveLogo, ms);
-  });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyLiveLogo);
+  else applyLiveLogo();
+  setTimeout(applyLiveLogo, 200);
+  setTimeout(applyLiveLogo, 900);
 })();

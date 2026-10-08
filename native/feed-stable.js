@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v46 — perf throttle first */
+/** tchilo-Pop loaders v47 — live icon + feed posts restored */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V46) return;
-  window.__TCHILO_FEED_STABLE_V46 = true;
+  if (window.__TCHILO_FEED_STABLE_V47) return;
+  window.__TCHILO_FEED_STABLE_V47 = true;
 
   function add(src, sync) {
     try {
@@ -25,10 +25,10 @@
   }
 
   function load() {
-    /* PERFORMANCE: throttle global primeiro */
+    /* PERFORMANCE + correções críticas primeiro */
     add('native/tchilo-perf-throttle.js?v=1', true);
-    add('native/tchilo-logo-restore.js?v=1', true);
-    add('native/tchilo-feed-lock.js?v=2', true);
+    add('native/tchilo-logo-restore.js?v=2', true);
+    add('native/tchilo-feed-lock.js?v=3', true);
     add('native/feed-noflicker.js?v=4', true);
     add('native/tchilo-ui-stable.js?v=1', true);
     add('native/live-btn-stable.js?v=4', true);

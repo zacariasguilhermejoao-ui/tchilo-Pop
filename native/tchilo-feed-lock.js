@@ -1,15 +1,19 @@
 /**
- * Tchilo — trava o feed contra piscar (re-renders e injeções em cascata)
- * perf: sem setInterval 400ms — só boot + observer com debounce
+ * Tchilo — trava o feed contra piscar (re-renders em cascata)
+ * v3: muito menos agressivo — deixa posts aparecerem sempre
+ * - só evita re-render idêntico nos últimos 800ms
+ * - NÃO bloqueia quando o DOM está vazio
+ * - sem setInterval contínuo
  */
 (function () {
   'use strict';
-  if (window.__tchiloFeedLock) return;
+  if (window.__tchiloFeedLockV3) return;
+  window.__tchiloFeedLockV3 = true;
   window.__tchiloFeedLock = true;
 
   var lastFingerprint = '';
   var lastRenderAt = 0;
-  var MIN_RENDER_GAP = 1200;
+  var MIN_RENDER_GAP = 600;
   var pendingRender = null;
 
   function injectCSS() {
@@ -40,7 +44,6 @@
       '#feedList img,#feedList video{' +
       'background:#111;' +
       '}' +
-      /* evita flash verde/branco de fundo */
       'html,body,#appFrame,#screen-feed,#feedList{background-color:var(--paper,#F7F6F2)!important;}' +
       '#feedList .post-media{background:#111!important;}' +
       '.post{background:var(--paper,#F7F6F2)!important;}';
@@ -50,16 +53,16 @@
   function fingerprintPosts() {
     try {
       var posts = typeof getPosts === 'function' ? getPosts() : [];
-      if (!Array.isArray(posts)) return '';
+      if (!Array.isArray(posts) || !posts.length) return '';
       return posts
-        .slice(0, 40)
+        .slice(0, 30)
         .map(function (p) {
           if (!p) return '';
-          return String(p.id) + ':' + String(p.likes || 0) + ':' + String((p.caption || '').length);
+          return String(p.id || '') + ':' + String(p.likes || 0);
         })
         .join('|');
     } catch (e) {
-      return String(Date.now());
+      return '';
     }
   }
 
@@ -79,7 +82,7 @@
 
   function patchRenderFeed() {
     if (typeof window.renderFeed !== 'function') return false;
-    if (window.renderFeed.__feedLocked) return true;
+    if (window.renderFeed.__feedLockedV3) return true;
 
     var orig = window.renderFeed;
     window.renderFeed = function () {
@@ -87,23 +90,23 @@
       var fp = fingerprintPosts();
       var domFp = fingerprintDOM();
 
-      /* Mesmos posts e DOM já está alinhado → não re-renderiza */
-      if (fp && fp === lastFingerprint && domFp) {
-        var ids = fp.split('|').map(function (x) { return x.split(':')[0]; }).join('|');
-        if (ids === domFp) return;
+      /* Se o DOM está vazio e existem posts → SEMPRE renderiza */
+      if (fp && !domFp) {
+        lastRenderAt = now;
+        lastFingerprint = fp;
+        return orig.apply(this, arguments);
       }
 
-      if (fp && domFp) {
-        var ids2 = fp.split('|').map(function (x) {
-          return x.split(':')[0];
-        }).join('|');
-        if (ids2 === domFp && now - lastRenderAt < 5000) {
-          lastFingerprint = fp;
+      /* Mesmos posts + DOM já alinhado + render recente → evita piscar */
+      if (fp && fp === lastFingerprint && domFp) {
+        var ids = fp.split('|').map(function (x) { return x.split(':')[0]; }).join('|');
+        if (ids === domFp && now - lastRenderAt < 2500) {
           return;
         }
       }
 
-      if (now - lastRenderAt < MIN_RENDER_GAP) {
+      /* Gap mínimo só para cascata de chamadas muito próximas */
+      if (now - lastRenderAt < MIN_RENDER_GAP && lastFingerprint) {
         clearTimeout(pendingRender);
         pendingRender = setTimeout(function () {
           pendingRender = null;
@@ -114,14 +117,12 @@
       }
 
       lastRenderAt = now;
-      lastFingerprint = fp;
+      lastFingerprint = fp || lastFingerprint;
       return orig.apply(this, arguments);
     };
+    window.renderFeed.__feedLockedV3 = true;
     window.renderFeed.__feedLocked = true;
     window.renderFeed.__stableHook = true;
-    window.renderFeed.__fmp = true;
-    window.renderFeed.__pmHook = true;
-    window.renderFeed.__offlineWarm = true;
     return true;
   }
 
@@ -199,12 +200,11 @@
     hardenMediaNodes();
   }
 
-  /* só boot pontual — SEM setInterval contínuo */
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
-  setTimeout(boot, 300);
-  setTimeout(boot, 900);
-  setTimeout(boot, 2000);
+  setTimeout(boot, 200);
+  setTimeout(boot, 800);
+  setTimeout(boot, 1800);
 
   try {
     var feed = document.getElementById('feedList');
@@ -217,7 +217,7 @@
           hardenMediaNodes(feed);
           quietVideoPosters();
           patchRenderFeed();
-        }, 250);
+        }, 300);
       }).observe(feed, { childList: true, subtree: true });
     }
   } catch (e) {}

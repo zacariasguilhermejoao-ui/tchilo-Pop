@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v42 — header-ui v2 */
+/** tchilo-Pop loaders v43 — feed-lock + noflicker first */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V42) return;
-  window.__TCHILO_FEED_STABLE_V42 = true;
+  if (window.__TCHILO_FEED_STABLE_V43) return;
+  window.__TCHILO_FEED_STABLE_V43 = true;
 
   function add(src, sync) {
     try {
@@ -25,6 +25,11 @@
   }
 
   function load() {
+    /* anti-piscar e fundo primeiro */
+    add('native/tchilo-feed-lock.js?v=2', true);
+    add('native/feed-noflicker.js?v=4', true);
+    add('native/tchilo-ui-stable.js?v=1', true);
+
     add('native/tchilo-ui-unlock.js?v=3', true);
     add('native/tchilo-login-session-fix.js?v=9', true);
     add('native/tchilo-hide-nav.js?v=4');
@@ -41,7 +46,6 @@
     add('native/tchilo-public-profile-bridge.js?v=1');
     add('native/tchilo-site-url-fix.js?v=1');
     add('native/tchilo-no-busy-select.js?v=1');
-    add('native/tchilo-ui-stable.js?v=1');
     add('native/tchilo-chat-composer.js?v=1');
     add('native/tchilo-password-reset.js?v=6');
     add('native/tchilo-public-urls.js?v=1');
@@ -81,5 +85,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
   else load();
-  setTimeout(load, 400);
+  setTimeout(load, 600);
 })();

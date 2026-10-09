@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v59 — LIVE/Reels só do index */
+/** tchilo-Pop loaders v60 — linhas posts 1px */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V59) return;
-  window.__TCHILO_FEED_STABLE_V59 = true;
+  if (window.__TCHILO_FEED_STABLE_V60) return;
+  window.__TCHILO_FEED_STABLE_V60 = true;
 
   function add(src, sync) {
     try {
@@ -25,7 +25,7 @@
   }
 
   function load() {
-    add('native/tchilo-final-css.js?v=2', true);
+    add('native/tchilo-final-css.js?v=3', true);
     add('native/tchilo-nav-icons-lock.js?v=1', true);
     add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-logo-restore.js?v=6', true);

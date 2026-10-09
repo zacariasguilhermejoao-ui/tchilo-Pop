@@ -1,11 +1,12 @@
 /**
- * CSS final v2
- * - + perfil, Live, badges stories
- * - linhas de cabeçalho 1px em TODAS as páginas (Definições e subpáginas)
+ * CSS final v3
+ * - linhas de cabeçalho 1px
+ * - linhas entre posts do feed 1px (não 3px)
  */
 (function () {
   'use strict';
-  if (window.__tchiloFinalCssV2) return;
+  if (window.__tchiloFinalCssV3) return;
+  window.__tchiloFinalCssV3 = true;
   window.__tchiloFinalCssV2 = true;
   window.__tchiloFinalCssV1 = true;
 
@@ -17,34 +18,24 @@
   }
 
   st.textContent =
-    /* Cabeçalhos: linha fina 1px em todas as screens (incl. settings-*) */
+    /* Cabeçalhos: linha fina 1px */
     '.screen-header,' +
     '.screen > .screen-header,' +
     '[id^="screen-"] > .screen-header,' +
-    '#screen-settings > .screen-header,' +
-    '#screen-settings-account > .screen-header,' +
-    '#screen-settings-advanced > .screen-header,' +
-    '#screen-settings-language > .screen-header,' +
-    '#screen-settings-legal > .screen-header,' +
-    '#screen-settings-notifications > .screen-header,' +
-    '#screen-settings-privacy > .screen-header,' +
-    '#screen-settings-stories > .screen-header,' +
-    '#screen-settings-theme > .screen-header,' +
-    '#screen-privacy > .screen-header,' +
-    '#screen-about > .screen-header,' +
-    '#screen-terms > .screen-header,' +
-    '#screen-community > .screen-header,' +
-    '#screen-child > .screen-header,' +
-    '#screen-editprofile > .screen-header,' +
-    '#screen-saved > .screen-header,' +
-    '#screen-search > .screen-header,' +
-    '#screen-messages > .screen-header,' +
-    '#screen-notifs > .screen-header,' +
-    '#screen-profile > .screen-header{' +
+    '[id^="screen-settings"] > .screen-header{' +
     'border-bottom:1px solid var(--line,rgba(0,0,0,.12))!important;' +
     'border-bottom-width:1px!important;' +
-    'border-bottom-style:solid!important;' +
     'box-shadow:none!important;}' +
+    /* Posts do feed: separador fino */
+    '#feedList .post,' +
+    '#screen-feed .post,' +
+    '.feed-list .post,' +
+    '.post{' +
+    'border-bottom:1px solid var(--line,rgba(0,0,0,.12))!important;' +
+    'border-bottom-width:1px!important;' +
+    'border-bottom-style:solid!important;}' +
+    '#feedList .post:last-child,' +
+    '#screen-feed .post:last-child{border-bottom-width:1px!important;}' +
     /* Avatar + */
     '.profile-header,.profile-avatar,#profileBody .profile-avatar,' +
     '#profileBody,.profile-header .profile-avatar{overflow:visible!important;}' +
@@ -65,7 +56,6 @@
     'min-height:32px!important;' +
     'border-radius:50%!important;' +
     'background:#0B0B0C!important;' +
-    'background-color:#0B0B0C!important;' +
     'color:#fff!important;' +
     'border:3px solid var(--paper,#F6F1E7)!important;' +
     'box-shadow:0 2px 6px rgba(0,0,0,.22)!important;' +
@@ -81,10 +71,8 @@
     '#profileBody button[data-tchilo-live],' +
     'button.profile-btn[data-tchilo-live]{' +
     'background:#e11d48!important;' +
-    'background-color:#e11d48!important;' +
     'color:#fff!important;' +
-    'border:2px solid #e11d48!important;' +
-    'animation:none!important;transition:none!important;}' +
+    'border:2px solid #e11d48!important;}' +
     '#storiesBar .tchilo-play-badge,#storiesBar .tchilo-feed-play,' +
     '.story-card .tchilo-play-badge,.story-card .tchilo-feed-play{' +
     'display:none!important;visibility:hidden!important;}';

@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v64 — Play-safe: sem compra na app */
+/** tchilo-Pop loaders v65 — Saldo / Moedas */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V64) return;
-  window.__TCHILO_FEED_STABLE_V64 = true;
+  if (window.__TCHILO_FEED_STABLE_V65) return;
+  window.__TCHILO_FEED_STABLE_V65 = true;
 
   function add(src, sync) {
     try {
@@ -65,6 +65,8 @@
     add('native/paddle-ad-guard.js?v=1');
     add('native/tchilo-theme-premium-gate.js?v=1');
     add('native/tchilo-verified.js?v=5');
+    add('native/tchilo-saldo.js?v=1');
+    add('native/tchilo-saldo-menu.js?v=1');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=2');
     add('native/tchilo-music-sheet.js?v=1');

@@ -1,14 +1,13 @@
 /**
- * Tchilo header UI v4
- * - linha fina screen-header
- * - botão voltar
- * - + do perfil: só no tchilo-final-css (sem JS a mudar estilo)
+ * Tchilo header UI v5
+ * Linha do cabeçalho 1px em todas as páginas (Definições + subpáginas)
+ * Botão voltar profissional
  */
 (function () {
   'use strict';
-  if (window.__tchiloHeaderUiV4) return;
+  if (window.__tchiloHeaderUiV5) return;
+  window.__tchiloHeaderUiV5 = true;
   window.__tchiloHeaderUiV4 = true;
-  window.__tchiloHeaderUiV3 = true;
 
   var BACK_SVG =
     '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" ' +
@@ -25,10 +24,15 @@
       (document.head || document.documentElement).appendChild(st);
     }
     st.textContent =
-      '.screen-header,.screen > .screen-header,[id^="screen-"] > .screen-header{' +
+      'html body .screen-header,' +
+      'html body .screen > .screen-header,' +
+      'html body [id^="screen-"] > .screen-header,' +
+      'html body [id^="screen-settings"] > .screen-header{' +
+      'border-bottom:1px solid var(--line,rgba(0,0,0,.12))!important;' +
       'border-bottom-width:1px!important;' +
       'border-bottom-style:solid!important;' +
-      'border-bottom-color:var(--line,rgba(0,0,0,.12))!important;}' +
+      'border-bottom-color:var(--line,rgba(0,0,0,.12))!important;' +
+      'box-shadow:none!important;}' +
       '.profile-header{border-bottom:none!important;border-bottom-width:0!important;box-shadow:none!important;}' +
       '.profile-stats,.profile-actions{border:none!important;box-shadow:none!important;}' +
       '.back-btn{' +
@@ -60,13 +64,13 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
   setTimeout(run, 400);
 
-  if (typeof window.goTo === 'function' && !window.goTo.__headerUiV4) {
+  if (typeof window.goTo === 'function' && !window.goTo.__headerUiV5) {
     var g = window.goTo;
     window.goTo = function () {
       var r = g.apply(this, arguments);
-      setTimeout(patchBackButtons, 40);
+      setTimeout(run, 40);
       return r;
     };
-    window.goTo.__headerUiV4 = true;
+    window.goTo.__headerUiV5 = true;
   }
 })();

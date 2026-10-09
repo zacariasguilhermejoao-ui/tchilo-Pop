@@ -1,11 +1,13 @@
 /**
- * Logo LIVE v7 — só o do index
+ * Logo LIVE v8 — só o do index
  * - NÃO troca o desenho (src do index)
  * - Anula o height:28px do icon-lock → 68px como no index
+ * - Remove fundos/wrappers pretos quadrados que scripts possam meter
  */
 (function () {
   'use strict';
-  if (window.__tchiloLogoRestoreV7) return;
+  if (window.__tchiloLogoRestoreV8) return;
+  window.__tchiloLogoRestoreV8 = true;
   window.__tchiloLogoRestoreV7 = true;
   window.__tchiloLogoRestoreV6 = true;
 
@@ -18,16 +20,33 @@
       st.id = 'tchilo-live-logo-css';
       (document.head || document.documentElement).appendChild(st);
     }
-    /* Ganha ao icon-lock (28px) — mesmo valor do index (.logo-img height:68px) */
+    /* Ganha ao icon-lock (28px) — mesmo valor do index (.logo-img height:68px)
+       Specificidade mais alta + !important */
     st.textContent =
-      'html body .topbar img.logo-img,' +
       'html body #screen-feed .topbar img.logo-img,' +
+      'html body .topbar img.logo-img,' +
       'html body img.logo-img{' +
       'height:68px!important;' +
       'max-height:68px!important;' +
       'width:auto!important;' +
+      'min-width:0!important;' +
+      'min-height:0!important;' +
       'object-fit:contain!important;' +
-      'display:block!important;}';
+      'display:block!important;' +
+      'background:transparent!important;' +
+      'border:none!important;' +
+      'border-radius:0!important;' +
+      'padding:0!important;' +
+      'box-shadow:none!important;}' +
+      'html body #screen-feed .topbar .logo,' +
+      'html body .topbar .logo{' +
+      'background:transparent!important;' +
+      'border:none!important;' +
+      'width:auto!important;' +
+      'height:auto!important;}' +
+      /* Anular regra 28px do icon-lock se ainda existir no DOM */
+      'html body .topbar img.logo-img[src*="data:image/svg"]{' +
+      'height:68px!important;max-height:68px!important;width:auto!important;}';
   }
 
   function capture() {
@@ -38,7 +57,7 @@
       if (!el) return;
       var src = el.getAttribute('src') || '';
       /* Só captura o SVG LIVE do index (data:image/svg) */
-      if (src.indexOf('data:image/svg') === 0 || src.indexOf('svg') >= 0) {
+      if (src.indexOf('data:image/svg') === 0) {
         INDEX_SRC = src;
       } else if (!INDEX_SRC && src) {
         INDEX_SRC = src;
@@ -58,6 +77,14 @@
         var cur = el.getAttribute('src') || '';
         if (cur !== INDEX_SRC) el.setAttribute('src', INDEX_SRC);
       }
+      /* limpar estilos inline que possam forçar caixa preta/quadrada */
+      el.style.background = 'transparent';
+      el.style.border = 'none';
+      el.style.borderRadius = '0';
+      el.style.height = '68px';
+      el.style.maxHeight = '68px';
+      el.style.width = 'auto';
+      el.style.objectFit = 'contain';
     } catch (e) {}
   }
 
@@ -71,7 +98,7 @@
       enforce();
     });
   }
-  [100, 400, 1000, 2500].forEach(function (ms) {
+  [50, 150, 400, 1000, 2500, 5000].forEach(function (ms) {
     setTimeout(function () {
       capture();
       enforce();

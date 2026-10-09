@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v61 — LIVE logo só index */
+/** tchilo-Pop loaders v62 — swipe down sheets */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V61) return;
-  window.__TCHILO_FEED_STABLE_V61 = true;
+  if (window.__TCHILO_FEED_STABLE_V62) return;
+  window.__TCHILO_FEED_STABLE_V62 = true;
 
   function add(src, sync) {
     try {
@@ -35,6 +35,7 @@
     add('native/tchilo-ui-stable.js?v=2', true);
     add('native/live-btn-stable.js?v=4', true);
     add('native/tchilo-nav-size-fix.js?v=4', true);
+    add('native/tchilo-sheet-swipe.js?v=1', true);
 
     add('native/tchilo-ui-unlock.js?v=3', true);
     add('native/tchilo-login-session-fix.js?v=9', true);

@@ -1,10 +1,11 @@
 /**
- * Tchilo — menu ⋯ no perfil: copiar link, partilhar, QR
- * v10 — QR com 3 pontos personalizados (ciano, rosa, roxo), sem imagem
+ * Tchilo — menu ⋯ no perfil: Definições, copiar link, partilhar, QR
+ * v11 — repor opção Definições
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV10) return;
+  if (window.__tchiloProfileShareV11) return;
+  window.__tchiloProfileShareV11 = true;
   window.__tchiloProfileShareV10 = true;
 
   var openGuardUntil = 0;
@@ -34,6 +35,11 @@
       '<path d="M8.5 13.5l7 4M15.5 6.5l-7 4"/>' +
       '</svg>',
     qr: IC_QR,
+    settings:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<circle cx="12" cy="12" r="3"/>' +
+      '<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' +
+      '</svg>',
     close:
       '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">' +
       '<path d="M6 6l12 12M18 6L6 18"/>' +
@@ -59,112 +65,91 @@
     try {
       if (typeof getSession === 'function') return getSession();
     } catch (e) {}
-    return null;
+    try {
+      return JSON.parse(localStorage.getItem('tchilo_session') || 'null');
+    } catch (e2) {
+      return null;
+    }
   }
 
   function currentProfileUsername() {
     try {
-      if (typeof viewingProfileUser !== 'undefined' && viewingProfileUser) {
-        return String(viewingProfileUser);
-      }
+      if (window.viewingProfileUser) return String(window.viewingProfileUser);
     } catch (e) {}
-    var s = sessionUser();
-    return s && s.username ? String(s.username) : '';
+    try {
+      var s = sessionUser();
+      return (s && (s.username || s.user || s.name)) || '';
+    } catch (e2) {
+      return '';
+    }
   }
 
-  function profileUrl(username) {
-    var u = encodeURIComponent(String(username || '').trim());
-    var origin = location.origin || 'https://tchilopop.com';
-    if (!u) return origin + '/perfil';
-    return origin + '/u/' + u;
+  function profileUrl(user) {
+    var u = String(user || '').replace(/^@/, '');
+    var origin = (window.location && window.location.origin) || 'https://tchilopop.com';
+    return origin + '/?u=' + encodeURIComponent(u);
   }
 
   function copyText(text) {
-    function ok() {
-      toast('Link copiado');
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text).then(ok).catch(function () {
-        fallbackCopy(text);
-      });
-    }
-    fallbackCopy(text);
-  }
-
-  function fallbackCopy(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(
+          function () {
+            toast('Link copiado');
+          },
+          function () {
+            toast('Não foi possível copiar');
+          }
+        );
+        return;
+      }
+    } catch (e) {}
     try {
       var ta = document.createElement('textarea');
       ta.value = text;
-      ta.setAttribute('readonly', '');
-      ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
       document.body.appendChild(ta);
-      ta.focus();
       ta.select();
       document.execCommand('copy');
       document.body.removeChild(ta);
       toast('Link copiado');
-    } catch (e) {
+    } catch (e2) {
       toast('Não foi possível copiar');
     }
   }
 
   function shareNative(url, title) {
-    if (navigator.share) {
-      navigator.share({ title: title || 'Tchilo', url: url }).catch(function () {
-        copyText(url);
-      });
-    } else {
-      copyText(url);
-    }
+    try {
+      if (navigator.share) {
+        navigator.share({ title: title || 'Tchilo', url: url }).catch(function () {});
+        return;
+      }
+    } catch (e) {}
+    copyText(url);
   }
 
   function ensureCSS() {
-    var old = document.getElementById('tchiloProfileShareCSS');
-    if (old) old.remove();
+    if (document.getElementById('tchiloProfileShareCSS')) return;
     var st = document.createElement('style');
     st.id = 'tchiloProfileShareCSS';
     st.textContent =
-      '#screen-profile .screen-header{position:relative!important;overflow:visible!important;}' +
-      '#tchiloProfileMoreBtn,button#tchiloProfileMoreBtn,.tchilo-profile-more{' +
-      'position:absolute!important;right:10px!important;top:50%!important;' +
-      'transform:translateY(-50%)!important;width:44px!important;height:44px!important;' +
-      'border-radius:12px!important;border:0!important;' +
-      'background:var(--paper,#F3F1E9)!important;color:var(--ink,#0B0B0C)!important;' +
-      'display:flex!important;align-items:center!important;justify-content:center!important;' +
-      'cursor:pointer!important;z-index:200!important;padding:0!important;' +
-      'pointer-events:auto!important;opacity:1!important;visibility:visible!important;' +
-      'box-shadow:none!important;}' +
-      '#tchiloProfileShareSheet{' +
-      'position:fixed!important;inset:0!important;z-index:2147483646!important;' +
-      'display:none;align-items:flex-end!important;justify-content:center!important;' +
-      'background:rgba(11,11,12,.5)!important;}' +
+      '#tchiloProfileShareSheet{position:fixed;inset:0;z-index:2147483000;display:none;align-items:flex-end;justify-content:center;background:rgba(11,11,12,.42);}' +
       '#tchiloProfileShareSheet.open{display:flex!important;}' +
-      '#tchiloProfileShareSheet .tchilo-ps-panel{' +
-      'width:100%!important;max-width:480px!important;' +
-      'background:var(--paper,#F3F1E9)!important;color:var(--ink,#0B0B0C)!important;' +
-      'border-radius:22px 22px 0 0!important;padding:14px 16px calc(22px + env(safe-area-inset-bottom))!important;' +
-      'border:0!important;border-top:0.5px solid rgba(11,11,12,.12)!important;' +
-      'box-shadow:0 -10px 40px rgba(0,0,0,.28)!important;}' +
-      '#tchiloProfileShareSheet .tchilo-ps-handle{' +
-      'width:40px;height:4px;border-radius:2px;background:#c8c4b8;margin:0 auto 12px;}' +
-      '#tchiloProfileShareSheet .tchilo-ps-panel h3{' +
-      'margin:0 0 4px;font-family:system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:22px;text-align:center;}' +
-      '#tchiloProfileShareSheet .tchilo-ps-user{' +
-      'text-align:center;margin:0 0 14px;font-size:13px;font-weight:600;opacity:.55;}' +
-      '#tchiloProfileShareSheet .opt{display:flex;align-items:center;gap:14px;width:100%;padding:14px 4px;margin:0;border:0;border-bottom:0.5px solid rgba(11,11,12,.08);border-radius:0;background:transparent;box-shadow:none;text-align:left;font:400 16px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;color:var(--ink,#0B0B0C);cursor:pointer;}' +
-      '#tchiloProfileShareSheet .opt .ic{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;min-width:24px;border-radius:0;border:0;background:transparent;color:var(--ink,#0B0B0C);}' +
-      '#tchiloProfileShareSheet .opt.opt-close{background:transparent;}' +
-      '#tchiloQrModal{position:fixed;inset:0;z-index:2147483647;display:none;' +
-      'align-items:center;justify-content:center;background:rgba(11,11,12,.72);padding:20px;}' +
+      '#tchiloProfileShareSheet .tchilo-ps-panel{width:min(100%,430px);background:var(--paper,#F6F1E7);border-radius:22px 22px 0 0;padding:12px 16px 28px;color:var(--ink,#0B0B0C);}' +
+      '#tchiloProfileShareSheet .tchilo-ps-handle{width:40px;height:4px;border-radius:4px;background:rgba(11,11,12,.18);margin:4px auto 12px;}' +
+      '#tchiloProfileShareSheet h3{margin:0 0 4px;font-size:18px;font-weight:800;}' +
+      '#tchiloProfileShareSheet .tchilo-ps-user{margin:0 0 12px;font-size:13px;opacity:.55;font-weight:600;}' +
+      '#tchiloProfileShareSheet .opt{display:flex;align-items:center;gap:14px;width:100%;padding:14px 10px;border:0;border-bottom:0.5px solid rgba(11,11,12,.08);background:transparent;text-align:left;font:600 16px system-ui,-apple-system,sans-serif;color:var(--ink,#0B0B0C);cursor:pointer;}' +
+      '#tchiloProfileShareSheet .opt:last-child{border-bottom:0;}' +
+      '#tchiloProfileShareSheet .opt .ic{width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}' +
+      '#tchiloProfileShareSheet .opt-close{opacity:.7;}' +
+      '.tchilo-profile-more{margin-left:auto;width:40px;height:40px;border:0;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink,#0B0B0C);}' +
+      '#tchiloQrModal{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;background:rgba(11,11,12,.72);padding:20px;}' +
       '#tchiloQrModal.open{display:flex!important;}' +
-      '#tchiloQrModal .card{background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);border-radius:20px;' +
-      'padding:18px;max-width:360px;width:100%;border:0;' +
-      'box-shadow:0 12px 40px rgba(0,0,0,.2);}' +
-      '#tchiloQrModal .qr-title{font-family:system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:20px;text-align:center;margin:0 0 6px;}' +
+      '#tchiloQrModal .card{background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);border-radius:20px;padding:18px;max-width:360px;width:100%;}' +
+      '#tchiloQrModal .qr-title{font-size:20px;font-weight:800;text-align:center;margin:0 0 6px;}' +
       '#tchiloQrModal .qr-user{text-align:center;font-weight:700;opacity:.55;margin:0 0 12px;font-size:13px;}' +
       '#tchiloQrModal .actions{display:flex;flex-direction:column;gap:10px;margin-top:14px;}' +
-      '#tchiloQrModal .actions button{padding:13px;border-radius:14px;font-weight:800;cursor:pointer;' +
-      'border:0;font-size:15px;box-shadow:none;font-weight:600;}' +
+      '#tchiloQrModal .actions button{padding:13px;border-radius:14px;font-weight:700;cursor:pointer;border:0;font-size:15px;}' +
       '#tchiloQrModal .actions .primary{background:var(--ink,#0B0B0C);color:#fff;}' +
       '#tchiloQrModal .actions .ghost{background:rgba(11,11,12,.06);color:var(--ink,#0B0B0C);}';
     document.head.appendChild(st);
@@ -185,88 +170,6 @@
     if (modal) modal.classList.remove('open');
   }
 
-  function roundRectPath(ctx, x, y, w, h, r) {
-    r = Math.min(r || 0, w / 2, h / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-  }
-
-  /** 3 pontos Tchilo no centro do QR (ciano, rosa, roxo) — sem imagem */
-  function drawThreeDots(ctx, cx, cy, size) {
-    var colors = ['#18E8B0', '#F800A0', '#7800F8'];
-    var r = size * 0.14;
-    var gap = size * 0.38;
-    var startX = cx - gap;
-    ctx.save();
-    /* fundo circular claro */
-    ctx.beginPath();
-    ctx.arc(cx, cy, size * 0.42, 0, Math.PI * 2);
-    ctx.fillStyle = '#F6F1E7';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(cx, cy, size * 0.42, 0, Math.PI * 2);
-    ctx.strokeStyle = '#0B0B0C';
-    ctx.lineWidth = Math.max(3, size * 0.04);
-    ctx.stroke();
-    for (var i = 0; i < 3; i++) {
-      ctx.beginPath();
-      ctx.arc(startX + i * gap, cy, r, 0, Math.PI * 2);
-      ctx.fillStyle = colors[i];
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(startX + i * gap, cy, r, 0, Math.PI * 2);
-      ctx.strokeStyle = '#0B0B0C';
-      ctx.lineWidth = Math.max(1.5, size * 0.02);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  function buildBrandedQr(profileLink, username, cb) {
-    var size = 720;
-    var img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = function () {
-      try {
-        var c = document.createElement('canvas');
-        c.width = size;
-        c.height = size + 110;
-        var ctx = c.getContext('2d');
-        ctx.fillStyle = '#0B0B0C';
-        ctx.fillRect(0, 0, c.width, c.height);
-        var pad = 28;
-        roundRectPath(ctx, pad, pad, size - pad * 2, size - pad * 2, 32);
-        ctx.fillStyle = '#C8F560';
-        ctx.fill();
-        var qrPad = 56;
-        ctx.drawImage(img, qrPad, qrPad, size - qrPad * 2, size - qrPad * 2);
-        drawThreeDots(ctx, size / 2, size / 2, size * 0.22);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = '700 28px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('@' + String(username || ''), size / 2, size + 36);
-        ctx.font = '600 18px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif';
-        ctx.fillStyle = '#C8F560';
-        ctx.fillText('Tchilo', size / 2, size + 68);
-        cb(null, c);
-      } catch (e) {
-        cb(e);
-      }
-    };
-    img.onerror = function () {
-      cb(new Error('QR fail'));
-    };
-    img.src =
-      'https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=10&color=0B0B0C&bgcolor=C8F560&data=' +
-      encodeURIComponent(profileLink);
-  }
-
   function openQrModal(username, url) {
     ensureCSS();
     var modal = document.getElementById('tchiloQrModal');
@@ -283,61 +186,36 @@
       '</div>' +
       '<div id="tchiloQrMount" style="min-height:220px;display:flex;align-items:center;justify-content:center;font-weight:700">A gerar QR…</div>' +
       '<div class="actions">' +
-      '<button type="button" class="primary" data-q="download">Descarregar QR</button>' +
-      '<button type="button" class="ghost" data-q="copy">Copiar link</button>' +
+      '<button type="button" class="primary" data-q="copy">Copiar link</button>' +
       '<button type="button" class="ghost" data-q="close">Fechar</button>' +
       '</div></div>';
     modal.classList.add('open');
-    window.__tchiloQrCanvas = null;
     modal.onclick = function (e) {
       if (e.target === modal) closeQr();
     };
-    var mount = document.getElementById('tchiloQrMount');
-    buildBrandedQr(url, username, function (err, canvas) {
-      if (!mount) return;
-      if (err || !canvas) {
-        var fallback =
-          'https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=12&color=0B0B0C&bgcolor=C8F560&data=' +
-          encodeURIComponent(url);
-        mount.innerHTML =
-          '<img alt="QR" src="' +
-          fallback +
-          '" style="width:100%;border-radius:12px;border:0"/>';
-        return;
-      }
-      window.__tchiloQrCanvas = canvas;
-      mount.innerHTML = '';
-      canvas.style.width = '100%';
-      canvas.style.height = 'auto';
-      canvas.style.borderRadius = '14px';
-      mount.appendChild(canvas);
-    });
-    modal.querySelectorAll('[data-q]').forEach(function (b) {
-      b.onclick = function (e) {
-        e.preventDefault();
+    modal.querySelectorAll('[data-q]').forEach(function (btn) {
+      btn.onclick = function (e) {
         e.stopPropagation();
-        var a = b.getAttribute('data-q');
-        if (a === 'close') return closeQr();
-        if (a === 'copy') return copyText(url);
-        if (a === 'download' && window.__tchiloQrCanvas) {
-          try {
-            var aEl = document.createElement('a');
-            aEl.download = 'tchilo-' + (username || 'perfil') + '-qr.png';
-            aEl.href = window.__tchiloQrCanvas.toDataURL('image/png');
-            document.body.appendChild(aEl);
-            aEl.click();
-            setTimeout(function () {
-              try {
-                document.body.removeChild(aEl);
-              } catch (e2) {}
-            }, 200);
-            toast('QR guardado');
-          } catch (err) {
-            toast('Não foi possível descarregar');
-          }
+        var q = btn.getAttribute('data-q');
+        if (q === 'close') closeQr();
+        if (q === 'copy') {
+          copyText(url);
+          closeQr();
         }
       };
     });
+    try {
+      var mount = document.getElementById('tchiloQrMount');
+      if (mount && typeof QRCode !== 'undefined') {
+        mount.innerHTML = '';
+        new QRCode(mount, { text: url, width: 200, height: 200 });
+      } else if (mount) {
+        mount.innerHTML =
+          '<img alt="QR" style="width:200px;height:200px" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' +
+          encodeURIComponent(url) +
+          '"/>';
+      }
+    } catch (e) {}
   }
 
   function openSheet() {
@@ -351,10 +229,13 @@
     wrap.id = 'tchiloProfileShareSheet';
     wrap.className = 'open';
     wrap.innerHTML =
-      '<div class="tchilo-ps-panel" role="dialog" aria-label="Partilhar perfil">' +
+      '<div class="tchilo-ps-panel" role="dialog" aria-label="Opções do perfil">' +
       '<div class="tchilo-ps-handle"></div>' +
-      '<h3>Partilhar perfil</h3>' +
+      '<h3>Opções</h3>' +
       (user ? '<p class="tchilo-ps-user">@' + String(user).replace(/</g, '') + '</p>' : '') +
+      '<button type="button" class="opt" data-act="settings"><span class="ic">' +
+      IC.settings +
+      '</span><span>Definições</span></button>' +
       '<button type="button" class="opt" data-act="copy"><span class="ic">' +
       IC.link +
       '</span><span>Copiar link</span></button>' +
@@ -404,6 +285,14 @@
             setTimeout(function () {
               openQrModal(user, url);
             }, 80);
+            return;
+          }
+          if (act === 'settings') {
+            closeSheet();
+            setTimeout(function () {
+              if (typeof goTo === 'function') goTo('settings');
+              else if (typeof window.goTo === 'function') window.goTo('settings');
+            }, 40);
           }
         },
         true
@@ -412,6 +301,7 @@
   }
 
   window.tchiloOpenProfileShare = openSheet;
+  window.openProfileShareSheet = openSheet;
 
   function ensureHeaderBtn() {
     ensureCSS();
@@ -427,53 +317,25 @@
       btn.className = 'tchilo-profile-more';
       btn.setAttribute('aria-label', 'Mais opções');
       btn.innerHTML = IC.more;
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openSheet();
+      });
       header.appendChild(btn);
     }
-    btn.onclick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      openSheet();
-    };
   }
 
-  if (!window.__tchiloProfileShareClickV10) {
-    window.__tchiloProfileShareClickV10 = true;
-    document.addEventListener(
-      'click',
-      function (e) {
-        var t = e.target;
-        if (!t) return;
-        var btn =
-          t.id === 'tchiloProfileMoreBtn'
-            ? t
-            : t.closest && t.closest('#tchiloProfileMoreBtn');
-        if (btn) {
-          e.preventDefault();
-          e.stopPropagation();
-          openSheet();
-        }
-      },
-      true
-    );
-  }
-
-  function boot() {
-    ensureHeaderBtn();
-  }
-  boot();
-  setTimeout(boot, 200);
-  setTimeout(boot, 800);
-  setTimeout(boot, 2000);
-  setInterval(boot, 3000);
-
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__sharePatchV10) {
+  ensureHeaderBtn();
+  setTimeout(ensureHeaderBtn, 400);
+  setTimeout(ensureHeaderBtn, 1500);
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenu) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
-      setTimeout(ensureHeaderBtn, 30);
-      setTimeout(ensureHeaderBtn, 200);
+      setTimeout(ensureHeaderBtn, 40);
       return r;
     };
-    window.renderProfile.__sharePatchV10 = true;
+    window.renderProfile.__shareMenu = true;
   }
 })();

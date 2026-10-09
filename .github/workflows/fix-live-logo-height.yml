@@ -1,0 +1,43 @@
+name: Fix LIVE logo inline height
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set logo-img inline height to 68px
+        run: |
+          set -e
+          python3 << 'PY'
+          path = "index.html"
+          data = open(path, encoding="utf-8", errors="replace").read()
+          old = 'style="cursor:pointer;height:28px;width:auto;object-fit:contain;"'
+          new = 'style="cursor:pointer;height:68px;width:auto;object-fit:contain;"'
+          if old not in data:
+              # try variants
+              import re
+              m = re.search(r'class="logo-img"[^>]*style="([^"]*)"', data)
+              print("current style:", m.group(1) if m else "not found")
+              if m and "height:28px" in m.group(1):
+                  data2 = data.replace(m.group(0), m.group(0).replace("height:28px", "height:68px"), 1)
+              else:
+                  raise SystemExit("pattern not found")
+          else:
+              data2 = data.replace(old, new, 1)
+          open(path, "w", encoding="utf-8").write(data2)
+          print("ok", "height:68px" in data2[data2.find("logo-img"):data2.find("logo-img")+400])
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "LIVE logo: height inline 28px → 68px (tamanho do index)"
+            git push
+          fi

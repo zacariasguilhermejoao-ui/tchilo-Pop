@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v63 — app grátis, Premium no site */
+/** tchilo-Pop loaders v64 — Play-safe: sem compra na app */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V63) return;
-  window.__TCHILO_FEED_STABLE_V63 = true;
+  if (window.__TCHILO_FEED_STABLE_V64) return;
+  window.__TCHILO_FEED_STABLE_V64 = true;
 
   function add(src, sync) {
     try {
@@ -26,7 +26,7 @@
 
   function load() {
     add('native/tchilo-final-css.js?v=3', true);
-    add('native/tchilo-store-policy.js?v=1', true);
+    add('native/tchilo-store-policy.js?v=2', true);
     add('native/tchilo-nav-icons-lock.js?v=1', true);
     add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-logo-restore.js?v=7', true);

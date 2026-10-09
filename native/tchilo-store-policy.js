@@ -1,106 +1,151 @@
 /**
- * Política de loja v1
- * - App Android (Play) = grátis
- * - Premium + Selo verificado = só no site (tchilopop.com)
- * - Web continua com Paddle normalmente
+ * Política de loja v2 (Play-safe)
+ * - App nativa = grátis, SEM checkout e SEM link para pagar no site
+ * - Premium / Selo: compra só no browser (tchilopop.com)
+ * - Na app: pode ver estado "já ativo" se a conta comprou no site
  */
 (function () {
   'use strict';
-  if (window.__tchiloStorePolicyV1) return;
+  if (window.__tchiloStorePolicyV2) return;
+  window.__tchiloStorePolicyV2 = true;
   window.__tchiloStorePolicyV1 = true;
 
-  var SITE = 'https://tchilopop.com';
-
-  function isNativePlayApp() {
+  function isNativeStoreApp() {
     try {
       if (window.Capacitor) {
-        if (typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) {
-          var p =
-            typeof window.Capacitor.getPlatform === 'function'
-              ? window.Capacitor.getPlatform()
-              : '';
-          if (p === 'android' || p === 'ios') return true;
+        if (
+          typeof window.Capacitor.isNativePlatform === 'function' &&
+          window.Capacitor.isNativePlatform()
+        ) {
           return true;
         }
       }
     } catch (e) {}
     try {
       var ua = navigator.userAgent || '';
-      /* WebView Android típico */
       if (/Android/i.test(ua) && /\bwv\b|; wv\)/i.test(ua)) return true;
     } catch (e2) {}
     return false;
   }
 
-  window.tchiloIsNativeStoreApp = isNativePlayApp;
+  window.tchiloIsNativeStoreApp = isNativeStoreApp;
 
-  function toast(msg) {
-    try {
-      if (typeof showToast === 'function') showToast(String(msg));
-      else alert(String(msg));
-    } catch (e) {}
-  }
-
-  function openSite(path) {
-    var url = SITE + (path || '/');
-    try {
-      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
-        window.Capacitor.Plugins.Browser.open({ url: url });
-        return;
-      }
-    } catch (e) {}
-    try {
-      window.open(url, '_blank');
-    } catch (e2) {
-      try {
-        location.href = url;
-      } catch (e3) {}
-    }
-  }
-
-  /**
-   * Se estiver na app da loja, bloqueia checkout in-app e manda ao site.
-   * @returns {boolean} true = bloqueou (não continuar Paddle na app)
-   */
-  function blockInAppPurchase(kind) {
-    if (!isNativePlayApp()) return false;
-    var label = kind === 'verified' ? 'Selo verificado' : 'Tchilo Premium';
-    toast(label + ' compra-se em tchilopop.com — a app é grátis.');
-    openSite(kind === 'verified' ? '/?verified=1' : '/?premium=1');
+  /** Sempre bloqueia compra na app (sem abrir site) */
+  function blockInAppPurchase() {
+    if (!isNativeStoreApp()) return false;
     return true;
   }
-
   window.tchiloBlockInAppPurchase = blockInAppPurchase;
 
-  /* Patch Premium */
-  function patchPremium() {
-    if (typeof window.tchiloOpenPremium !== 'function') return;
-    if (window.tchiloOpenPremium.__storePolicy) return;
-    var orig = window.tchiloOpenPremium;
-    window.tchiloOpenPremium = function () {
-      /* ainda mostra o ecrã informativo; o botão pagar é que bloqueia */
-      return orig.apply(this, arguments);
-    };
-    window.tchiloOpenPremium.__storePolicy = true;
+  function injectHideCSS() {
+    if (!isNativeStoreApp()) return;
+    var st = document.getElementById('tchilo-store-policy-css');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'tchilo-store-policy-css';
+      (document.head || document.documentElement).appendChild(st);
+    }
+    st.textContent =
+      /* Esconder botões de pagar / preços de checkout */
+      '#tchiloPremiumSheet button.pay,' +
+      '#tchiloPremiumSheet [data-a="pay"],' +
+      '#tchiloPremiumSheet .tp-price,' +
+      '#tchiloVerifiedSheet button.pay,' +
+      '#tchiloVerifiedSheet [data-a="pay"],' +
+      '#tchiloVerifiedSheet .tv-price{' +
+      'display:none!important;}' +
+      /* Nota informativa (sem link de pagamento) */
+      '#tchiloPremiumSheet .tchilo-store-note,' +
+      '#tchiloVerifiedSheet .tchilo-store-note{display:block!important;}';
   }
 
-  /* Interceptar cliques em botões .pay dentro dos sheets */
+  function addNote(sheetSel, text) {
+    try {
+      var sheet = document.querySelector(sheetSel);
+      if (!sheet || !sheet.classList.contains('open')) return;
+      if (sheet.querySelector('.tchilo-store-note')) return;
+      var scroll = sheet.querySelector('.tp-scroll, .tv-scroll') || sheet;
+      var note = document.createElement('p');
+      note.className = 'tchilo-store-note';
+      note.setAttribute('role', 'status');
+      note.style.cssText =
+        'text-align:center;font-size:13px;font-weight:600;opacity:.7;line-height:1.45;margin:12px 0 8px;padding:0 8px;';
+      note.textContent = text;
+      /* inserir antes do botão fechar se existir */
+      var closeBtn = sheet.querySelector('button.close, [data-a="close"]');
+      if (closeBtn && closeBtn.parentNode) {
+        closeBtn.parentNode.insertBefore(note, closeBtn);
+      } else {
+        scroll.appendChild(note);
+      }
+    } catch (e) {}
+  }
+
+  function scrubSheets() {
+    if (!isNativeStoreApp()) return;
+    injectHideCSS();
+    try {
+      document
+        .querySelectorAll(
+          '#tchiloPremiumSheet button.pay, #tchiloPremiumSheet [data-a="pay"],' +
+            '#tchiloVerifiedSheet button.pay, #tchiloVerifiedSheet [data-a="pay"]'
+        )
+        .forEach(function (btn) {
+          try {
+            btn.style.display = 'none';
+            btn.setAttribute('disabled', 'true');
+            btn.onclick = function (e) {
+              if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+              return false;
+            };
+          } catch (err) {}
+        });
+    } catch (e) {}
+    addNote(
+      '#tchiloPremiumSheet',
+      'A app é gratuita. O Tchilo Premium gere-se na conta no site, no browser.'
+    );
+    addNote(
+      '#tchiloVerifiedSheet',
+      'A app é gratuita. O selo verificado gere-se na conta no site, no browser.'
+    );
+  }
+
+  /* Bloquear clique em pagar (fallback) */
   document.addEventListener(
     'click',
     function (e) {
-      if (!isNativePlayApp()) return;
+      if (!isNativeStoreApp()) return;
       var btn = e.target && e.target.closest ? e.target.closest('button.pay, [data-a="pay"]') : null;
       if (!btn) return;
-      var inPrem = btn.closest('#tchiloPremiumSheet');
-      var inVer = btn.closest('#tchiloVerifiedSheet');
-      if (!inPrem && !inVer) return;
+      if (!btn.closest('#tchiloPremiumSheet, #tchiloVerifiedSheet')) return;
       e.preventDefault();
       e.stopPropagation();
-      blockInAppPurchase(inVer ? 'verified' : 'premium');
     },
     true
   );
 
-  setTimeout(patchPremium, 500);
-  setTimeout(patchPremium, 2000);
+  /* Quando abrem os sheets, limpar CTAs de compra */
+  function watchOpen() {
+    if (!isNativeStoreApp()) return;
+    try {
+      new MutationObserver(function () {
+        scrubSheets();
+      }).observe(document.body || document.documentElement, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    } catch (e) {}
+  }
+
+  injectHideCSS();
+  scrubSheets();
+  watchOpen();
+  setTimeout(scrubSheets, 600);
+  setTimeout(scrubSheets, 2000);
 })();

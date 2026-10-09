@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v62 — swipe down sheets */
+/** tchilo-Pop loaders v63 — app grátis, Premium no site */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V62) return;
-  window.__TCHILO_FEED_STABLE_V62 = true;
+  if (window.__TCHILO_FEED_STABLE_V63) return;
+  window.__TCHILO_FEED_STABLE_V63 = true;
 
   function add(src, sync) {
     try {
@@ -26,6 +26,7 @@
 
   function load() {
     add('native/tchilo-final-css.js?v=3', true);
+    add('native/tchilo-store-policy.js?v=1', true);
     add('native/tchilo-nav-icons-lock.js?v=1', true);
     add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-logo-restore.js?v=7', true);

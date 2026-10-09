@@ -102,7 +102,7 @@
       '#tchiloSaldoSheet .ts-card{background:#fff;border-radius:16px;padding:4px 0;margin:0 0 14px;}' +
       '#tchiloSaldoSheet .ts-row{display:flex;align-items:center;gap:14px;width:100%;padding:14px 16px;border:0;background:transparent;text-align:left;font:600 15px system-ui,-apple-system,sans-serif;color:var(--ink,#0B0B0C);cursor:pointer;}' +
       '#tchiloSaldoSheet .ts-row + .ts-row{border-top:0.5px solid rgba(11,11,12,.08);}' +
-      '#tchiloSaldoSheet .ts-ico{width:40px;height:40px;border-radius:12px;background:rgba(11,11,12,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;}' +
+      '#tchiloSaldoSheet .ts-ico{width:40px;height:40px;border-radius:12px;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;}' +
       '#tchiloSaldoSheet .ts-row span.sub{display:block;font-size:12.5px;font-weight:600;opacity:.55;margin-top:2px;}' +
       '#tchiloSaldoSheet .ts-chev{margin-left:auto;opacity:.35;font-size:18px;}' +
       '#tchiloCoinsSheet{position:fixed;inset:0;z-index:2147483641;display:none;flex-direction:column;background:var(--paper,#F6F1E7);color:var(--ink,#0B0B0C);}' +
@@ -321,7 +321,9 @@
       '</div><div><b>Obter Moedas</b><span class="sub">Recarrega para enviar presentes nas LIVEs</span></div>' +
       '<span class="ts-chev">›</span></button>' +
       '<button type="button" class="ts-row" data-a="tx">' +
-      '<div class="ts-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>' +
+      '<div class="ts-ico">' +
+      COIN_SVG +
+      '</div>' +
       '<div><b>Transações</b><span class="sub">Histórico de compras e envios</span></div>' +
       '<span class="ts-chev">›</span></button>' +
       '</div>' +

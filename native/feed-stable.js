@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v57 — premium/verified UI */
+/** tchilo-Pop loaders v58 — Definições no menu ⋯ */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V57) return;
-  window.__TCHILO_FEED_STABLE_V57 = true;
+  if (window.__TCHILO_FEED_STABLE_V58) return;
+  window.__TCHILO_FEED_STABLE_V58 = true;
 
   function add(src, sync) {
     try {
@@ -69,7 +69,7 @@
     add('native/tchilo-publish-fix.js?v=5');
     add('native/tchilo-video-pick.js?v=6');
     add('native/tchilo-deeplink.js?v=2');
-    add('native/tchilo-profile-share.js?v=10');
+    add('native/tchilo-profile-share.js?v=11');
     add('native/tchilo-profile-boost.js?v=1');
     add('native/tchilo-ads-ui.js?v=7');
     add('native/tchilo-ads-force.js?v=2');

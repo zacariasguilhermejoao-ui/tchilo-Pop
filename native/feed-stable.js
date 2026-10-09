@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v67 — presentes no post */
+/** tchilo-Pop loaders v68 — live lobby */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V67) return;
-  window.__TCHILO_FEED_STABLE_V67 = true;
+  if (window.__TCHILO_FEED_STABLE_V68) return;
+  window.__TCHILO_FEED_STABLE_V68 = true;
 
   function add(src, sync) {
     try {
@@ -30,7 +30,8 @@
     add('native/tchilo-nav-icons-lock.js?v=1', true);
     add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-logo-restore.js?v=7', true);
-    add('native/tchilo-live-bind.js?v=1', true);
+    add('native/tchilo-live-lobby.js?v=1', true);
+    add('native/tchilo-live-bind.js?v=2', true);
     add('native/tchilo-feed-lock.js?v=4', true);
     add('native/feed-noflicker.js?v=5', true);
     add('native/tchilo-ui-stable.js?v=2', true);

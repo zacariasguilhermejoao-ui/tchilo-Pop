@@ -1,11 +1,12 @@
 /**
- * CSS final v1 — carrega PRIMEIRO
- * Só CSS. Zero JS a mudar DOM/estilos depois.
- * Assim o perfil/feed não mostra “versão antiga” e depois “nova”.
+ * CSS final v2
+ * - + perfil, Live, badges stories
+ * - linhas de cabeçalho 1px em TODAS as páginas (Definições e subpáginas)
  */
 (function () {
   'use strict';
-  if (window.__tchiloFinalCssV1) return;
+  if (window.__tchiloFinalCssV2) return;
+  window.__tchiloFinalCssV2 = true;
   window.__tchiloFinalCssV1 = true;
 
   var st = document.getElementById('tchilo-final-css');
@@ -16,11 +17,37 @@
   }
 
   st.textContent =
-    /* LIVE topbar: NÃO tocar no src/tamanho — index manda */
-    /* Botão + perfil: estado FINAL (preto, fora do círculo) */
+    /* Cabeçalhos: linha fina 1px em todas as screens (incl. settings-*) */
+    '.screen-header,' +
+    '.screen > .screen-header,' +
+    '[id^="screen-"] > .screen-header,' +
+    '#screen-settings > .screen-header,' +
+    '#screen-settings-account > .screen-header,' +
+    '#screen-settings-advanced > .screen-header,' +
+    '#screen-settings-language > .screen-header,' +
+    '#screen-settings-legal > .screen-header,' +
+    '#screen-settings-notifications > .screen-header,' +
+    '#screen-settings-privacy > .screen-header,' +
+    '#screen-settings-stories > .screen-header,' +
+    '#screen-settings-theme > .screen-header,' +
+    '#screen-privacy > .screen-header,' +
+    '#screen-about > .screen-header,' +
+    '#screen-terms > .screen-header,' +
+    '#screen-community > .screen-header,' +
+    '#screen-child > .screen-header,' +
+    '#screen-editprofile > .screen-header,' +
+    '#screen-saved > .screen-header,' +
+    '#screen-search > .screen-header,' +
+    '#screen-messages > .screen-header,' +
+    '#screen-notifs > .screen-header,' +
+    '#screen-profile > .screen-header{' +
+    'border-bottom:1px solid var(--line,rgba(0,0,0,.12))!important;' +
+    'border-bottom-width:1px!important;' +
+    'border-bottom-style:solid!important;' +
+    'box-shadow:none!important;}' +
+    /* Avatar + */
     '.profile-header,.profile-avatar,#profileBody .profile-avatar,' +
-    '#profileBody,.profile-header .profile-avatar{' +
-    'overflow:visible!important;}' +
+    '#profileBody,.profile-header .profile-avatar{overflow:visible!important;}' +
     '.profile-avatar{position:relative!important;}' +
     '#tchiloProfileAvatarPlus,' +
     '#tchiloProfileAvatarPlus.tchilo-av-add,' +
@@ -50,7 +77,6 @@
     '#tchiloProfileAvatarPlus svg,.tchilo-av-add svg{' +
     'width:16px!important;height:16px!important;' +
     'stroke:#fff!important;color:#fff!important;display:block!important;}' +
-    /* Iniciar Live: vermelho final (igual index) — só CSS, sem recriar botão */
     '#profileBody .profile-actions button[data-tchilo-live],' +
     '#profileBody button[data-tchilo-live],' +
     'button.profile-btn[data-tchilo-live]{' +
@@ -59,7 +85,6 @@
     'color:#fff!important;' +
     'border:2px solid #e11d48!important;' +
     'animation:none!important;transition:none!important;}' +
-    /* badges play em stories: escondidos */
     '#storiesBar .tchilo-play-badge,#storiesBar .tchilo-feed-play,' +
     '.story-card .tchilo-play-badge,.story-card .tchilo-feed-play{' +
     'display:none!important;visibility:hidden!important;}';

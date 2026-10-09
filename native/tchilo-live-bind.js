@@ -1,32 +1,33 @@
 /**
- * LIVE bind v1
- * - NÃO altera src, HTML nem tamanho do .logo-img (index manda)
- * - Só liga o clique → abrir Live
+ * LIVE bind v2
+ * - Clique no ícone LIVE do feed → lobby (pessoas em direto)
+ * - Setup da tua live só pelo botão LIVE dentro do lobby
  */
 (function () {
   'use strict';
-  if (window.__tchiloLiveBindV1) return;
+  if (window.__tchiloLiveBindV2) return;
+  window.__tchiloLiveBindV2 = true;
   window.__tchiloLiveBindV1 = true;
 
-  function openLive(e) {
+  function openFromFeed(e) {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
     try {
-      if (typeof window.tchiloOpenLiveSetup === 'function') {
-        window.tchiloOpenLiveSetup();
+      if (typeof window.tchiloOpenLiveLobby === 'function') {
+        window.tchiloOpenLiveLobby();
         return;
       }
     } catch (err) {}
     try {
-      if (typeof window.openLive === 'function') {
-        window.openLive();
+      if (typeof window.openLiveLobby === 'function') {
+        window.openLiveLobby();
         return;
       }
     } catch (err2) {}
     try {
-      if (typeof goTo === 'function') goTo('live');
+      if (typeof window.tchiloOpenLiveSetup === 'function') window.tchiloOpenLiveSetup();
     } catch (err3) {}
   }
 
@@ -37,18 +38,17 @@
       );
       for (var i = 0; i < logos.length; i++) {
         var el = logos[i];
-        if (el.__tchiloLiveBound) continue;
-        el.__tchiloLiveBound = true;
+        if (el.__tchiloLiveBoundV2) continue;
+        el.__tchiloLiveBoundV2 = true;
         el.style.cursor = 'pointer';
         el.setAttribute('role', 'button');
-        el.setAttribute('aria-label', el.getAttribute('aria-label') || 'Live');
-        el.addEventListener('click', openLive);
-        /* pai clicável se for o logo wrap */
+        el.setAttribute('aria-label', 'Lives em direto');
+        el.addEventListener('click', openFromFeed, true);
         var p = el.parentElement;
-        if (p && !p.__tchiloLiveBound && (p.classList.contains('logo') || p.classList.contains('topbar-logo'))) {
-          p.__tchiloLiveBound = true;
+        if (p && !p.__tchiloLiveBoundV2 && (p.classList.contains('logo') || p.classList.contains('topbar-logo'))) {
+          p.__tchiloLiveBoundV2 = true;
           p.style.cursor = 'pointer';
-          p.addEventListener('click', openLive);
+          p.addEventListener('click', openFromFeed, true);
         }
       }
     } catch (e) {}

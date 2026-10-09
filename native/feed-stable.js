@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v56 — linhas finas em Definições */
+/** tchilo-Pop loaders v57 — premium/verified UI */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V56) return;
-  window.__TCHILO_FEED_STABLE_V56 = true;
+  if (window.__TCHILO_FEED_STABLE_V57) return;
+  window.__TCHILO_FEED_STABLE_V57 = true;
 
   function add(src, sync) {
     try {
@@ -57,11 +57,11 @@
     add('native/tchilo-og-meta.js?v=1');
     add('native/tchilo-avatar-cloud.js?v=4');
     add('native/tchilo-avatar-viewer.js?v=1');
-    add('native/tchilo-premium.js?v=1');
+    add('native/tchilo-premium.js?v=3');
     add('native/paddle-premium.js?v=2');
     add('native/paddle-ad-guard.js?v=1');
     add('native/tchilo-theme-premium-gate.js?v=1');
-    add('native/tchilo-verified.js?v=2');
+    add('native/tchilo-verified.js?v=5');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=2');
     add('native/tchilo-music-sheet.js?v=1');

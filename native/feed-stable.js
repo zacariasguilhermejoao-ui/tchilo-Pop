@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v55 — notifs icon só do index */
+/** tchilo-Pop loaders v56 — linhas finas em Definições */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V55) return;
-  window.__TCHILO_FEED_STABLE_V55 = true;
+  if (window.__TCHILO_FEED_STABLE_V56) return;
+  window.__TCHILO_FEED_STABLE_V56 = true;
 
   function add(src, sync) {
     try {
@@ -25,7 +25,7 @@
   }
 
   function load() {
-    add('native/tchilo-final-css.js?v=1', true);
+    add('native/tchilo-final-css.js?v=2', true);
     add('native/tchilo-nav-icons-lock.js?v=1', true);
     add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-logo-restore.js?v=5', true);
@@ -39,7 +39,7 @@
     add('native/tchilo-login-session-fix.js?v=9', true);
     add('native/tchilo-hide-nav.js?v=4');
     add('native/tchilo-router.js?v=5');
-    add('native/tchilo-header-ui.js?v=4');
+    add('native/tchilo-header-ui.js?v=5');
     add('native/tchilo-story-pick-fix.js?v=1');
     add('native/tchilo-reels-open-fix.js?v=8');
     add('native/tchilo-feed-video-ui.js?v=3');

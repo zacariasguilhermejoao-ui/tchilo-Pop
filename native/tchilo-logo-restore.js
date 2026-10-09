@@ -1,17 +1,31 @@
 /**
- * Logo LIVE v9 — só o desenho do index
+ * Logo LIVE v10 — só o desenho do index
  * - Protege APENAS o src (ícone do index)
- * - NÃO mexe em height/width/size (fica o do index)
+ * - Remove a regra do icon-lock que forçava height no logo
+ * - NÃO define height/width (fica 100% o CSS do index)
  */
 (function () {
   'use strict';
-  if (window.__tchiloLogoRestoreV9) return;
+  if (window.__tchiloLogoRestoreV10) return;
+  window.__tchiloLogoRestoreV10 = true;
   window.__tchiloLogoRestoreV9 = true;
   window.__tchiloLogoRestoreV8 = true;
   window.__tchiloLogoRestoreV7 = true;
   window.__tchiloLogoRestoreV6 = true;
 
   var INDEX_SRC = null;
+
+  function stripIconLockLogoSize() {
+    try {
+      var st = document.getElementById('tchilo-icon-lock-css');
+      if (!st || !st.textContent) return;
+      var next = st.textContent.replace(
+        /html\s+body\s+\.topbar\s+img\.logo-img\s*\{[^}]*\}/gi,
+        ''
+      );
+      if (next !== st.textContent) st.textContent = next;
+    } catch (e) {}
+  }
 
   function capture() {
     try {
@@ -29,6 +43,7 @@
   }
 
   function enforce() {
+    stripIconLockLogoSize();
     try {
       var el = document.querySelector(
         '#screen-feed .topbar img.logo-img, .topbar img.logo-img, img.logo-img'
@@ -42,17 +57,20 @@
     } catch (e) {}
   }
 
+  stripIconLockLogoSize();
   capture();
   enforce();
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
+      stripIconLockLogoSize();
       capture();
       enforce();
     });
   }
   [100, 500, 1500].forEach(function (ms) {
     setTimeout(function () {
+      stripIconLockLogoSize();
       capture();
       enforce();
     }, ms);
@@ -60,8 +78,8 @@
 
   try {
     var top = document.querySelector('#screen-feed .topbar, .topbar');
-    if (top && !top.__logoLiveObsV9) {
-      top.__logoLiveObsV9 = true;
+    if (top && !top.__logoLiveObsV10) {
+      top.__logoLiveObsV10 = true;
       new MutationObserver(function () {
         enforce();
       }).observe(top, {

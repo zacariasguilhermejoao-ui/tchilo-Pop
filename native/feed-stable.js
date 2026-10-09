@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v54 — CSS final primeiro, sem flash antigo→novo */
+/** tchilo-Pop loaders v55 — notifs icon só do index */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V54) return;
-  window.__TCHILO_FEED_STABLE_V54 = true;
+  if (window.__TCHILO_FEED_STABLE_V55) return;
+  window.__TCHILO_FEED_STABLE_V55 = true;
 
   function add(src, sync) {
     try {
@@ -25,8 +25,8 @@
   }
 
   function load() {
-    /* 1º: CSS final — evita flash amarelo→preto no + e Live */
     add('native/tchilo-final-css.js?v=1', true);
+    add('native/tchilo-nav-icons-lock.js?v=1', true);
     add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-logo-restore.js?v=5', true);
     add('native/tchilo-feed-lock.js?v=4', true);

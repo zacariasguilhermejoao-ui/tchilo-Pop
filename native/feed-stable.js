@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v65 — Saldo / Moedas */
+/** tchilo-Pop loaders v66 — saldo 70 moedas */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V65) return;
-  window.__TCHILO_FEED_STABLE_V65 = true;
+  if (window.__TCHILO_FEED_STABLE_V66) return;
+  window.__TCHILO_FEED_STABLE_V66 = true;
 
   function add(src, sync) {
     try {
@@ -65,7 +65,7 @@
     add('native/paddle-ad-guard.js?v=1');
     add('native/tchilo-theme-premium-gate.js?v=1');
     add('native/tchilo-verified.js?v=5');
-    add('native/tchilo-saldo.js?v=1');
+    add('native/tchilo-saldo.js?v=2');
     add('native/tchilo-saldo-menu.js?v=1');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=2');

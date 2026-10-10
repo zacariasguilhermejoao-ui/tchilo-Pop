@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v81 — sons de clique */
+/** tchilo-Pop loaders v82 — chat UI clean */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V81) return;
-  window.__TCHILO_FEED_STABLE_V81 = true;
+  if (window.__TCHILO_FEED_STABLE_V82) return;
+  window.__TCHILO_FEED_STABLE_V82 = true;
 
   function add(src, sync) {
     try {
@@ -69,7 +69,8 @@
       'native/feed-stories-scroll.js?v=3',
       'native/tchilo-music-stop.js?v=2',
       'native/tchilo-music-feed-fix.js?v=3',
-      'native/tchilo-menu-clean.js?v=1'
+      'native/tchilo-menu-clean.js?v=1',
+      'native/tchilo-chat-ui-clean.js?v=1'
     ]);
   }
 

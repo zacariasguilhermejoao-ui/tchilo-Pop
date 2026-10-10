@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v80 — modais + 1 turbinar */
+/** tchilo-Pop loaders v81 — sons de clique */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V80) return;
-  window.__TCHILO_FEED_STABLE_V80 = true;
+  if (window.__TCHILO_FEED_STABLE_V81) return;
+  window.__TCHILO_FEED_STABLE_V81 = true;
 
   function add(src, sync) {
     try {
@@ -31,6 +31,7 @@
   function loadCritical() {
     add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-perf-boost.js?v=1', true);
+    add('native/tchilo-click-sounds.js?v=1', true);
     add('native/tchilo-final-css.js?v=3', true);
     add('native/tchilo-modal-ui.js?v=2', true);
     add('native/tchilo-store-policy.js?v=2', true);

@@ -187,7 +187,7 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
     object-fit:contain;
     max-height:72px;
   }
-  .topbar-icons{ display:flex; gap:12px; }
+  .topbar-icons{ display:flex; gap:12px; margin-left:auto; justify-content:flex-end; align-items:center; }
   .icon-btn{
     width:36px; height:36px;
     border:2.5px solid var(--ink);
@@ -2367,6 +2367,61 @@ body .navbar button.nav-post{
 body .navbar button.nav-post svg{width:44px !important; height:44px !important; display:block;}
 body .navbar .nav-item[data-screen="feed"] svg{width:34px !important; height:34px !important;}
 </style>
+<style id="tchilo-nav-active-css">
+/* Ícones de baixo: inativo = só contorno (transparente); ativo = preenchido */
+body .navbar .nav-item svg path,
+body .navbar .nav-item svg circle,
+body .navbar .nav-item svg rect{ transition:fill .15s ease, stroke .15s ease; }
+
+/* FEED (casa) */
+body .navbar .nav-item[data-screen="feed"].active svg path:first-child{ fill:var(--ink); }
+body .navbar .nav-item[data-screen="feed"].active svg path:nth-child(2){ stroke:var(--paper); }
+
+/* REELS */
+body .navbar .nav-item[data-screen="reels"].active svg rect{ fill:var(--ink); }
+body .navbar .nav-item[data-screen="reels"].active svg g path{ stroke:var(--paper); }
+body .navbar .nav-item[data-screen="reels"].active svg g path:last-child{ fill:var(--paper); }
+
+/* NOTIFICAÇÕES (sino) */
+body .navbar .nav-item[data-screen="notifs"].active svg path:first-child,
+body .navbar .nav-item[data-screen="notifs"].active svg path:nth-child(3){ fill:var(--ink); }
+
+/* PERFIL */
+body .navbar .nav-item[data-screen="profile"].active svg circle,
+body .navbar .nav-item[data-screen="profile"].active svg path{ fill:var(--ink); }
+
+/* Sem bolinha rosa por baixo dos ícones (mantém o espaço, para nada saltar) */
+body .navbar .nav-item .dot,
+body .navbar .nav-item.active .dot{ background:transparent !important; }
+</style>
+<style id="tchilo-post-follow-css">
+/* Feed: Seguir/Seguido sem contorno e a preto; três pontinhos a preto */
+body .post .post-follow,
+body .post .post-follow.following{
+  border:none !important;
+  background:transparent !important;
+  color:var(--ink) !important;
+  box-shadow:none !important;
+}
+body .post .post-follow.friends{
+  border:none !important;
+  box-shadow:none !important;
+}
+body .post .post-menu-btn{ color:var(--ink) !important; }
+</style>
+<style id="tchilo-no-reel-badge-css">.story-reel-badge{display:none !important;}</style>
+<style id="tchilo-post-icons-css">
+/* Ícones das ações do post (gosto, partilhar, guardar) */
+body .post-actions .act svg.ic-like,
+body .post-actions .act svg.ic-share,
+body .post-actions .act svg.ic-save{ width:27px; height:27px; flex-shrink:0; }
+body .post-actions .act svg.ic-like .ic-like-sep{ display:none; fill:none; stroke:var(--paper); stroke-width:12; }
+/* Gosto ativo: vermelho preenchido */
+body .post-actions .act.liked svg.ic-like{ fill:#FF3B30; stroke:#FF3B30; }
+body .post-actions .act.liked svg.ic-like .ic-like-sep{ display:block; }
+/* Guardar ativo: preenchido */
+body .post-actions .act.saved.active svg.ic-save{ fill:var(--ink); stroke:var(--ink); }
+</style>
 </head>
 <body>
 <script id="tchilo-click-fix-js-v1">
@@ -2566,13 +2621,13 @@ body .navbar .nav-item[data-screen="feed"] svg{width:34px !important; height:34p
     <div class="feed" id="feedList">
     <div class="topbar">
       <img class="logo-img" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2256 176 400 160%22 width=%22400%22 height=%22160%22%3E%3Crect x=%2256%22 y=%22176%22 width=%22400%22 height=%22160%22 rx=%2280%22 fill=%22%23000000%22/%3E%3Ccircle cx=%22148%22 cy=%22256%22 r=%2226%22 fill=%22%23FFFFFF%22/%3E%3Ctext x=%22290%22 y=%22284%22 text-anchor=%22middle%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22800%22 font-size=%2284%22 letter-spacing=%224%22 fill=%22%23FFFFFF%22%3ELIVE%3C/text%3E%3C/svg%3E%0A" alt="LIVE" style="cursor:pointer;height:68px;width:auto;object-fit:contain;" onclick="if(typeof tchiloOpenLiveSetup==='function'){tchiloOpenLiveSetup()}else if(typeof openLiveScreen==='function'){openLiveScreen()}else if(typeof openSetup==='function'){openSetup()}else{alert('Lives em breve')}" role="button" title="Lives">
-            <div class="topbar-icons">
-        <div class="icon-btn" onclick="goTo('messages')" title="SMS" aria-label="SMS" data-top-messages="1" style="border:none;background:transparent;width:50px;height:50px;">
-          <svg viewBox="0 0 1024 1024" width="46" height="46" style="width:46px;height:46px;display:block;" aria-hidden="true">
-<path fill="currentColor" fill-rule="evenodd" d="M893.25 488.50C892.71 487.33 891.67 485.92 890.50 485.00C889.33 484.08 887.92 483.50 886.25 483.00C884.58 482.50 883.46 482.21 880.50 482.00C877.54 481.79 871.33 481.75 868.50 481.75C865.67 481.75 865.88 481.62 863.50 482.00C861.12 482.38 856.71 483.29 854.25 484.00C851.79 484.71 850.54 485.29 848.75 486.25C846.96 487.21 845.04 488.50 843.50 489.75C841.96 491.00 840.71 492.29 839.50 493.75C838.29 495.21 840.33 489.71 836.25 498.50C832.17 507.29 820.08 535.29 815.00 546.50C809.92 557.71 808.75 559.92 805.75 565.75C802.75 571.58 800.12 576.38 797.00 581.50C793.88 586.62 792.71 588.67 787.00 596.50C781.29 604.33 768.62 621.25 762.75 628.50C756.88 635.75 754.96 636.96 751.75 640.00C748.54 643.04 745.71 645.12 743.50 646.75C741.29 648.38 740.12 648.92 738.50 649.75C736.88 650.58 735.33 651.29 733.75 651.75C732.17 652.21 730.67 652.50 729.00 652.50C727.33 652.50 725.42 652.42 723.75 651.75C722.08 651.08 720.17 649.67 719.00 648.50C717.83 647.33 717.29 645.88 716.75 644.75C716.21 643.62 716.04 643.33 715.75 641.75C715.46 640.17 715.00 638.25 715.00 635.25C715.00 632.25 715.29 627.83 715.75 623.75C716.21 619.67 715.58 621.79 717.75 610.75C719.92 599.71 726.42 569.25 728.75 557.50C731.08 545.75 730.92 545.92 731.75 540.25C732.58 534.58 733.42 528.29 733.75 523.50C734.08 518.71 734.08 515.00 733.75 511.50C733.42 508.00 732.38 504.62 731.75 502.50C731.12 500.38 730.75 500.00 730.00 498.75C729.25 497.50 728.50 496.29 727.25 495.00C726.00 493.71 724.33 492.12 722.50 491.00C720.67 489.88 718.29 488.92 716.25 488.25C714.21 487.58 713.25 487.21 710.25 487.00C707.25 486.79 701.12 486.83 698.25 487.00C695.38 487.17 695.12 487.46 693.00 488.00C690.88 488.54 688.21 489.21 685.50 490.25C682.79 491.29 680.08 492.42 676.75 494.25C673.42 496.08 668.42 499.29 665.50 501.25C662.58 503.21 662.71 502.96 659.25 506.00C655.79 509.04 649.33 514.54 644.75 519.50C640.17 524.46 635.04 531.33 631.75 535.75C628.46 540.17 627.42 542.04 625.00 546.00C622.58 549.96 621.04 552.00 617.25 559.50C613.46 567.00 604.83 586.17 602.25 591.00C599.67 595.83 600.50 594.96 601.75 588.50C603.00 582.04 607.75 562.21 609.75 552.25C611.75 542.29 612.96 533.88 613.75 528.75C614.54 523.62 614.38 524.33 614.50 521.50C614.62 518.67 614.83 515.04 614.50 511.75C614.17 508.46 613.29 504.33 612.50 501.75C611.71 499.17 610.67 497.71 609.75 496.25C608.83 494.79 607.96 493.92 607.00 493.00C606.04 492.08 605.62 491.58 604.00 490.75C602.38 489.92 599.21 488.62 597.25 488.00C595.29 487.38 595.17 487.17 592.25 487.00C589.33 486.83 583.33 486.67 579.75 487.00C576.17 487.33 573.25 488.29 570.75 489.00C568.25 489.71 567.88 489.71 564.75 491.25C561.62 492.79 555.83 495.79 552.00 498.25C548.17 500.71 545.21 503.00 541.75 506.00C538.29 509.00 534.67 512.54 531.25 516.25C527.83 519.96 524.62 523.79 521.25 528.25C517.88 532.71 514.00 538.29 511.00 543.00C508.00 547.71 506.08 551.00 503.25 556.50C500.42 562.00 496.54 570.08 494.00 576.00C491.46 581.92 489.17 589.21 488.00 592.00C486.83 594.79 487.25 592.71 487.00 592.75C486.75 592.79 486.54 593.08 486.50 592.25C486.46 591.42 486.21 592.04 486.75 587.75C487.29 583.46 488.08 575.29 489.75 566.50C491.42 557.71 494.46 544.67 496.75 535.00C499.04 525.33 502.17 514.12 503.50 508.50C504.83 502.88 504.54 503.58 504.75 501.25C504.96 498.92 504.96 496.17 504.75 494.50C504.54 492.83 503.96 492.08 503.50 491.25C503.04 490.42 502.58 490.00 502.00 489.50C501.42 489.00 501.17 488.67 500.00 488.25C498.83 487.83 498.25 487.21 495.00 487.00C491.75 486.79 483.96 486.83 480.50 487.00C477.04 487.17 476.50 487.46 474.25 488.00C472.00 488.54 469.12 489.38 467.00 490.25C464.88 491.12 463.33 491.92 461.50 493.25C459.67 494.58 457.38 496.79 456.00 498.25C454.62 499.71 454.25 500.33 453.25 502.00C452.25 503.67 451.88 502.62 450.00 508.25C448.12 513.88 444.33 526.12 442.00 535.75C439.67 545.38 437.33 558.46 436.00 566.00C434.67 573.54 434.62 575.08 434.00 581.00C433.38 586.92 432.62 592.29 432.25 601.50C431.88 610.71 431.75 628.38 431.75 636.25C431.75 644.12 431.88 643.88 432.25 648.75C432.62 653.62 433.38 661.00 434.00 665.50C434.62 670.00 435.17 672.46 436.00 675.75C436.83 679.04 438.00 682.71 439.00 685.25C440.00 687.79 441.04 689.42 442.00 691.00C442.96 692.58 443.54 693.46 444.75 694.75C445.96 696.04 447.46 697.58 449.25 698.75C451.04 699.92 453.46 701.08 455.50 701.75C457.54 702.42 459.71 702.58 461.50 702.75C463.29 702.92 464.38 702.92 466.25 702.75C468.12 702.58 470.62 702.33 472.75 701.75C474.88 701.17 477.08 700.38 479.00 699.25C480.92 698.12 482.83 696.50 484.25 695.00C485.67 693.50 486.25 692.67 487.50 690.25C488.75 687.83 489.21 688.83 491.75 680.50C494.29 672.17 499.58 650.79 502.75 640.25C505.92 629.71 507.92 624.67 510.75 617.25C513.58 609.83 516.71 602.29 519.75 595.75C522.79 589.21 526.25 582.79 529.00 578.00C531.75 573.21 533.83 570.12 536.25 567.00C538.67 563.88 541.62 560.92 543.50 559.25C545.38 557.58 546.29 557.42 547.50 557.00C548.71 556.58 549.96 556.67 550.75 556.75C551.54 556.83 551.71 557.00 552.25 557.50C552.79 558.00 553.58 558.88 554.00 559.75C554.42 560.62 554.62 561.50 554.75 562.75C554.88 564.00 555.08 562.79 554.75 567.25C554.42 571.71 553.71 581.21 552.75 589.50C551.79 597.79 549.96 609.12 549.00 617.00C548.04 624.88 547.42 629.75 547.00 636.75C546.58 643.75 546.46 653.96 546.50 659.00C546.54 664.04 546.83 664.21 547.25 667.00C547.67 669.79 548.17 672.75 549.00 675.75C549.83 678.75 551.00 682.21 552.25 685.00C553.50 687.79 555.12 690.50 556.50 692.50C557.88 694.50 558.96 695.67 560.50 697.00C562.04 698.33 563.75 699.58 565.75 700.50C567.75 701.42 570.17 702.12 572.50 702.50C574.83 702.88 577.25 702.92 579.75 702.75C582.25 702.58 585.29 702.08 587.50 701.50C589.71 700.92 591.17 700.38 593.00 699.25C594.83 698.12 596.71 697.04 598.50 694.75C600.29 692.46 602.25 688.88 603.75 685.50C605.25 682.12 605.83 680.42 607.50 674.50C609.17 668.58 611.71 657.12 613.75 650.00C615.79 642.88 617.54 637.83 619.75 631.75C621.96 625.67 624.17 619.96 627.00 613.50C629.83 607.04 633.62 599.00 636.75 593.00C639.88 587.00 642.71 582.17 645.75 577.50C648.79 572.83 652.12 568.29 655.00 565.00C657.88 561.71 661.25 559.12 663.00 557.75C664.75 556.38 664.71 556.92 665.50 556.75C666.29 556.58 666.83 556.29 667.75 556.75C668.67 557.21 670.33 558.58 671.00 559.50C671.67 560.42 671.62 560.92 671.75 562.25C671.88 563.58 672.04 564.17 671.75 567.50C671.46 570.83 671.79 571.71 670.00 582.25C668.21 592.79 662.79 619.79 661.00 630.75C659.21 641.71 659.50 643.62 659.25 648.00C659.00 652.38 659.21 653.67 659.50 657.00C659.79 660.33 660.08 664.21 661.00 668.00C661.92 671.79 663.79 676.83 665.00 679.75C666.21 682.67 667.25 683.96 668.25 685.50C669.25 687.04 669.38 687.38 671.00 689.00C672.62 690.62 675.46 693.50 678.00 695.25C680.54 697.00 683.54 698.42 686.25 699.50C688.96 700.58 691.38 701.21 694.25 701.75C697.12 702.29 700.12 702.62 703.50 702.75C706.88 702.88 710.62 702.83 714.50 702.50C718.38 702.17 722.83 701.58 726.75 700.75C730.67 699.92 734.25 698.88 738.00 697.50C741.75 696.12 746.04 694.12 749.25 692.50C752.46 690.88 754.04 689.92 757.25 687.75C760.46 685.58 764.67 682.58 768.50 679.50C772.33 676.42 776.33 672.96 780.25 669.25C784.17 665.54 788.71 660.79 792.00 657.25C795.29 653.71 795.88 653.29 800.00 648.00C804.12 642.71 812.17 632.04 816.75 625.50C821.33 618.96 824.12 614.42 827.50 608.75C830.88 603.08 835.21 594.46 837.00 591.50C838.79 588.54 835.58 588.04 838.25 591.00C840.92 593.96 849.08 603.83 853.00 609.25C856.92 614.67 859.42 619.00 861.75 623.50C864.08 628.00 865.83 632.71 867.00 636.25C868.17 639.79 868.42 642.50 868.75 644.75C869.08 647.00 869.25 648.79 869.00 649.75C868.75 650.71 870.50 650.79 867.25 650.50C864.00 650.21 854.50 648.42 849.50 648.00C844.50 647.58 840.88 647.67 837.25 648.00C833.62 648.33 830.38 649.17 827.75 650.00C825.12 650.83 823.71 651.42 821.50 653.00C819.29 654.58 816.42 657.08 814.50 659.50C812.58 661.92 810.92 665.58 810.00 667.50C809.08 669.42 809.25 669.17 809.00 671.00C808.75 672.83 808.29 675.79 808.50 678.50C808.71 681.21 809.29 684.58 810.25 687.25C811.21 689.92 812.38 692.00 814.25 694.50C816.12 697.00 819.25 700.25 821.50 702.25C823.75 704.25 825.04 705.12 827.75 706.50C830.46 707.88 833.79 709.46 837.75 710.50C841.71 711.54 847.29 712.38 851.50 712.75C855.71 713.12 859.04 713.08 863.00 712.75C866.96 712.42 871.75 711.58 875.25 710.75C878.75 709.92 881.50 708.75 884.00 707.75C886.50 706.75 887.46 706.46 890.25 704.75C893.04 703.04 897.62 700.04 900.75 697.50C903.88 694.96 906.71 692.00 909.00 689.50C911.29 687.00 912.54 685.50 914.50 682.50C916.46 679.50 919.08 674.92 920.75 671.50C922.42 668.08 923.50 665.04 924.50 662.00C925.50 658.96 926.17 656.50 926.75 653.25C927.33 650.00 927.88 646.58 928.00 642.50C928.12 638.42 927.88 632.38 927.50 628.75C927.12 625.12 926.54 623.42 925.75 620.75C924.96 618.08 925.08 617.17 922.75 612.75C920.42 608.33 917.88 603.12 911.75 594.25C905.62 585.38 891.17 566.83 886.00 559.50C880.83 552.17 881.96 552.83 880.75 550.25C879.54 547.67 879.08 546.62 878.75 544.00C878.42 541.38 878.54 537.04 878.75 534.50C878.96 531.96 879.33 531.08 880.00 528.75C880.67 526.42 881.17 524.21 882.75 520.50C884.33 516.79 888.00 509.83 889.50 506.50C891.00 503.17 891.04 502.92 891.75 500.50C892.46 498.08 893.50 494.00 893.75 492.00C894.00 490.00 893.79 489.67 893.25 488.50ZM356.00 323.25C351.46 321.38 345.50 319.38 341.00 318.00C336.50 316.62 333.75 315.96 329.00 315.00C324.25 314.04 317.79 312.92 312.50 312.25C307.21 311.58 303.12 311.21 297.25 311.00C291.38 310.79 282.92 310.83 277.25 311.00C271.58 311.17 269.79 311.17 263.25 312.00C256.71 312.83 244.12 314.83 238.00 316.00C231.88 317.17 231.21 317.50 226.50 319.00C221.79 320.50 214.04 323.29 209.75 325.00C205.46 326.71 204.21 327.42 200.75 329.25C197.29 331.08 192.58 333.71 189.00 336.00C185.42 338.29 182.88 339.96 179.25 343.00C175.62 346.04 170.58 350.71 167.25 354.25C163.92 357.79 161.33 361.42 159.25 364.25C157.17 367.08 156.46 368.17 154.75 371.25C153.04 374.33 150.62 378.96 149.00 382.75C147.38 386.54 146.17 389.71 145.00 394.00C143.83 398.29 142.67 403.29 142.00 408.50C141.33 413.71 141.00 420.17 141.00 425.25C141.00 430.33 141.33 434.38 142.00 439.00C142.67 443.62 143.62 448.50 145.00 453.00C146.38 457.50 148.08 461.79 150.25 466.00C152.42 470.21 155.25 474.50 158.00 478.25C160.75 482.00 163.96 485.50 166.75 488.50C169.54 491.50 171.83 493.71 174.75 496.25C177.67 498.79 180.88 501.38 184.25 503.75C187.62 506.12 190.21 507.83 195.00 510.50C199.79 513.17 207.04 516.88 213.00 519.75C218.96 522.62 222.38 524.25 230.75 527.75C239.12 531.25 253.62 536.75 263.25 540.75C272.88 544.75 282.54 549.04 288.50 551.75C294.46 554.46 295.62 555.08 299.00 557.00C302.38 558.92 305.42 560.71 308.75 563.25C312.08 565.79 316.12 569.21 319.00 572.25C321.88 575.29 324.38 578.92 326.00 581.50C327.62 584.08 328.08 585.92 328.75 587.75C329.42 589.58 329.67 590.04 330.00 592.50C330.33 594.96 330.79 599.38 330.75 602.50C330.71 605.62 330.21 608.75 329.75 611.25C329.29 613.75 328.79 615.42 328.00 617.50C327.21 619.58 326.00 621.96 325.00 623.75C324.00 625.54 323.33 626.58 322.00 628.25C320.67 629.92 318.92 631.96 317.00 633.75C315.08 635.54 312.67 637.46 310.50 639.00C308.33 640.54 306.54 641.67 304.00 643.00C301.46 644.33 298.92 645.67 295.25 647.00C291.58 648.33 285.83 650.04 282.00 651.00C278.17 651.96 275.88 652.25 272.25 652.75C268.62 653.25 266.83 653.79 260.25 654.00C253.67 654.21 239.21 654.17 232.75 654.00C226.29 653.83 225.58 653.54 221.50 653.00C217.42 652.46 212.71 651.79 208.25 650.75C203.79 649.71 198.67 648.21 194.75 646.75C190.83 645.29 187.29 643.42 184.75 642.00C182.21 640.58 181.12 639.62 179.50 638.25C177.88 636.88 176.29 635.29 175.00 633.75C173.71 632.21 172.75 630.92 171.75 629.00C170.75 627.08 169.62 624.38 169.00 622.25C168.38 620.12 168.17 618.58 168.00 616.25C167.83 613.92 167.58 612.67 168.00 608.25C168.42 603.83 170.04 594.62 170.50 589.75C170.96 584.88 171.04 582.00 170.75 579.00C170.46 576.00 169.75 573.88 168.75 571.75C167.75 569.62 166.29 567.83 164.75 566.25C163.21 564.67 161.83 563.46 159.50 562.25C157.17 561.04 153.29 559.67 150.75 559.00C148.21 558.33 146.25 558.33 144.25 558.25C142.25 558.17 140.42 558.33 138.75 558.50C137.08 558.67 135.83 558.83 134.25 559.25C132.67 559.67 130.88 560.25 129.25 561.00C127.62 561.75 126.17 562.46 124.50 563.75C122.83 565.04 120.67 567.12 119.25 568.75C117.83 570.38 117.21 571.17 116.00 573.50C114.79 575.83 113.00 579.88 112.00 582.75C111.00 585.62 110.54 587.54 110.00 590.75C109.46 593.96 109.00 598.58 108.75 602.00C108.50 605.42 108.46 607.96 108.50 611.25C108.54 614.54 108.75 618.92 109.00 621.75C109.25 624.58 109.17 624.62 110.00 628.25C110.83 631.88 112.62 639.42 114.00 643.50C115.38 647.58 116.71 649.88 118.25 652.75C119.79 655.62 121.42 658.21 123.25 660.75C125.08 663.29 127.04 665.67 129.25 668.00C131.46 670.33 133.08 672.12 136.50 674.75C139.92 677.38 145.17 681.08 149.75 683.75C154.33 686.42 159.42 688.79 164.00 690.75C168.58 692.71 172.25 694.00 177.25 695.50C182.25 697.00 187.92 698.54 194.00 699.75C200.08 700.96 208.42 702.08 213.75 702.75C219.08 703.42 219.62 703.54 226.00 703.75C232.38 703.96 244.29 704.17 252.00 704.00C259.71 703.83 266.42 703.29 272.25 702.75C278.08 702.21 281.46 701.75 287.00 700.75C292.54 699.75 300.17 698.12 305.50 696.75C310.83 695.38 314.46 694.17 319.00 692.50C323.54 690.83 328.79 688.58 332.75 686.75C336.71 684.92 339.46 683.42 342.75 681.50C346.04 679.58 348.67 678.12 352.50 675.25C356.33 672.38 362.04 667.79 365.75 664.25C369.46 660.71 372.25 657.21 374.75 654.00C377.25 650.79 378.75 648.58 380.75 645.00C382.75 641.42 384.96 637.25 386.75 632.50C388.54 627.75 390.33 622.08 391.50 616.50C392.67 610.92 393.38 604.17 393.75 599.00C394.12 593.83 394.08 590.17 393.75 585.50C393.42 580.83 392.58 575.08 391.75 571.00C390.92 566.92 389.79 563.92 388.75 561.00C387.71 558.08 387.21 556.58 385.50 553.50C383.79 550.42 380.67 545.54 378.50 542.50C376.33 539.46 375.25 538.17 372.50 535.25C369.75 532.33 365.21 527.83 362.00 525.00C358.79 522.17 356.25 520.33 353.25 518.25C350.25 516.17 350.71 516.00 344.00 512.50C337.29 509.00 328.54 504.17 313.00 497.25C297.46 490.33 262.88 476.25 250.75 471.00C238.62 465.75 243.62 467.62 240.25 465.75C236.88 463.88 233.62 461.96 230.50 459.75C227.38 457.54 224.17 454.92 221.50 452.50C218.83 450.08 216.33 447.38 214.50 445.25C212.67 443.12 211.62 441.54 210.50 439.75C209.38 437.96 208.54 436.33 207.75 434.50C206.96 432.67 206.33 431.33 205.75 428.75C205.17 426.17 204.46 422.17 204.25 419.00C204.04 415.83 204.25 412.54 204.50 409.75C204.75 406.96 204.88 405.21 205.75 402.25C206.62 399.29 208.12 395.08 209.75 392.00C211.38 388.92 213.71 385.96 215.50 383.75C217.29 381.54 218.04 380.71 220.50 378.75C222.96 376.79 227.50 373.67 230.25 372.00C233.00 370.33 234.50 369.79 237.00 368.75C239.50 367.71 242.79 366.54 245.25 365.75C247.71 364.96 248.46 364.67 251.75 364.00C255.04 363.33 260.67 362.29 265.00 361.75C269.33 361.21 273.12 360.92 277.75 360.75C282.38 360.58 287.50 360.42 292.75 360.75C298.00 361.08 304.46 361.88 309.25 362.75C314.04 363.62 317.50 364.58 321.50 366.00C325.50 367.42 330.04 369.50 333.25 371.25C336.46 373.00 338.96 375.08 340.75 376.50C342.54 377.92 342.88 378.38 344.00 379.75C345.12 381.12 346.50 382.96 347.50 384.75C348.50 386.54 349.38 388.33 350.00 390.50C350.62 392.67 351.08 394.75 351.25 397.75C351.42 400.75 351.38 404.25 351.00 408.50C350.62 412.75 349.38 418.54 349.00 423.25C348.62 427.96 348.42 433.25 348.75 436.75C349.08 440.25 349.96 442.08 351.00 444.25C352.04 446.42 353.67 448.25 355.00 449.75C356.33 451.25 357.54 452.21 359.00 453.25C360.46 454.29 362.29 455.29 363.75 456.00C365.21 456.71 366.17 457.08 367.75 457.50C369.33 457.92 371.33 458.33 373.25 458.50C375.17 458.67 377.42 458.62 379.25 458.50C381.08 458.38 382.12 458.42 384.25 457.75C386.38 457.08 389.71 455.88 392.00 454.50C394.29 453.12 396.25 451.38 398.00 449.50C399.75 447.62 401.21 445.46 402.50 443.25C403.79 441.04 404.71 439.21 405.75 436.25C406.79 433.29 407.92 430.17 408.75 425.50C409.58 420.83 410.42 413.33 410.75 408.25C411.08 403.17 410.92 398.75 410.75 395.00C410.58 391.25 410.25 388.79 409.75 385.75C409.25 382.71 408.58 379.67 407.75 376.75C406.92 373.83 405.75 370.71 404.75 368.25C403.75 365.79 402.96 364.17 401.75 362.00C400.54 359.83 399.33 357.75 397.50 355.25C395.67 352.75 393.08 349.54 390.75 347.00C388.42 344.46 386.00 342.17 383.50 340.00C381.00 337.83 378.29 335.79 375.75 334.00C373.21 332.21 371.54 331.04 368.25 329.25C364.96 327.46 360.54 325.12 356.00 323.25Z"/></svg>
+            <div class="icon-btn" data-index-live="1" role="button" aria-label="Live" onclick="if(typeof tchiloOpenLiveSetup==='function'){tchiloOpenLiveSetup();}" style="border:none;background:transparent;width:44px;height:44px;"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:34px;height:34px;display:block;"><g stroke-width="28"><rect x="64" y="96" width="384" height="272" rx="60"/><path d="M184 432 H328"/><path d="M256 368 V432"/></g><path d="M148 200 V264 H186 M216 200 V264 M246 200 L271 264 L296 200 M364 200 H326 V264 H364 M326 232 H358" stroke-width="20"/></svg></div>
+    <div class="topbar-icons">
+        <div class="icon-btn" onclick="goTo('messages')" title="SMS" aria-label="SMS" data-top-messages="1" style="border:none;background:transparent;width:44px;height:44px;">
+          <svg viewBox="0 0 512 512" aria-hidden="true" width="40" height="40" style="width:40px;height:40px;display:block;"><defs><mask id="tchiloMsgDots" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><rect width="512" height="512" fill="#fff"/><circle cx="168" cy="224" r="24" fill="#000"/><circle cx="256" cy="224" r="24" fill="#000"/><circle cx="344" cy="224" r="24" fill="#000"/></mask></defs><path d="M184 72 H328 a112 112 0 0 1 112 112 V264 a112 112 0 0 1 -112 112 H252 L196 452 V376 H184 a112 112 0 0 1 -112 -112 V184 a112 112 0 0 1 112 -112 Z" fill="currentColor" stroke="currentColor" stroke-width="24" stroke-linejoin="round" mask="url(#tchiloMsgDots)"/></svg>
         </div>
-        <div class="icon-btn" onclick="goTo('search')" aria-label="Pesquisar" style="border:none;background:transparent;">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;display:block;"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L20.5 20.5"/></svg>
+        <div class="icon-btn" onclick="goTo('search')" aria-label="Pesquisar" style="border:none;background:transparent;width:44px;height:44px;">
+          <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;display:block;"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L20.5 20.5"/></svg>
         </div>
       </div>
     </div>
@@ -2752,7 +2807,7 @@ body .navbar .nav-item[data-screen="feed"] svg{width:34px !important; height:34p
 
   <div class="navbar">
     <button class="nav-item active" data-screen="feed" onclick="onNavFeed()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="none"><path fill="currentColor" fill-rule="evenodd" d="M11.78 13.68 11.66 14.24 11.64 15.07 11.73 15.65 11.87 16.05 12.11 16.48 12.48 16.90 13.07 17.28 13.63 17.46 14.08 17.53 14.90 17.53 15.54 17.42 16.01 17.25 16.48 17.02 17.23 16.50 17.70 17.02 18.31 17.37 19.04 17.53 20.00 17.51 20.66 17.32 21.25 16.97 21.76 16.41 21.98 15.91 21.98 15.25 21.91 15.11 21.72 14.97 21.58 14.97 21.39 15.07 20.68 15.87 20.40 16.08 20.05 16.22 19.51 16.27 19.09 16.17 18.87 16.05 18.55 15.68 18.62 15.61 19.11 15.49 19.70 15.28 20.47 14.86 20.99 14.34 21.29 13.75 21.39 13.30 21.39 12.83 21.27 12.34 21.15 12.11 20.90 11.80 20.64 11.61 20.21 11.45 19.51 11.40 18.97 11.49 18.36 11.75 17.93 12.06 17.44 12.60 17.18 13.02 17.02 13.40 16.81 14.22 16.81 15.28 16.41 15.61 15.98 15.87 15.18 16.20 14.78 16.27 14.10 16.20 13.68 15.98 13.49 15.80 13.42 15.65 14.31 15.37 15.11 15.00 15.42 14.78 15.77 14.43 15.98 14.13 16.12 13.82 16.22 13.47 16.22 12.67 16.01 12.11 15.63 11.71 15.35 11.54 15.07 11.45 14.36 11.40 13.82 11.49 13.21 11.75 12.79 12.06 12.29 12.60 11.92 13.28ZM19.84 12.76 20.00 13.00 20.03 13.35 19.96 13.61 19.81 13.84 19.56 14.10 19.20 14.34 18.90 14.48 18.36 14.62 18.36 14.17 18.45 13.73 18.55 13.47 18.78 13.07 19.04 12.81 19.34 12.67 19.65 12.67ZM14.69 12.76 14.86 13.00 14.88 13.37 14.83 13.56 14.67 13.84 14.39 14.13 14.06 14.34 13.75 14.48 13.21 14.62 13.21 14.20 13.30 13.73 13.42 13.42 13.63 13.07 13.89 12.81 14.20 12.67 14.50 12.67ZM14.15 6.91 14.01 6.77 13.68 6.65 12.46 6.51 10.74 6.42 8.32 6.44 6.75 6.61 5.74 6.82 4.84 7.12 4.07 7.57 3.72 7.90 3.46 8.25 3.25 8.75 3.15 9.26 3.18 9.94 3.34 10.53 3.50 10.84 3.65 10.98 3.97 11.12 4.19 11.14 4.56 11.07 4.82 10.93 5.01 10.70 5.03 10.48 4.75 9.92 4.68 9.40 4.75 9.05 5.03 8.65 5.50 8.37 5.85 8.25 6.84 8.06 7.26 8.06 6.94 11.52 6.70 11.57 6.02 11.57 5.69 11.68 5.53 11.85 5.43 12.04 5.38 12.29 5.43 12.65 5.48 12.74 5.69 12.93 5.95 13.02 6.75 13.05 6.63 14.15 6.39 15.04 6.09 15.61 5.69 16.01 5.36 16.20 5.13 16.27 4.49 16.29 4.12 16.20 3.60 15.89 2.80 15.04 2.63 14.97 2.40 14.97 2.31 15.02 2.12 15.23 2.00 15.58 2.02 16.01 2.12 16.24 2.31 16.50 2.87 16.99 3.48 17.32 3.97 17.49 4.56 17.58 5.24 17.58 6.04 17.44 6.58 17.23 7.15 16.85 7.45 16.55 7.71 16.20 8.09 15.42 8.37 14.43 8.56 13.09 8.60 13.02 11.17 13.00 11.57 12.79 11.68 12.65 11.80 12.36 11.82 11.96 11.78 11.80 11.61 11.59 11.40 11.49 8.77 11.49 9.07 7.99 9.12 7.95 10.41 7.95 13.61 8.13 13.94 8.02 14.06 7.92 14.17 7.73 14.24 7.45 14.24 7.17Z"/></svg>
+      <svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M256 76 L436 224 V388 a48 48 0 0 1 -48 48 H124 a48 48 0 0 1 -48 -48 V224 Z"/><path d="M206 436 V356 a50 50 0 0 1 100 0 V436"/></svg>
       <div class="dot"></div>
     </button>
     <button class="nav-item" data-screen="reels" onclick="openReels()" aria-label="Reels">
@@ -2769,31 +2824,12 @@ body .navbar .nav-item[data-screen="feed"] svg{width:34px !important; height:34p
     </button>
     <button class="nav-post" type="button" onclick="goTo('create')" aria-label="Nova publicação"><svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="4.5" width="19" height="15" rx="4.6" fill="#fff"/><g stroke="#000" stroke-width="2.2" stroke-linecap="round"><path d="M12 8.2v7.6"/><path d="M8.2 12h7.6"/></g></svg></button>
     <button class="nav-item" data-screen="notifs" onclick="goTo('notifs')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="none">
-        <defs><mask id="tchiloBellMask"><rect width="24" height="24" fill="#fff"/><circle cx="18" cy="6" r="6.2" fill="#000"/></mask></defs>
-        <g mask="url(#tchiloBellMask)" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2.8V4"/>
-          <path d="M12 4a6 6 0 0 0-6 6v3.2c0 .9-.3 1.7-.9 2.4L4 17h16l-1.1-1.4c-.6-.7-.9-1.5-.9-2.4V10a6 6 0 0 0-6-6z"/>
-          <path d="M9.6 19.6a2.4 2.4 0 0 0 4.8 0"/>
-        </g>
-        <circle cx="18" cy="6" r="4.6" fill="currentColor"/>
-        <g style="stroke:var(--paper)" stroke-width=".75" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="16.3" cy="4.9" r=".95"/>
-          <path d="M14.9 8.2c0-1 .6-1.7 1.4-1.7s1.4.7 1.4 1.7"/>
-          <path d="M19.3 4.6v2.4M18.1 5.8h2.4"/>
-        </g>
-      </svg>
+      <svg viewBox="16 16 480 480" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M120 392 L152 356 V240 a104 104 0 0 1 208 0 V356 L392 392 Z"/><path d="M256 94 V104"/><path d="M216 436 a40 40 0 0 0 80 0"/></svg>
       <span class="badge badge-dot" id="badge-notif"></span>
       <div class="dot"></div>
     </button>
     <button class="nav-item" data-screen="profile" onclick="viewingProfileUser=null;goTo('profile')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="none">
-        <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="9.5"/>
-          <circle cx="12" cy="9.5" r="3"/>
-          <path d="M5 18.4c1.2-2.9 3.9-4.6 7-4.6s5.8 1.7 7 4.6"/>
-        </g>
-      </svg>
+      <svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="256" cy="168" r="84"/><path d="M84 436 V412 a96 96 0 0 1 96 -96 H332 a96 96 0 0 1 96 96 V436 Z"/></svg>
       <div class="dot"></div>
     </button>
   </div>
@@ -2805,7 +2841,7 @@ body .navbar .nav-item[data-screen="feed"] svg{width:34px !important; height:34p
     html body .navbar .nav-item[data-screen="feed"] svg,
     html body .navbar .nav-item[data-screen="reels"] svg,
     html body .navbar .nav-item[data-screen="notifs"] svg{width:34px!important;height:34px!important;max-width:none!important;max-height:none!important;}
-    html body .topbar [data-top-messages] svg{width:46px!important;height:46px!important;}
+    html body .topbar [data-top-messages] svg{width:40px!important;height:40px!important;}
   </style>
   <script id="tchilo-icon-lock-js">
   /* Bloqueio de ícones: os scripts de native/ continuam a ligar os cliques (endereços),
@@ -2939,12 +2975,12 @@ body .navbar .nav-item[data-screen="feed"] svg{width:34px !important; height:34p
       </button>
 
 <button class="settings-item" type="button" onclick="openSettingsGroup('account')">
-        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c.6-3.6 2.6-5.5 5.5-5.5s4.9 1.9 5.5 5.5"/><path d="M16 7h5M18.5 4.5v5"/></svg></div>
+        <div class="si-icon"><svg viewBox="0 0 512 512" width="18" height="18" fill="none" stroke="currentColor" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="256" cy="168" r="84"/><path d="M84 436 V412 a96 96 0 0 1 96 -96 H332 a96 96 0 0 1 96 96 V436 Z"/></svg></div>
         <span>Conta</span>
         <div class="chev">›</div>
       </button>
       <button class="settings-item" type="button" onclick="openSettingsGroup('notifications')">
-        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></div>
+        <div class="si-icon"><svg viewBox="0 0 512 512" width="18" height="18" fill="none" stroke="currentColor" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M120 392 L152 356 V240 a104 104 0 0 1 208 0 V356 L392 392 Z"/><path d="M256 94 V104"/><path d="M216 436 a40 40 0 0 0 80 0"/></svg></div>
         <span>Notificações</span>
         <div class="chev">›</div>
       </button>
@@ -3011,7 +3047,7 @@ body .navbar .nav-item[data-screen="feed"] svg{width:34px !important; height:34p
     </div>
     <div class="settings-list">
       <button class="settings-item" type="button" onclick="goTo('editprofile')">
-        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3.5 20c.6-3.6 2.6-5.5 5.5-5.5s4.9 1.9 5.5 5.5"/><path d="M16 7h5M18.5 4.5v5"/></svg></div>
+        <div class="si-icon"><svg viewBox="0 0 512 512" width="18" height="18" fill="none" stroke="currentColor" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="256" cy="168" r="84"/><path d="M84 436 V412 a96 96 0 0 1 96 -96 H332 a96 96 0 0 1 96 96 V436 Z"/></svg></div>
         <span>Editar perfil</span>
         <div class="chev">›</div>
       </button>
@@ -3036,7 +3072,7 @@ body .navbar .nav-item[data-screen="feed"] svg{width:34px !important; height:34p
         <div class="settings-toggle" id="tog-notif-likes"></div>
       </button>
       <button class="settings-item" type="button" onclick="toggleSetting('notifComments')">
-        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg></div>
+        <div class="si-icon"><svg viewBox="0 0 512 512" width="18" height="18" fill="none" stroke="currentColor" stroke-width="38" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path transform="translate(-8,8)" d="M88 424 V248 a176 176 0 1 1 176 176 Z"/></svg></div>
         <span>Comentários</span>
         <div class="settings-toggle" id="tog-notif-comments"></div>
       </button>
@@ -4998,7 +5034,7 @@ function openProfilePostViewer(postId) {
         '<svg viewBox="0 0 24 24" width="30" height="30" fill="'+(liked?'var(--pink)':'none')+'" stroke="'+(liked?'var(--pink)':'currentColor')+'" stroke-width="2.3"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 5 5.5 5c2 0 3.3 1 4.5 2.6C11.2 6 12.5 5 14.5 5 18 5 19.6 8.4 22 11.7 19.5 16.1 12 21 12 21z"/></svg>'+
         '<b>'+formatCount(likes)+'</b></button>'+
       '<button onclick="openComments(\''+postId+'\')" class="pv-action" style="background:none;border:0;color:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer">'+
-        '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>'+
+        '<svg viewBox="0 0 512 512" width="30" height="30" fill="none" stroke="currentColor" stroke-width="38" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path transform="translate(-8,8)" d="M88 424 V248 a176 176 0 1 1 176 176 Z"/></svg>'+
         '<b>'+formatCount(comments)+'</b></button>'+
       '<button onclick="openShare(\''+postId+'\')" class="pv-action" style="background:none;border:0;color:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer">'+
         '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'+
@@ -5181,7 +5217,7 @@ function openReels(startId, startTime) {
       '<div class="reel-actions">' +
       '<button class="reel-main-action' + likeClass + '"' + likeStyle + ' title="Gostar" aria-label="Gostar" onclick="event.stopPropagation();toggleReelLike(\'' + p.id + '\', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 5 5.5 5c2 0 3.3 1 4.5 2.6C11.2 6 12.5 5 14.5 5 18 5 19.6 8.4 22 11.7 19.5 16.1 12 21 12 21z"/></svg><span class="reel-action-count">' + formatCount(likeCount) + '</span></button>' +
       '<button class="reel-main-action' + (isSaved ? ' saved-active' : '') + '" title="Guardar" aria-label="Guardar" onclick="event.stopPropagation();toggleReelSaveQuick(\'' + p.id + '\', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 4h12v17l-6-3-6 3z"/></svg></button>' +
-      '<button class="reel-main-action" title="Comentar" aria-label="Comentar" onclick="event.stopPropagation();openComments(\'' + p.id + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg><span class="reel-action-count">' + formatCount(getCommentCount(p.id, Number(p.comments || 0))) + '</span></button>' +
+      '<button class="reel-main-action" title="Comentar" aria-label="Comentar" onclick="event.stopPropagation();openComments(\'' + p.id + '\')"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="38" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path transform="translate(-8,8)" d="M88 424 V248 a176 176 0 1 1 176 176 Z"/></svg><span class="reel-action-count">' + formatCount(getCommentCount(p.id, Number(p.comments || 0))) + '</span></button>' +
       '<button class="reel-main-action" title="Partilhar" aria-label="Partilhar" onclick="event.stopPropagation();openShare(\'' + p.id + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span class="reel-action-count">' + formatCount(shareCount) + '</span></button>' +
       '<button class="reel-more" title="Mais opções" aria-label="Mais opções" onclick="event.stopPropagation();openReelMenu(\'' + p.id + '\')">⋯</button>' +
       '</div></div>';
@@ -6381,7 +6417,10 @@ function drawHeart(c,x,y,s){
 }
 function drawBubble(c,x,y,s){
   drawAppIcon(c, x, y, s*2, function(ctx){
-    const p = new Path2D('M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.4A8.4 8.4 0 1 1 21 11.5z');
+    ctx.scale(24/512, 24/512);
+    ctx.lineWidth = 38;
+    ctx.translate(-8, 8);
+    const p = new Path2D('M88 424 V248 a176 176 0 1 1 176 176 Z');
     ctx.stroke(p);
   });
 }
@@ -6672,14 +6711,14 @@ function renderFeed() {
       '<div class="post-media ' + (resolveMediaItems(p).length ? 'has-real-media' : (p.color||'')) + ' ' + (resolveMediaItems(p).length>1 ? 'multi-media' : '') + '" data-view-post="' + p.id + '" onclick="onPostMediaClick(\'' + p.id + '\')">' + renderPostMedia(p) + '</div>' +
       '<div class="post-actions">' +
       '<button class="act ' + (liked ? 'liked' : '') + '" onclick="toggleLike(\'' + p.id + '\', this)">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 5 5.5 5c2 0 3.3 1 4.5 2.6C11.2 6 12.5 5 14.5 5 18 5 19.6 8.4 22 11.7 19.5 16.1 12 21 12 21z"/></svg>' +
+      '<svg class="ic-like" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M88 232 H144 V432 H88 Q72 432 72 416 V248 Q72 232 88 232 Z"/><path d="M144 244 H176 Q196 244 206 226 L248 112 Q262 76 300 92 Q324 106 316 134 L300 196 H402 Q436 196 430 232 L414 372 Q408 424 360 432 H144"/><path class="ic-like-sep" d="M144 256 V424"/></svg>' +
       '<span class="like-count">' + likeCount + '</span></button>' +
       '<button class="act" onclick="openComments(\'' + p.id + '\')">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg> <span class="c-count">' + getCommentCount(p.id, p.comments || 0) + '</span></button>' +
+      '<svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="38" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path transform="translate(-8,8)" d="M88 424 V248 a176 176 0 1 1 176 176 Z"/></svg> <span class="c-count">' + getCommentCount(p.id, p.comments || 0) + '</span></button>' +
       '<button class="act" onclick="openShare(\'' + p.id + '\')">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>' +
+      '<svg class="ic-share" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M432 80 L309 432 L238 238 L80 168 Z"/><path d="M238 238 L432 80"/></svg></button>' +
       '<button class="act saved ' + (saved ? 'active' : '') + '" onclick="toggleSave(\'' + p.id + '\', this)">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>' +
+      '<svg class="ic-save" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M136 96 Q136 64 168 64 H344 Q376 64 376 96 V440 L256 340 L136 440 Z"/></svg></button>' +
       '</div>' + viewHtml + '<div class="post-caption"><b class="user-tap" data-user="' + String(p.username).replace(/"/g,'&quot;') + '" onclick="event.stopPropagation();openUserProfile(this.getAttribute(\'data-user\'))" style="cursor:pointer">' + shownName + '</b> ' + formatPostCaptionHtml(captionText, tagsHtmlFixed) + '</div></div>';
   });
   if (__feedTotal > __feedLimit) htmlOut += '<div class="tchilo-feed-more" style="height:2px;width:100%"></div>';
@@ -10027,7 +10066,6 @@ function __tchiloRenderStoriesNow(){
       rel.className='story-card story-card-reel seen';
       rel.setAttribute('data-reel-id',p.id);
       rel.innerHTML=buildStoryCardMedia({media:m.url,mediaType:'video',thumbnail:(m.thumbnail||m.poster||p.thumbnail||p.poster||'')},p.username,p.color||'m1')+
-        '<div class="story-reel-badge"><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'+formatCount(getPostViews(p.id))+'</div>'+
         buildStoryCardFooter(p.username,true);
       rel.onclick=function(){ try{ openReels(p.id); }catch(e){} };
       return rel;
@@ -11445,6 +11483,42 @@ document.addEventListener('DOMContentLoaded',function(){
     <div class="tm-actions" id="tmActions"></div>
   </div>
 </div>
+<style id="tchilo-live-hide-css">.tchilo-old-live{display:none!important;visibility:hidden!important;pointer-events:none!important;width:0!important;height:0!important;}</style>
+<script id="tchilo-live-hide-js">
+/* O botão de live do topo é o do index (data-index-live). Qualquer outro botão/ícone de live
+   criado pelos scripts de native/ no topo, navbar ou flutuante é escondido. */
+(function(){
+  var RX=/live/i, busy=false, mo;
+  function isLiveish(el){
+    var t=(el.className&&el.className.baseVal!==undefined?el.className.baseVal:el.className)+' '+(el.id||'')+' '+(el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')+' '+(el.getAttribute('onclick')||'')+' '+Object.keys(el.dataset||{}).join(' ');
+    return RX.test(t);
+  }
+  function scan(){
+    if(busy) return; busy=true; if(mo) mo.disconnect();
+    try{
+      var cand=document.querySelectorAll('.topbar *, .navbar *, body > *, #appFrame > *');
+      for(var i=0;i<cand.length;i++){
+        var el=cand[i];
+        if(el.closest('[data-index-live]')||el.classList.contains('tchilo-old-live')) continue;
+        if(el.closest('.screen:not(#screen-feed)')) continue;
+        if(!isLiveish(el)) continue;
+        if(!el.querySelector('svg,img,canvas') && !/^(svg|img|canvas)$/i.test(el.tagName)) continue;
+        if(el.querySelector('.nav-item,.icon-btn,.topbar-icons,[data-index-live]')) continue;
+        var r=el.getBoundingClientRect();
+        var inBar=!!el.closest('.topbar,.navbar');
+        if(!inBar && (r.width>90||r.height>90)) continue;
+        el.classList.add('tchilo-old-live');
+      }
+    }catch(e){}
+    if(mo) mo.observe(document.documentElement,{childList:true,subtree:true});
+    busy=false;
+  }
+  if(window.MutationObserver) mo=new MutationObserver(function(){ setTimeout(scan,0); });
+  document.addEventListener('DOMContentLoaded',scan);
+  window.addEventListener('load',function(){ scan(); setTimeout(scan,800); setTimeout(scan,2500); });
+  scan();
+})();
+</script>
 <script src="native/legal-navbar-fix.js"></script>
 <script src="native/feed-names-fix.js"></script>
 <script src="native/face-effects.js"></script>

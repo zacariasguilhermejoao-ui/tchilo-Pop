@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
+<style id="tchilo-live-instant-hide">
+/* Esconde logo no HTML qualquer ícone de live antigo no topo/navbar (só o [data-index-live] fica) */
+.topbar > [class*="live" i]:not([data-index-live]),
+.topbar > [id*="live" i]:not([data-index-live]),
+.topbar > [aria-label*="live" i]:not([data-index-live]),
+.topbar > [title*="live" i]:not([data-index-live]),
+.topbar > [onclick*="live" i]:not([data-index-live]),
+.topbar > img[alt*="live" i],
+.navbar [class*="live" i],
+.navbar [id*="live" i],
+.navbar [onclick*="live" i]{
+  display:none!important;visibility:hidden!important;pointer-events:none!important;width:0!important;height:0!important;
+}
+</style>
 <style id="tchilo-click-fix-v1">
 /* CRITICAL: overlays nunca bloqueiam a app */
 #storyViewer:not(.open),
@@ -2620,14 +2634,13 @@ body .post-actions .act.saved.active svg.ic-save{ fill:var(--ink); stroke:var(--
   <div class="screen active" id="screen-feed">
     <div class="feed" id="feedList">
     <div class="topbar">
-      <img class="logo-img" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%2256 176 400 160%22 width=%22400%22 height=%22160%22%3E%3Crect x=%2256%22 y=%22176%22 width=%22400%22 height=%22160%22 rx=%2280%22 fill=%22%23000000%22/%3E%3Ccircle cx=%22148%22 cy=%22256%22 r=%2226%22 fill=%22%23FFFFFF%22/%3E%3Ctext x=%22290%22 y=%22284%22 text-anchor=%22middle%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22800%22 font-size=%2284%22 letter-spacing=%224%22 fill=%22%23FFFFFF%22%3ELIVE%3C/text%3E%3C/svg%3E%0A" alt="LIVE" style="cursor:pointer;height:68px;width:auto;object-fit:contain;" onclick="if(typeof tchiloOpenLiveSetup==='function'){tchiloOpenLiveSetup()}else if(typeof openLiveScreen==='function'){openLiveScreen()}else if(typeof openSetup==='function'){openSetup()}else{alert('Lives em breve')}" role="button" title="Lives">
             <div class="icon-btn" data-index-live="1" role="button" aria-label="Live" onclick="if(typeof tchiloOpenLiveSetup==='function'){tchiloOpenLiveSetup();}" style="border:none;background:transparent;width:44px;height:44px;"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:34px;height:34px;display:block;"><g stroke-width="28"><rect x="64" y="96" width="384" height="272" rx="60"/><path d="M184 432 H328"/><path d="M256 368 V432"/></g><path d="M148 200 V264 H186 M216 200 V264 M246 200 L271 264 L296 200 M364 200 H326 V264 H364 M326 232 H358" stroke-width="20"/></svg></div>
     <div class="topbar-icons">
         <div class="icon-btn" onclick="goTo('messages')" title="SMS" aria-label="SMS" data-top-messages="1" style="border:none;background:transparent;width:44px;height:44px;">
-          <svg viewBox="0 0 512 512" aria-hidden="true" width="40" height="40" style="width:40px;height:40px;display:block;"><defs><mask id="tchiloMsgDots" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><rect width="512" height="512" fill="#fff"/><circle cx="168" cy="224" r="24" fill="#000"/><circle cx="256" cy="224" r="24" fill="#000"/><circle cx="344" cy="224" r="24" fill="#000"/></mask></defs><path d="M184 72 H328 a112 112 0 0 1 112 112 V264 a112 112 0 0 1 -112 112 H252 L196 452 V376 H184 a112 112 0 0 1 -112 -112 V184 a112 112 0 0 1 112 -112 Z" fill="currentColor" stroke="currentColor" stroke-width="24" stroke-linejoin="round" mask="url(#tchiloMsgDots)"/></svg>
+          <svg viewBox="0 0 512 512" aria-hidden="true" width="34" height="34" style="width:34px;height:34px;display:block;"><defs><mask id="tchiloMsgDots" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512"><rect width="512" height="512" fill="#fff"/><circle cx="168" cy="224" r="24" fill="#000"/><circle cx="256" cy="224" r="24" fill="#000"/><circle cx="344" cy="224" r="24" fill="#000"/></mask></defs><path d="M184 72 H328 a112 112 0 0 1 112 112 V264 a112 112 0 0 1 -112 112 H252 L196 452 V376 H184 a112 112 0 0 1 -112 -112 V184 a112 112 0 0 1 112 -112 Z" fill="currentColor" stroke="currentColor" stroke-width="24" stroke-linejoin="round" mask="url(#tchiloMsgDots)"/></svg>
         </div>
         <div class="icon-btn" onclick="goTo('search')" aria-label="Pesquisar" style="border:none;background:transparent;width:44px;height:44px;">
-          <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;display:block;"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L20.5 20.5"/></svg>
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:30px;height:30px;display:block;"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L20.5 20.5"/></svg>
         </div>
       </div>
     </div>
@@ -2841,7 +2854,7 @@ body .post-actions .act.saved.active svg.ic-save{ fill:var(--ink); stroke:var(--
     html body .navbar .nav-item[data-screen="feed"] svg,
     html body .navbar .nav-item[data-screen="reels"] svg,
     html body .navbar .nav-item[data-screen="notifs"] svg{width:34px!important;height:34px!important;max-width:none!important;max-height:none!important;}
-    html body .topbar [data-top-messages] svg{width:40px!important;height:40px!important;}
+    html body .topbar [data-top-messages] svg{width:34px!important;height:34px!important;}
   </style>
   <script id="tchilo-icon-lock-js">
   /* Bloqueio de ícones: os scripts de native/ continuam a ligar os cliques (endereços),
@@ -3067,7 +3080,7 @@ body .post-actions .act.saved.active svg.ic-save{ fill:var(--ink); stroke:var(--
     </div>
     <div class="settings-list">
       <button class="settings-item" type="button" onclick="toggleSetting('notifLikes')">
-        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 5 5.5 5c2 0 3.3 1 4.5 2.6C11.2 6 12.5 5 14.5 5 18 5 19.6 8.4 22 11.7 19.5 16.1 12 21 12 21z"/></svg></div>
+        <div class="si-icon"><svg viewBox="0 0 512 512" width="18" height="18" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M88 232 H144 V432 H88 Q72 432 72 416 V248 Q72 232 88 232 Z"/><path d="M144 244 H176 Q196 244 206 226 L248 112 Q262 76 300 92 Q324 106 316 134 L300 196 H402 Q436 196 430 232 L414 372 Q408 424 360 432 H144"/></svg></div>
         <span>Gostos</span>
         <div class="settings-toggle" id="tog-notif-likes"></div>
       </button>
@@ -5031,13 +5044,13 @@ function openProfilePostViewer(postId) {
     '<div class="media-viewer-content" onclick="event.stopPropagation()">'+(items.length?media:stampMedia)+'</div>'+
     '<div class="profile-viewer-actions" style="display:flex;gap:18px;justify-content:center;padding:12px 16px;color:#fff">'+
       '<button onclick="profileViewerLike(\''+postId+'\')" class="pv-action '+(liked?'liked':'')+'" style="background:none;border:0;color:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer">'+
-        '<svg viewBox="0 0 24 24" width="30" height="30" fill="'+(liked?'var(--pink)':'none')+'" stroke="'+(liked?'var(--pink)':'currentColor')+'" stroke-width="2.3"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 5 5.5 5c2 0 3.3 1 4.5 2.6C11.2 6 12.5 5 14.5 5 18 5 19.6 8.4 22 11.7 19.5 16.1 12 21 12 21z"/></svg>'+
+        '<svg viewBox="0 0 512 512" width="30" height="30" fill="'+(liked?'var(--pink)':'none')+'" stroke="'+(liked?'var(--pink)':'currentColor')+'" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M88 232 H144 V432 H88 Q72 432 72 416 V248 Q72 232 88 232 Z"/><path d="M144 244 H176 Q196 244 206 226 L248 112 Q262 76 300 92 Q324 106 316 134 L300 196 H402 Q436 196 430 232 L414 372 Q408 424 360 432 H144"/></svg>'+
         '<b>'+formatCount(likes)+'</b></button>'+
       '<button onclick="openComments(\''+postId+'\')" class="pv-action" style="background:none;border:0;color:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer">'+
         '<svg viewBox="0 0 512 512" width="30" height="30" fill="none" stroke="currentColor" stroke-width="38" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path transform="translate(-8,8)" d="M88 424 V248 a176 176 0 1 1 176 176 Z"/></svg>'+
         '<b>'+formatCount(comments)+'</b></button>'+
       '<button onclick="openShare(\''+postId+'\')" class="pv-action" style="background:none;border:0;color:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer">'+
-        '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'+
+        '<svg viewBox="0 0 512 512" width="30" height="30" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M432 80 L309 432 L238 238 L80 168 Z"/><path d="M238 238 L432 80"/></svg>'+
         '<b>'+formatCount(getShareCounts()[postId]||0)+'</b></button>'+
     '</div>'+
     '<div class="media-viewer-caption"><b>'+shownName+'</b>'+(p.caption?' · '+String(p.caption).replace(/</g,'&lt;'):'')+'</div>';
@@ -5215,10 +5228,10 @@ function openReels(startId, startTime) {
         '<div class="reel-stats">Audio · ' + music.replace(/</g,'&lt;') + '</div>' +
       '</div>' +
       '<div class="reel-actions">' +
-      '<button class="reel-main-action' + likeClass + '"' + likeStyle + ' title="Gostar" aria-label="Gostar" onclick="event.stopPropagation();toggleReelLike(\'' + p.id + '\', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 5 5.5 5c2 0 3.3 1 4.5 2.6C11.2 6 12.5 5 14.5 5 18 5 19.6 8.4 22 11.7 19.5 16.1 12 21 12 21z"/></svg><span class="reel-action-count">' + formatCount(likeCount) + '</span></button>' +
-      '<button class="reel-main-action' + (isSaved ? ' saved-active' : '') + '" title="Guardar" aria-label="Guardar" onclick="event.stopPropagation();toggleReelSaveQuick(\'' + p.id + '\', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 4h12v17l-6-3-6 3z"/></svg></button>' +
+      '<button class="reel-main-action' + likeClass + '"' + likeStyle + ' title="Gostar" aria-label="Gostar" onclick="event.stopPropagation();toggleReelLike(\'' + p.id + '\', this)"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M88 232 H144 V432 H88 Q72 432 72 416 V248 Q72 232 88 232 Z"/><path d="M144 244 H176 Q196 244 206 226 L248 112 Q262 76 300 92 Q324 106 316 134 L300 196 H402 Q436 196 430 232 L414 372 Q408 424 360 432 H144"/></svg><span class="reel-action-count">' + formatCount(likeCount) + '</span></button>' +
+      '<button class="reel-main-action' + (isSaved ? ' saved-active' : '') + '" title="Guardar" aria-label="Guardar" onclick="event.stopPropagation();toggleReelSaveQuick(\'' + p.id + '\', this)"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M136 96 Q136 64 168 64 H344 Q376 64 376 96 V440 L256 340 L136 440 Z"/></svg></button>' +
       '<button class="reel-main-action" title="Comentar" aria-label="Comentar" onclick="event.stopPropagation();openComments(\'' + p.id + '\')"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="38" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path transform="translate(-8,8)" d="M88 424 V248 a176 176 0 1 1 176 176 Z"/></svg><span class="reel-action-count">' + formatCount(getCommentCount(p.id, Number(p.comments || 0))) + '</span></button>' +
-      '<button class="reel-main-action" title="Partilhar" aria-label="Partilhar" onclick="event.stopPropagation();openShare(\'' + p.id + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span class="reel-action-count">' + formatCount(shareCount) + '</span></button>' +
+      '<button class="reel-main-action" title="Partilhar" aria-label="Partilhar" onclick="event.stopPropagation();openShare(\'' + p.id + '\')"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M432 80 L309 432 L238 238 L80 168 Z"/><path d="M238 238 L432 80"/></svg><span class="reel-action-count">' + formatCount(shareCount) + '</span></button>' +
       '<button class="reel-more" title="Mais opções" aria-label="Mais opções" onclick="event.stopPropagation();openReelMenu(\'' + p.id + '\')">⋯</button>' +
       '</div></div>';
   }).join('');
@@ -5390,7 +5403,7 @@ function openShare(postId) {
 
   let html = '';
   html += '<button class="share-opt" onclick="shareToFeed()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></div><div><b>Partilhar no meu feed</b><div style="font-size:12px;color:var(--muted);font-weight:500">Republica no teu perfil</div></div></button>';
-  html += '<button class="share-opt" onclick="shareOutside()"><div class="so-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><div><b>Partilhar fora</b><div style="font-size:12px;color:var(--muted);font-weight:500">Apps do telemóvel</div></div></button>';
+  html += '<button class="share-opt" onclick="shareOutside()"><div class="so-icon"><svg viewBox="0 0 512 512" width="18" height="18" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M432 80 L309 432 L238 238 L80 168 Z"/><path d="M238 238 L432 80"/></svg></div><div><b>Partilhar fora</b><div style="font-size:12px;color:var(--muted);font-weight:500">Apps do telemóvel</div></div></button>';
   html += '<div style="font-size:12px;font-weight:800;color:var(--muted);margin:10px 0 4px">Enviar em mensagem</div>';
   contacts.forEach(function(c) {
     html += '<button class="share-opt" onclick="shareToChat(\'' + c.name + '\',\'' + c.initials + '\',\'' + c.color + '\')">' +
@@ -6411,8 +6424,11 @@ function drawAppIcon(ctx, cx, cy, size, drawFn){
 }
 function drawHeart(c,x,y,s){
   drawAppIcon(c, x, y, s*2, function(ctx){
-    const p = new Path2D('M12 21s-7.5-4.9-10-9.3C.4 8.4 2 5 5.5 5c2 0 3.3 1 4.5 2.6C11.2 6 12.5 5 14.5 5 18 5 19.6 8.4 22 11.7 19.5 16.1 12 21 12 21z');
-    ctx.stroke(p);
+    ctx.scale(24/512, 24/512);
+    ctx.lineWidth = 28;
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.stroke(new Path2D('M88 232 H144 V432 H88 Q72 432 72 416 V248 Q72 232 88 232 Z'));
+    ctx.stroke(new Path2D('M144 244 H176 Q196 244 206 226 L248 112 Q262 76 300 92 Q324 106 316 134 L300 196 H402 Q436 196 430 232 L414 372 Q408 424 360 432 H144'));
   });
 }
 function drawBubble(c,x,y,s){
@@ -6426,23 +6442,19 @@ function drawBubble(c,x,y,s){
 }
 function drawSend(c,x,y,s){
   drawAppIcon(c, x, y, s*2, function(ctx){
-    ctx.beginPath();
-    ctx.moveTo(22, 2);
-    ctx.lineTo(11, 13);
-    ctx.stroke();
-    const p = new Path2D();
-    p.moveTo(22, 2);
-    p.lineTo(15, 22);
-    p.lineTo(11, 13);
-    p.lineTo(2, 9);
-    p.closePath();
-    ctx.stroke(p);
+    ctx.scale(24/512, 24/512);
+    ctx.lineWidth = 28;
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.stroke(new Path2D('M432 80 L309 432 L238 238 L80 168 Z'));
+    ctx.stroke(new Path2D('M238 238 L432 80'));
   });
 }
 function drawBookmark(c,x,y,s){
   drawAppIcon(c, x, y, s*2, function(ctx){
-    const p = new Path2D('M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z');
-    ctx.stroke(p);
+    ctx.scale(24/512, 24/512);
+    ctx.lineWidth = 28;
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.stroke(new Path2D('M136 96 Q136 64 168 64 H344 Q376 64 376 96 V440 L256 340 L136 440 Z'));
   });
 }
 
@@ -6469,7 +6481,7 @@ function openPostMenu(postId) {
       html += '<button class="share-opt" onclick="toggleFollow(\'' + p.username + '\');closePostMenu();renderFeed()"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="M19 16v6"/><path d="M22 19h-6"/></svg></div><b>Seguir @' + p.username + '</b></button>';
     }
   }
-  html += '<button class="share-opt" onclick="openShare(\'' + postId + '\');closePostMenu()"><div class="so-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg></div><b>Partilhar</b></button>';
+  html += '<button class="share-opt" onclick="openShare(\'' + postId + '\');closePostMenu()"><div class="so-icon"><svg viewBox="0 0 512 512" width="22" height="22" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M432 80 L309 432 L238 238 L80 168 Z"/><path d="M238 238 L432 80"/></svg></div><b>Partilhar</b></button>';
   /* Baixar só para posts com foto/vídeo real — não em temas (stamp/cor) */
   var mediaItemsMenu = (typeof resolveMediaItems === 'function') ? resolveMediaItems(p) : [];
   if (mediaItemsMenu && mediaItemsMenu.length) {
@@ -11697,6 +11709,278 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/tchilo-hide-nav.js?v=2" defer></script>
 <script src="native/tchilo-feed-to-reels.js?v=2" defer></script>
 <script src="native/tchilo-reels-icon.js?v=2" defer></script>
+
+<style id="tchilo-nb-css">
+/* ===== Bolha de notificações (feed) + contador de mensagens ===== */
+.tchilo-nb{
+  position:absolute; z-index:51; left:8px; bottom:90px;
+  display:flex; align-items:center; gap:14px;
+  padding:10px 15px;
+  background:var(--pink); color:#fff;
+  border:2px solid var(--ink); border-radius:16px;
+  font-weight:800; font-size:15px; line-height:1; white-space:nowrap;
+  cursor:pointer; -webkit-tap-highlight-color:transparent; user-select:none;
+  opacity:0; pointer-events:none;
+  transform:translateY(10px) scale(.86);
+  transform-origin:var(--ax,50%) 100%;
+  transition:opacity .18s ease, transform .34s cubic-bezier(.2,1.35,.4,1);
+}
+.tchilo-nb.on{ opacity:1; pointer-events:auto; transform:none; }
+.tchilo-nb.on:active{ transform:scale(.96); }
+.tchilo-nb::after{
+  content:""; position:absolute; bottom:-8px; left:calc(var(--ax,50%) - 7px);
+  width:12px; height:12px; background:var(--pink);
+  border-right:2px solid var(--ink); border-bottom:2px solid var(--ink);
+  border-bottom-right-radius:3px; transform:rotate(45deg);
+}
+.tchilo-nb .tnb-i{ display:inline-flex; align-items:center; gap:5px; }
+.tchilo-nb .tnb-i svg{ width:18px; height:18px; fill:#fff; flex:none; }
+#appFrame.chrome-hidden .tchilo-nb.on{ opacity:0; pointer-events:none; transform:translateY(24px) scale(.9); }
+@media (prefers-reduced-motion:reduce){ .tchilo-nb{ transition:opacity .12s ease; transform:none; } }
+.icon-btn[data-top-messages]{ position:relative; }
+.icon-btn[data-top-messages] .badge{ top:2px; right:0; }
+</style>
+
+<script id="tchilo-nb-js">
+(function(){
+  'use strict';
+  if (window.__tchiloNB) return; window.__tchiloNB = true;
+
+  var AWAY_MIN   = 15000;    /* tempo mínimo fora da app para a bolha aparecer */
+  var BUBBLE_TTL = 120000;   /* a bolha some sozinha ao fim de 2 minutos */
+  var K_ACTIVE = 'tchilo_last_active';
+  var K_BASE   = 'tchilo_msg_seen_all';
+  var K_SEEN   = 'tchilo_msg_seen';
+
+  var state = null, bubble = null, expireTimer = null, checking = false, debounce = null;
+
+  function ls(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+  function lset(k,v){ try { localStorage.setItem(k, String(v)); } catch(e){} }
+  function lj(k,d){ try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } }
+  function session(){ try { return typeof getSession === 'function' ? getSession() : null; } catch(e){ return null; } }
+  function tr(s){ try { return typeof t === 'function' ? t(s) : s; } catch(e){ return s; } }
+  function fmt(n){ try { if (typeof formatCount === 'function') return formatCount(n); } catch(e){} return n > 99 ? '99+' : String(n); }
+
+  /* ---------- 1) Número fixo no ícone de mensagens ---------- */
+  function msgBadge(){
+    var host = document.querySelector('[data-top-messages]');
+    if (!host) return null;
+    var b = document.getElementById('badge-msg');
+    if (!b) {
+      b = document.createElement('span');
+      b.id = 'badge-msg'; b.className = 'badge hide';
+      host.appendChild(b);
+    }
+    return b;
+  }
+  function msgScreenActive(){
+    var s = document.getElementById('screen-messages');
+    return !!(s && s.classList.contains('active'));
+  }
+  function chatOpenUser(){
+    var c = document.getElementById('chatScreen');
+    if (c && c.classList.contains('open')) { try { return currentChatUser; } catch(e){} }
+    return null;
+  }
+  function unreadMessages(){
+    var base = +ls(K_BASE) || 0, seen = lj(K_SEEN, {}), total = 0, chats = {};
+    try { chats = getChats() || {}; } catch(e){}
+    Object.keys(chats).forEach(function(u){
+      var th = chats[u]; if (!Array.isArray(th)) return;
+      var from = Math.max(base, +seen[u] || 0);
+      th.forEach(function(m){
+        if (m && m.from === 'them' && (+m.createdAt || 0) > from) total++;
+      });
+    });
+    return total;
+  }
+  function refreshMsgBadge(){
+    var b = msgBadge(); if (!b) return;
+    if (!session()) { b.classList.add('hide'); return; }
+    var now = Date.now();
+    if (ls(K_BASE) === null) lset(K_BASE, now);          /* primeira vez: não conta o histórico */
+    if (msgScreenActive()) lset(K_BASE, now);            /* abriu Mensagens: zera o número */
+    var u = chatOpenUser();
+    if (u) { var seen = lj(K_SEEN, {}); seen[u] = now; lset(K_SEEN, JSON.stringify(seen)); }
+    var n = unreadMessages();
+    if (n > 0) {
+      b.textContent = n > 99 ? '99+' : String(n);
+      b.setAttribute('aria-label', n + ' ' + tr('Mensagens'));
+      b.classList.remove('hide');
+    } else {
+      b.classList.add('hide');
+    }
+  }
+
+  /* ---------- 2) Bolha no feed ---------- */
+  var ICON = {
+    comment:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>',
+    like:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
+    follow:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>',
+    other:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.1-1.6-5.6-4.5-6.3V4c0-.8-.7-1.5-1.5-1.5S10.5 3.2 10.5 4v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>'
+  };
+  var LABEL = { comment:'Comentários', like:'Gostos', follow:'Novos seguidores', other:'Notificações' };
+  var RX = [['follow', /follow|segu/], ['comment', /comment|coment/], ['like', /like|gost|curt/]];
+
+  function pick(s){
+    var best = null, bi = 1e9;
+    RX.forEach(function(r){ var m = r[1].exec(s); if (m && m.index < bi) { bi = m.index; best = r[0]; } });
+    return best;
+  }
+  function countsSince(since){
+    var list = [];
+    try { list = (typeof load === 'function') ? load('tchilo_notifications', []) : lj('tchilo_notifications', []); } catch(e){}
+    var st = {}; try { st = getAppSettings() || {}; } catch(e){}
+    var c = { comment:0, like:0, follow:0, other:0 };
+    (list || []).forEach(function(n){
+      if (!n || (+n.createdAt || 0) <= since) return;
+      var kind = pick(String(n.type || '').toLowerCase()) || pick(String(n.message || n.text || '').toLowerCase()) || 'other';
+      if (kind === 'like' && st.notifLikes === false) return;
+      if (kind === 'comment' && st.notifComments === false) return;
+      if (kind === 'follow' && st.notifFollows === false) return;
+      c[kind]++;
+    });
+    return c;
+  }
+  function total(c){ return c.comment + c.like + c.follow + c.other; }
+
+  function ensureBubble(){
+    if (bubble) return bubble;
+    var fr = document.getElementById('appFrame'); if (!fr) return null;
+    bubble = document.createElement('div');
+    bubble.className = 'tchilo-nb';
+    bubble.setAttribute('role', 'button');
+    bubble.setAttribute('tabindex', '0');
+    bubble.setAttribute('aria-hidden', 'true');
+    bubble.addEventListener('click', function(){
+      state = null; sync();
+      try { goTo('notifs'); } catch(e){}
+    });
+    bubble.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bubble.click(); } });
+    fr.appendChild(bubble);
+    return bubble;
+  }
+  function render(c){
+    var b = ensureBubble(); if (!b) return false;
+    var html = '', label = [];
+    ['comment','like','follow','other'].forEach(function(k){
+      if (c[k] > 0) { html += '<span class="tnb-i">' + ICON[k] + '<b>' + fmt(c[k]) + '</b></span>'; label.push(c[k] + ' ' + tr(LABEL[k])); }
+    });
+    b.innerHTML = html;
+    b.setAttribute('aria-label', label.join(', '));
+    return true;
+  }
+  function place(){
+    var fr = document.getElementById('appFrame'), nav = document.querySelector('.navbar');
+    var bell = document.querySelector('.navbar .nav-item[data-screen="notifs"]');
+    if (!fr || !nav || !bell || !bubble) return;
+    var f = fr.getBoundingClientRect(), r = bell.getBoundingClientRect();
+    var w = bubble.offsetWidth, cx = r.left + r.width / 2 - f.left;
+    var left = Math.max(8, Math.min(cx - w / 2, f.width - w - 8));
+    bubble.style.bottom = (nav.offsetHeight + 12) + 'px';
+    bubble.style.left = left + 'px';
+    bubble.style.setProperty('--ax', (cx - left) + 'px');
+  }
+  function activeScreenId(){
+    var s = document.querySelector('#appFrame .screen.active');
+    return s ? s.id : '';
+  }
+  function sync(){
+    if (!bubble) return;
+    var ok = state && Date.now() < state.exp && activeScreenId() === 'screen-feed' && !document.hidden && session();
+    if (state && Date.now() >= state.exp) state = null;
+    if (ok) { place(); bubble.classList.add('on'); bubble.setAttribute('aria-hidden', 'false'); }
+    else    { bubble.classList.remove('on'); bubble.setAttribute('aria-hidden', 'true'); }
+  }
+  function show(c){
+    if (!render(c)) return;
+    state = { exp: Date.now() + BUBBLE_TTL };
+    clearTimeout(expireTimer);
+    expireTimer = setTimeout(function(){ state = null; sync(); }, BUBBLE_TTL);
+    sync();
+  }
+
+  function waitReady(fn){
+    var tries = 0;
+    (function loop(){
+      if ((window.tchiloSupabase && session()) || ++tries > 30) return fn();
+      setTimeout(loop, 500);
+    })();
+  }
+  function checkAway(since, retry){
+    if (checking) return; checking = true;
+    waitReady(function(){
+      var p; try { p = pullLatestNotificationsOnce(); } catch(e){}
+      Promise.resolve(p).catch(function(){}).then(function(){
+        checking = false;
+        var c = countsSince(since);
+        if (total(c) > 0) show(c);
+        else if (!retry) setTimeout(function(){ checkAway(since, true); }, 8000);
+      });
+    });
+  }
+
+  /* ---------- 3) Sair / voltar à app ---------- */
+  function touch(){ lset(K_ACTIVE, Date.now()); }
+  function onReturn(){
+    if (!session()) return;
+    var now = Date.now(), last = +ls(K_ACTIVE) || 0;
+    if (last && now - last >= AWAY_MIN) checkAway(last);
+    touch();
+    refreshMsgBadge();
+    sync();
+  }
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) touch(); else onReturn();
+  });
+  window.addEventListener('pagehide', touch);
+  window.addEventListener('pageshow', function(e){ if (e && e.persisted) onReturn(); });
+  document.addEventListener('pause', touch, false);
+  document.addEventListener('resume', onReturn, false);
+  window.addEventListener('resize', function(){ if (bubble && bubble.classList.contains('on')) place(); });
+
+  setInterval(function(){
+    if (document.hidden) return;
+    touch();
+    refreshMsgBadge();
+  }, 5000);
+
+  /* mudanças de ecrã: zera o número em Mensagens, esconde a bolha em Notificações */
+  function onScreen(){
+    clearTimeout(debounce);
+    debounce = setTimeout(function(){
+      if (activeScreenId() === 'screen-notifs') state = null;
+      refreshMsgBadge();
+      sync();
+    }, 40);
+  }
+  function watchScreens(){
+    if (!window.MutationObserver) return;
+    var mo = new MutationObserver(onScreen);
+    document.querySelectorAll('#appFrame .screen, #chatScreen').forEach(function(el){
+      mo.observe(el, { attributes: true, attributeFilter: ['class'] });
+    });
+  }
+
+  /* mensagem nova em tempo real: atualiza o número logo */
+  function wrapMerge(){
+    var o = window.mergeIncomingMessage;
+    if (typeof o !== 'function' || o.__nb) return;
+    var w = function(){ var r = o.apply(this, arguments); try { refreshMsgBadge(); } catch(e){} return r; };
+    w.__nb = true; window.mergeIncomingMessage = w;
+  }
+
+  function init(){
+    wrapMerge();
+    watchScreens();
+    ensureBubble();
+    refreshMsgBadge();
+    onReturn();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
 
 </body>
 </html>

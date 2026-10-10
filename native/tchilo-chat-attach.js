@@ -1,16 +1,21 @@
 /**
- * Tchilo attach sheet v2 — sem círculos cinzentos nos ícones
+ * Tchilo attach v3 — GIF como texto · figurinha profissional · sem cinza
  */
 (function () {
   'use strict';
-  if (window.__tchiloChatAttachV2) return;
-  window.__tchiloChatAttachV2 = true;
+  if (window.__tchiloChatAttachV3) return;
+  window.__tchiloChatAttachV3 = true;
 
   var ICONS = {
-    gif:
-      '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#0B0B0C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M6 9h2.2a1.6 1.6 0 0 1 0 3.2H6V9z"/><path d="M6 12.2H8.2M11.5 9v6M11.5 12h1.8a1.5 1.5 0 0 0 0-3H11.5"/><path d="M17 15V9l3 6V9"/></svg>',
+    gif: null, /* texto GIF */
     sticker:
-      '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#0B0B0C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5L15.5 3z"/><path d="M15 3v6h6"/><circle cx="9.5" cy="13" r="0.9" fill="#0B0B0C" stroke="none"/><circle cx="14.5" cy="13" r="0.9" fill="#0B0B0C" stroke="none"/><path d="M9 16.2c.8.8 1.8 1.2 3 1.2s2.2-.4 3-1.2"/></svg>',
+      '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#0B0B0C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M12 2a9 9 0 0 0-9 9c0 4.5 3.2 8.2 7.5 8.9L15 15.5A9 9 0 0 0 12 2z"/>' +
+      '<path d="M14.5 14.5 20 20"/>' +
+      '<circle cx="9" cy="10" r="1" fill="#0B0B0C" stroke="none"/>' +
+      '<circle cx="13" cy="10" r="1" fill="#0B0B0C" stroke="none"/>' +
+      '<path d="M8.5 13s1.2 1.4 3 1.4 3-1.4 3-1.4"/>' +
+      '</svg>',
     photo:
       '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#0B0B0C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.4"/><path d="m21 15-4.5-4.5L6 19"/></svg>',
     video:
@@ -41,8 +46,8 @@
       '#tchiloChatAttachSheet .sub{text-align:center;font-size:13px;opacity:.55;margin-bottom:14px;}' +
       '#tchiloChatAttachSheet .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}' +
       '#tchiloChatAttachSheet .opt{border:0!important;border-radius:14px;background:#fff;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);}' +
-      '#tchiloChatAttachSheet .opt:active{transform:scale(.97);}' +
-      '#tchiloChatAttachSheet .opt .ic{width:auto!important;height:auto!important;border-radius:0!important;background:transparent!important;padding:0!important;display:flex;align-items:center;justify-content:center;box-shadow:none!important;}' +
+      '#tchiloChatAttachSheet .opt .ic{background:transparent!important;border-radius:0!important;width:auto!important;height:auto!important;padding:0!important;display:flex;align-items:center;justify-content:center;min-height:28px;}' +
+      '#tchiloChatAttachSheet .opt .ic-gif{font:800 15px system-ui,sans-serif;letter-spacing:0.04em;color:#0B0B0C;}' +
       '#tchiloChatAttachSheet .opt span{font-size:12px;font-weight:700;color:#0B0B0C;}' +
       '#tchiloChatAttachSheet .close{width:100%;margin-top:14px;padding:14px;border-radius:14px;border:1px solid rgba(11,11,12,.1)!important;background:transparent;font-weight:800;font-size:15px;cursor:pointer;color:#0B0B0C;}';
   }
@@ -118,12 +123,16 @@
     ];
     var grid = items
       .map(function (it) {
+        var ic =
+          it.id === 'gif'
+            ? '<div class="ic"><span class="ic-gif">GIF</span></div>'
+            : '<div class="ic">' + (ICONS[it.id] || '') + '</div>';
         return (
           '<button type="button" class="opt" data-a="' +
           it.id +
-          '"><div class="ic">' +
-          (ICONS[it.id] || '') +
-          '</div><span>' +
+          '">' +
+          ic +
+          '<span>' +
           it.label +
           '</span></button>'
         );
@@ -158,26 +167,34 @@
   };
 
   function wirePlus() {
-    var btn =
-      document.getElementById('chatAttachBtn') ||
-      document.querySelector('.chat-attach-btn');
-    if (!btn || btn.__attachSheetV2) return;
-    btn.__attachSheetV2 = true;
-    btn.addEventListener(
-      'click',
-      function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        openAttachSheet();
-      },
-      true
-    );
+    var btns = document.querySelectorAll('#chatAttachBtn, .chat-attach-btn, button[aria-label="Anexar"]');
+    btns.forEach(function (btn, i) {
+      if (i > 0) {
+        try {
+          btn.remove();
+        } catch (e) {
+          btn.style.display = 'none';
+        }
+        return;
+      }
+      if (btn.__attachSheetV3) return;
+      btn.__attachSheetV3 = true;
+      btn.addEventListener(
+        'click',
+        function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          openAttachSheet();
+        },
+        true
+      );
+    });
   }
 
   injectCSS();
   wirePlus();
-  setTimeout(wirePlus, 500);
-  setTimeout(wirePlus, 2000);
+  setTimeout(wirePlus, 400);
+  setTimeout(wirePlus, 1500);
   try {
     new MutationObserver(wirePlus).observe(document.body || document.documentElement, {
       childList: true,

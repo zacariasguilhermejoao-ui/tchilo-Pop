@@ -1,22 +1,26 @@
 /**
- * Tchilo Presentes v5
+ * Tchilo Presentes v6
+ * Imagens: native/gifts/*.png
  * Coração 10 · Ursinho 20 · Festa 30 · Coroa 40
  * Diamante 50 · Rosa 60 · Buquê 70 · Bolo 80
  */
 (function () {
   'use strict';
-  if (window.__tchiloGiftsV5) return;
+  if (window.__tchiloGiftsV6) return;
+  window.__tchiloGiftsV6 = true;
   window.__tchiloGiftsV5 = true;
 
+  var BASE = 'native/gifts/';
+
   var GIFT_TYPES = window.__TCHILO_GIFT_TYPES || [
-    { id: 'coracao', name: 'Coração', coins: 10, emoji: '❤️' },
-    { id: 'ursinho', name: 'Ursinho', coins: 20, emoji: '🧸' },
-    { id: 'cone', name: 'Festa', coins: 30, emoji: '🎉' },
-    { id: 'coroa', name: 'Coroa', coins: 40, emoji: '👑' },
-    { id: 'diamante', name: 'Diamante', coins: 50, emoji: '💎' },
-    { id: 'rosa', name: 'Rosa', coins: 60, emoji: '🌹' },
-    { id: 'buque', name: 'Buquê', coins: 70, emoji: '💐' },
-    { id: 'bolo', name: 'Bolo', coins: 80, emoji: '🎂' }
+    { id: 'coracao', name: 'Coração', coins: 10, img: BASE + 'coracao.png' },
+    { id: 'ursinho', name: 'Ursinho', coins: 20, img: BASE + 'ursinho.png' },
+    { id: 'cone', name: 'Festa', coins: 30, img: BASE + 'cone.png' },
+    { id: 'coroa', name: 'Coroa', coins: 40, img: BASE + 'coroa.png' },
+    { id: 'diamante', name: 'Diamante', coins: 50, img: BASE + 'diamante.png' },
+    { id: 'rosa', name: 'Rosa', coins: 60, img: BASE + 'rosa.png' },
+    { id: 'buque', name: 'Buquê', coins: 70, img: BASE + 'buque.png' },
+    { id: 'bolo', name: 'Bolo', coins: 80, img: BASE + 'bolo.png' }
   ];
 
   var BTN_SVG =
@@ -90,7 +94,6 @@
       '#tchiloGiftSheet .grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}' +
       '#tchiloGiftSheet .gitem{border:2px solid rgba(11,11,12,.08);border-radius:14px;background:#fff;padding:10px 6px;text-align:center;cursor:pointer;}' +
       '#tchiloGiftSheet .gitem:active{transform:scale(.96);}' +
-      '#tchiloGiftSheet .gitem .em{font-size:36px;line-height:1.2;margin-bottom:4px;}' +
       '#tchiloGiftSheet .gitem img{width:52px;height:52px;object-fit:contain;display:block;margin:0 auto 6px;}' +
       '#tchiloGiftSheet .gitem b{display:block;font-size:12px;font-weight:800;}' +
       '#tchiloGiftSheet .gitem span{font-size:11px;opacity:.65;font-weight:700;}' +
@@ -168,10 +171,18 @@
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'gitem';
-      var ic = g.img
-        ? '<img src="' + g.img + '" alt="' + g.name + '"/>'
-        : '<div class="em">' + (g.emoji || '🎁') + '</div>';
-      b.innerHTML = ic + '<b>' + g.name + '</b><span>' + g.coins + ' moedas</span>';
+      var src = g.img || BASE + g.id + '.png';
+      b.innerHTML =
+        '<img src="' +
+        src +
+        '" alt="' +
+        g.name +
+        '" onerror="this.style.display=\'none\'"/>' +
+        '<b>' +
+        g.name +
+        '</b><span>' +
+        g.coins +
+        ' moedas</span>';
       b.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -263,7 +274,7 @@
   });
 
   try {
-    if (typeof window.renderFeed === 'function' && !window.renderFeed.__giftsV5) {
+    if (typeof window.renderFeed === 'function' && !window.renderFeed.__giftsV6) {
       var rf = window.renderFeed;
       window.renderFeed = function () {
         var r = rf.apply(this, arguments);
@@ -271,14 +282,14 @@
         setTimeout(scan, 250);
         return r;
       };
-      window.renderFeed.__giftsV5 = true;
+      window.renderFeed.__giftsV6 = true;
     }
   } catch (e) {}
 
   try {
     var feed = document.getElementById('feedList');
-    if (feed && !feed.__giftObsV5) {
-      feed.__giftObsV5 = true;
+    if (feed && !feed.__giftObsV6) {
+      feed.__giftObsV6 = true;
       var t = null;
       new MutationObserver(function () {
         if (t) clearTimeout(t);

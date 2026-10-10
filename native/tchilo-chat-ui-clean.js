@@ -1,18 +1,24 @@
 /**
- * Tchilo chat UI v5
- * mic some ao escrever · Enter não envia · um só +
+ * Tchilo chat UI v6 — mic preto visível
  */
 (function () {
   'use strict';
-  if (window.__tchiloChatUiCleanV5) return;
-  window.__tchiloChatUiCleanV5 = true;
+  if (window.__tchiloChatUiCleanV6) return;
+  window.__tchiloChatUiCleanV6 = true;
 
   var PLUS =
     '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#0B0B0C" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
   var MIC =
-    '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0B0B0C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>';
+    '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0B0B0C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#0B0B0C">' +
+    '<rect x="9" y="2" width="6" height="12" rx="3" stroke="#0B0B0C"/>' +
+    '<path d="M5 11a7 7 0 0 0 14 0" stroke="#0B0B0C"/>' +
+    '<line x1="12" y1="18" x2="12" y2="22" stroke="#0B0B0C"/>' +
+    '<line x1="8" y1="22" x2="16" y2="22" stroke="#0B0B0C"/>' +
+    '</svg>';
   var SEND =
-    '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0B0B0C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+    '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0B0B0C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="none" stroke="#0B0B0C"/>' +
+    '</svg>';
 
   var CSS =
     'html body #chatScreen .chat-input-bar,html body #chatScreen .tchilo-chat-bar{' +
@@ -30,7 +36,11 @@
     'display:inline-flex!important;align-items:center!important;justify-content:center!important;}' +
     'html body #chatScreen #tchiloChatAudioBtn,html body #chatScreen #chatMicBtn{' +
     'width:40px!important;height:40px!important;border:0!important;border-radius:0!important;' +
-    'background:transparent!important;box-shadow:none!important;padding:0!important;}' +
+    'background:transparent!important;box-shadow:none!important;padding:0!important;' +
+    'color:#0B0B0C!important;}' +
+    'html body #chatScreen #tchiloChatAudioBtn svg,html body #chatScreen #chatMicBtn svg,' +
+    'html body #chatScreen #tchiloChatAudioBtn svg *,html body #chatScreen #chatMicBtn svg *{' +
+    'stroke:#0B0B0C!important;color:#0B0B0C!important;fill:none!important;}' +
     'html body #chatScreen #tchiloChatAudioBtn.tchilo-mic-hide,' +
     'html body #chatScreen #chatMicBtn.tchilo-mic-hide{display:none!important;width:0!important;height:0!important;' +
     'opacity:0!important;pointer-events:none!important;margin:0!important;padding:0!important;overflow:hidden!important;}' +
@@ -91,23 +101,25 @@
     } else {
       mic.classList.remove('tchilo-mic-hide');
       mic.style.display = 'inline-flex';
-      if (!mic.querySelector('svg')) setIcon(mic, MIC);
+      setIcon(mic, MIC);
+      forceStyle(
+        mic,
+        'width:40px;height:40px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#0B0B0C;'
+      );
     }
   }
 
   function wireInput() {
     var inp = getInput();
-    if (!inp || inp.__tchiloInputV5) return;
-    inp.__tchiloInputV5 = true;
+    if (!inp || inp.__tchiloInputV6) return;
+    inp.__tchiloInputV6 = true;
 
-    /* Enter / retorno NÃO envia */
     inp.addEventListener(
       'keydown',
       function (e) {
         if (e.key === 'Enter' || e.keyCode === 13) {
           e.preventDefault();
           e.stopPropagation();
-          /* opcional: inserir quebra de linha se for textarea */
           if (inp.tagName === 'TEXTAREA') {
             var start = inp.selectionStart;
             var end = inp.selectionEnd;
@@ -121,7 +133,6 @@
       true
     );
 
-    /* impedir submit de form se existir */
     inp.addEventListener(
       'keypress',
       function (e) {
@@ -172,12 +183,10 @@
       }
     });
 
-    /* se o botão ainda mostrar "++" como texto, força SVG */
     if (kept) {
       var raw = (kept.textContent || '').replace(/\s/g, '');
       if (raw.indexOf('+') >= 0 && !kept.querySelector('svg')) setIcon(kept, PLUS);
       if (kept.querySelector('svg') && kept.childNodes.length > 1) {
-        /* limpar nós de texto extra */
         Array.prototype.slice.call(kept.childNodes).forEach(function (n) {
           if (n.nodeType === 3) kept.removeChild(n);
         });
@@ -196,10 +205,10 @@
 
     var mic = getMic();
     if (mic && !mic.classList.contains('tchilo-mic-hide')) {
-      if (!mic.querySelector('svg')) setIcon(mic, MIC);
+      setIcon(mic, MIC);
       forceStyle(
         mic,
-        'width:40px;height:40px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:0;display:inline-flex;align-items:center;justify-content:center;'
+        'width:40px;height:40px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#0B0B0C;'
       );
     }
 

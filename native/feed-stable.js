@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v85 — chat UI v2 + apagar msg */
+/** tchilo-Pop loaders v86 — chat force thin */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V85) return;
-  window.__TCHILO_FEED_STABLE_V85 = true;
+  if (window.__TCHILO_FEED_STABLE_V86) return;
+  window.__TCHILO_FEED_STABLE_V86 = true;
 
   function add(src, sync) {
     try {
@@ -71,8 +71,8 @@
       'native/tchilo-music-stop.js?v=2',
       'native/tchilo-music-feed-fix.js?v=3',
       'native/tchilo-menu-clean.js?v=1',
-      'native/tchilo-chat-ui-clean.js?v=2',
-      'native/tchilo-chat-attach.js?v=2',
+      'native/tchilo-chat-ui-clean.js?v=3',
+      'native/tchilo-chat-attach.js?v=3',
       'native/tchilo-chat-msg-actions.js?v=1'
     ]);
   }

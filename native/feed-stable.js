@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v78 — performance: fases + boost */
+/** tchilo-Pop loaders v79 — posts border thin */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V78) return;
-  window.__TCHILO_FEED_STABLE_V78 = true;
+  if (window.__TCHILO_FEED_STABLE_V79) return;
+  window.__TCHILO_FEED_STABLE_V79 = true;
 
   function add(src, sync) {
     try {
@@ -28,7 +28,6 @@
     for (var i = 0; i < list.length; i++) add(list[i], sync);
   }
 
-  /* Fase 1 — crítico (UI estável + login + feed base) */
   function loadCritical() {
     add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-perf-boost.js?v=1', true);
@@ -43,6 +42,7 @@
     add('native/tchilo-nav-size-fix.js?v=4', true);
     add('native/tchilo-sheet-swipe.js?v=2', true);
     add('native/tchilo-ptr-fix.js?v=1', true);
+    add('native/topbar-border-thin.js?v=3', true);
     add('native/tchilo-ui-unlock.js?v=3', true);
     add('native/tchilo-login-session-fix.js?v=9', true);
     add('native/tchilo-hide-nav.js?v=4');
@@ -51,7 +51,6 @@
     add('native/tchilo-session-lock.js?v=1');
   }
 
-  /* Fase 2 — feed / media (logo a seguir) */
   function loadFeedLayer() {
     addMany([
       'native/tchilo-live-lobby.js?v=1',
@@ -67,13 +66,11 @@
       'native/tchilo-cloud-hydrate.js?v=3',
       'native/tchilo-avatar-cloud.js?v=4',
       'native/feed-stories-scroll.js?v=3',
-      'native/topbar-border-thin.js?v=2',
       'native/tchilo-music-stop.js?v=2',
       'native/tchilo-music-feed-fix.js?v=3'
     ]);
   }
 
-  /* Fase 3 — secundário (idle) */
   function loadSecondary() {
     addMany([
       'native/tchilo-settings-icons.js?v=27',
@@ -111,7 +108,6 @@
     ]);
   }
 
-  /* Fase 4 — ads (mais tarde) */
   function loadAds() {
     addMany([
       'native/tchilo-ads-ui.js?v=7',

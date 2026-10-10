@@ -1,9 +1,10 @@
 /**
- * Música: Cancelar branco nos sheets escuros + parar áudio ao publicar
+ * Música: parar áudio ao publicar + Cancelar limpo (texto preto)
  */
 (function () {
   'use strict';
-  if (window.__tchiloMusicStopV1) return;
+  if (window.__tchiloMusicStopV2) return;
+  window.__tchiloMusicStopV2 = true;
   window.__tchiloMusicStopV1 = true;
 
   function injectCSS() {
@@ -14,23 +15,19 @@
       (document.head || document.documentElement).appendChild(st);
     }
     st.textContent =
-      /* Cancelar legível em sheets escuros (música / ações) */
+      /* Cancelar legível: letra preta, sem “circuito” branco */
       '.sheet button.cancel,' +
       '.sheet .cancel,' +
       '[id*="Music"] button.cancel,' +
       '[id*="music"] button.cancel,' +
       '.music-use-sheet .cancel,' +
       '.tchilo-music-use .cancel,' +
-      'button[data-a="cancel"],' +
-      '.sheet-panel button.cancel{' +
-      'background:#ffffff!important;' +
+      'button[data-a="cancel"]{' +
+      'background:transparent!important;' +
       'color:#0B0B0C!important;' +
-      'border:2px solid rgba(255,255,255,.35)!important;' +
-      'font-weight:800!important;}' +
-      /* botão texto Cancelar no fundo preto */
-      '.sheet .sheet-panel button:last-child,' +
-      '[role="dialog"] button.cancel{' +
-      'background:#fff!important;color:#0B0B0C!important;}';
+      'border:1px solid rgba(11,11,12,.12)!important;' +
+      'box-shadow:none!important;' +
+      'font-weight:800!important;}';
   }
 
   function stopAllMusic() {
@@ -49,7 +46,6 @@
       }
     } catch (e2) {}
     try {
-      /* audio criado em music-sheet */
       if (window.__tchiloPreviewAudio) {
         window.__tchiloPreviewAudio.pause();
         window.__tchiloPreviewAudio = null;
@@ -90,7 +86,6 @@
   setTimeout(patchPublish, 500);
   setTimeout(patchPublish, 2000);
 
-  /* reforço: ao sair do create */
   document.addEventListener(
     'click',
     function (e) {

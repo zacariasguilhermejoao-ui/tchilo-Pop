@@ -1,15 +1,22 @@
 /**
- * Tchilo — força gravação real na Supabase
- * likes, mensagens, comentários, views, follows, notificações
- * perf: setInterval 30s
+ * Tchilo cloud-force v2
+ * Grava na Supabase: likes, saves, comments, follows, messages
+ * (UI local continua rápida; a fonte de verdade é a cloud)
  */
 (function () {
   'use strict';
-  if (window.__tchiloCloudForceV1) return;
+  if (window.__tchiloCloudForceV2) return;
+  window.__tchiloCloudForceV2 = true;
   window.__tchiloCloudForceV1 = true;
 
   function SB() {
-    return window.tchiloSupabase || window.SB || null;
+    return (
+      window.tchiloSupabase ||
+      window.SB ||
+      window.supabaseClient ||
+      window.supabase ||
+      null
+    );
   }
 
   async function uid() {
@@ -25,6 +32,10 @@
         return id;
       }
     } catch (e) {}
+    try {
+      var sess = sessionUser();
+      if (sess && (sess.id || sess.user_id)) return sess.id || sess.user_id;
+    } catch (e2) {}
     return null;
   }
 
@@ -81,7 +92,11 @@
           await s.from('likes').insert({ user_id: me, post_id: String(postId) });
         }
         try {
-          var p = await s.from('posts').select('user_id,likes_count').eq('id', postId).maybeSingle();
+          var p = await s
+            .from('posts')
+            .select('user_id,likes_count')
+            .eq('id', postId)
+            .maybeSingle();
           if (p.data && p.data.user_id) {
             await notify(p.data.user_id, 'like', 'gostou da tua publicação', postId);
             if (typeof p.data.likes_count === 'number') {
@@ -102,26 +117,39 @@
     }
   };
 
-  window.tchiloCloudView = async function (postId) {
+  window.tchiloCloudSave = async function (postId, saved) {
     var s = SB();
     var me = await uid();
-    if (!s || !postId) return;
+    if (!s || !me || !postId) return false;
     try {
-      await s.from('post_views').insert({
-        user_id: me,
-        post_id: String(postId),
-        viewed_at: new Date().toISOString()
-      });
-      try {
-        var p = await s.from('posts').select('views_count').eq('id', postId).maybeSingle();
-        if (p.data && typeof p.data.views_count === 'number') {
-          await s
-            .from('posts')
-            .update({ views_count: (p.data.views_count || 0) + 1 })
-            .eq('id', postId);
+      if (saved) {
+        var ins = await s.from('saved_posts').upsert(
+          { user_id: me, post_id: String(postId), created_at: new Date().toISOString() },
+          { onConflict: 'user_id,post_id' }
+        );
+        if (ins.error) {
+          /* fallback nome da tabela */
+          var ins2 = await s.from('saves').upsert(
+            { user_id: me, post_id: String(postId), created_at: new Date().toISOString() },
+            { onConflict: 'user_id,post_id' }
+          );
+          if (ins2.error) {
+            await s.from('saved_posts').insert({ user_id: me, post_id: String(postId) });
+          }
         }
-      } catch (e) {}
-    } catch (e) {}
+      } else {
+        try {
+          await s.from('saved_posts').delete().eq('user_id', me).eq('post_id', String(postId));
+        } catch (e) {}
+        try {
+          await s.from('saves').delete().eq('user_id', me).eq('post_id', String(postId));
+        } catch (e2) {}
+      }
+      return true;
+    } catch (e) {
+      console.warn('cloud save', e);
+      return false;
+    }
   };
 
   window.tchiloCloudComment = async function (postId, text) {
@@ -133,12 +161,21 @@
         post_id: String(postId),
         user_id: me,
         content: String(text).trim(),
+        body: String(text).trim(),
         created_at: new Date().toISOString()
       };
       var r = await s.from('comments').insert(row).select('*').maybeSingle();
-      if (r.error) throw r.error;
+      if (r.error) {
+        delete row.body;
+        r = await s.from('comments').insert(row).select('*').maybeSingle();
+        if (r.error) throw r.error;
+      }
       try {
-        var p = await s.from('posts').select('user_id,comments_count').eq('id', postId).maybeSingle();
+        var p = await s
+          .from('posts')
+          .select('user_id,comments_count')
+          .eq('id', postId)
+          .maybeSingle();
         if (p.data && p.data.user_id) {
           await notify(p.data.user_id, 'comment', 'comentou: ' + text.slice(0, 80), postId);
           if (typeof p.data.comments_count === 'number') {
@@ -199,9 +236,8 @@
       if (r.error) {
         delete row.recipient_id;
         r = await s.from('messages').insert(row).select('*').maybeSingle();
+        if (r.error) throw r.error;
       }
-      if (r.error) throw r.error;
-      if (rid) await notify(rid, 'message', (payload && payload.text) || 'enviou-te uma mensagem');
       return r.data;
     } catch (e) {
       console.warn('cloud message', e);
@@ -209,51 +245,55 @@
     }
   };
 
-  window.tchiloCloudLoadMessages = async function (otherUsername) {
-    var s = SB();
-    var me = await uid();
-    if (!s || !me || !otherUsername) return [];
-    var rid = await resolveUserIdByUsername(otherUsername);
-    try {
-      var r1 = await s
-        .from('messages')
-        .select('*')
-        .eq('sender_id', me)
-        .eq('recipient_username', otherUsername)
-        .order('created_at', { ascending: true })
-        .limit(200);
-      var rows = (r1.data || []).slice();
-      if (rid) {
-        var r2 = await s
-          .from('messages')
-          .select('*')
-          .eq('sender_id', rid)
-          .eq('recipient_id', me)
-          .order('created_at', { ascending: true })
-          .limit(200);
-        rows = rows.concat(r2.data || []);
-      }
-      rows.sort(function (a, b) {
-        return new Date(a.created_at) - new Date(b.created_at);
-      });
-      return rows;
-    } catch (e) {
-      console.warn('load messages', e);
-      return [];
-    }
-  };
-
   function patchLikes() {
-    if (typeof window.toggleLike === 'function' && !window.toggleLike.__cloud) {
+    if (typeof window.toggleLike === 'function' && !window.toggleLike.__cloudV2) {
       var orig = window.toggleLike;
       window.toggleLike = function (id, btn) {
         var likes = typeof getLikes === 'function' ? getLikes() : {};
         var willLike = !likes[id];
         var r = orig.apply(this, arguments);
-        window.tchiloCloudLike(id, willLike);
+        try {
+          window.tchiloCloudLike(id, willLike);
+        } catch (e) {}
         return r;
       };
+      window.toggleLike.__cloudV2 = true;
       window.toggleLike.__cloud = true;
+    }
+  }
+
+  function patchSaves() {
+    if (typeof window.toggleSave === 'function' && !window.toggleSave.__cloudV2) {
+      var orig = window.toggleSave;
+      window.toggleSave = function (id, btn) {
+        var saves = typeof getSaves === 'function' ? getSaves() : {};
+        var willSave = !saves[id];
+        var r = orig.apply(this, arguments);
+        try {
+          window.tchiloCloudSave(id, willSave);
+        } catch (e) {}
+        return r;
+      };
+      window.toggleSave.__cloudV2 = true;
+    }
+  }
+
+  function patchComments() {
+    if (typeof window.sendComment === 'function' && !window.sendComment.__cloudV2) {
+      var orig = window.sendComment;
+      window.sendComment = async function () {
+        var input = document.getElementById('commentInput');
+        var text = input && input.value ? input.value.trim() : '';
+        var postId = window.currentCommentPostId;
+        var r = await orig.apply(this, arguments);
+        if (text && postId) {
+          try {
+            await window.tchiloCloudComment(postId, text);
+          } catch (e) {}
+        }
+        return r;
+      };
+      window.sendComment.__cloudV2 = true;
     }
   }
 
@@ -285,11 +325,9 @@
     if (typeof window.toggleFollow === 'function' && !window.toggleFollow.__cloud) {
       var orig = window.toggleFollow;
       window.toggleFollow = function (username) {
-        var was =
-          typeof isFollowing === 'function' ? isFollowing(username) : false;
+        var was = typeof isFollowing === 'function' ? isFollowing(username) : false;
         var r = orig.apply(this, arguments);
-        var now =
-          typeof isFollowing === 'function' ? isFollowing(username) : !was;
+        var now = typeof isFollowing === 'function' ? isFollowing(username) : !was;
         window.tchiloCloudFollow(username, now);
         return r;
       };
@@ -299,13 +337,15 @@
 
   function boot() {
     patchLikes();
+    patchSaves();
+    patchComments();
     patchChat();
     patchFollow();
   }
   boot();
-  setTimeout(boot, 500);
-  setTimeout(boot, 2000);
-  setInterval(boot, 30000); /* perf: era 5s */
+  setTimeout(boot, 400);
+  setTimeout(boot, 1500);
+  setInterval(boot, 30000);
 
-  console.log('[Tchilo] cloud-force ativo');
+  console.log('[Tchilo] cloud-force v2: likes/saves/comments → Supabase');
 })();

@@ -1,7 +1,8 @@
-/** tchilo-Pop loaders v90 — mic preto + perfil scroll */
+/** tchilo-Pop loaders v91 — perfil não divide feed/notifs */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V90) return;
+  if (window.__TCHILO_FEED_STABLE_V91) return;
+  window.__TCHILO_FEED_STABLE_V91 = true;
   window.__TCHILO_FEED_STABLE_V90 = true;
 
   function add(src, sync) {
@@ -76,7 +77,7 @@
       'native/tchilo-chat-msg-actions.js?v=2',
       'native/tchilo-chat-supabase.js?v=1',
       'native/tchilo-chat-nav.js?v=1',
-      'native/tchilo-profile-scroll.js?v=1'
+      'native/tchilo-profile-scroll.js?v=3'
     ]);
   }
 

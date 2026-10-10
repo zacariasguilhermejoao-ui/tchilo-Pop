@@ -1,7 +1,8 @@
-/** tchilo-Pop loaders v91 — perfil não divide feed/notifs */
+/** tchilo-Pop loaders v92 — perfil escondido fora de .active */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V91) return;
+  if (window.__TCHILO_FEED_STABLE_V92) return;
+  window.__TCHILO_FEED_STABLE_V92 = true;
   window.__TCHILO_FEED_STABLE_V91 = true;
   window.__TCHILO_FEED_STABLE_V90 = true;
 
@@ -33,7 +34,7 @@
     add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-perf-boost.js?v=1', true);
     add('native/tchilo-click-sounds.js?v=1', true);
-    add('native/tchilo-final-css.js?v=3', true);
+    add('native/tchilo-final-css.js?v=4', true);
     add('native/tchilo-modal-ui.js?v=2', true);
     add('native/tchilo-store-policy.js?v=2', true);
     add('native/tchilo-nav-icons-lock.js?v=1', true);

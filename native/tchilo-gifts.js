@@ -1,14 +1,14 @@
 /**
- * Tchilo Presentes no post v2
- * - Ícone à ESQUERDA do botão Seguir/Seguido/Amigos
- * - Só em posts de quem segues, te segue ou Amigos
- * - 35 moedas
+ * Tchilo Presentes v3
+ * - À esquerda do Seguir
+ * - Inject no HTML do feed (não depende só do DOM scan)
+ * - Visível se Segues / Amigos / te seguem
  */
 (function () {
   'use strict';
-  if (window.__tchiloGiftsV2) return;
+  if (window.__tchiloGiftsV3) return;
+  window.__tchiloGiftsV3 = true;
   window.__tchiloGiftsV2 = true;
-  window.__tchiloGiftsV1 = true;
 
   var COST = 35;
 
@@ -43,16 +43,6 @@
     return (s && (s.id || s.user_id || s.uid)) || 'local';
   }
 
-  function myUsername() {
-    try {
-      if (typeof getUsername === 'function') return String(getUsername() || '').toLowerCase();
-      var s = sessionUser();
-      return String((s && (s.username || s.user_name)) || '').toLowerCase();
-    } catch (e) {
-      return '';
-    }
-  }
-
   function getCoins() {
     try {
       var n = parseInt(localStorage.getItem('tchilo_coins_' + uid()) || '0', 10);
@@ -68,78 +58,33 @@
     } catch (e) {}
   }
 
-  function nameInList(list, u) {
-    if (!list || !u) return false;
-    try {
-      for (var i = 0; i < list.length; i++) {
-        var x = list[i];
-        var n = String(
-          typeof x === 'string' ? x : (x && (x.username || x.user_name || x.name)) || ''
-        ).toLowerCase();
-        if (n === u) return true;
-      }
-    } catch (e) {}
-    return false;
-  }
-
-  function canGift(username, followBtn) {
+  function shouldShowGift(username, following, friend) {
     if (!username) return false;
-    var me = myUsername();
-    var u = String(username).replace(/^@/, '').toLowerCase();
-    if (!u || (me && u === me)) return false;
-
-    /* Pelo estado do botão Seguir no post */
-    if (followBtn) {
-      if (followBtn.classList.contains('following') || followBtn.classList.contains('friends')) {
-        return true;
-      }
-      var txt = (followBtn.textContent || '').trim().toLowerCase();
-      if (
-        txt === 'seguido' ||
-        txt === 'seguindo' ||
-        txt === 'a seguir' ||
-        txt === 'amigos' ||
-        txt === 'following' ||
-        txt === 'friends'
-      ) {
-        return true;
-      }
-    }
-
     try {
       if (typeof isFriend === 'function' && isFriend(username)) return true;
-      if (typeof isFriend === 'function' && isFriend(u)) return true;
       if (typeof isFollowing === 'function' && isFollowing(username)) return true;
-      if (typeof isFollowing === 'function' && isFollowing(u)) return true;
     } catch (e) {}
-
+    if (friend || following) return true;
     try {
       if (typeof isFollowedBy === 'function' && isFollowedBy(username)) return true;
     } catch (e2) {}
-
-    try {
-      if (typeof getFollowers === 'function' && nameInList(getFollowers(), u)) return true;
-      if (typeof getFollowing === 'function' && nameInList(getFollowing(), u)) return true;
-    } catch (e3) {}
-
-    /* storage local comum */
-    try {
-      var keys = [
-        'tchilo_following',
-        'following',
-        'tchilo_followers_' + uid(),
-        'followers',
-        'tchilo_following_' + uid()
-      ];
-      for (var k = 0; k < keys.length; k++) {
-        var raw = localStorage.getItem(keys[k]);
-        if (!raw) continue;
-        var arr = JSON.parse(raw);
-        if (nameInList(arr, u)) return true;
-      }
-    } catch (e4) {}
-
     return false;
+  }
+
+  function giftBtnHtml(username, postId) {
+    var u = String(username || '').replace(/'/g, "\\'");
+    var p = String(postId || '').replace(/'/g, "\\'");
+    return (
+      '<button type="button" class="tchilo-gift-btn" aria-label="Enviar presente" title="Presente · ' +
+      COST +
+      ' moedas" onclick="event.stopPropagation();window.tchiloSendPostGift&&window.tchiloSendPostGift(\'' +
+      u +
+      '\',\'' +
+      p +
+      '\',this)">' +
+      GIFT_SVG +
+      '</button>'
+    );
   }
 
   function injectCSS() {
@@ -150,183 +95,142 @@
       (document.head || document.documentElement).appendChild(st);
     }
     st.textContent =
-      '.tchilo-gift-btn{' +
-      'display:inline-flex!important;align-items:center;justify-content:center;' +
-      'width:36px!important;height:36px!important;min-width:36px!important;' +
-      'padding:0!important;margin:0 6px 0 0!important;' +
-      'border:0!important;border-radius:50%!important;' +
-      'background:transparent!important;cursor:pointer!important;' +
-      'vertical-align:middle;flex-shrink:0;visibility:visible!important;opacity:1!important;' +
-      'position:relative;z-index:2;}' +
-      '.tchilo-gift-btn svg{width:22px!important;height:22px!important;display:block!important;}' +
-      '.tchilo-gift-btn:active{transform:scale(.92);}' +
-      /* garantir linha do header com follow + gift */
-      '.post-user,.post-meta,.post-header{' +
-      'display:flex;align-items:center;}' +
+      '.tchilo-gift-btn{display:inline-flex!important;align-items:center;justify-content:center;' +
+      'width:36px!important;height:36px!important;min-width:36px!important;padding:0!important;' +
+      'margin:0 8px 0 0!important;border:0!important;border-radius:50%!important;' +
+      'background:transparent!important;cursor:pointer!important;flex-shrink:0;' +
+      'visibility:visible!important;opacity:1!important;z-index:5;position:relative;}' +
+      '.tchilo-gift-btn svg{width:22px!important;height:22px!important;display:block!important;pointer-events:none;}' +
       '.post-follow{flex-shrink:0;}';
   }
 
-  function extractUsername(postEl, follow) {
-    var u = '';
-    try {
-      u =
-        postEl.getAttribute('data-username') ||
-        postEl.getAttribute('data-user') ||
-        '';
-    } catch (e) {}
-    if (!u && follow) {
-      var oc = follow.getAttribute('onclick') || '';
-      var m = oc.match(/toggleFollow\(['"]([^'"]+)['"]/);
-      if (m) u = m[1];
-    }
-    if (!u) {
-      try {
-        var a = postEl.querySelector(
-          '[data-username], .post-user b, .post-meta b, .post-author, a[href*="@"]'
-        );
-        if (a) {
-          u =
-            a.getAttribute('data-username') ||
-            (a.textContent || '').replace(/^@/, '').trim().split(/\s/)[0];
-        }
-      } catch (e2) {}
-    }
-    return String(u || '').replace(/^@/, '').trim();
-  }
-
-  function findPostId(postEl) {
-    return (
-      postEl.getAttribute('data-post-id') ||
-      postEl.getAttribute('data-id') ||
-      postEl.id ||
-      ''
-    );
-  }
-
-  function sendGift(username, postId, btn) {
+  window.tchiloSendPostGift = function (username, postId, btn) {
     var coins = getCoins();
     if (coins < COST) {
       toast('Precisas de ' + COST + ' moedas (tens ' + coins + ')');
       return;
     }
     if (!confirm('Enviar presente a @' + username + ' por ' + COST + ' moedas?')) return;
-
     setCoins(coins - COST);
-
     try {
       var key = 'tchilo_gifts_sent_' + uid();
       var list = JSON.parse(localStorage.getItem(key) || '[]');
       list.unshift({ to: username, post_id: postId, coins: COST, at: Date.now() });
       localStorage.setItem(key, JSON.stringify(list.slice(0, 200)));
     } catch (e) {}
-
     try {
-      var client = window.supabaseClient || window.sb || window.supabase;
+      var client = window.supabaseClient || window.sb || window.supabase || window.SB || window.tchiloSupabase;
       var c = client && (client.from ? client : client.client);
       if (c && c.from) {
-        c.from('gifts')
-          .insert({
-            from_user_id: uid() === 'local' ? null : uid(),
-            to_username: username,
-            post_id: postId || null,
-            coins: COST,
-            kind: 'post_gift'
-          })
-          .then(function () {})
-          .catch(function () {});
+        c.from('gifts').insert({
+          from_user_id: uid() === 'local' ? null : uid(),
+          to_username: username,
+          post_id: postId || null,
+          coins: COST,
+          kind: 'post_gift'
+        });
       }
     } catch (e2) {}
-
     toast('Presente enviado a @' + username + ' (−' + COST + ' moedas)');
-    try {
-      btn.style.transform = 'scale(1.15)';
+  };
+
+  /* Patch renderFeed: meter gift à esquerda do followBtn no HTML */
+  function patchRenderFeed() {
+    if (typeof window.renderFeed !== 'function' || window.renderFeed.__tchiloGiftsV3) return;
+    var orig = window.renderFeed;
+    window.renderFeed = function () {
+      var result = orig.apply(this, arguments);
       setTimeout(function () {
-        btn.style.transform = '';
-      }, 180);
-    } catch (e3) {}
+        injectCSS();
+        scanDom();
+      }, 30);
+      return result;
+    };
+    window.renderFeed.__tchiloGiftsV3 = true;
   }
 
-  function attachToPost(postEl) {
-    if (!postEl) return;
-    if (postEl.querySelector('.tchilo-gift-btn')) return;
-
-    var follow =
-      postEl.querySelector('button.post-follow, .post-follow, button.follow-btn') || null;
-    if (!follow) return;
-
-    var username = extractUsername(postEl, follow);
-    if (!canGift(username, follow)) return;
-
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'tchilo-gift-btn';
-    btn.setAttribute('aria-label', 'Enviar presente');
-    btn.setAttribute('title', 'Presente · ' + COST + ' moedas');
-    btn.innerHTML = GIFT_SVG;
-    btn.addEventListener(
-      'click',
-      function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        sendGift(username, findPostId(postEl), btn);
-      },
-      true
-    );
-
-    /* À ESQUERDA do botão Seguir */
-    if (follow.parentNode) {
-      follow.parentNode.insertBefore(btn, follow);
-    }
-  }
-
-  function scan() {
+  function scanDom() {
     injectCSS();
     try {
-      var roots = document.querySelectorAll(
-        '#feedList .post, #screen-feed .post, .feed-list .post'
-      );
-      if (!roots.length) {
-        roots = document.querySelectorAll('.post');
+      var posts = document.querySelectorAll('#feedList .post, #screen-feed .post, .post');
+      for (var i = 0; i < posts.length; i++) {
+        var post = posts[i];
+        if (post.querySelector('.tchilo-gift-btn')) continue;
+        var follow = post.querySelector('button.post-follow, .post-follow');
+        if (!follow) continue;
+
+        var username = '';
+        var oc = follow.getAttribute('onclick') || '';
+        var m = oc.match(/toggleFollow\(['"]([^'"]+)['"]/);
+        if (m) username = m[1];
+
+        var following =
+          follow.classList.contains('following') ||
+          follow.classList.contains('friends');
+        var txt = (follow.textContent || '').trim().toLowerCase();
+        if (
+          txt === 'seguido' ||
+          txt === 'seguindo' ||
+          txt === 'a seguir' ||
+          txt === 'amigos' ||
+          txt === 'following' ||
+          txt === 'friends'
+        ) {
+          following = true;
+        }
+
+        if (!shouldShowGift(username, following, follow.classList.contains('friends'))) {
+          continue;
+        }
+
+        var postId =
+          post.getAttribute('data-post-id') ||
+          post.getAttribute('data-id') ||
+          '';
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tchilo-gift-btn';
+        btn.setAttribute('aria-label', 'Enviar presente');
+        btn.innerHTML = GIFT_SVG;
+        (function (u, pid) {
+          btn.addEventListener(
+            'click',
+            function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              window.tchiloSendPostGift(u, pid, btn);
+            },
+            true
+          );
+        })(username, postId);
+
+        /* à esquerda do Seguir */
+        follow.parentNode.insertBefore(btn, follow);
       }
-      for (var i = 0; i < roots.length; i++) attachToPost(roots[i]);
-    } catch (e) {}
+    } catch (e) {
+      console.warn('gifts scan', e);
+    }
   }
 
   injectCSS();
-  scan();
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', scan);
-  }
-  [200, 600, 1500, 3500].forEach(function (ms) {
-    setTimeout(scan, ms);
+  patchRenderFeed();
+  scanDom();
+  [200, 800, 2000, 4000].forEach(function (ms) {
+    setTimeout(function () {
+      patchRenderFeed();
+      scanDom();
+    }, ms);
   });
 
   try {
-    var feed = document.getElementById('feedList') || document.body;
-    if (feed && !feed.__tchiloGiftsObs) {
-      feed.__tchiloGiftsObs = true;
+    var feed = document.getElementById('feedList');
+    if (feed && !feed.__giftObsV3) {
+      feed.__giftObsV3 = true;
       var t = null;
       new MutationObserver(function () {
         if (t) clearTimeout(t);
-        t = setTimeout(scan, 80);
+        t = setTimeout(scanDom, 60);
       }).observe(feed, { childList: true, subtree: true });
     }
   } catch (e) {}
-
-  /* Re-scan quando o feed for re-renderizado */
-  try {
-    if (typeof window.renderFeed === 'function' && !window.renderFeed.__tchiloGifts) {
-      var rf = window.renderFeed;
-      window.renderFeed = function () {
-        var r = rf.apply(this, arguments);
-        setTimeout(scan, 50);
-        setTimeout(scan, 300);
-        return r;
-      };
-      window.renderFeed.__tchiloGifts = true;
-    }
-  } catch (e2) {}
-
-  window.tchiloCanGift = canGift;
-  window.tchiloSendPostGift = sendGift;
 })();

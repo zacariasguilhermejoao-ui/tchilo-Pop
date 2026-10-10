@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v76 — modais limpos */
+/** tchilo-Pop loaders v77 — PTR só ao puxar */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V76) return;
-  window.__TCHILO_FEED_STABLE_V76 = true;
+  if (window.__TCHILO_FEED_STABLE_V77) return;
+  window.__TCHILO_FEED_STABLE_V77 = true;
 
   function add(src, sync) {
     try {
@@ -41,6 +41,7 @@
     add('native/tchilo-nav-size-fix.js?v=4', true);
     add('native/tchilo-sheet-swipe.js?v=2', true);
     add('native/tchilo-music-stop.js?v=2', true);
+    add('native/tchilo-ptr-fix.js?v=1', true);
 
     add('native/tchilo-ui-unlock.js?v=3', true);
     add('native/tchilo-login-session-fix.js?v=9', true);

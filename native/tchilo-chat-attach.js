@@ -1,21 +1,21 @@
 /**
- * Tchilo attach v3 — GIF como texto · figurinha profissional · sem cinza
+ * Tchilo attach v4 — um GIF · emoji figurinha · swipe fechar
  */
 (function () {
   'use strict';
-  if (window.__tchiloChatAttachV3) return;
-  window.__tchiloChatAttachV3 = true;
+  if (window.__tchiloChatAttachV4) return;
+  window.__tchiloChatAttachV4 = true;
+
+  /* emoji sorridente preto (figurinha) */
+  var STICKER_ICON =
+    '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" aria-hidden="true">' +
+    '<circle cx="12" cy="12" r="9.2" stroke="#0B0B0C" stroke-width="1.7"/>' +
+    '<circle cx="9" cy="10" r="1.15" fill="#0B0B0C"/>' +
+    '<circle cx="15" cy="10" r="1.15" fill="#0B0B0C"/>' +
+    '<path d="M8.2 14.2c1.1 1.4 2.6 2.1 3.8 2.1s2.7-.7 3.8-2.1" stroke="#0B0B0C" stroke-width="1.7" stroke-linecap="round" fill="none"/>' +
+    '</svg>';
 
   var ICONS = {
-    gif: null, /* texto GIF */
-    sticker:
-      '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#0B0B0C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-      '<path d="M12 2a9 9 0 0 0-9 9c0 4.5 3.2 8.2 7.5 8.9L15 15.5A9 9 0 0 0 12 2z"/>' +
-      '<path d="M14.5 14.5 20 20"/>' +
-      '<circle cx="9" cy="10" r="1" fill="#0B0B0C" stroke="none"/>' +
-      '<circle cx="13" cy="10" r="1" fill="#0B0B0C" stroke="none"/>' +
-      '<path d="M8.5 13s1.2 1.4 3 1.4 3-1.4 3-1.4"/>' +
-      '</svg>',
     photo:
       '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#0B0B0C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.4"/><path d="m21 15-4.5-4.5L6 19"/></svg>',
     video:
@@ -40,16 +40,49 @@
     st.textContent =
       '#tchiloChatAttachSheet{position:fixed;inset:0;z-index:2147483642;display:none;align-items:flex-end;justify-content:center;background:rgba(11,11,12,.4);}' +
       '#tchiloChatAttachSheet.open{display:flex!important;}' +
-      '#tchiloChatAttachSheet .panel{width:100%;max-width:480px;max-height:72vh;overflow:auto;background:var(--paper,#F6F1E7);color:#0B0B0C;border:0!important;border-radius:20px 20px 0 0;box-shadow:0 -8px 32px rgba(0,0,0,.12);padding:12px 14px calc(16px + env(safe-area-inset-bottom));}' +
-      '#tchiloChatAttachSheet .handle{width:40px;height:4px;background:#c8c5bc;border-radius:2px;margin:4px auto 12px;border:0;}' +
+      '#tchiloChatAttachSheet .panel{width:100%;max-width:480px;max-height:72vh;overflow:auto;background:var(--paper,#F6F1E7);color:#0B0B0C;border:0!important;border-radius:20px 20px 0 0;box-shadow:0 -8px 32px rgba(0,0,0,.12);padding:12px 14px calc(16px + env(safe-area-inset-bottom));transition:transform .2s;}' +
+      '#tchiloChatAttachSheet .handle{width:40px;height:4px;background:#c8c5bc;border-radius:2px;margin:4px auto 12px;}' +
       '#tchiloChatAttachSheet h3{margin:0 0 4px;font-size:18px;font-weight:900;text-align:center;}' +
       '#tchiloChatAttachSheet .sub{text-align:center;font-size:13px;opacity:.55;margin-bottom:14px;}' +
       '#tchiloChatAttachSheet .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}' +
       '#tchiloChatAttachSheet .opt{border:0!important;border-radius:14px;background:#fff;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04);}' +
-      '#tchiloChatAttachSheet .opt .ic{background:transparent!important;border-radius:0!important;width:auto!important;height:auto!important;padding:0!important;display:flex;align-items:center;justify-content:center;min-height:28px;}' +
-      '#tchiloChatAttachSheet .opt .ic-gif{font:800 15px system-ui,sans-serif;letter-spacing:0.04em;color:#0B0B0C;}' +
+      '#tchiloChatAttachSheet .opt .ic{background:transparent!important;padding:0;display:flex;align-items:center;justify-content:center;min-height:30px;}' +
+      '#tchiloChatAttachSheet .opt .ic-gif{font:800 17px system-ui,sans-serif;letter-spacing:.06em;color:#0B0B0C;}' +
       '#tchiloChatAttachSheet .opt span{font-size:12px;font-weight:700;color:#0B0B0C;}' +
       '#tchiloChatAttachSheet .close{width:100%;margin-top:14px;padding:14px;border-radius:14px;border:1px solid rgba(11,11,12,.1)!important;background:transparent;font-weight:800;font-size:15px;cursor:pointer;color:#0B0B0C;}';
+  }
+
+  function bindSwipe(panel, onClose) {
+    if (!panel || panel.__swipe) return;
+    panel.__swipe = true;
+    var startY = 0,
+      dy = 0;
+    panel.addEventListener(
+      'touchstart',
+      function (e) {
+        if (e.touches[0]) startY = e.touches[0].clientY;
+        dy = 0;
+      },
+      { passive: true }
+    );
+    panel.addEventListener(
+      'touchmove',
+      function (e) {
+        if (!e.touches[0]) return;
+        dy = e.touches[0].clientY - startY;
+        if (dy > 0) panel.style.transform = 'translateY(' + dy + 'px)';
+      },
+      { passive: true }
+    );
+    panel.addEventListener(
+      'touchend',
+      function () {
+        if (dy > 70) onClose();
+        panel.style.transform = '';
+        dy = 0;
+      },
+      { passive: true }
+    );
   }
 
   function closeSheet() {
@@ -96,7 +129,7 @@
         }
         if (id === 'loc' && typeof window.sendChatLocation === 'function') window.sendChatLocation();
       } catch (e) {}
-    }, 50);
+    }, 40);
   }
 
   function openAttachSheet() {
@@ -112,7 +145,7 @@
       document.body.appendChild(sheet);
     }
     var items = [
-      { id: 'gif', label: 'GIF' },
+      { id: 'gif', label: '' },
       { id: 'sticker', label: 'Figurinhas' },
       { id: 'photo', label: 'Fotos' },
       { id: 'video', label: 'Vídeos' },
@@ -123,18 +156,23 @@
     ];
     var grid = items
       .map(function (it) {
-        var ic =
-          it.id === 'gif'
-            ? '<div class="ic"><span class="ic-gif">GIF</span></div>'
-            : '<div class="ic">' + (ICONS[it.id] || '') + '</div>';
+        var ic;
+        if (it.id === 'gif') {
+          /* só o texto GIF grande — sem label duplicado */
+          ic = '<div class="ic"><span class="ic-gif">GIF</span></div>';
+        } else if (it.id === 'sticker') {
+          ic = '<div class="ic">' + STICKER_ICON + '</div>';
+        } else {
+          ic = '<div class="ic">' + (ICONS[it.id] || '') + '</div>';
+        }
+        var lab = it.label ? '<span>' + it.label + '</span>' : '';
         return (
           '<button type="button" class="opt" data-a="' +
           it.id +
           '">' +
           ic +
-          '<span>' +
-          it.label +
-          '</span></button>'
+          lab +
+          '</button>'
         );
       })
       .join('');
@@ -158,6 +196,11 @@
       }
       runAction(a);
     };
+    var panel = sheet.querySelector('.panel');
+    bindSwipe(panel, function () {
+      closeSheet();
+      keepChatOpen();
+    });
     sheet.classList.add('open');
     keepChatOpen();
   }
@@ -166,39 +209,60 @@
     openAttachSheet();
   };
 
+  /* swipe em sheets GIF/sticker do compositor */
+  function enhanceOtherSheets() {
+    ['tchiloGifSheet', 'tchiloStickerSheet'].forEach(function (id) {
+      var sheet = document.getElementById(id);
+      if (!sheet) return;
+      var panel = sheet.querySelector('.panel') || sheet.firstElementChild;
+      if (!panel) return;
+      bindSwipe(panel, function () {
+        sheet.classList.remove('open');
+        sheet.style.display = 'none';
+      });
+    });
+  }
+
   function wirePlus() {
-    var btns = document.querySelectorAll('#chatAttachBtn, .chat-attach-btn, button[aria-label="Anexar"]');
-    btns.forEach(function (btn, i) {
-      if (i > 0) {
+    var btns = document.querySelectorAll(
+      '#chatScreen #chatAttachBtn, #chatScreen .chat-attach-btn, #chatScreen button[aria-label="Anexar"]'
+    );
+    var first = null;
+    btns.forEach(function (btn) {
+      if (!first) {
+        first = btn;
+        if (!btn.__attachV4) {
+          btn.__attachV4 = true;
+          btn.addEventListener(
+            'click',
+            function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              openAttachSheet();
+            },
+            true
+          );
+        }
+      } else {
         try {
-          btn.remove();
+          btn.parentNode.removeChild(btn);
         } catch (e) {
           btn.style.display = 'none';
         }
-        return;
       }
-      if (btn.__attachSheetV3) return;
-      btn.__attachSheetV3 = true;
-      btn.addEventListener(
-        'click',
-        function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          openAttachSheet();
-        },
-        true
-      );
     });
   }
 
   injectCSS();
   wirePlus();
+  enhanceOtherSheets();
   setTimeout(wirePlus, 400);
-  setTimeout(wirePlus, 1500);
+  setTimeout(enhanceOtherSheets, 800);
+  setTimeout(wirePlus, 2000);
   try {
-    new MutationObserver(wirePlus).observe(document.body || document.documentElement, {
-      childList: true,
-      subtree: true
-    });
+    new MutationObserver(function () {
+      wirePlus();
+      enhanceOtherSheets();
+    }).observe(document.body || document.documentElement, { childList: true, subtree: true });
   } catch (e) {}
 })();

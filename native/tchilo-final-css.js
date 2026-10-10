@@ -1,11 +1,13 @@
 /**
- * CSS final v3
+ * CSS final v4
  * - linhas de cabeçalho 1px
  * - linhas entre posts do feed 1px (não 3px)
+ * - perfil NUNCA visível sem .active (evita dividir feed/notifs)
  */
 (function () {
   'use strict';
-  if (window.__tchiloFinalCssV3) return;
+  if (window.__tchiloFinalCssV4) return;
+  window.__tchiloFinalCssV4 = true;
   window.__tchiloFinalCssV3 = true;
   window.__tchiloFinalCssV2 = true;
   window.__tchiloFinalCssV1 = true;
@@ -18,6 +20,22 @@
   }
 
   st.textContent =
+    /* ===== PERFIL: só visível com .active ===== */
+    'html body #screen-profile:not(.active){' +
+    'display:none!important;' +
+    'visibility:hidden!important;' +
+    'pointer-events:none!important;' +
+    'height:0!important;' +
+    'max-height:0!important;' +
+    'min-height:0!important;' +
+    'overflow:hidden!important;' +
+    'flex:0 0 0!important;' +
+    'opacity:0!important;}' +
+    'html body #screen-profile.active{' +
+    'display:flex!important;' +
+    'visibility:visible!important;' +
+    'pointer-events:auto!important;' +
+    'opacity:1!important;}' +
     /* Cabeçalhos: linha fina 1px */
     '.screen-header,' +
     '.screen > .screen-header,' +
@@ -76,4 +94,34 @@
     '#storiesBar .tchilo-play-badge,#storiesBar .tchilo-feed-play,' +
     '.story-card .tchilo-play-badge,.story-card .tchilo-feed-play{' +
     'display:none!important;visibility:hidden!important;}';
+
+  /* Limpar display inline residual no perfil se não estiver ativo */
+  function clearProfileInline() {
+    try {
+      var sp = document.getElementById('screen-profile');
+      if (sp && !sp.classList.contains('active')) {
+        sp.style.removeProperty('display');
+        sp.style.removeProperty('visibility');
+        sp.style.removeProperty('height');
+        sp.style.removeProperty('max-height');
+        sp.style.removeProperty('flex');
+        sp.style.removeProperty('overflow');
+        sp.style.removeProperty('opacity');
+      }
+    } catch (e) {}
+  }
+  clearProfileInline();
+  setTimeout(clearProfileInline, 200);
+  setTimeout(clearProfileInline, 1000);
+  try {
+    if (typeof window.goTo === 'function' && !window.goTo.__finalCssProfileHide) {
+      var g = window.goTo;
+      window.goTo = function (s) {
+        var r = g.apply(this, arguments);
+        if (s !== 'profile') setTimeout(clearProfileInline, 0);
+        return r;
+      };
+      window.goTo.__finalCssProfileHide = true;
+    }
+  } catch (e2) {}
 })();

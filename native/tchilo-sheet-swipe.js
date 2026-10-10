@@ -1,10 +1,11 @@
 /**
- * Tchilo — swipe para baixo fecha modais a meio (bottom sheets)
- * v1 — .sheet > .sheet-panel + sheets nativos (perfil, etc.)
+ * Tchilo — swipe para baixo fecha bottom sheets
+ * v2 — cobre .sheet, gift, music, profile share, etc.
  */
 (function () {
   'use strict';
-  if (window.__tchiloSheetSwipeV1) return;
+  if (window.__tchiloSheetSwipeV2) return;
+  window.__tchiloSheetSwipeV2 = true;
   window.__tchiloSheetSwipeV1 = true;
 
   var THRESH = 90;
@@ -13,38 +14,46 @@
   function isOpenSheet(el) {
     if (!el) return false;
     if (el.classList.contains('open')) return true;
-    var st = window.getComputedStyle(el);
-    return st.display !== 'none' && st.visibility !== 'hidden';
+    try {
+      var st = window.getComputedStyle(el);
+      return st.display !== 'none' && st.visibility !== 'hidden' && parseFloat(st.opacity || '1') > 0.1;
+    } catch (e) {
+      return false;
+    }
   }
 
   function closeSheet(backdrop) {
     if (!backdrop) return;
     try {
-      /* clique no fundo (já fecha na maioria dos sheets do index) */
-      backdrop.click();
+      var cancel =
+        backdrop.querySelector('[data-a="close"], .cancel, .sheet-cancel, button[aria-label="Fechar"]');
+      if (cancel) {
+        cancel.click();
+        return;
+      }
     } catch (e) {}
     try {
-      backdrop.classList.remove('open');
+      backdrop.click();
     } catch (e2) {}
-    /* limpar transform residual no painel */
+    try {
+      backdrop.classList.remove('open');
+    } catch (e3) {}
     try {
       var panel =
-        backdrop.querySelector('.sheet-panel') ||
-        backdrop.querySelector('.tchilo-ps-panel') ||
+        backdrop.querySelector('.sheet-panel, .panel, .tchilo-ps-panel') ||
         backdrop.firstElementChild;
       if (panel) {
         panel.style.transition = '';
         panel.style.transform = '';
       }
-    } catch (e3) {}
+    } catch (e4) {}
   }
 
   function bindPanel(backdrop, panel) {
-    if (!panel || panel.__tchiloSwipeBound) return;
-    panel.__tchiloSwipeBound = true;
+    if (!panel || panel.__tchiloSwipeBoundV2) return;
+    panel.__tchiloSwipeBoundV2 = true;
 
     var startY = 0;
-    var lastY = 0;
     var lastT = 0;
     var dragging = false;
     var dy = 0;
@@ -53,12 +62,10 @@
       if (!isOpenSheet(backdrop)) return;
       var t = e.touches && e.touches[0];
       if (!t) return;
-      /* só inicia se o scroll interno estiver no topo */
       var scrollEl =
-        panel.querySelector('.sheet-scroll, .share-options, .settings-list') || panel;
+        panel.querySelector('.sheet-scroll, .share-options, .settings-list, .grid, .list') || panel;
       if (scrollEl.scrollTop > 2) return;
       startY = t.clientY;
-      lastY = startY;
       lastT = Date.now();
       dragging = true;
       dy = 0;
@@ -70,7 +77,6 @@
       var t = e.touches && e.touches[0];
       if (!t) return;
       dy = t.clientY - startY;
-      lastY = t.clientY;
       lastT = Date.now();
       if (dy < 0) dy = 0;
       if (dy > 0) {
@@ -88,7 +94,7 @@
       var vel = dy / elapsed;
       var shouldClose = dy >= THRESH || (dy > 40 && vel > VELOCITY);
 
-      panel.style.transition = 'transform .22s ease-out';
+      panel.style.transition = 'transform .22s ease';
       if (shouldClose) {
         panel.style.transform = 'translateY(110%)';
         setTimeout(function () {
@@ -97,13 +103,11 @@
           panel.style.transform = '';
         }, 220);
       } else {
-        panel.style.transform = 'translateY(0)';
+        panel.style.transform = '';
         setTimeout(function () {
           panel.style.transition = '';
-          panel.style.transform = '';
         }, 220);
       }
-      dy = 0;
     }
 
     panel.addEventListener('touchstart', onStart, { passive: true });
@@ -114,21 +118,24 @@
 
   function scan() {
     try {
-      /* Index: .sheet com .sheet-panel */
       document.querySelectorAll('.sheet').forEach(function (sheet) {
-        var panel = sheet.querySelector('.sheet-panel');
+        var panel = sheet.querySelector('.sheet-panel') || sheet.firstElementChild;
         if (panel) bindPanel(sheet, panel);
       });
-      /* Native / outros bottom sheets */
+
       [
+        '#tchiloGiftSheet',
+        '#tchiloMusicFallback',
+        '#tchiloPostMusicSheet',
         '#tchiloProfileShareSheet',
         '#tchiloQrModal',
-        '#tchiloModalSheet'
+        '#tchiloModalSheet',
+        '#tchiloLiveSetup'
       ].forEach(function (sel) {
         var el = document.querySelector(sel);
         if (!el) return;
         var panel =
-          el.querySelector('.tchilo-ps-panel, .sheet-panel, .card') ||
+          el.querySelector('.sheet-panel, .panel, .tchilo-ps-panel, .card') ||
           el.firstElementChild;
         if (panel) bindPanel(el, panel);
       });

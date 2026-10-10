@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v74 — gifts 8 tipos */
+/** tchilo-Pop loaders v75 — gifts PNGs */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V74) return;
-  window.__TCHILO_FEED_STABLE_V74 = true;
+  if (window.__TCHILO_FEED_STABLE_V75) return;
+  window.__TCHILO_FEED_STABLE_V75 = true;
 
   function add(src, sync) {
     try {
@@ -70,7 +70,7 @@
     add('native/tchilo-verified.js?v=5');
     add('native/tchilo-saldo.js?v=2');
     add('native/tchilo-saldo-menu.js?v=1');
-    add('native/tchilo-gifts.js?v=5');
+    add('native/tchilo-gifts.js?v=6');
     add('native/tchilo-cloud-force.js?v=2');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=2');

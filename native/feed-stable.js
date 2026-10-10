@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v88 — chat mic hide + enter fix */
+/** tchilo-Pop loaders v89 — chat nav */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V88) return;
-  window.__TCHILO_FEED_STABLE_V88 = true;
+  if (window.__TCHILO_FEED_STABLE_V89) return;
+  window.__TCHILO_FEED_STABLE_V89 = true;
 
   function add(src, sync) {
     try {
@@ -74,7 +74,8 @@
       'native/tchilo-chat-ui-clean.js?v=5',
       'native/tchilo-chat-attach.js?v=4',
       'native/tchilo-chat-msg-actions.js?v=2',
-      'native/tchilo-chat-supabase.js?v=1'
+      'native/tchilo-chat-supabase.js?v=1',
+      'native/tchilo-chat-nav.js?v=1'
     ]);
   }
 

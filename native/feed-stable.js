@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v87 */
+/** tchilo-Pop loaders v88 — chat mic hide + enter fix */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V87) return;
-  window.__TCHILO_FEED_STABLE_V87 = true;
+  if (window.__TCHILO_FEED_STABLE_V88) return;
+  window.__TCHILO_FEED_STABLE_V88 = true;
 
   function add(src, sync) {
     try {
@@ -71,7 +71,7 @@
       'native/tchilo-music-stop.js?v=2',
       'native/tchilo-music-feed-fix.js?v=3',
       'native/tchilo-menu-clean.js?v=1',
-      'native/tchilo-chat-ui-clean.js?v=4',
+      'native/tchilo-chat-ui-clean.js?v=5',
       'native/tchilo-chat-attach.js?v=4',
       'native/tchilo-chat-msg-actions.js?v=2',
       'native/tchilo-chat-supabase.js?v=1'

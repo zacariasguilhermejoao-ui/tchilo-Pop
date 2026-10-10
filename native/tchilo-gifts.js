@@ -1,7 +1,7 @@
 /**
  * Tchilo Presentes v5
- * - 8 tipos (10 a 80 moedas) — imagens em tchilo-gifts-data.js
- * - Ícone colado ao Seguir; clique abre sheet
+ * Coração 10 · Ursinho 20 · Festa 30 · Coroa 40
+ * Diamante 50 · Rosa 60 · Buquê 70 · Bolo 80
  */
 (function () {
   'use strict';
@@ -9,14 +9,14 @@
   window.__tchiloGiftsV5 = true;
 
   var GIFT_TYPES = window.__TCHILO_GIFT_TYPES || [
-    { id: 'coracao', name: 'Coração', coins: 10, img: '' },
-    { id: 'ursinho', name: 'Ursinho', coins: 20, img: '' },
-    { id: 'cone', name: 'Festa', coins: 30, img: '' },
-    { id: 'coroa', name: 'Coroa', coins: 40, img: '' },
-    { id: 'diamante', name: 'Diamante', coins: 50, img: '' },
-    { id: 'rosa', name: 'Rosa', coins: 60, img: '' },
-    { id: 'buque', name: 'Buquê', coins: 70, img: '' },
-    { id: 'bolo', name: 'Bolo', coins: 80, img: '' }
+    { id: 'coracao', name: 'Coração', coins: 10, emoji: '❤️' },
+    { id: 'ursinho', name: 'Ursinho', coins: 20, emoji: '🧸' },
+    { id: 'cone', name: 'Festa', coins: 30, emoji: '🎉' },
+    { id: 'coroa', name: 'Coroa', coins: 40, emoji: '👑' },
+    { id: 'diamante', name: 'Diamante', coins: 50, emoji: '💎' },
+    { id: 'rosa', name: 'Rosa', coins: 60, emoji: '🌹' },
+    { id: 'buque', name: 'Buquê', coins: 70, emoji: '💐' },
+    { id: 'bolo', name: 'Bolo', coins: 80, emoji: '🎂' }
   ];
 
   var BTN_SVG =
@@ -90,6 +90,7 @@
       '#tchiloGiftSheet .grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}' +
       '#tchiloGiftSheet .gitem{border:2px solid rgba(11,11,12,.08);border-radius:14px;background:#fff;padding:10px 6px;text-align:center;cursor:pointer;}' +
       '#tchiloGiftSheet .gitem:active{transform:scale(.96);}' +
+      '#tchiloGiftSheet .gitem .em{font-size:36px;line-height:1.2;margin-bottom:4px;}' +
       '#tchiloGiftSheet .gitem img{width:52px;height:52px;object-fit:contain;display:block;margin:0 auto 6px;}' +
       '#tchiloGiftSheet .gitem b{display:block;font-size:12px;font-weight:800;}' +
       '#tchiloGiftSheet .gitem span{font-size:11px;opacity:.65;font-weight:700;}' +
@@ -169,7 +170,7 @@
       b.className = 'gitem';
       var ic = g.img
         ? '<img src="' + g.img + '" alt="' + g.name + '"/>'
-        : '<div style="font-size:28px;line-height:52px">🎁</div>';
+        : '<div class="em">' + (g.emoji || '🎁') + '</div>';
       b.innerHTML = ic + '<b>' + g.name + '</b><span>' + g.coins + ' moedas</span>';
       b.onclick = function (e) {
         e.preventDefault();

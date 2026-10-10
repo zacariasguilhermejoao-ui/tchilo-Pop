@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v83 — chat attach sheet */
+/** tchilo-Pop loaders v84 — gift notifs */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V83) return;
-  window.__TCHILO_FEED_STABLE_V83 = true;
+  if (window.__TCHILO_FEED_STABLE_V84) return;
+  window.__TCHILO_FEED_STABLE_V84 = true;
 
   function add(src, sync) {
     try {
@@ -62,7 +62,8 @@
       'native/tchilo-reels-open-fix.js?v=9',
       'native/tchilo-feed-video-ui.js?v=3',
       'native/tchilo-stable-ui.js?v=6',
-      'native/tchilo-gifts.js?v=6',
+      'native/tchilo-gift-notifs.js?v=1',
+      'native/tchilo-gifts.js?v=7',
       'native/tchilo-cloud-force.js?v=2',
       'native/tchilo-cloud-hydrate.js?v=3',
       'native/tchilo-avatar-cloud.js?v=4',

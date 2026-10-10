@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v71 — likes/saves/comments Supabase */
+/** tchilo-Pop loaders v72 — gifts + profile live + lobby */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V71) return;
-  window.__TCHILO_FEED_STABLE_V71 = true;
+  if (window.__TCHILO_FEED_STABLE_V72) return;
+  window.__TCHILO_FEED_STABLE_V72 = true;
 
   function add(src, sync) {
     try {
@@ -32,6 +32,7 @@
     add('native/tchilo-logo-restore.js?v=10', true);
     add('native/tchilo-live-lobby.js?v=1', true);
     add('native/tchilo-live-bind.js?v=3', true);
+    add('native/tchilo-profile-live.js?v=1', true);
     add('native/tchilo-feed-lock.js?v=4', true);
     add('native/feed-noflicker.js?v=5', true);
     add('native/tchilo-ui-stable.js?v=2', true);
@@ -68,7 +69,7 @@
     add('native/tchilo-verified.js?v=5');
     add('native/tchilo-saldo.js?v=2');
     add('native/tchilo-saldo-menu.js?v=1');
-    add('native/tchilo-gifts.js?v=2');
+    add('native/tchilo-gifts.js?v=3');
     add('native/tchilo-cloud-force.js?v=2');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=2');

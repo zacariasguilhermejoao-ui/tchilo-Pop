@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v79 — posts border thin */
+/** tchilo-Pop loaders v80 — modais + 1 turbinar */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V79) return;
-  window.__TCHILO_FEED_STABLE_V79 = true;
+  if (window.__TCHILO_FEED_STABLE_V80) return;
+  window.__TCHILO_FEED_STABLE_V80 = true;
 
   function add(src, sync) {
     try {
@@ -24,15 +24,15 @@
     } catch (e) {}
   }
 
-  function addMany(list, sync) {
-    for (var i = 0; i < list.length; i++) add(list[i], sync);
+  function addMany(list) {
+    for (var i = 0; i < list.length; i++) add(list[i]);
   }
 
   function loadCritical() {
     add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-perf-boost.js?v=1', true);
     add('native/tchilo-final-css.js?v=3', true);
-    add('native/tchilo-modal-ui.js?v=1', true);
+    add('native/tchilo-modal-ui.js?v=2', true);
     add('native/tchilo-store-policy.js?v=2', true);
     add('native/tchilo-nav-icons-lock.js?v=1', true);
     add('native/tchilo-logo-restore.js?v=10', true);
@@ -67,7 +67,8 @@
       'native/tchilo-avatar-cloud.js?v=4',
       'native/feed-stories-scroll.js?v=3',
       'native/tchilo-music-stop.js?v=2',
-      'native/tchilo-music-feed-fix.js?v=3'
+      'native/tchilo-music-feed-fix.js?v=3',
+      'native/tchilo-menu-clean.js?v=1'
     ]);
   }
 
@@ -98,7 +99,7 @@
       'native/tchilo-video-pick.js?v=6',
       'native/tchilo-deeplink.js?v=2',
       'native/tchilo-profile-share.js?v=11',
-      'native/tchilo-profile-boost.js?v=1',
+      'native/tchilo-profile-boost.js?v=2',
       'native/tchilo-create-buttons.js?v=5',
       'native/tchilo-name-sync.js?v=1',
       'native/tchilo-feed-to-reels.js?v=2',

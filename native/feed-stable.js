@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v75 — gifts PNGs */
+/** tchilo-Pop loaders v76 — modais limpos */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V75) return;
-  window.__TCHILO_FEED_STABLE_V75 = true;
+  if (window.__TCHILO_FEED_STABLE_V76) return;
+  window.__TCHILO_FEED_STABLE_V76 = true;
 
   function add(src, sync) {
     try {
@@ -26,6 +26,7 @@
 
   function load() {
     add('native/tchilo-final-css.js?v=3', true);
+    add('native/tchilo-modal-ui.js?v=1', true);
     add('native/tchilo-store-policy.js?v=2', true);
     add('native/tchilo-nav-icons-lock.js?v=1', true);
     add('native/tchilo-perf-throttle.js?v=1', true);
@@ -38,8 +39,8 @@
     add('native/tchilo-ui-stable.js?v=2', true);
     add('native/live-btn-stable.js?v=4', true);
     add('native/tchilo-nav-size-fix.js?v=4', true);
-    add('native/tchilo-sheet-swipe.js?v=1', true);
-    add('native/tchilo-music-stop.js?v=1', true);
+    add('native/tchilo-sheet-swipe.js?v=2', true);
+    add('native/tchilo-music-stop.js?v=2', true);
 
     add('native/tchilo-ui-unlock.js?v=3', true);
     add('native/tchilo-login-session-fix.js?v=9', true);

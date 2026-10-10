@@ -1,12 +1,11 @@
 /**
- * Tchilo Presentes v6
- * Imagens: native/gifts/*.png
- * Coração 10 · Ursinho 20 · Festa 30 · Coroa 40
- * Diamante 50 · Rosa 60 · Buquê 70 · Bolo 80
+ * Tchilo Presentes v7
+ * + notificação ao destinatário
  */
 (function () {
   'use strict';
-  if (window.__tchiloGiftsV6) return;
+  if (window.__tchiloGiftsV7) return;
+  window.__tchiloGiftsV7 = true;
   window.__tchiloGiftsV6 = true;
   window.__tchiloGiftsV5 = true;
 
@@ -52,6 +51,11 @@
   function uid() {
     var s = sessionUser();
     return (s && (s.id || s.user_id || s.uid)) || 'local';
+  }
+
+  function myUsername() {
+    var s = sessionUser();
+    return (s && s.username) || '';
   }
 
   function getCoins() {
@@ -114,6 +118,9 @@
       return;
     }
     setCoins(coins - cost);
+    var giftName = (gift && gift.name) || 'Presente';
+    var from = myUsername() || 'alguém';
+
     try {
       var key = 'tchilo_gifts_sent_' + uid();
       var list = JSON.parse(localStorage.getItem(key) || '[]');
@@ -121,12 +128,13 @@
         to: username,
         post_id: postId,
         gift_id: gift && gift.id,
-        gift_name: gift && gift.name,
+        gift_name: giftName,
         coins: cost,
         at: Date.now()
       });
       localStorage.setItem(key, JSON.stringify(list.slice(0, 200)));
     } catch (e) {}
+
     try {
       var client =
         window.supabaseClient || window.sb || window.supabase || window.SB || window.tchiloSupabase;
@@ -137,12 +145,21 @@
           to_username: username,
           post_id: postId || null,
           coins: cost,
-          kind: (gift && gift.id) || 'post_gift'
+          kind: (gift && gift.id) || 'post_gift',
+          gift_name: giftName
         });
       }
     } catch (e2) {}
+
+    /* Notificação para o destinatário */
+    try {
+      if (typeof window.tchiloNotifyGiftReceived === 'function') {
+        window.tchiloNotifyGiftReceived(username, from, giftName, cost);
+      }
+    } catch (e3) {}
+
     closeGiftSheet();
-    toast((gift && gift.name ? gift.name + ' ' : 'Presente ') + 'enviado a @' + username + ' (−' + cost + ')');
+    toast(giftName + ' enviado a @' + username + ' (−' + cost + ')');
   }
 
   window.tchiloOpenGiftSheet = function (username, postId) {
@@ -274,7 +291,7 @@
   });
 
   try {
-    if (typeof window.renderFeed === 'function' && !window.renderFeed.__giftsV6) {
+    if (typeof window.renderFeed === 'function' && !window.renderFeed.__giftsV7) {
       var rf = window.renderFeed;
       window.renderFeed = function () {
         var r = rf.apply(this, arguments);
@@ -282,14 +299,14 @@
         setTimeout(scan, 250);
         return r;
       };
-      window.renderFeed.__giftsV6 = true;
+      window.renderFeed.__giftsV7 = true;
     }
   } catch (e) {}
 
   try {
     var feed = document.getElementById('feedList');
-    if (feed && !feed.__giftObsV6) {
-      feed.__giftObsV6 = true;
+    if (feed && !feed.__giftObsV7) {
+      feed.__giftObsV7 = true;
       var t = null;
       new MutationObserver(function () {
         if (t) clearTimeout(t);

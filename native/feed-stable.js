@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v69 — LIVE ícone só do index */
+/** tchilo-Pop loaders v70 — presente à esquerda do Seguir */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V69) return;
-  window.__TCHILO_FEED_STABLE_V69 = true;
+  if (window.__TCHILO_FEED_STABLE_V70) return;
+  window.__TCHILO_FEED_STABLE_V70 = true;
 
   function add(src, sync) {
     try {
@@ -29,7 +29,6 @@
     add('native/tchilo-store-policy.js?v=2', true);
     add('native/tchilo-nav-icons-lock.js?v=1', true);
     add('native/tchilo-perf-throttle.js?v=1', true);
-    /* logo-restore NO-OP — não carregar mais lógica de troca */
     add('native/tchilo-logo-restore.js?v=10', true);
     add('native/tchilo-live-lobby.js?v=1', true);
     add('native/tchilo-live-bind.js?v=3', true);
@@ -69,7 +68,7 @@
     add('native/tchilo-verified.js?v=5');
     add('native/tchilo-saldo.js?v=2');
     add('native/tchilo-saldo-menu.js?v=1');
-    add('native/tchilo-gifts.js?v=1');
+    add('native/tchilo-gifts.js?v=2');
     add('native/music-catalog-fix.js?v=1');
     add('native/tchilo-music-picker-fix.js?v=2');
     add('native/tchilo-music-sheet.js?v=1');

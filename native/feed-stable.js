@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v82 — chat UI clean */
+/** tchilo-Pop loaders v83 — chat attach sheet */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V82) return;
-  window.__TCHILO_FEED_STABLE_V82 = true;
+  if (window.__TCHILO_FEED_STABLE_V83) return;
+  window.__TCHILO_FEED_STABLE_V83 = true;
 
   function add(src, sync) {
     try {
@@ -70,7 +70,8 @@
       'native/tchilo-music-stop.js?v=2',
       'native/tchilo-music-feed-fix.js?v=3',
       'native/tchilo-menu-clean.js?v=1',
-      'native/tchilo-chat-ui-clean.js?v=1'
+      'native/tchilo-chat-ui-clean.js?v=1',
+      'native/tchilo-chat-attach.js?v=1'
     ]);
   }
 

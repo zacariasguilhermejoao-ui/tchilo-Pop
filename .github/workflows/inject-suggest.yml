@@ -11,21 +11,35 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: inject-suggest-main
+  cancel-in-progress: false
+
 jobs:
   inject:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Inject script into index.html
         run: python3 scripts/patch_inject_suggest.py
-      - name: Commit
+      - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
           if git diff --cached --quiet; then
             echo "No changes"
-          else
-            git commit -m "feat: inject tchilo-suggest-location-contacts.js into index"
-            git push
+            exit 0
           fi
+          git commit -m "feat: inject tchilo-suggest-location-contacts.js into index"
+          for i in 1 2 3 4 5 6; do
+            git pull --rebase origin main || true
+            if git push origin HEAD:main; then
+              echo "pushed ok"
+              exit 0
+            fi
+            sleep 4
+          done
+          exit 1

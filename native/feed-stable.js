@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v93 — borders thin global */
+/** tchilo-Pop loaders v94 — Play Billing */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V93) return;
-  window.__TCHILO_FEED_STABLE_V93 = true;
+  if (window.__TCHILO_FEED_STABLE_V94) return;
+  window.__TCHILO_FEED_STABLE_V94 = true;
 
   function add(src, sync) {
     try {
@@ -35,7 +35,7 @@
     add('native/tchilo-final-css.js?v=4', true);
     add('native/tchilo-borders-thin.js?v=1', true);
     add('native/tchilo-modal-ui.js?v=2', true);
-    add('native/tchilo-store-policy.js?v=2', true);
+    add('native/tchilo-store-policy.js?v=3', true);
     add('native/tchilo-nav-icons-lock.js?v=1', true);
     add('native/tchilo-logo-restore.js?v=10', true);
     add('native/tchilo-feed-lock.js?v=4', true);
@@ -100,6 +100,8 @@
       'native/tchilo-theme-premium-gate.js?v=1',
       'native/tchilo-verified.js?v=5',
       'native/tchilo-saldo.js?v=2',
+      'native/tchilo-play-billing.js?v=1',
+      'native/tchilo-saldo-play.js?v=1',
       'native/tchilo-saldo-menu.js?v=1',
       'native/music-catalog-fix.js?v=1',
       'native/tchilo-music-picker-fix.js?v=2',

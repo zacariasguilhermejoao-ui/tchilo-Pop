@@ -48,6 +48,32 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
+      - name: Enable Google Play BILLING permission
+        shell: bash
+        run: |
+          set -e
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          test -f "$MANIFEST"
+          if grep -q 'com.android.vending.BILLING' "$MANIFEST"; then
+            echo "BILLING already present"
+          else
+            # Insert permission after <manifest ...> line
+            awk '
+              BEGIN { done=0 }
+              /<manifest/ && done==0 {
+                print
+                print "    <uses-permission android:name=\"com.android.vending.BILLING\" />"
+                done=1
+                next
+              }
+              { print }
+            ' "$MANIFEST" > "$MANIFEST.tmp"
+            mv "$MANIFEST.tmp" "$MANIFEST"
+            echo "BILLING permission injected"
+          fi
+          grep -n 'BILLING' "$MANIFEST" || (echo "FAILED to inject BILLING" && exit 1)
+          head -30 "$MANIFEST"
+
       - name: Copy Firebase config
         run: |
           mkdir -p android/app
@@ -62,7 +88,6 @@ jobs:
           APP_BUILD=android/app/build.gradle
           test -f "$APP_BUILD"
 
-          # ProGuard rules for Capacitor / WebView / reflection
           mkdir -p android/app
           cat > android/app/proguard-rules.pro << 'EOF'
           # Capacitor
@@ -86,75 +111,37 @@ jobs:
           # Cordova / plugins (if any)
           -keep class org.apache.cordova.** { *; }
 
+          # Native purchases / Play Billing
+          -keep class ee.forgr.capacitor_native_purchases.** { *; }
+          -keep class com.android.billingclient.** { *; }
+
           # Keep native methods
           -keepclasseswithmembernames class * {
               native <methods>;
           }
 
-          # Don't warn about missing optional classes
           -dontwarn com.getcapacitor.**
           -dontwarn org.apache.cordova.**
+          -dontwarn com.android.billingclient.**
           EOF
 
-          python3 << 'PY'
+          python3 -c "
           from pathlib import Path
           import re
           p = Path('android/app/build.gradle')
           t = p.read_text(encoding='utf-8')
-
-          # Ensure proguardFiles points to our rules
-          if 'proguard-rules.pro' not in t:
-              # will be set in buildTypes below
-              pass
-
-          # Patch release buildType: minifyEnabled true, shrinkResources true
-          if 'minifyEnabled' in t:
-              t = re.sub(r'minifyEnabled\s+false', 'minifyEnabled true', t)
-              t = re.sub(r'minifyEnabled\s+true', 'minifyEnabled true', t)
-          else:
-              # Insert into release { block if present
-              if re.search(r'release\s*\{', t):
-                  t = re.sub(
-                      r'(release\s*\{)',
-                      r'''\1
-              minifyEnabled true
-              shrinkResources true
-              proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-''',
-                      t,
-                      count=1
-                  )
-
-          # Ensure shrinkResources
+          t = re.sub(r'minifyEnabled\\s+false', 'minifyEnabled true', t)
+          if 'minifyEnabled' not in t and re.search(r'release\\s*\\{', t):
+              t = re.sub(r'(release\\s*\\{)', r\"\\1\\n              minifyEnabled true\\n              shrinkResources true\\n              proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'\\n\", t, count=1)
           if 'shrinkResources' not in t:
-              t = re.sub(
-                  r'(minifyEnabled\s+true)',
-                  r'''minifyEnabled true
-              shrinkResources true''',
-                  t,
-                  count=1
-              )
+              t = re.sub(r'(minifyEnabled\\s+true)', r\"minifyEnabled true\\n              shrinkResources true\", t, count=1)
           else:
-              t = re.sub(r'shrinkResources\s+false', 'shrinkResources true', t)
-
-          # Use debug signing for release in CI (so bundleRelease works without keystore)
-          if 'signingConfig' not in t or 'signingConfigs.debug' not in t:
-              t = re.sub(
-                  r'(release\s*\{)',
-                  r'''\1
-              signingConfig signingConfigs.debug
-''',
-                  t,
-                  count=1
-              )
-
+              t = re.sub(r'shrinkResources\\s+false', 'shrinkResources true', t)
+          if 'signingConfigs.debug' not in t:
+              t = re.sub(r'(release\\s*\\{)', r\"\\1\\n              signingConfig signingConfigs.debug\\n\", t, count=1)
           p.write_text(t, encoding='utf-8')
-          print('ProGuard/R8 enabled in app/build.gradle')
-          # show buildTypes section
-          for i, line in enumerate(t.splitlines()):
-              if 'buildTypes' in line or 'minify' in line or 'shrink' in line or 'proguard' in line.lower() or 'signingConfig' in line:
-                  print(f'{i+1}: {line}')
-          PY
+          print('ProGuard/R8 enabled')
+          "
 
       - name: Setup Java 21
         uses: actions/setup-java@v4
@@ -201,7 +188,6 @@ jobs:
           chmod +x gradlew
 
           set +e
-          # APK debug (rápido) + AAB release com R8/ProGuard
           ./gradlew assembleDebug bundleRelease --stacktrace 2>&1 | tee /tmp/gradle.log
           EXIT=${PIPESTATUS[0]}
           set -e
@@ -218,14 +204,7 @@ jobs:
           fi
 
           echo "Build OK"
-          echo "=== APKs ==="
-          find app/build/outputs -name '*.apk' 2>/dev/null || true
-          echo "=== AABs ==="
-          find app/build/outputs -name '*.aab' 2>/dev/null || true
-          echo "=== Sizes ==="
-          find app/build/outputs -name '*.apk' -o -name '*.aab' 2>/dev/null | while read f; do
-            ls -lh "$f"
-          done
+          find app/build/outputs -name '*.apk' -o -name '*.aab' 2>/dev/null | while read f; do ls -lh "$f"; done
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4

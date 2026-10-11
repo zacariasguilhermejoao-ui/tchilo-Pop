@@ -1,15 +1,9 @@
 #!/usr/bin/env node
 /**
  * Tchilo — SEO public pages generator
- * Gera páginas estáticas para bots (Google, Bing, etc.).
- * Humanos são redirecionados para a app SPA.
+ * Gera paginas estaticas para bots (Google, Bing, etc.).
+ * Humanos sao redirecionados para a app SPA.
  * Required env: SUPABASE_URL, SUPABASE_ANON_KEY
- *
- * Melhorias SEO:
- * - Conteúdo VISÍVEL (sem display:none) para o Google indexar
- * - Títulos e descriptions com "Tchilo" / "Tchilo Pop" + legenda
- * - Schema.org SocialMediaPosting / ProfilePage
- * - Keywords e texto rico no corpo
  */
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -40,12 +34,24 @@ async function fetchAll(table, select, order = 'created_at') {
   return rows;
 }
 
-const esc = (v = '') => String(v).replace(/[&<>"']/g, c => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": '&#39;' }[c]));
+const AMP = String.fromCharCode(38) + 'amp;';
+const LT = String.fromCharCode(38) + 'lt;';
+const GT = String.fromCharCode(38) + 'gt;';
+const QUOT = String.fromCharCode(38) + 'quot;';
+const APOS = String.fromCharCode(38) + '#39;';
+
+const esc = (v = '') => String(v)
+  .replace(/&/g, AMP)
+  .replace(/</g, LT)
+  .replace(/>/g, GT)
+  .replace(/"/g, QUOT)
+  .replace(/'/g, APOS);
+
 const json = v => JSON.stringify(v).replace(/</g, '\\u003c');
 const clean = v => String(v || '').replace(/\s+/g, ' ').trim();
 const truncate = (v, n = 160) => {
   const s = clean(v);
-  return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + '…';
+  return s.length <= n ? s : s.slice(0, n - 1).trimEnd() + '\u2026';
 };
 const slug = v => encodeURIComponent(String(v || '').trim());
 
@@ -73,7 +79,7 @@ function page({ title, description, canonical, image, body, schema, keywords, no
   const img = image ? '<meta property="og:image" content="' + esc(image) + '">' : '';
   const kw = keywords
     ? '<meta name="keywords" content="' + esc(keywords) + '">'
-    : '<meta name="keywords" content="Tchilo, Tchilo Pop, tchilopop, rede social, fotos, vídeos, stories, reels">';
+    : '<meta name="keywords" content="Tchilo, Tchilo Pop, tchilopop, rede social, fotos, videos, stories, reels">';
   return (
     '<!doctype html><html lang="pt"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -115,16 +121,15 @@ function page({ title, description, canonical, image, body, schema, keywords, no
   );
 }
 
-// ——— Perfis públicos ———
 for (const p of publicProfiles) {
   const username = p.username;
   const canonical = base + '/u/' + slug(username);
   const display = p.display_name || username;
-  const title = display + ' (@' + username + ') no ' + brandLong + ' — ' + brand;
+  const title = display + ' (@' + username + ') no ' + brandLong + ' \u2014 ' + brand;
   const bioText = clean(p.bio);
   const description = truncate(
-    (bioText ? bioText + ' · ' : '') +
-    'Perfil de ' + display + ' (@' + username + ') no Tchilo Pop. Rede social de fotos, vídeos, stories e reels.',
+    (bioText ? bioText + ' \u00b7 ' : '') +
+    'Perfil de ' + display + ' (@' + username + ') no Tchilo Pop. Rede social de fotos, videos, stories e reels.',
     160
   );
   const keywords = [brand, brandLong, 'tchilopop', username, display, 'perfil', 'rede social'].filter(Boolean).join(', ');
@@ -153,11 +158,11 @@ for (const p of publicProfiles) {
     '<article class="card">' +
     avatar +
     '<h1>' + esc(display) + '</h1>' +
-    '<div class="muted">@' + esc(username) + ' · ' + brand + ' / ' + brandLong + '</div>' +
+    '<div class="muted">@' + esc(username) + ' \u00b7 ' + brand + ' / ' + brandLong + '</div>' +
     (bioText ? '<p>' + esc(bioText) + '</p>' : '') +
-    '<p>Perfil público no <strong>Tchilo</strong> (Tchilo Pop) — rede social para fotos, vídeos, stories, reels e mensagens.</p>' +
-    '<p><a href="' + canonical + '">Ver perfil no Tchilo</a> · <a href="' + base + '/">Abrir Tchilo Pop</a></p>' +
-    '<p class="brand">Tchilo · tchilopop.com</p>' +
+    '<p>Perfil publico no <strong>Tchilo</strong> (Tchilo Pop) \u2014 rede social para fotos, videos, stories, reels e mensagens.</p>' +
+    '<p><a href="' + canonical + '">Ver perfil no Tchilo</a> \u00b7 <a href="' + base + '/">Abrir Tchilo Pop</a></p>' +
+    '<p class="brand">Tchilo \u00b7 tchilopop.com</p>' +
     '</article>';
   const path = join('u', username, 'index.html');
   await mkdir(dirname(path), { recursive: true });
@@ -165,21 +170,20 @@ for (const p of publicProfiles) {
   urls.push({ loc: canonical, lastmod: p.updated_at || p.created_at });
 }
 
-// ——— Posts públicos ———
 for (const post of publicPosts) {
   const profile = profileById.get(post.user_id);
   const username = profile.username;
   const canonical = base + '/post/' + slug(post.id);
   const authorName = post.display_name || profile.display_name || username;
   const caption = clean(post.caption);
-  const headline = caption || ('Publicação de ' + authorName);
-  const title = truncate(headline, 55) + ' — @' + username + ' no ' + brandLong;
+  const headline = caption || ('Publicacao de ' + authorName);
+  const title = truncate(headline, 55) + ' \u2014 @' + username + ' no ' + brandLong;
   const description = truncate(
-    (caption ? caption + ' · ' : '') +
-    'Publicação de ' + authorName + ' (@' + username + ') no Tchilo Pop. Fotos, vídeos e stories na rede social Tchilo.',
+    (caption ? caption + ' \u00b7 ' : '') +
+    'Publicacao de ' + authorName + ' (@' + username + ') no Tchilo Pop. Fotos, videos e stories na rede social Tchilo.',
     160
   );
-  const keywords = [brand, brandLong, 'tchilopop', username, authorName, 'publicação', 'post', 'rede social']
+  const keywords = [brand, brandLong, 'tchilopop', username, authorName, 'publicacao', 'post', 'rede social']
     .concat(caption ? caption.split(/\s+/).slice(0, 8) : [])
     .filter(Boolean)
     .join(', ');
@@ -214,20 +218,20 @@ for (const post of publicPosts) {
   };
   let media = '';
   if (image) {
-    media = '<img class="media" src="' + esc(image) + '" alt="' + esc(headline) + ' — ' + esc(authorName) + ' no Tchilo">';
+    media = '<img class="media" src="' + esc(image) + '" alt="' + esc(headline) + ' \u2014 ' + esc(authorName) + ' no Tchilo">';
   } else if ((post.media_type || '').startsWith('video') && post.media_url) {
     media = '<video class="media" controls preload="metadata" src="' + esc(post.media_url) + '"></video>';
   }
   const dateStr = new Date(post.created_at).toLocaleDateString('pt-PT', { year: 'numeric', month: 'long', day: 'numeric' });
   const body =
     '<article class="card">' +
-    '<div class="muted"><a href="' + base + '/u/' + slug(username) + '">@' + esc(username) + '</a> · ' + esc(dateStr) + ' · ' + brand + '</div>' +
+    '<div class="muted"><a href="' + base + '/u/' + slug(username) + '">@' + esc(username) + '</a> \u00b7 ' + esc(dateStr) + ' \u00b7 ' + brand + '</div>' +
     '<h1>' + esc(headline) + '</h1>' +
     (caption && caption !== headline ? '<p>' + esc(caption) + '</p>' : '') +
     media +
-    '<p>Publicação de <strong>' + esc(authorName) + '</strong> (@' + esc(username) + ') no <strong>Tchilo Pop</strong> — rede social Tchilo para fotos, vídeos, stories e reels.</p>' +
-    '<p><a href="' + canonical + '">Abrir publicação no Tchilo</a> · <a href="' + base + '/u/' + slug(username) + '">Ver perfil</a> · <a href="' + base + '/">Tchilo Pop</a></p>' +
-    '<p class="brand">Tchilo · tchilopop.com</p>' +
+    '<p>Publicacao de <strong>' + esc(authorName) + '</strong> (@' + esc(username) + ') no <strong>Tchilo Pop</strong> \u2014 rede social Tchilo para fotos, videos, stories e reels.</p>' +
+    '<p><a href="' + canonical + '">Abrir publicacao no Tchilo</a> \u00b7 <a href="' + base + '/u/' + slug(username) + '">Ver perfil</a> \u00b7 <a href="' + base + '/">Tchilo Pop</a></p>' +
+    '<p class="brand">Tchilo \u00b7 tchilopop.com</p>' +
     '</article>';
   const path = join('post', post.id, 'index.html');
   await mkdir(dirname(path), { recursive: true });
@@ -235,7 +239,13 @@ for (const post of publicPosts) {
   urls.push({ loc: canonical, lastmod: post.created_at });
 }
 
-const xmlEsc = v => String(v).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"').replace(/'/g, ''');
+const xmlEsc = v => String(v)
+  .replace(/&/g, AMP)
+  .replace(/</g, LT)
+  .replace(/>/g, GT)
+  .replace(/"/g, QUOT)
+  .replace(/'/g, APOS);
+
 const sitemap =
   '<?xml version="1.0" encoding="UTF-8"?>\n' +
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +

@@ -1,10 +1,8 @@
-/** tchilo-Pop loaders v92 — perfil escondido fora de .active */
+/** tchilo-Pop loaders v93 — borders thin global */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V92) return;
-  window.__TCHILO_FEED_STABLE_V92 = true;
-  window.__TCHILO_FEED_STABLE_V91 = true;
-  window.__TCHILO_FEED_STABLE_V90 = true;
+  if (window.__TCHILO_FEED_STABLE_V93) return;
+  window.__TCHILO_FEED_STABLE_V93 = true;
 
   function add(src, sync) {
     try {
@@ -35,6 +33,7 @@
     add('native/tchilo-perf-boost.js?v=1', true);
     add('native/tchilo-click-sounds.js?v=1', true);
     add('native/tchilo-final-css.js?v=4', true);
+    add('native/tchilo-borders-thin.js?v=1', true);
     add('native/tchilo-modal-ui.js?v=2', true);
     add('native/tchilo-store-policy.js?v=2', true);
     add('native/tchilo-nav-icons-lock.js?v=1', true);

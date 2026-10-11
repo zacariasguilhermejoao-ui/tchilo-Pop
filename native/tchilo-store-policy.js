@@ -1,12 +1,13 @@
 /**
- * Política de loja v2 (Play-safe)
- * - App nativa = grátis, SEM checkout e SEM link para pagar no site
- * - Premium / Selo: compra só no browser (tchilopop.com)
- * - Na app: pode ver estado "já ativo" se a conta comprou no site
+ * Política de loja v3
+ * - App Android: moedas via Google Play Billing
+ * - Premium / Selo: por agora só no browser (até haver produtos Play)
+ * - Sem links de pagamento Paddle dentro da app
  */
 (function () {
   'use strict';
-  if (window.__tchiloStorePolicyV2) return;
+  if (window.__tchiloStorePolicyV3) return;
+  window.__tchiloStorePolicyV3 = true;
   window.__tchiloStorePolicyV2 = true;
   window.__tchiloStorePolicyV1 = true;
 
@@ -30,7 +31,7 @@
 
   window.tchiloIsNativeStoreApp = isNativeStoreApp;
 
-  /** Sempre bloqueia compra na app (sem abrir site) */
+  /** Bloqueia só Paddle/premium-pay na app — moedas usam Play */
   function blockInAppPurchase() {
     if (!isNativeStoreApp()) return false;
     return true;
@@ -46,7 +47,6 @@
       (document.head || document.documentElement).appendChild(st);
     }
     st.textContent =
-      /* Esconder botões de pagar / preços de checkout */
       '#tchiloPremiumSheet button.pay,' +
       '#tchiloPremiumSheet [data-a="pay"],' +
       '#tchiloPremiumSheet .tp-price,' +
@@ -54,9 +54,12 @@
       '#tchiloVerifiedSheet [data-a="pay"],' +
       '#tchiloVerifiedSheet .tv-price{' +
       'display:none!important;}' +
-      /* Nota informativa (sem link de pagamento) */
       '#tchiloPremiumSheet .tchilo-store-note,' +
-      '#tchiloVerifiedSheet .tchilo-store-note{display:block!important;}';
+      '#tchiloVerifiedSheet .tchilo-store-note{display:block!important;}' +
+      /* saldo/moedas: botão de compra VISÍVEL na app */
+      'body.tchilo-native-store #tchiloCoinsSheet .tc-foot,' +
+      'body.tchilo-native-store #tchiloCoinsSheet .tc-buy{' +
+      'display:block!important;}';
   }
 
   function addNote(sheetSel, text) {
@@ -71,7 +74,6 @@
       note.style.cssText =
         'text-align:center;font-size:13px;font-weight:600;opacity:.7;line-height:1.45;margin:12px 0 8px;padding:0 8px;';
       note.textContent = text;
-      /* inserir antes do botão fechar se existir */
       var closeBtn = sheet.querySelector('button.close, [data-a="close"]');
       if (closeBtn && closeBtn.parentNode) {
         closeBtn.parentNode.insertBefore(note, closeBtn);
@@ -106,15 +108,14 @@
     } catch (e) {}
     addNote(
       '#tchiloPremiumSheet',
-      'A app é gratuita. O Tchilo Premium gere-se na conta no site, no browser.'
+      'Premium na app chega em breve via Google Play. Podes ativar a conta no browser.'
     );
     addNote(
       '#tchiloVerifiedSheet',
-      'A app é gratuita. O selo verificado gere-se na conta no site, no browser.'
+      'Selo verificado na app chega em breve via Google Play. Podes gerir no browser.'
     );
   }
 
-  /* Bloquear clique em pagar (fallback) */
   document.addEventListener(
     'click',
     function (e) {
@@ -128,7 +129,6 @@
     true
   );
 
-  /* Quando abrem os sheets, limpar CTAs de compra */
   function watchOpen() {
     if (!isNativeStoreApp()) return;
     try {

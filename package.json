@@ -1,6 +1,6 @@
 {
   "name": "tchilo-pop",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,6 +16,7 @@
     "@capacitor/geolocation": "latest",
     "@capacitor/push-notifications": "latest",
     "@capacitor/splash-screen": "latest",
+    "@capgo/native-purchases": "latest",
     "tchilo-media-gallery": "file:plugins/tchilo-media-gallery"
   },
   "devDependencies": {

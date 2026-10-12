@@ -140,17 +140,24 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
     border:2.5px solid var(--ink);
     flex-shrink:0;
   }
-  .theme-check{ font-weight:900; color:var(--ink); min-width:18px; text-align:right; }
-  .lang-dot{
-    width:18px; height:18px; border-radius:50%;
-    border:2.5px solid var(--ink);
+  .theme-check,.lang-dot{
+    width:26px; height:26px; border-radius:50%;
+    border:2px solid color-mix(in srgb, var(--ink) 28%, transparent);
     background:transparent;
     flex-shrink:0;
-    display:inline-block;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:0; color:transparent;
+    transition:background .15s ease, border-color .15s ease;
   }
-  .lang-dot.on{
-    background:var(--violet);
+  .theme-check::after,.lang-dot::after{
+    content:''; width:12px; height:12px;
+    background:transparent;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9.2 16.6l-3.9-3.9 1.4-1.4 2.5 2.5 6.1-6.1 1.4 1.4z'/%3E%3C/svg%3E") center/contain no-repeat;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9.2 16.6l-3.9-3.9 1.4-1.4 2.5 2.5 6.1-6.1 1.4 1.4z'/%3E%3C/svg%3E") center/contain no-repeat;
+    opacity:0; transition:opacity .12s ease;
   }
+  .theme-check.on,.lang-dot.on{ background:var(--ink); border-color:var(--ink); }
+  .theme-check.on::after,.lang-dot.on::after{ background:var(--paper); opacity:1; }
   *{box-sizing:border-box; margin:0; padding:0;}
   html,body,#appFrame{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
   input,textarea,[contenteditable="true"]{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default;}
@@ -452,47 +459,50 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
     cursor:pointer; display:inline;
   }
   .post-caption .cap-more:active{ opacity:.7; }
-  .post-media{ contain:layout paint style; }
-  /* Cinza só em posts com foto/vídeo — temas m1–m12 mantêm as cores */
+  .post-media{ contain:layout paint style; background:#e8e8e8; }
+  @keyframes tchiloSkel {
+    0%{ background-position:100% 0; }
+    100%{ background-position:-100% 0; }
+  }
+  .post-media.has-real-media,
   .post-media:has(img),
-  .post-media:has(video){ background:#e4e4e4; }
-  .post{
-    content-visibility:auto;
-    contain-intrinsic-size:auto 520px;
+  .post-media:has(video){
+    background:linear-gradient(90deg,#e8e8e8 0%,#f2f2f2 40%,#e8e8e8 80%) !important;
+    background-size:200% 100% !important;
+    animation:tchiloSkel 1.15s ease-in-out infinite;
   }
-  .post-media img, .post-media video.feed-video{
-    opacity:0;
-    transition:opacity .15s ease;
-    background:#e4e4e4;
+  .post-media.has-real-media:has(img.media-ready),
+  .post-media.has-real-media:has(video.media-ready),
+  .post-media:has(img.media-ready),
+  .post-media:has(video.media-ready){
+    background:#e4e4e4 !important;
+    animation:none !important;
   }
+  .post{ content-visibility:auto; contain-intrinsic-size:auto 520px; }
+  .post-media img, .post-media video.feed-video{ opacity:0; transition:opacity .18s ease; background:#e4e4e4; }
   .post-media img.media-ready, .post-media video.feed-video.media-ready,
-  .post-media .multi-item img.media-ready{
-    opacity:1;
-  }
-  .post-media img.media-error, .post-media video.feed-video.media-error{
-    opacity:1;
-    background:#ccc;
-  }
-  .post-media.m1{ background:var(--mint) !important; }
-  .post-media.m2{ background:var(--yellow) !important; }
-  .post-media.m3{ background:var(--violet) !important; color:var(--paper); }
-  .post-media.m4{ background:var(--pink) !important; color:var(--paper); }
-  .post-media.m5{ background:var(--paper) !important; }
-  .post-media.m6{ background:#9ED7FF !important; color:var(--ink); }
-  .post-media.m7{ background:#FFB36B !important; color:var(--ink); }
-  .post-media.m8{ background:#FF6F7D !important; color:var(--paper); }
-  .post-media.m9{ background:#69D6C2 !important; color:var(--ink); }
-  .post-media.m10{ background:#B9A7FF !important; color:var(--ink); }
-  .post-media.m11{ background:#17171A !important; color:var(--paper); }
-  .post-media.m12{ background:#D8C3A5 !important; color:var(--ink); }
-  /* FIX: posts com foto/vídeo nunca mostram cor de tema (verde etc.) enquanto carregam */
-  .post-media.m1:has(img), .post-media.m2:has(img), .post-media.m3:has(img), .post-media.m4:has(img),
-  .post-media.m5:has(img), .post-media.m6:has(img), .post-media.m7:has(img), .post-media.m8:has(img),
-  .post-media.m9:has(img), .post-media.m10:has(img), .post-media.m11:has(img), .post-media.m12:has(img),
-  .post-media.m1:has(video), .post-media.m2:has(video), .post-media.m3:has(video), .post-media.m4:has(video),
-  .post-media.m5:has(video), .post-media.m6:has(video), .post-media.m7:has(video), .post-media.m8:has(video),
-  .post-media.m9:has(video), .post-media.m10:has(video), .post-media.m11:has(video), .post-media.m12:has(video),
-  .post-media.has-real-media{ background:#e4e4e4 !important; }
+  .post-media .multi-item img.media-ready{ opacity:1; }
+  .post-media img.media-error, .post-media video.feed-video.media-error{ opacity:1; background:#ccc; }
+  .post-media.m1:not(.has-real-media):not(:has(img)):not(:has(video)){ background:var(--mint) !important; animation:none !important; }
+  .post-media.m2:not(.has-real-media):not(:has(img)):not(:has(video)){ background:var(--yellow) !important; animation:none !important; }
+  .post-media.m3:not(.has-real-media):not(:has(img)):not(:has(video)){ background:var(--violet) !important; color:var(--paper); animation:none !important; }
+  .post-media.m4:not(.has-real-media):not(:has(img)):not(:has(video)){ background:var(--pink) !important; color:var(--paper); animation:none !important; }
+  .post-media.m5:not(.has-real-media):not(:has(img)):not(:has(video)){ background:var(--paper) !important; animation:none !important; }
+  .post-media.m6:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#9ED7FF !important; color:var(--ink); animation:none !important; }
+  .post-media.m7:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#FFB36B !important; color:var(--ink); animation:none !important; }
+  .post-media.m8:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#FF6F7D !important; color:var(--paper); animation:none !important; }
+  .post-media.m9:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#69D6C2 !important; color:var(--ink); animation:none !important; }
+  .post-media.m10:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#B9A7FF !important; color:var(--ink); animation:none !important; }
+  .post-media.m11:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#17171A !important; color:var(--paper); animation:none !important; }
+  .post-media.m12:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#D8C3A5 !important; color:var(--ink); animation:none !important; }
+  .feed-skeleton{padding:0 0 24px}
+  .feed-skel-card{border-bottom:3px solid var(--line);padding:14px 18px 16px}
+  .feed-skel-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .feed-skel-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(90deg,#e4e4e4,#f0f0f0,#e4e4e4);background-size:200% 100%;animation:tchiloSkel 1.15s ease-in-out infinite}
+  .feed-skel-lines{flex:1}
+  .feed-skel-line{height:10px;border-radius:6px;background:linear-gradient(90deg,#e4e4e4,#f0f0f0,#e4e4e4);background-size:200% 100%;animation:tchiloSkel 1.15s ease-in-out infinite;margin-bottom:6px}
+  .feed-skel-line.s{width:40%}.feed-skel-line.m{width:62%}
+  .feed-skel-media{width:100%;aspect-ratio:1/1;background:linear-gradient(90deg,#e4e4e4,#f0f0f0,#e4e4e4);background-size:200% 100%;animation:tchiloSkel 1.15s ease-in-out infinite}
 
   .navbar{
     position:absolute;
@@ -1022,10 +1032,10 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
     text-align:center; margin-bottom:28px;
   }
   #tchiloProfileAvatarPlus.tchilo-av-add{
-    position:absolute;right:0;bottom:0;z-index:5;
-    width:28px;height:28px;border-radius:50%;
-    background:var(--yellow,#C8F560);color:var(--ink,#0B0B0C);
-    border:2.5px solid var(--ink,#0B0B0C);
+    position:absolute;right:-2px;bottom:-2px;z-index:5;
+    width:32px;height:32px;border-radius:50%;
+    background:var(--ink);color:var(--paper);
+    border:3px solid var(--paper);
     display:flex;align-items:center;justify-content:center;
     padding:0;margin:0;cursor:pointer;
     animation:none!important;transition:none!important;transform:none!important;
@@ -1109,17 +1119,28 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   .feed-sound-btn{
     position:absolute; right:10px; bottom:10px; z-index:6;
     width:40px; height:40px; border-radius:50%;
-    border:none; background:transparent;
+    border:none; background:rgba(0,0,0,.35);
     display:flex; align-items:center; justify-content:center;
     cursor:pointer;
     box-shadow:none;
     padding:0;
+    -webkit-tap-highlight-color:transparent;
   }
-  .feed-sound-btn svg{ filter:drop-shadow(0 1px 2px rgba(0,0,0,.55)); }
+  .feed-sound-btn svg{ filter:drop-shadow(0 1px 2px rgba(0,0,0,.45)); display:block; pointer-events:none; }
   .feed-sound-btn:active{ transform:scale(.94); }
-  .feed-sound-btn.on{ background:transparent; border:none; }
+  .feed-sound-btn.on{ background:rgba(0,0,0,.35); border:none; }
   .feed-sound-btn.on .icon-muted{ display:none !important; }
-  .feed-sound-btn.on .icon-sound{ display:block !important; stroke:#fff; }
+  .feed-sound-btn.on .icon-sound{ display:block !important; }
+  .feed-play-icon{
+    position:absolute; left:50%; top:50%; z-index:5;
+    width:56px; height:56px; margin:-28px 0 0 -28px;
+    border-radius:50%;
+    background:rgba(0,0,0,.42);
+    display:flex; align-items:center; justify-content:center;
+    pointer-events:none;
+    box-shadow:0 2px 12px rgba(0,0,0,.25);
+  }
+  .feed-play-icon svg{ display:block; margin-left:3px; }
 
   .gallery-btn{width:100%;padding:14px;border:1px dashed rgba(11,11,12,.25);border-radius:14px;background:transparent;font:600 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink);}
   .gallery-btn:active{ transform:scale(.98); }
@@ -1400,18 +1421,26 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   .profile-action-icon{width:24px;height:24px;border:0;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink)}
   /* ----- PROFILE GRID ----- */
   .profile-grid{
-    display:grid; grid-template-columns:1fr 1fr; gap:5px !important;
-    margin-top:20px;
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1px !important;
+    margin:16px -18px 0;
+    background:color-mix(in srgb, var(--ink) 14%, transparent);
+    border-top:0.5px solid color-mix(in srgb, var(--ink) 14%, transparent);
   }
   .profile-grid-item{
-    aspect-ratio:1;
-    border:1px solid var(--line) !important;
-    border:1px solid color-mix(in srgb, var(--ink) 40%, transparent) !important;
+    aspect-ratio:4 / 5;
+    border:0 !important;
     box-shadow:none !important;
+    background:var(--paper);
     display:flex; align-items:center; justify-content:center;
-    font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif; font-size:14px;
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif; font-size:12px;
     text-align:center; line-height:1.1; cursor:pointer;
     position:relative; overflow:hidden;
+  }
+  .profile-grid-item img,
+  .profile-grid-item video{
+    width:100%; height:100%; object-fit:cover; display:block;
   }
   .profile-post-views{
     position:absolute; right:8px; bottom:6px; min-width:0; height:auto;
@@ -1429,12 +1458,15 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   .saved-tab.active{background:var(--ink);color:#fff}
   .saved-body{flex:1;overflow-y:auto;padding:12px 18px 100px;-webkit-overflow-scrolling:touch}
   .saved-card{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:2px solid #e8e8e8;cursor:pointer}
-  .saved-thumb{width:72px;height:72px;flex-shrink:0;border:2.5px solid var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--mint);font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:13px;text-align:center}
+  .saved-thumb{width:72px;height:72px;flex-shrink:0;border:1px solid color-mix(in srgb, var(--ink) 18%, transparent);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#e8e8e8;font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:13px;text-align:center}
   .saved-thumb img,.saved-thumb video{width:100%;height:100%;object-fit:cover}
   .saved-info{min-width:0;flex:1}
   .saved-info b{display:block;font-size:14px;margin-bottom:4px}
   .saved-info span{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .saved-remove{border:2px solid var(--ink);background:var(--paper);border-radius:10px;width:34px;height:34px;cursor:pointer;font-size:17px}
+  .saved-actions{display:flex;gap:8px;flex-shrink:0;align-items:center}
+  .saved-remove{border:1px solid color-mix(in srgb, var(--ink) 22%, transparent);background:var(--paper);border-radius:10px;width:36px;height:36px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;color:var(--ink);-webkit-tap-highlight-color:transparent}
+  .saved-remove:active{opacity:.7}
+  .saved-remove svg{display:block;pointer-events:none}
   .playlist-head{display:flex;gap:8px;margin-bottom:12px}
   .playlist-create{flex:1;padding:12px;border:2.5px solid var(--ink);border-radius:12px;background:var(--yellow);font:800 13px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer}
   .playlist-card{padding:14px;border:2.5px solid var(--ink);border-radius:14px;background:#fff;margin-bottom:10px;cursor:pointer}
@@ -1504,16 +1536,21 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   .follow-btn.following{ background:#E4E4E7; color:#0B0B0C; }
   .follow-btn.friends{ background:var(--violet); color:#fff; }
   .settings-toggle{
-    width:44px; height:26px; border-radius:13px; border:2px solid var(--ink);
-    background:#ccc; position:relative; flex-shrink:0; transition:background .15s;
+    width:26px; height:26px; border-radius:50%; border:2px solid color-mix(in srgb, var(--ink) 28%, transparent);
+    background:transparent; position:relative; flex-shrink:0;
+    transition:background .15s ease, border-color .15s ease, transform .12s ease;
+    display:flex; align-items:center; justify-content:center;
   }
-  .settings-toggle.on{ background:var(--mint); }
   .settings-toggle::after{
-    content:''; position:absolute; top:2px; left:2px;
-    width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid var(--ink);
-    transition:left .15s;
+    content:''; width:12px; height:12px;
+    background:transparent;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9.2 16.6l-3.9-3.9 1.4-1.4 2.5 2.5 6.1-6.1 1.4 1.4z'/%3E%3C/svg%3E") center/contain no-repeat;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9.2 16.6l-3.9-3.9 1.4-1.4 2.5 2.5 6.1-6.1 1.4 1.4z'/%3E%3C/svg%3E") center/contain no-repeat;
+    opacity:0; transition:opacity .12s ease;
   }
-  .settings-toggle.on::after{ left:20px; }
+  .settings-toggle.on{ background:var(--ink); border-color:var(--ink); }
+  .settings-toggle.on::after{ background:var(--paper); opacity:1; }
+  .settings-toggle:active{ transform:scale(.92); }
   .settings-modal-fields{ display:flex; flex-direction:column; gap:10px; padding:0 18px 18px; }
   .settings-modal-fields input{
     border:2.5px solid var(--ink); border-radius:12px; padding:12px 14px;
@@ -1733,7 +1770,10 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   }
 
 
-  .media-viewer-more{position:fixed;top:18px;right:72px;z-index:1205;pointer-events:auto;width:48px;height:48px;border:2px solid var(--ink);border-radius:50%;background:var(--yellow);font-size:31px;font-weight:900;line-height:34px;cursor:pointer;box-shadow:none}
+  .media-viewer-more{position:fixed;top:max(14px,env(safe-area-inset-top));right:68px;z-index:1205;pointer-events:auto;width:44px;height:44px;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;box-shadow:none;-webkit-tap-highlight-color:transparent}
+  .media-viewer-more svg{display:block;pointer-events:none}
+  .media-viewer-close{position:fixed;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));z-index:1210;width:44px;height:44px;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .media-viewer-close svg{display:block;pointer-events:none}
   .profile-viewer-actions{display:flex;gap:10px;justify-content:center;align-items:center;margin:12px auto 4px;position:relative;z-index:10}.pv-action{border:2px solid var(--ink);background:var(--paper);border-radius:14px;padding:8px 13px;display:flex;gap:7px;align-items:center;font-weight:800;cursor:pointer}.pv-action.liked span{color:var(--pink)}
   .story-create-inline{display:none !important;}
 
@@ -1995,12 +2035,12 @@ h1,h2,h3,h4,h5,h6,
   #mediaViewer{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:1100;padding:24px;box-sizing:border-box;flex-direction:column}
   #mediaViewer.open{display:flex}
   .media-viewer-content{position:relative;z-index:1;max-width:94vw;max-height:84vh;display:flex;align-items:center;justify-content:center}
-  .media-viewer-close{position:fixed;top:18px;right:18px;z-index:1210;width:50px;height:50px;border:2px solid rgba(255,255,255,.7);border-radius:50%;background:#111;color:#fff;font-size:34px;line-height:1;cursor:pointer}
+  /* media-viewer-close professional above */
   .media-viewer-caption{margin-top:12px;max-width:90vw;color:#fff;font-size:13px;text-align:center}
   #imageFullscreen{position:fixed;inset:0;z-index:1800;background:#000;display:none;align-items:center;justify-content:center;width:100vw;height:100vh;overflow:hidden}
   #imageFullscreen.open{display:flex}
   #imageFullscreen img,#imageFullscreen video{width:100vw;height:100vh;max-width:100vw;max-height:100vh;object-fit:contain;display:block}
-  #imageFullscreen .fullscreen-close{position:fixed;top:max(16px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right));z-index:1810;width:53px;height:53px;border:2.5px solid #fff;border-radius:50%;background:#111;color:#fff;font-size:36px;line-height:44px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  #imageFullscreen .fullscreen-close{position:fixed;top:max(14px,env(safe-area-inset-top));right:max(14px,env(safe-area-inset-right));z-index:1810;width:44px;height:44px;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
   .reel-main-action.liked svg{fill:var(--reel-like-color,var(--yellow));stroke:var(--reel-like-color,var(--yellow))}
 .reel-main-action{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
 .reel-action-count{font-size:11px;font-weight:700;line-height:1;min-height:12px;text-shadow:0 1px 4px rgba(0,0,0,.45)}
@@ -3018,18 +3058,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       <h1>Editar perfil</h1>
     </div>
     <div class="edit-form" id="editProfileForm">
-      <div class="edit-avatar-preview" id="editAvatarPreview">?</div>
-      <input type="file" id="editAvatarInput" accept="image/*" style="display:none" onchange="onAvatarPicked(event)">
-      <button type="button" class="gallery-btn" onclick="document.getElementById('editAvatarInput').click()">Alterar foto de perfil</button>
-      <button type="button" class="gallery-btn" id="removeAvatarBtn" style="display:none;border-style:solid;background:#eee" onclick="removeAvatar()">Remover foto</button>
-      <label>Cor do avatar</label>
-      <div class="avatar-colors" id="avatarColors">
-        <div class="avatar-color active" style="background:var(--mint)" data-c="var(--mint)" onclick="pickAvatarColor(this)"></div>
-        <div class="avatar-color" style="background:var(--pink)" data-c="var(--pink)" onclick="pickAvatarColor(this)"></div>
-        <div class="avatar-color" style="background:var(--yellow)" data-c="var(--yellow)" onclick="pickAvatarColor(this)"></div>
-        <div class="avatar-color" style="background:var(--violet)" data-c="var(--violet)" onclick="pickAvatarColor(this)"></div>
-        <div class="avatar-color" style="background:#fff" data-c="#fff" onclick="pickAvatarColor(this)"></div>
+      <div class="edit-avatar-wrap" style="position:relative;width:90px;height:90px;margin:12px auto 16px;flex-shrink:0">
+        <div class="edit-avatar-preview" id="editAvatarPreview" style="margin:0">?</div>
+        <button type="button" class="edit-avatar-cam" aria-label="Alterar foto de perfil" title="Alterar foto de perfil" onclick="document.getElementById('editAvatarInput').click()" style="position:absolute;right:-4px;bottom:-4px;width:34px;height:34px;padding:0;border:3px solid var(--paper);border-radius:50%;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg></button>
       </div>
+      <input type="file" id="editAvatarInput" accept="image/*" style="display:none" onchange="onAvatarPicked(event)">
+      <button type="button" class="gallery-btn" id="removeAvatarBtn" style="display:none;border:0!important;background:#eee!important" onclick="removeAvatar()">Remover foto</button>
       <label>Nome de utilizador</label>
       <input id="editUsername" type="text" maxlength="20" autocomplete="username">
       <label>Nome de apresentação</label>
@@ -3038,12 +3072,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       <textarea id="editBio" maxlength="150" placeholder="Bio"></textarea>
       <label>Email</label>
       <input id="editEmail" type="email" autocomplete="email">
-      <label>Localização</label>
-      <input id="editLocation" type="text" maxlength="40" placeholder="Cidade">
-      <label>Nova palavra-passe (opcional)</label>
-      <input id="editNewPassword" type="password" autocomplete="new-password" placeholder="Mín. 4 caracteres" maxlength="72">
-      <label>Confirmar nova palavra-passe</label>
-      <input id="editNewPassword2" type="password" autocomplete="new-password" placeholder="Repete a palavra-passe" maxlength="72">
       <button type="button" class="settings-save" onclick="saveProfile()">Guardar alterações</button>
       <button type="button" class="profile-btn" style="margin:0 0 18px;width:100%" onclick="requestEmailChange()">Enviar confirmação de email</button>
     </div>
@@ -3316,27 +3344,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       <button class="settings-item" type="button" onclick="setAppTheme('classic')">
         <div class="theme-swatch" style="background:#ffffff"></div>
         <span>Clássico</span>
-        <span id="theme-check-classic" class="theme-check">✓</span>
-      </button>
-      <button class="settings-item" type="button" onclick="setAppTheme('dark')">
-        <div class="theme-swatch" style="background:#1A1A1C"></div>
-        <span>Escuro</span>
-        <span id="theme-check-dark" class="theme-check"></span>
-      </button>
-      <button class="settings-item" type="button" onclick="setAppTheme('yellow')">
-        <div class="theme-swatch" style="background:#F5FF3D"></div>
-        <span>Amarelo</span>
-        <span id="theme-check-yellow" class="theme-check"></span>
-      </button>
-      <button class="settings-item" type="button" onclick="setAppTheme('violet')">
-        <div class="theme-swatch" style="background:#9B6BFF"></div>
-        <span>Roxo</span>
-        <span id="theme-check-violet" class="theme-check"></span>
-      </button>
-      <button class="settings-item" type="button" onclick="setAppTheme('red')">
-        <div class="theme-swatch" style="background:#FF3F6E"></div>
-        <span>Vermelho</span>
-        <span id="theme-check-red" class="theme-check"></span>
+        <span id="theme-check-classic" class="theme-check"></span>
       </button>
     </div>
   </div>
@@ -4689,7 +4697,7 @@ function normalizeCloudPost(row, profileMap) {
     time: row.created_at ? formatRelativeTime(row.created_at) : 'agora',
     color: row.color || 'm1',
     stamp: row.stamp || '',
-    caption: row.caption || row.content || '',
+    caption: stripTchiloMusicToken(row.caption || row.content || ''),
     tags: Array.isArray(row.tags) ? row.tags : [],
     likes: Number(row.likes || 0),
     comments: Number(row.comments || 0),
@@ -4697,6 +4705,16 @@ function normalizeCloudPost(row, profileMap) {
     thumbnail: thumbnail,
     mediaType: mediaType,
     mediaItems: mediaItems,
+    music: (function(){
+      var m = (row.music != null ? row.music : null);
+      if (m != null) return m;
+      return extractTchiloMusicFromCaption(row.caption || row.content || '') || null;
+    })(),
+    musicMeta: (function(){
+      var m = (row.music_meta != null ? row.music_meta : (row.musicMeta != null ? row.musicMeta : (row.music != null ? row.music : null)));
+      if (m != null) return m;
+      return extractTchiloMusicFromCaption(row.caption || row.content || '') || null;
+    })(),
     cloud: true,
     userId: row.user_id || null,
     createdAt: row.created_at || null,
@@ -4711,8 +4729,9 @@ function formatRelativeTime(isoDate) {
   if (sec < 60) return 'agora';
   const min = Math.floor(sec/60); if (min < 60) return min + ' min';
   const h = Math.floor(min/60); if (h < 24) return h + ' h';
-  const d = Math.floor(h/24); if (d < 7) return d + ' d';
-  return new Date(isoDate).toLocaleDateString('pt-PT');
+  const d = Math.floor(h/24); if (d < 30) return d + (d === 1 ? ' dia' : ' dias');
+  const mo = Math.floor(d/30); if (mo < 12) return mo + (mo === 1 ? ' mês' : ' meses');
+  const y = Math.floor(d/365); return Math.max(1, y) + (y <= 1 ? ' ano' : ' anos');
 }
 
 async function loadPublicFeedFromSupabase(force) {
@@ -4899,9 +4918,10 @@ function renderPostMedia(p) {
       const posterAttr = thumb ? ' poster="'+String(thumb).replace(/"/g,'&quot;')+'"' : '';
       return '<div class="feed-video-wrap" data-post-id="'+p.id+'" style="position:relative;width:100%;height:100%;background:#000;cursor:pointer">'+
         '<video class="feed-video" src="'+src+'"'+posterAttr+' muted playsinline webkit-playsinline preload="none" loop '+(hq?'':'data-lq="1" ')+'style="width:100%;height:100%;object-fit:cover;background:#000"></video>'+
+        '<div class="feed-play-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M8 5.14v13.72c0 .8.87 1.3 1.56.89l11.02-6.86a1 1 0 0 0 0-1.78L9.56 4.25A1.02 1.02 0 0 0 8 5.14z"/></svg></div>'+
         '<button type="button" class="feed-sound-btn" aria-label="Som" onclick="event.preventDefault();event.stopPropagation();toggleFeedVideoSound(this)" ontouchend="event.preventDefault();event.stopPropagation();toggleFeedVideoSound(this)">'+
-        '<svg class="icon-muted" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.2"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15 9.5l4 4M19 9.5l-4 4"/></svg>'+
-        '<svg class="icon-sound" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.2" style="display:none"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a4 4 0 010 7M18 6a7 7 0 010 12"/></svg>'+
+        '<svg class="icon-muted" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>'+
+        '<svg class="icon-sound" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>'+
         '</button></div>';
     }
     if (items.length===1) return '<img class="feed-img" src="'+items[0].url+'" alt="" loading="lazy" decoding="async" fetchpriority="low" width="1080" height="1080" style="width:100%;height:100%;object-fit:cover;display:block;user-select:none;-webkit-user-drag:none;background:#e4e4e4">';
@@ -5135,8 +5155,8 @@ function openProfilePostViewer(postId) {
   const comments=getCommentCount(postId,p.comments||0); const likes=(p.likes||0)+(liked?1:0);
   const shownName=(p.displayName||resolveDisplayName(p.username)||p.username||'').replace(/</g,'&lt;');
   const stampMedia = items.length ? media : ('<div class="big '+(p.color||'m1')+'" style="min-height:280px;width:min(90vw,520px);display:flex;align-items:center;justify-content:center;padding:28px;border-radius:18px;text-align:center;font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:clamp(28px,10vw,52px);line-height:0.95;color:inherit">'+String(p.stamp||p.caption||'POST').replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div>');
-  viewer.innerHTML='<button class="media-viewer-close" onclick="closeMediaViewer()" aria-label="Fechar">×</button>'+
-    '<button class="media-viewer-more" onclick="openPostMenu(\''+postId+'\');" aria-label="Mais opções">⋯</button>'+
+  viewer.innerHTML='<button class="media-viewer-close" onclick="closeMediaViewer()" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+
+    '<button class="media-viewer-more" onclick="openPostMenu(\''+postId+'\');" aria-label="Mais opções"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>'+
     '<div class="media-viewer-content" onclick="event.stopPropagation()">'+(items.length?media:stampMedia)+'</div>'+
     '<div class="profile-viewer-actions" style="display:flex;gap:18px;justify-content:center;padding:12px 16px;color:#fff">'+
       '<button onclick="profileViewerLike(\''+postId+'\')" class="pv-action '+(liked?'liked':'')+'" style="background:none;border:0;color:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer">'+
@@ -5149,7 +5169,7 @@ function openProfilePostViewer(postId) {
         '<svg viewBox="0 0 512 512" width="30" height="30" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M432 80 L309 432 L238 238 L80 168 Z"/><path d="M238 238 L432 80"/></svg>'+
         '<b>'+formatCount(getShareCounts()[postId]||0)+'</b></button>'+
     '</div>'+
-    '<div class="media-viewer-caption"><b>'+shownName+'</b>'+(p.caption?' · '+String(p.caption).replace(/</g,'&lt;'):'')+'</div>';
+    '<div class="media-viewer-caption"><b>'+shownName+'</b>'+(p.caption?' · '+stripTchiloMusicToken(p.caption).replace(/</g,'&lt;'):'')+'</div>';
   viewer.classList.add('open'); viewer.onclick=function(e){if(e.target===viewer)closeMediaViewer();};
   if(items.length>1) setupViewerMulti(postId);
 }
@@ -5213,9 +5233,9 @@ function openMediaViewer(postId, mode) {
     ? '<video src="' + m.url + '" controls autoplay playsinline style="max-width:100%;max-height:78vh;border-radius:14px;background:#000"></video>'
     : '<img src="' + m.url + '" alt="" style="max-width:100%;max-height:82vh;object-fit:contain;border-radius:14px">';
   viewer.innerHTML =
-    '<button class="media-viewer-close" onclick="closeMediaViewer()" aria-label="Fechar">×</button>' +
+    '<button class="media-viewer-close" onclick="closeMediaViewer()" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
     '<div class="media-viewer-content" onclick="event.stopPropagation()">' + media + '</div>' +
-    '<div class="media-viewer-caption"><b>@' + (p.username || '') + '</b>' + (p.caption ? ' · ' + String(p.caption).replace(/</g,'&lt;') : '') + '</div>';
+    '<div class="media-viewer-caption"><b>@' + (p.username || '') + '</b>' + (p.caption ? ' · ' + stripTchiloMusicToken(p.caption).replace(/</g,'&lt;') : '') + '</div>';
   viewer.classList.add('open');
   viewer.onclick = function(e){ if(e.target === viewer) closeMediaViewer(); };
   if (mode === 'video') {
@@ -5319,7 +5339,7 @@ function openReels(startId, startTime) {
       '<video src="' + src + '" loop playsinline onclick="toggleReelPlayback(this)"></video>' +
       '<div class="reel-meta">' +
         '<b class="user-tap" data-user="' + String(p.username).replace(/"/g,'&quot;') + '" onclick="event.stopPropagation();openUserProfile(this.getAttribute(\'data-user\'))">@' + p.username + '</b>' +
-        '<span>' + (p.caption || '').replace(/</g,'&lt;') + '</span>' +
+        '<span>' + stripTchiloMusicToken(p.caption || '').replace(/</g,'&lt;') + '</span>' +
         '<div class="reel-stats">' + formatCount(likeCount) + ' ' + t('gostos') + ' · ' + formatCount(shareCount) + ' ' + t('partilhas') + ' · ' + formatCount(getPostViews(p.id)) + ' ' + t('visualizações') + '</div>' +
         '<div class="reel-stats">Audio · ' + music.replace(/</g,'&lt;') + '</div>' +
       '</div>' +
@@ -5553,7 +5573,7 @@ function shareOutside() {
   const p = posts.find(function(x){ return x.id === sharePostId; });
   if (!p) return;
   bumpShareCount(sharePostId);
-  const text = '@' + p.username + (p.caption ? ': ' + p.caption : ' publicou algo');
+  const text = '@' + p.username + (p.caption ? ': ' + stripTchiloMusicToken(p.caption) : ' publicou algo');
   if (navigator.share) {
     navigator.share({ title: 'Partilha', text: text }).then(function() {
       closeShare();
@@ -5574,7 +5594,7 @@ function shareToChat(name, initials, color) {
   const p = posts.find(function(x){ return x.id === sharePostId; });
   if (!p) return;
   bumpShareCount(sharePostId);
-  const msg = 'Partilha: @' + p.username + (p.caption ? ' — ' + p.caption : ' (publicação)');
+  const msg = 'Partilha: @' + p.username + (p.caption ? ' — ' + stripTchiloMusicToken(p.caption) : ' (publicação)');
   const chats = getChats();
   if (!chats[name] || !chats[name].length) chats[name] = defaultChatSeed(name);
   chats[name].push({ from: 'me', text: msg });
@@ -6607,10 +6627,10 @@ async function startEditPost(postId) {
   if (!p) { showToast('Publicação não encontrada'); return; }
   const session = getSession();
   if (!session || p.username !== session.username) { showToast('Só podes editar as tuas publicações'); return; }
-  const nextCaption = await tchiloPrompt({ title: (typeof t==='function'?t('Editar legenda'):'Editar legenda'), defaultValue: p.caption || '', confirmText: (typeof t==='function'?t('Guardar'):'Guardar'), cancelText: (typeof t==='function'?t('Cancelar'):'Cancelar') });
+  const nextCaption = await tchiloPrompt({ title: (typeof t==='function'?t('Editar legenda'):'Editar legenda'), defaultValue: stripTchiloMusicToken(p.caption || ''), confirmText: (typeof t==='function'?t('Guardar'):'Guardar'), cancelText: (typeof t==='function'?t('Cancelar'):'Cancelar') });
   if (nextCaption === null) return;
   const tags = (String(nextCaption).match(/#[\wÀ-ÿ]+/g) || []);
-  p.caption = String(nextCaption).replace(/#[\wÀ-ÿ]+/g, '').trim();
+  p.caption = stripTchiloMusicToken(String(nextCaption).replace(/#[\wÀ-ÿ]+/g, '').trim());
   p.tags = tags;
   if (!resolveMediaItems(p).length && p.stamp) {
     /* mantém stamp de texto; permite atualizar via título embutido na legenda se quiser */
@@ -6666,8 +6686,35 @@ function bumpShareCount(postId) {
 
 
 
+
+/* Remove payload interno Deezer/music — nunca mostrar na UI */
+function stripTchiloMusicToken(s){
+  return String(s==null?'':s)
+    .replace(/\[\[\s*TCHILO_DEEZER\s*:[^\]]*\]\]/gi,'')
+    .replace(/\[\[\s*TCHILO_MUSIC\s*:[^\]]*\]\]/gi,'')
+    .replace(/\s{2,}/g,' ')
+    .trim();
+}
+function tchiloDisplayCaption(s){
+  return stripTchiloMusicToken(s);
+}
+/** Extrai objeto/string de música embutido como [[TCHILO_DEEZER:base64]] na legenda (posts antigos). */
+function extractTchiloMusicFromCaption(s){
+  try{
+    var m=String(s==null?'':s).match(/\[\[\s*TCHILO_DEEZER\s*:\s*([^\]]+)\]\]/i);
+    if(!m||!m[1]) return null;
+    var raw=m[1].trim();
+    try{
+      var json=decodeURIComponent(escape(atob(raw)));
+      return JSON.parse(json);
+    }catch(e1){
+      try{ return JSON.parse(atob(raw)); }catch(e2){ return {id:raw,source:'deezer'}; }
+    }
+  }catch(e){ return null; }
+}
+
 function formatPostCaptionHtml(captionText, tagsHtml) {
-  var full = String(captionText || '').trim();
+  var full = stripTchiloMusicToken(captionText || '');
   var tags = String(tagsHtml || '');
   var limit = 110;
   if (!full) return tags;
@@ -6777,7 +6824,11 @@ function renderFeed() {
   if (!posts.length) {
     feed.__tchiloLastHtml = '';
     if (window.__publicFeedLoading) {
-      feed.innerHTML = '<div class="empty" style="opacity:.85"><b>A atualizar…</b>A carregar publicações.</div>';
+      var sk = '';
+      for (var si = 0; si < 3; si++) {
+        sk += '<div class="feed-skel-card"><div class="feed-skel-head"><div class="feed-skel-av"></div><div class="feed-skel-lines"><div class="feed-skel-line m"></div><div class="feed-skel-line s"></div></div></div><div class="feed-skel-media"></div></div>';
+      }
+      feed.innerHTML = '<div class="feed-skeleton" aria-busy="true" aria-label="A carregar">'+sk+'</div>';
     } else {
       feed.innerHTML = '<div class="empty"><b>O teu feed está vazio</b>Quando existirem publicações públicas, elas aparecerão aqui.</div>';
     }
@@ -6807,14 +6858,14 @@ function renderFeed() {
     var _rawName = !isPlaceholderDisplayName(p.displayName) ? p.displayName : resolveDisplayName(p.username);
     if (isPlaceholderDisplayName(_rawName)) _rawName = (!isPlaceholderDisplayName(p.username) ? p.username : 'Utilizador');
     const shownName = String(_rawName || 'Utilizador').replace(/</g,'&lt;');
-    const captionText = String(p.caption || '').replace(/</g,'&lt;');
+    const captionText = stripTchiloMusicToken(p.caption || '').replace(/</g,'&lt;');
     const tagsFromCaption = (String(p.caption||'').match(/#[\wÀ-ÿ]+/g)||[]);
     const allTags = Array.from(new Set([].concat(p.tags||[], tagsFromCaption)));
     const tagsHtmlFixed = allTags.map(function(t){ const clean=String(t).replace(/^#/,'').replace(/</g,'&lt;'); return '<span class="tag">#'+clean+'</span>'; }).join(' ');
     htmlOut += '<div class="post" data-id="' + p.id + '">' +
       '<div class="post-head"><div class="post-user post-user-tap" data-user="' + String(p.username).replace(/"/g,'&quot;') + '" onclick="event.stopPropagation();openUserProfile(this.getAttribute(\'data-user\'))">' +
       renderUserAvatarHTML(p.username, p.initials || p.username, (getProfileExtra(p.username)||{}).avatarColor || 'var(--mint)') +
-      '<div class="who"><b>' + shownName + '</b><span>@' + String(p.username).replace(/</g,'&lt;') + ' · ' + p.time + (p.location ? ' · ' + p.location : '') + '</span></div>' +
+      '<div class="who"><b>' + shownName + '</b><span>@' + String(p.username).replace(/</g,'&lt;') + ' · ' + (p.createdAt ? formatRelativeTime(p.createdAt) : p.time) + (p.location ? ' · ' + p.location : '') + '</span></div>' +
       '</div>' + followBtn + '<button class="post-menu-btn" onclick="event.stopPropagation();openPostMenu(\'' + p.id + '\')">⋯</button></div>' +
       '<div class="post-media ' + (resolveMediaItems(p).length ? 'has-real-media' : (p.color||'')) + ' ' + (resolveMediaItems(p).length>1 ? 'multi-media' : '') + '" data-view-post="' + p.id + '" onclick="onPostMediaClick(\'' + p.id + '\')">' + renderPostMedia(p) + '</div>' +
       '<div class="post-actions">' +
@@ -7134,7 +7185,7 @@ async function publishPostCore(){
   const title=document.getElementById('createTitle').value.trim()||'NOVO POST',caption=document.getElementById('createCaption').value.trim()||'nova publicação',stamp=title.toUpperCase().split(/\s+/).slice(0,3).join('\n'),tags=(caption.match(/#[\wÀ-ÿ]+/g)||[]),postId=(window.crypto&&typeof window.crypto.randomUUID==='function'?window.crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==='x'?r:(r&0x3|0x8);return v.toString(16);}));
   const items=createMediaData&&createMediaData.items?createMediaData.items:[];
   if(items.some(function(m){return m.type==='video'})&&items.length!==1){showToast('Vídeo só pode ser publicado sozinho');return;}
-  const post={id:postId,username:session.username,initials:session.username.slice(0,2).toUpperCase(),avatar:(session.avatar||(getProfileExtra(session.username)||{}).avatar||null),location:null,time:'agora',color:currentColor,stamp:stamp,caption:caption.replace(/#[\wÀ-ÿ]+/g,'').trim(),tags:tags,likes:0,comments:0,media:null,mediaType:null,mediaItems:null,music:window._pendingMusic||null,musicMeta:(window._pendingMusicMeta||null)};window._pendingMusic=null;window._pendingMusicMeta=null;
+  const post={id:postId,username:session.username,initials:session.username.slice(0,2).toUpperCase(),avatar:(session.avatar||(getProfileExtra(session.username)||{}).avatar||null),location:null,time:'agora',color:currentColor,stamp:stamp,caption:stripTchiloMusicToken(caption.replace(/#[\wÀ-ÿ]+/g,'').trim()),tags:tags,likes:0,comments:0,media:null,mediaType:null,mediaItems:null,music:window._pendingMusic||null,musicMeta:(window._pendingMusicMeta||null)};window._pendingMusic=null;window._pendingMusicMeta=null;
 
   const finishLocal=function(mediaList){
     if(mediaList&&mediaList.length){
@@ -7825,13 +7876,15 @@ function renderProfile() {
       const backBtn = header ? header.querySelector('.back-btn') : null;
       const titleEl = header ? header.querySelector('h1') : null;
       if (backBtn) {
-        backBtn.style.display = 'flex';
+        /* O teu próprio perfil é um separador do menu: sem seta de voltar.
+           Perfis de outras pessoas mantêm a seta. */
+        backBtn.style.display = isOther ? 'flex' : 'none';
         backBtn.removeAttribute('aria-hidden');
         backBtn.setAttribute('aria-label', 'Voltar');
         backBtn.onclick = function(){ closeOtherProfile(); };
       }
       if (titleEl) {
-        titleEl.textContent = isOther ? ('@' + username) : 'Perfil';
+        titleEl.textContent = '@' + username;
         titleEl.style.textAlign = '';
       }
       if (header) {
@@ -7909,12 +7962,11 @@ function renderProfile() {
 
     profileBody.innerHTML =
       '<div class="profile-header">' +
-      '<div class="profile-avatar" style="background:' + avatarColor + ';overflow:visible;position:relative">' + avatarHtml + (isOther ? '' : '<button type="button" id="tchiloProfileAvatarPlus" class="tchilo-av-add" aria-label="Adicionar foto" onclick="event.preventDefault();event.stopPropagation();var i=document.getElementById(\'editAvatarInput\');if(i){i.value=\'\';i.click();}else if(typeof goTo===\'function\')goTo(\'editprofile\');"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>') + '</div>' +
-      '<h2>' + String(displayName).replace(/</g, '&lt;') + '</h2>' +
+      '<div class="profile-avatar" style="background:' + avatarColor + ';overflow:visible;position:relative">' + avatarHtml + (isOther ? '' : '<button type="button" id="tchiloProfileAvatarPlus" class="tchilo-av-add" aria-label="Adicionar foto" onclick="event.preventDefault();event.stopPropagation();var i=document.getElementById(\'editAvatarInput\');if(i){i.value=\'\';i.click();}else if(typeof goTo===\'function\')goTo(\'editprofile\');"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg></button>') + '</div>' +
+      '<h2>' + String(displayName).replace(/</g, '&lt;') + (isOther ? '' : '<button type="button" class="tchilo-edit-profile-btn" aria-label="Editar perfil" title="Editar perfil" onclick="event.preventDefault();event.stopPropagation();openEditProfile();" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin-left:6px;vertical-align:middle;padding:0;border:0;border-radius:0;background:transparent;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg></button>') + '</h2>' +
       '<div class="email">@' + username.replace(/</g, '&lt;') + (location ? ' · ' + String(location).replace(/</g, '&lt;') : '') + '</div>' +
       (badges ? '<div>' + badges + '</div>' : '') +
       (bio ? '<div style="font-size:13.5px;margin:8px 0 12px;max-width:280px">' + String(bio).replace(/</g, '&lt;') + '</div>' : '') +
-      (isOther ? '' : (session.email ? ('<div class="email" style="font-size:12.5px;color:var(--muted)">' + String(session.email).replace(/</g, '&lt;') + ((typeof getAppSettings==='function' && getAppSettings().showEmail) ? ' · público' : ' · só tu vês') + '</div>') : '')) +
       '<div class="profile-stats">' +
       '<div class="profile-stat"><b>' + posts.length + '</b><span>posts</span></div>' +
       '<div class="profile-stat" style="cursor:pointer" onclick="openFollowList(\'' + String(username).replace(/'/g, '\\\'') + '\',\'followers\')"><b>' + followersCount + '</b><span>seguidores</span></div>' +
@@ -8664,7 +8716,6 @@ function loadEditProfileForm() {
   document.getElementById('editDisplayName').value = extra.displayName || session.username || '';
   document.getElementById('editBio').value = extra.bio || '';
   document.getElementById('editEmail').value = session.email || '';
-  document.getElementById('editLocation').value = extra.location || '';
   editAvatarColor = extra.avatarColor || 'var(--mint)';
   editAvatarData = extra.avatar || null;
   document.querySelectorAll('.avatar-color').forEach(function(el) {
@@ -8738,7 +8789,7 @@ async function saveProfile() {
   const email=(emailEl&&emailEl.value?emailEl.value:session.email||'').trim().toLowerCase();
   const displayName=(document.getElementById('editDisplayName').value||'').trim()||session.username;
   const bio=(document.getElementById('editBio').value||'').trim();
-  const location=(document.getElementById('editLocation').value||'').trim();
+  const location='';
   const newPass=(document.getElementById('editNewPassword')&&document.getElementById('editNewPassword').value)||'';
   const newPass2=(document.getElementById('editNewPassword2')&&document.getElementById('editNewPassword2').value)||'';
   if(email && !isValidEmail(email)){showToast('Email inválido');return;}
@@ -8890,7 +8941,25 @@ async function openEditProfile_unused() {
 async function openChangePassword() {
   const session = getSession();
   if (!session) return;
-  const cur = await tchiloPrompt({ title: (typeof t==='function'?t('Palavra-passe e segurança'):'Palavra-passe e segurança'), message: (typeof t==='function'?t('Palavra-passe atual'):'Palavra-passe atual'), type: 'password' });
+  const ttl = (typeof t==='function'?t('Palavra-passe e segurança'):'Palavra-passe e segurança');
+  if (window.tchiloSupabase) {
+    const np = await tchiloPrompt({ title: ttl, message: (typeof t==='function'?t('Nova palavra-passe'):'Nova palavra-passe') + ' (mín. 6)', type: 'password' });
+    if (np === null) return;
+    if (np.length < 6) { showToast('Mínimo 6 caracteres'); return; }
+    const np2 = await tchiloPrompt({ title: ttl, message: (typeof t==='function'?t('Confirmar nova palavra-passe'):'Confirmar nova palavra-passe'), type: 'password' });
+    if (np2 === null) return;
+    if (np !== np2) { showToast('As palavras-passe não coincidem'); return; }
+    try {
+      const r = await window.tchiloSupabase.auth.updateUser({ password: np });
+      if (r && r.error) throw r.error;
+      showToast('Palavra-passe alterada');
+    } catch (e) {
+      showToast('Não foi possível alterar a palavra-passe');
+      console.warn('Tchilo password', e && e.message ? e.message : e);
+    }
+    return;
+  }
+  const cur = await tchiloPrompt({ title: ttl, message: (typeof t==='function'?t('Palavra-passe atual'):'Palavra-passe atual'), type: 'password' });
   if (cur === null) return;
   const users = getUsers();
   const u = users.find(function(x){ return x.username === session.username; });
@@ -9318,7 +9387,7 @@ function renderSaved() {
     const isVid=m&&m.type==='video';
     const thumb=m&&m.url ? (isVid?'<video src="'+String(m.url).replace(/"/g,'&quot;')+'" muted playsinline></video>':'<img src="'+String(m.url).replace(/"/g,'&quot;')+'" alt="">') : '<span>'+escapeHtml(String(p.stamp||'PUBLICAÇÃO').replace(/\n/g,' '))+'</span>';
     const safeId=String(p.id).replace(/'/g,"\\'");
-    return '<div class="saved-card" onclick="openSavedItem(\''+safeId+'\')"><div class="saved-thumb">'+thumb+'</div><div class="saved-info"><b>@'+escapeHtml(p.username||'?')+'</b><span>'+escapeHtml(p.caption||'Publicação guardada')+'</span><span>'+(isVid?'Vídeo':'Publicação')+'</span></div><button class="saved-remove" type="button" onclick="event.stopPropagation();addToPlaylistPrompt(\''+safeId+'\')">+</button><button class="saved-remove" type="button" onclick="event.stopPropagation();removeSaved(\''+safeId+'\')">×</button></div>';
+    return '<div class="saved-card" onclick="openSavedItem(\''+safeId+'\')"><div class="saved-thumb">'+thumb+'</div><div class="saved-info"><b>@'+escapeHtml(p.username||'?')+'</b><span>'+escapeHtml(p.caption||'Publicação guardada')+'</span><span>'+(isVid?'Vídeo':'Publicação')+'</span></div><div class="saved-actions"><button class="saved-remove" type="button" aria-label="Adicionar à playlist" onclick="event.stopPropagation();addToPlaylistPrompt(\''+safeId+'\')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button><button class="saved-remove" type="button" aria-label="Remover" onclick="event.stopPropagation();removeSaved(\''+safeId+'\')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>';
   }).join('');
 }
 function openSavedItem(id){
@@ -9351,11 +9420,10 @@ function openSavedPlaylist(name) {
 const THEME_KEY = 'tchilo_theme';
 const THEME_LABELS = { classic:'Clássico', dark:'Escuro', yellow:'Amarelo', violet:'Roxo', red:'Vermelho' };
 function getAppTheme(){
-  const t = localStorage.getItem(THEME_KEY) || 'classic';
-  return THEME_LABELS[t] ? t : 'classic';
+  return 'classic';
 }
 function setAppTheme(theme){
-  theme = THEME_LABELS[theme] ? theme : 'classic';
+  theme = 'classic';
   localStorage.setItem(THEME_KEY, theme);
   applyAppTheme();
   try{
@@ -9363,7 +9431,7 @@ function setAppTheme(theme){
     s.theme = theme;
     saveAppSettings(s);
   }catch(e){}
-  showToast('Tema: ' + (THEME_LABELS[theme] || 'Clássico'));
+  showToast('Tema: Clássico');
 }
 function applyAppTheme(){
   const theme = getAppTheme();
@@ -9376,7 +9444,7 @@ function applyAppTheme(){
   try{ tchiloRefreshDefaultAvatars(); }catch(e){}
   ['classic','dark','yellow','violet','red'].forEach(function(code){
     const el = document.getElementById('theme-check-' + code);
-    if (el) el.textContent = (theme === code) ? '✓' : '';
+    if (el) { el.textContent = ''; el.classList.toggle('on', theme === code); }
   });
 }
 
@@ -9609,18 +9677,12 @@ function applyLanguage(){
 
 function renderSettingsLanguage(){
   const lang=getLanguage();
-  const colors={pt:'var(--violet)',en:'var(--pink)',fr:'var(--yellow)',it:'var(--mint)',zh:'var(--pink)'};
   ['pt','en','fr','it','zh'].forEach(function(code){
     const el=document.getElementById('lang-check-'+code);
     if(!el) return;
     el.textContent = '';
-    if(lang===code){
-      el.classList.add('on');
-      el.style.background = colors[code] || 'var(--violet)';
-    } else {
-      el.classList.remove('on');
-      el.style.background = 'transparent';
-    }
+    el.style.background = '';
+    el.classList.toggle('on', lang === code);
   });
   const label=document.getElementById('currentLanguageLabel');
   if(label) label.textContent = LANG_LABELS[lang]||'Português';
@@ -10766,7 +10828,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <div id="mediaViewer" aria-hidden="true"></div>
 <div id="imageFullscreen" aria-hidden="true" onclick="if(event.target===this)closeImageFullscreen()">
-  <button type="button" class="fullscreen-close" onclick="event.stopPropagation();closeImageFullscreen()" aria-label="Fechar">×</button>
+  <button type="button" class="fullscreen-close" onclick="event.stopPropagation();closeImageFullscreen()" aria-label="Fechar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div id="imageFullscreenContent" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"></div>
 </div>
 <script>document.addEventListener('keydown',function(e){if(e.key==='Escape'){const fs=document.getElementById('imageFullscreen');if(fs&&fs.classList.contains('open'))closeImageFullscreen();}});</script>
@@ -10994,10 +11056,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const uname=post.username||username()||'';
     const sess=getSession();
     const displayName=post.displayName||post.display_name||(sess&&sess.username===uname?sess.displayName:'')||resolveDisplayName(uname)||uname;
+    /* music: prefer musicMeta (objeto), senão music (string/obj). Nunca guardar token [[TCHILO_DEEZER]] na caption. */
+    const cleanCaption=stripTchiloMusicToken(post.caption||'');
+    const musicVal=(post.musicMeta!=null?post.musicMeta:(post.music!=null?post.music:null));
     const rows=[
       {
         id:post.id,user_id:userId,username:uname,display_name:displayName,
-        caption:post.caption||'',
+        caption:cleanCaption,
+        media_url:first?first.url:null,media_type:first?first.type:null,
+        thumbnail:first?(first.thumbnail||first.poster||null):null,
+        media_items:mediaItems&&mediaItems.length?mediaItems:null,
+        color:post.color||null,stamp:post.stamp||null,
+        music:musicVal,
+        created_at:iso()
+      },
+      {
+        id:post.id,user_id:userId,username:uname,display_name:displayName,
+        caption:cleanCaption,
         media_url:first?first.url:null,media_type:first?first.type:null,
         thumbnail:first?(first.thumbnail||first.poster||null):null,
         media_items:mediaItems&&mediaItems.length?mediaItems:null,
@@ -11006,22 +11081,23 @@ document.addEventListener('DOMContentLoaded', function() {
       },
       {
         id:post.id,user_id:userId,username:uname,display_name:displayName,
-        caption:post.caption||'',
+        caption:cleanCaption,
         media_url:first?first.url:null,media_type:first?first.type:null,
         thumbnail:first?(first.thumbnail||first.poster||null):null,
         created_at:iso()
       },
       {
         id:post.id,user_id:userId,
-        caption:post.caption||'',
+        caption:cleanCaption,
         media_url:first?first.url:null,media_type:first?first.type:null,
+        music:musicVal,
         created_at:iso()
       },
       {
-        id:post.id,user_id:userId,caption:post.caption||'',
+        id:post.id,user_id:userId,caption:cleanCaption,
         media_url:first?first.url:null,media_type:first?first.type:null
       },
-      {id:post.id,user_id:userId,caption:post.caption||'',created_at:iso()}
+      {id:post.id,user_id:userId,caption:cleanCaption,created_at:iso()}
     ];
     let last=null;
     for(const row of rows){

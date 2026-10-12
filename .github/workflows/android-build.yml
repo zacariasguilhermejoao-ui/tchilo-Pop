@@ -1,6 +1,6 @@
 name: Android app build
 
-on:
+"on":
   workflow_dispatch:
   push:
     branches:
@@ -12,7 +12,6 @@ env:
 jobs:
   build-android:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,7 +25,6 @@ jobs:
         run: npm install
 
       - name: Prepare web assets
-        shell: bash
         run: |
           set -e
           rm -rf www
@@ -51,23 +49,21 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Enable Google Play BILLING permission
-        shell: bash
+      - name: Enable BILLING permission
         run: |
           set -e
-          MANIFEST=android/app/src/main/AndroidManifest.xml
-          test -f "$MANIFEST"
-          if grep -q 'com.android.vending.BILLING' "$MANIFEST"; then
-            echo "BILLING already present"
+          M=android/app/src/main/AndroidManifest.xml
+          test -f "$M"
+          if ! grep -q 'com.android.vending.BILLING' "$M"; then
+            sed -i 's|<manifest |<manifest |' "$M"
+            sed -i '0,/<manifest[^>]*>/s||&\n    <uses-permission android:name="com.android.vending.BILLING" />|' "$M"
+            echo "BILLING injected"
           else
-            awk 'BEGIN{d=0} /<manifest/ && d==0 {print; print "    <uses-permission android:name=\"com.android.vending.BILLING\" />"; d=1; next} {print}' "$MANIFEST" > "$MANIFEST.tmp"
-            mv "$MANIFEST.tmp" "$MANIFEST"
-            echo "BILLING permission injected"
+            echo "BILLING already present"
           fi
-          grep -n 'BILLING' "$MANIFEST"
+          grep -n BILLING "$M"
 
-      - name: Bump versionCode and versionName
-        shell: bash
+      - name: Bump version
         run: |
           set -e
           VC=$((1300 + ${{ github.run_number }}))
@@ -81,7 +77,6 @@ jobs:
           fi
 
       - name: Setup release signing
-        shell: bash
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -108,34 +103,19 @@ jobs:
           fi
 
       - name: Write ProGuard rules
-        shell: bash
         run: |
-          set -e
           mkdir -p android/app
-          cat > android/app/proguard-rules.pro << 'PROGUARD_EOF'
-          -keep class com.getcapacitor.** { *; }
-          -keep class com.capacitorjs.** { *; }
-          -keepclassmembers class * {
-              @com.getcapacitor.PluginMethod <methods>;
-          }
-          -keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
-          -keepclassmembers class * {
-              @android.webkit.JavascriptInterface <methods>;
-          }
-          -keepattributes JavascriptInterface
-          -keepattributes *Annotation*
-          -keepattributes Signature
-          -keep class org.apache.cordova.** { *; }
-          -keep class ee.forgr.capacitor_native_purchases.** { *; }
-          -keep class com.android.billingclient.** { *; }
-          -keepclasseswithmembernames class * { native <methods>; }
-          -dontwarn com.getcapacitor.**
-          -dontwarn org.apache.cordova.**
-          -dontwarn com.android.billingclient.**
-          PROGUARD_EOF
+          printf '%s\n' \
+            '-keep class com.getcapacitor.** { *; }' \
+            '-keep class com.capacitorjs.** { *; }' \
+            '-keepattributes JavascriptInterface' \
+            '-keepattributes *Annotation*' \
+            '-keep class com.android.billingclient.** { *; }' \
+            '-dontwarn com.getcapacitor.**' \
+            '-dontwarn com.android.billingclient.**' \
+            > android/app/proguard-rules.pro
 
       - name: Configure Gradle signing and ProGuard
-        shell: bash
         run: |
           set -e
           test -f android/app/build.gradle
@@ -148,7 +128,6 @@ jobs:
           java-version: "21"
 
       - name: Setup Android SDK
-        shell: bash
         run: |
           set -e
           export ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}
@@ -156,23 +135,17 @@ jobs:
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" 2>/dev/null || sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" 2>/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" 2>/dev/null || true
 
       - name: Prepare Gradle
-        shell: bash
         run: |
           set -e
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
-          if [ -f android/gradle.properties ]; then
-            grep -q 'org.gradle.jvmargs' android/gradle.properties || echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' >> android/gradle.properties
-          else
-            echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' > android/gradle.properties
-          fi
-          grep -q 'android.useAndroidX' android/gradle.properties || echo 'android.useAndroidX=true' >> android/gradle.properties
-          grep -q 'android.enableJetifier' android/gradle.properties || echo 'android.enableJetifier=true' >> android/gradle.properties
+          echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' >> android/gradle.properties
+          echo 'android.useAndroidX=true' >> android/gradle.properties
+          echo 'android.enableJetifier=true' >> android/gradle.properties
 
       - name: Build APK and AAB
-        shell: bash
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -185,17 +158,13 @@ jobs:
           ./gradlew assembleDebug bundleRelease --stacktrace 2>&1 | tee /tmp/gradle.log
           EXIT=${PIPESTATUS[0]}
           set -e
-          if [ $EXIT -ne 0 ]; then
-            echo "===== GRADLE ERRORS ====="
-            grep -iE 'error:|FAILURE:|What went wrong|Could not|FAILED|Missing class|R8' /tmp/gradle.log | tail -100 || true
-            tail -80 /tmp/gradle.log || true
-            exit $EXIT
+          if [ "$EXIT" -ne 0 ]; then
+            grep -iE 'error:|FAILURE:|What went wrong|Could not|FAILED' /tmp/gradle.log | tail -80 || true
+            tail -60 /tmp/gradle.log || true
+            exit "$EXIT"
           fi
-          echo "Build OK versionName=${{ env.TCHILO_VERSION_NAME }} versionCode=${{ env.TCHILO_VERSION_CODE }}"
-          find app/build/outputs -name '*.apk' -o -name '*.aab' 2>/dev/null | while read f; do ls -lh "$f"; done
-          if [ "${{ env.USE_UPLOAD_KEY }}" != "1" ]; then
-            echo "WARNING: AAB signed with DEBUG key - Play will reject it"
-          fi
+          echo "Build OK"
+          find app/build/outputs -name '*.apk' -o -name '*.aab' | while read f; do ls -lh "$f"; done
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4

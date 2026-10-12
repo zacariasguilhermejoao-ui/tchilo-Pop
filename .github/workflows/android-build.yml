@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+env:
+  # versionName fixo desta release; versionCode sobe a cada run
+  TCHILO_VERSION_NAME: "1.3.0"
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
@@ -57,7 +61,6 @@ jobs:
           if grep -q 'com.android.vending.BILLING' "$MANIFEST"; then
             echo "BILLING already present"
           else
-            # Insert permission after <manifest ...> line
             awk '
               BEGIN { done=0 }
               /<manifest/ && done==0 {
@@ -72,7 +75,62 @@ jobs:
             echo "BILLING permission injected"
           fi
           grep -n 'BILLING' "$MANIFEST" || (echo "FAILED to inject BILLING" && exit 1)
-          head -30 "$MANIFEST"
+
+      - name: Bump versionCode / versionName
+        shell: bash
+        run: |
+          set -e
+          # versionCode = 1300 + run_number (sempre maior que builds anteriores)
+          VC=$((1300 + ${{ github.run_number }}))
+          VN="${{ env.TCHILO_VERSION_NAME }}"
+          echo "versionCode=$VC versionName=$VN"
+          echo "TCHILO_VERSION_CODE=$VC" >> "$GITHUB_ENV"
+
+          # Gradle (app/build.gradle)
+          if [ -f android/app/build.gradle ]; then
+            sed -i -E "s/versionCode[[:space:]]+[0-9]+/versionCode $VC/" android/app/build.gradle || true
+            sed -i -E "s/versionName[[:space:]]+\"[^\"]*\"/versionName \"$VN\"/" android/app/build.gradle || true
+            grep -E 'versionCode|versionName' android/app/build.gradle || true
+          fi
+
+          # AndroidManifest (fallback)
+          if [ -f android/app/src/main/AndroidManifest.xml ]; then
+            sed -i -E "s/android:versionCode=\"[0-9]+\"/android:versionCode=\"$VC\"/" android/app/src/main/AndroidManifest.xml || true
+            sed -i -E "s/android:versionName=\"[^\"]*\"/android:versionName=\"$VN\"/" android/app/src/main/AndroidManifest.xml || true
+          fi
+
+      - name: Setup release signing (upload key)
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -e
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASSWORD" ] || [ -z "$ANDROID_KEY_ALIAS" ]; then
+            echo "WARNING: secrets de keystore em falta."
+            echo "O AAB será assinado com a chave DEBUG e a Play Console vai REJEITAR."
+            echo "Configura: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD"
+            echo "USE_UPLOAD_KEY=0" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          mkdir -p android/app
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/tchilo-upload.jks
+          test -s android/app/tchilo-upload.jks
+
+          KEY_PASS="${ANDROID_KEY_PASSWORD:-$ANDROID_KEYSTORE_PASSWORD}"
+
+          cat > android/keystore.properties << EOF
+          storeFile=tchilo-upload.jks
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          keyPassword=$KEY_PASS
+          EOF
+
+          echo "USE_UPLOAD_KEY=1" >> "$GITHUB_ENV"
+          echo "Upload keystore pronto"
 
       - name: Copy Firebase config
         run: |
@@ -81,7 +139,7 @@ jobs:
             cp firebase/google-services.json android/app/google-services.json
           fi
 
-      - name: Enable ProGuard/R8 (minify + shrink)
+      - name: Configure Gradle signing + ProGuard
         shell: bash
         run: |
           set -e
@@ -90,58 +148,123 @@ jobs:
 
           mkdir -p android/app
           cat > android/app/proguard-rules.pro << 'EOF'
-          # Capacitor
           -keep class com.getcapacitor.** { *; }
           -keep class com.capacitorjs.** { *; }
           -keepclassmembers class * {
               @com.getcapacitor.PluginMethod <methods>;
           }
           -keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
-
-          # WebView / JS bridge
           -keepclassmembers class * {
               @android.webkit.JavascriptInterface <methods>;
           }
           -keepattributes JavascriptInterface
           -keepattributes *Annotation*
           -keepattributes Signature
-          -keepattributes InnerClasses
-          -keepattributes EnclosingMethod
-
-          # Cordova / plugins (if any)
           -keep class org.apache.cordova.** { *; }
-
-          # Native purchases / Play Billing
           -keep class ee.forgr.capacitor_native_purchases.** { *; }
           -keep class com.android.billingclient.** { *; }
-
-          # Keep native methods
-          -keepclasseswithmembernames class * {
-              native <methods>;
-          }
-
+          -keepclasseswithmembernames class * { native <methods>; }
           -dontwarn com.getcapacitor.**
           -dontwarn org.apache.cordova.**
           -dontwarn com.android.billingclient.**
           EOF
 
-          python3 -c "
+          python3 << 'PY'
           from pathlib import Path
-          import re
+          import os, re
+
           p = Path('android/app/build.gradle')
           t = p.read_text(encoding='utf-8')
-          t = re.sub(r'minifyEnabled\\s+false', 'minifyEnabled true', t)
-          if 'minifyEnabled' not in t and re.search(r'release\\s*\\{', t):
-              t = re.sub(r'(release\\s*\\{)', r\"\\1\\n              minifyEnabled true\\n              shrinkResources true\\n              proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'\\n\", t, count=1)
-          if 'shrinkResources' not in t:
-              t = re.sub(r'(minifyEnabled\\s+true)', r\"minifyEnabled true\\n              shrinkResources true\", t, count=1)
+          use_upload = os.environ.get('USE_UPLOAD_KEY') == '1'
+
+          # Remove forced debug signing if we have upload key
+          if use_upload:
+              t = re.sub(r'\n\s*signingConfig\s+signingConfigs\.debug\s*\n', '\n', t)
+
+          # Ensure signingConfigs block for release
+          if use_upload and 'tchilo-upload' not in t:
+              signing_block = '''
+          def keystorePropertiesFile = rootProject.file("keystore.properties")
+          def keystoreProperties = new Properties()
+          if (keystorePropertiesFile.exists()) {
+              keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+          }
+
+          android {
+          '''
+              # Capacitor already has android { — inject signingConfigs inside android
+              inject = '''
+      signingConfigs {
+          release {
+              if (keystorePropertiesFile.exists()) {
+                  keyAlias keystoreProperties['keyAlias']
+                  keyPassword keystoreProperties['keyPassword']
+                  storeFile file(keystoreProperties['storeFile'])
+                  storePassword keystoreProperties['storePassword']
+              }
+          }
+      }
+  '''
+              # Actually keystore is under android/app — storeFile relative to app module
+              # Simpler: hardcode from properties in app/build.gradle via rootProject.file wrong
+              # Use file('tchilo-upload.jks') since we put jks in android/app/
+              inject = '''
+      signingConfigs {
+          release {
+              storeFile file('tchilo-upload.jks')
+              storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD') ?: ''
+              keyAlias System.getenv('ANDROID_KEY_ALIAS') ?: ''
+              keyPassword System.getenv('ANDROID_KEY_PASSWORD') ?: System.getenv('ANDROID_KEYSTORE_PASSWORD') ?: ''
+          }
+      }
+  '''
+              if re.search(r'android\s*\{', t):
+                  t = re.sub(r'(android\s*\{)', r'\1\n' + inject, t, count=1)
+
+              # release signingConfig
+              if re.search(r'release\s*\{', t):
+                  if 'signingConfig signingConfigs.release' not in t:
+                      t = re.sub(
+                          r'(release\s*\{)',
+                          r'\1\n            signingConfig signingConfigs.release\n',
+                          t,
+                          count=1,
+                      )
           else:
-              t = re.sub(r'shrinkResources\\s+false', 'shrinkResources true', t)
-          if 'signingConfigs.debug' not in t:
-              t = re.sub(r'(release\\s*\\{)', r\"\\1\\n              signingConfig signingConfigs.debug\\n\", t, count=1)
+              # fallback debug signing so CI still builds
+              if 'signingConfig signingConfigs.debug' not in t and re.search(r'release\s*\{', t):
+                  t = re.sub(
+                      r'(release\s*\{)',
+                      r'\1\n            signingConfig signingConfigs.debug\n',
+                      t,
+                      count=1,
+                  )
+
+          t = re.sub(r'minifyEnabled\s+false', 'minifyEnabled true', t)
+          if 'minifyEnabled' not in t and re.search(r'release\s*\{', t):
+              t = re.sub(
+                  r'(release\s*\{)',
+                  r"""\1
+              minifyEnabled true
+              shrinkResources true
+              proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+""",
+                  t,
+                  count=1,
+              )
+          if 'shrinkResources' not in t:
+              t = re.sub(
+                  r'(minifyEnabled\s+true)',
+                  r'minifyEnabled true\n            shrinkResources true',
+                  t,
+                  count=1,
+              )
+          else:
+              t = re.sub(r'shrinkResources\s+false', 'shrinkResources true', t)
+
           p.write_text(t, encoding='utf-8')
-          print('ProGuard/R8 enabled')
-          "
+          print('Gradle signing configured, USE_UPLOAD_KEY=', use_upload)
+          PY
 
       - name: Setup Java 21
         uses: actions/setup-java@v4
@@ -155,22 +278,17 @@ jobs:
           set -e
           export ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}
           export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-$ANDROID_HOME}
-          echo "ANDROID_HOME=$ANDROID_HOME"
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
-
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" 2>/dev/null || \
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" 2>/dev/null || true
-          echo "SDK ready"
 
       - name: Prepare Gradle
         shell: bash
         run: |
           set -e
           echo "sdk.dir=$ANDROID_HOME" > android/local.properties
-          cat android/local.properties
-
           if [ -f android/gradle.properties ]; then
             grep -q 'org.gradle.jvmargs' android/gradle.properties || \
               echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' >> android/gradle.properties
@@ -180,8 +298,12 @@ jobs:
           grep -q 'android.useAndroidX' android/gradle.properties || echo 'android.useAndroidX=true' >> android/gradle.properties
           grep -q 'android.enableJetifier' android/gradle.properties || echo 'android.enableJetifier=true' >> android/gradle.properties
 
-      - name: Build APK (debug) + AAB (release com ProGuard)
+      - name: Build APK + AAB
         shell: bash
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           set -e
           cd android
@@ -193,18 +315,22 @@ jobs:
           set -e
 
           if [ $EXIT -ne 0 ]; then
-            echo ""
             echo "===== GRADLE ERRORS ====="
             grep -iE 'error:|FAILURE:|What went wrong|Could not|FAILED|Missing class|R8' /tmp/gradle.log | tail -100 || true
-            echo ""
-            echo "===== LAST 100 LINES ====="
             tail -100 /tmp/gradle.log || true
-            echo "=========================="
             exit $EXIT
           fi
 
-          echo "Build OK"
+          echo "Build OK — versionName=${{ env.TCHILO_VERSION_NAME }} versionCode=${{ env.TCHILO_VERSION_CODE }}"
           find app/build/outputs -name '*.apk' -o -name '*.aab' 2>/dev/null | while read f; do ls -lh "$f"; done
+
+          if [ "${{ env.USE_UPLOAD_KEY }}" != "1" ]; then
+            echo ""
+            echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            echo "AAB assinado com DEBUG — Play Console vai rejeitar."
+            echo "Adiciona os secrets do keystore de upload (ver docs/PLAY-SIGNING.md)."
+            echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+          fi
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -213,9 +339,9 @@ jobs:
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
-      - name: Upload release AAB (ProGuard)
+      - name: Upload release AAB
         uses: actions/upload-artifact@v4
         with:
-          name: tchilo-pop-android-release-aab
+          name: tchilo-pop-android-release-aab-v1-3
           path: android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error

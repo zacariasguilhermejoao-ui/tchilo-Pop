@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * App NATIVA — carrega ficheiros locais em www/.
- * NÃO definir server.url (isso abria tchilopop.com na WebView).
+ * App nativa = mesma interface do site (login, criar conta, feed…).
+ * server.url → tchilopop.com para não ficar preso a snapshot antigo no AAB.
  */
 const config: CapacitorConfig = {
   appId: 'com.tchilo.isabstudio',
@@ -10,17 +10,23 @@ const config: CapacitorConfig = {
   webDir: 'www',
   bundledWebRuntime: false,
   server: {
+    url: 'https://tchilopop.com',
     androidScheme: 'https',
     iosScheme: 'https',
     cleartext: false,
     allowNavigation: [
+      'tchilopop.com',
+      'www.tchilopop.com',
       '*.supabase.co',
       '*.supabase.in',
       'api.deezer.com',
       'corsproxy.io',
       'api.allorigins.win',
       'cdn.jsdelivr.net',
-      'raw.githack.com'
+      'raw.githack.com',
+      '*.paddle.com',
+      '*.google.com',
+      '*.googleapis.com'
     ]
   },
   plugins: {

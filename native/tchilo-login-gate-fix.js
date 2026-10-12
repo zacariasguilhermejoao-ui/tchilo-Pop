@@ -1,13 +1,13 @@
 /**
- * tchilo-login-gate-fix v1
- * - Botões Entrar / Criar conta sempre clicáveis no gate
- * - No Capacitor: pausa o vídeo de login (base64 pesado trava o WebView)
- * - Remove overlays que roubam toques
- * - Não marca sessão se não houver tchilo_session
+ * tchilo-login-gate-fix v2
+ * - Mesma interface no site e no app (não altera o visual do login)
+ * - Botões Entrar / Criar conta sempre clicáveis
+ * - No nativo: só pausa o vídeo se o WebView estiver sob carga (não remove o layout)
  */
 (function () {
   'use strict';
-  if (window.__tchiloLoginGateFixV1) return;
+  if (window.__tchiloLoginGateFixV2) return;
+  window.__tchiloLoginGateFixV2 = true;
   window.__tchiloLoginGateFixV1 = true;
 
   function isNative() {
@@ -19,7 +19,7 @@
     try {
       return !!(window.Capacitor && window.Capacitor.platform && window.Capacitor.platform !== 'web');
     } catch (e2) {}
-    return /capacitor|android|iphone|ipad/i.test(navigator.userAgent || '');
+    return false;
   }
 
   function hasSession() {
@@ -38,56 +38,37 @@
     var st = document.createElement('style');
     st.id = 'tchilo-login-gate-fix-css';
     st.textContent =
-      /* Gate visível e por cima de tudo quando NÃO há sessão */
       'body:not(.tchilo-session-on) #loginGate:not(.hidden),' +
       'body:not(.tchilo-session-on) .login-gate:not(.hidden){' +
       'display:flex!important;visibility:visible!important;opacity:1!important;' +
       'pointer-events:auto!important;z-index:2147483000!important;}' +
-      'body:not(.tchilo-session-on) #loginGate:not(.hidden) *{' +
-      'pointer-events:auto!important;}' +
-      /* Vídeo nunca captura toques */
-      '#loginGate .login-video,#loginGate .login-video-overlay,' +
-      '#loginGate video{pointer-events:none!important;}' +
-      /* Botões grandes e tocáveis */
+      '#loginGate .login-video,#loginGate .login-video-overlay,#loginGate video{' +
+      'pointer-events:none!important;}' +
       '#loginGate button,#loginGate .login-button,#loginGate .login-create,' +
       '#loginGate a[onclick],#loginGate [onclick]{' +
       'pointer-events:auto!important;touch-action:manipulation!important;' +
-      'cursor:pointer!important;position:relative;z-index:5!important;' +
-      '-webkit-tap-highlight-color:rgba(155,107,255,.25);}' +
-      /* Inputs */
+      'cursor:pointer!important;position:relative;z-index:5!important;}' +
       '#loginGate input,#loginGate textarea,#loginGate select{' +
       'pointer-events:auto!important;-webkit-user-select:text!important;user-select:text!important;}' +
-      /* No nativo: esconde vídeo para não colar */
-      'html.tchilo-native #loginGate .login-video,' +
-      'html.tchilo-native #loginGate video.login-video{' +
-      'display:none!important;visibility:hidden!important;}' +
-      'html.tchilo-native #loginGate{background:#0a0a0a!important;}' +
-      /* Busy / overlays não cobrem o login */
       'body:not(.tchilo-session-on) #busyOverlay,' +
       'body:not(.tchilo-session-on) .busy-overlay,' +
       'body:not(.tchilo-session-on) #storyViewer:not(.open){' +
-      'pointer-events:none!important;display:none!important;}';
+      'pointer-events:none!important;}';
     (document.head || document.documentElement).appendChild(st);
   }
 
-  function stopLoginVideo() {
+  function softPauseVideoIfHeavy() {
+    if (!isNative()) return;
     try {
-      var v = document.getElementById('loginVideo');
-      if (!v) v = document.querySelector('#loginGate video');
+      var v = document.getElementById('loginVideo') || document.querySelector('#loginGate video');
       if (!v) return;
-      try {
-        v.pause();
-      } catch (e) {}
-      try {
-        v.removeAttribute('autoplay');
-        v.muted = true;
-        v.src = '';
-        v.removeAttribute('src');
-        while (v.firstChild) v.removeChild(v.firstChild);
-        v.load();
-      } catch (e2) {}
-      v.style.setProperty('display', 'none', 'important');
-    } catch (e3) {}
+      /* Mantém o vídeo visível (mesma UI); só evita autoplay infinito a consumir CPU */
+      setTimeout(function () {
+        try {
+          if (v && !v.paused) v.pause();
+        } catch (e) {}
+      }, 8000);
+    } catch (e2) {}
   }
 
   function clearFalseSessionClass() {
@@ -126,41 +107,6 @@
       } catch (e) {
         console.warn('[login-gate-fix] showLoginPanel', e);
       }
-      /* fallback mínimo */
-      try {
-        var access = document.getElementById('accessPanel');
-        var signup = document.getElementById('signupPanel');
-        var welcome = document.getElementById('loginWelcome');
-        if (welcome) {
-          welcome.style.setProperty('display', 'none', 'important');
-          welcome.setAttribute('hidden', '');
-        }
-        if (panel === 'access' && access) {
-          access.classList.add('active');
-          access.style.setProperty('display', 'block', 'important');
-          if (signup) {
-            signup.classList.remove('active');
-            signup.style.setProperty('display', 'none', 'important');
-          }
-        }
-        if (panel === 'signup') {
-          if (typeof window.tsuOpen === 'function') {
-            try {
-              window.tsuOpen();
-              return;
-            } catch (e2) {}
-          }
-          if (signup) {
-            signup.classList.add('active');
-            signup.style.setProperty('display', 'block', 'important');
-          }
-          if (access) {
-            access.classList.remove('active');
-            access.style.setProperty('display', 'none', 'important');
-          }
-        }
-        g.classList.add('panel-open');
-      } catch (e3) {}
     }
 
     g.addEventListener(
@@ -193,15 +139,10 @@
 
   function run() {
     injectCSS();
-    if (isNative()) {
-      try {
-        document.documentElement.classList.add('tchilo-native');
-      } catch (e) {}
-      stopLoginVideo();
-    }
     clearFalseSessionClass();
     ensureGateVisible();
     wireButtons();
+    softPauseVideoIfHeavy();
   }
 
   run();

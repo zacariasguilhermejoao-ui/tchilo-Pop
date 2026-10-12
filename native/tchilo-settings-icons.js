@@ -1,15 +1,15 @@
 /**
- * tchilo-settings-icons v27
+ * tchilo-settings-icons v28
  * Ícones profissionais (estilo Lucide/Feather) só em Definições e subpáginas
  */
 (function () {
   'use strict';
-  if (window.__TCHILO_SI_V27) return;
-  window.__TCHILO_SI_V27 = true;
+  if (window.__TCHILO_SI_V28) return;
+  window.__TCHILO_SI_V28 = true;
   window.__TCHILO_SI_V26 = true;
 
   var S =
-    'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" ' +
+    'viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" ' +
     'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 
   function svg(paths) {
@@ -23,7 +23,7 @@
       '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'
     ),
     'selo verificado':
-      '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">' +
       '<circle cx="12" cy="12" r="10" fill="#1D9BF0"/>' +
       '<path d="M8 12.5l2.5 2.5 5.5-5.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' +
       '</svg>',
@@ -172,14 +172,14 @@
   };
 
   function injectCSS() {
-    if (document.getElementById('si-v27-css')) return;
+    if (document.getElementById('si-v28-css')) return;
     var st = document.createElement('style');
-    st.id = 'si-v27-css';
+    st.id = 'si-v28-css';
     st.textContent =
       '#screen-settings .settings-item .si-icon,' +
       '[id^="screen-settings"] .settings-item .si-icon,' +
       '.settings-list .settings-item .si-icon{' +
-      'width:24px!important;height:24px!important;min-width:24px!important;' +
+      'width:32px!important;height:32px!important;min-width:32px!important;' +
       'border:0!important;border-radius:0!important;background:transparent!important;' +
       'display:inline-flex!important;align-items:center!important;justify-content:center!important;' +
       'padding:0!important;flex-shrink:0!important;overflow:visible!important;' +
@@ -188,7 +188,7 @@
       '[id^="screen-settings"] .settings-item .si-icon svg,' +
       '.settings-list .settings-item .si-icon svg{' +
       'display:block!important;visibility:visible!important;opacity:1!important;' +
-      'width:22px!important;height:22px!important;}' +
+      'width:28px!important;height:28px!important;}' +
       '#screen-settings .settings-item .si-icon img,' +
       '[id^="screen-settings"] .settings-item .si-icon img{display:none!important;}';
     (document.head || document.documentElement).appendChild(st);
@@ -209,7 +209,6 @@
       var label = labelOf(btn);
       if (!label) return;
       var key = label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      /* tentar match exacto e parcial */
       var html = ICONS[key];
       if (!html) {
         for (var k in ICONS) {
@@ -221,10 +220,7 @@
       }
       if (!html) return;
       var box = btn.querySelector('.si-icon');
-      if (!box) {
-        /* language/theme rows may not have si-icon — skip */
-        return;
-      }
+      if (!box) return;
       if (box.getAttribute('data-si') === key) return;
       box.innerHTML = html;
       box.setAttribute('data-si', key);
@@ -233,7 +229,6 @@
 
   function run() {
     injectCSS();
-    /* só ecrãs de definições */
     var roots = document.querySelectorAll(
       '#screen-settings, [id^="screen-settings-"], #screen-settings .settings-list'
     );
@@ -251,14 +246,13 @@
     setTimeout(run, ms);
   });
 
-  /* reaplicar ao entrar em definições */
-  if (typeof window.goTo === 'function' && !window.goTo.__siV27) {
+  if (typeof window.goTo === 'function' && !window.goTo.__siV28) {
     var g = window.goTo;
     window.goTo = function (name) {
       var r = g.apply(this, arguments);
       if (name && String(name).indexOf('settings') === 0) setTimeout(run, 40);
       return r;
     };
-    window.goTo.__siV27 = true;
+    window.goTo.__siV28 = true;
   }
 })();

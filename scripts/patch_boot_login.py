@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Patch index.html: single boot + clickable login buttons."""
+"""Patch index.html: single boot + clickable login + keep credentials on login attempt."""
 from pathlib import Path
 
 p = Path("index.html")
@@ -129,17 +129,104 @@ body:not(.tchilo-session-on) #tchiloBusy { display: none !important; pointer-eve
         html = html.replace('<div class="login-gate" id="loginGate">', css + '\n<div class="login-gate" id="loginGate">', 1)
         changed.append("css-body")
 
-# 6) showLoginPanel
-old_s = """function showLoginPanel(panel) {
+# 6) showLoginPanel - hide busy + DO NOT clear fields on access
+old_s1 = """function showLoginPanel(panel) {
+  try { if (typeof tchiloHideBusy === 'function') tchiloHideBusy(); } catch(e) {}
   if (panel === 'signup' && typeof window.tsuOpen === 'function') { try { window.tsuOpen(); } catch(e) { console.error(e); } return; }
-  try { playLoginVideo(); } catch (e) {}"""
+  try { playLoginVideo(); } catch (e) {}
+  if (panel === 'access') { try { tchiloClearLoginFields(); } catch(e){} }"""
+
+old_s0 = """function showLoginPanel(panel) {
+  if (panel === 'signup' && typeof window.tsuOpen === 'function') { try { window.tsuOpen(); } catch(e) { console.error(e); } return; }
+  try { playLoginVideo(); } catch (e) {}
+  if (panel === 'access') { try { tchiloClearLoginFields(); } catch(e){} }"""
+
 new_s = """function showLoginPanel(panel) {
   try { if (typeof tchiloHideBusy === 'function') tchiloHideBusy(); } catch(e) {}
   if (panel === 'signup' && typeof window.tsuOpen === 'function') { try { window.tsuOpen(); } catch(e) { console.error(e); } return; }
-  try { playLoginVideo(); } catch (e) {}"""
-if old_s in html:
-    html = html.replace(old_s, new_s, 1)
-    changed.append("showLoginPanel")
+  try { playLoginVideo(); } catch (e) {}
+  /* NÃO limpar email/password ao abrir Entrar — só limpar erro visual */
+  if (panel === 'access') {
+    try {
+      var err = document.getElementById('loginError');
+      if (err) err.textContent = '';
+      tchiloClearFieldErrors(document.getElementById('accessPanel') || document);
+    } catch(e){}
+  }"""
+
+if old_s1 in html:
+    html = html.replace(old_s1, new_s, 1)
+    changed.append("showLoginPanel-keep-fields")
+elif old_s0 in html:
+    html = html.replace(old_s0, new_s, 1)
+    changed.append("showLoginPanel-keep-fields")
+elif "NÃO limpar email/password ao abrir Entrar" not in html:
+    import re
+    pat = r"if \(panel === 'access'\) \{ try \{ tchiloClearLoginFields\(\); \} catch\(e\)\{\} \}"
+    if re.search(pat, html):
+        html = re.sub(pat, """if (panel === 'access') {
+    try {
+      var err = document.getElementById('loginError');
+      if (err) err.textContent = '';
+      tchiloClearFieldErrors(document.getElementById('accessPanel') || document);
+    } catch(e){}
+  }""", html, count=1)
+        changed.append("showLoginPanel-keep-fields-re")
+
+# 7) showLoginGate - only clear fields when logging out
+old_gate = """  document.getElementById('loginGate').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  document.body.classList.add('login-locked');
+  tchiloClearLoginFields();
+  showLoginHome();
+  playLoginVideo();
+}"""
+new_gate = """  document.getElementById('loginGate').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  document.body.classList.add('login-locked');
+  /* Só limpar campos no logout explícito — não após tentativa de login falhada */
+  if (window.__tchiloLoggingOut) {
+    try { tchiloClearLoginFields(); } catch(e){}
+  } else {
+    try {
+      var err = document.getElementById('loginError');
+      if (err) err.textContent = '';
+    } catch(e){}
+  }
+  showLoginHome();
+  playLoginVideo();
+}"""
+if old_gate in html:
+    html = html.replace(old_gate, new_gate, 1)
+    changed.append("showLoginGate-keep-fields")
+
+# 8) After failed login, restore fields if emptied
+old_login_catch = """  }catch(err){
+    console.error(err);
+    error.textContent=err?.message||'Não foi possível iniciar sessão.';
+    tchiloMarkInvalid(identifierEl);
+    tchiloMarkInvalid(passwordEl);
+  }finally{
+    tchiloSetLoading(btn, false);
+  }
+}"""
+new_login_catch = """  }catch(err){
+    console.error(err);
+    error.textContent=err?.message||'Não foi possível iniciar sessão.';
+    tchiloMarkInvalid(identifierEl);
+    tchiloMarkInvalid(passwordEl);
+    /* Manter o que o utilizador escreveu — nunca limpar após erro */
+    try {
+      if (identifierEl && !identifierEl.value && identifier) identifierEl.value = identifier;
+      if (passwordEl && !passwordEl.value && password) passwordEl.value = password;
+    } catch(eR){}
+  }finally{
+    tchiloSetLoading(btn, false);
+  }
+}"""
+if old_login_catch in html:
+    html = html.replace(old_login_catch, new_login_catch, 1)
+    changed.append("login-error-keep-fields")
 
 if html == orig:
     print("NO_CHANGES")

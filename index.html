@@ -3832,7 +3832,15 @@ function showLoginGate() {
   document.getElementById('loginGate').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   document.body.classList.add('login-locked');
-  tchiloClearLoginFields();
+  /* Só limpar campos no logout explícito — não após tentativa de login falhada */
+  if (window.__tchiloLoggingOut) {
+    try { tchiloClearLoginFields(); } catch(e){}
+  } else {
+    try {
+      var err = document.getElementById('loginError');
+      if (err) err.textContent = '';
+    } catch(e){}
+  }
   showLoginHome();
   playLoginVideo();
 }
@@ -3855,7 +3863,14 @@ function showLoginPanel(panel) {
   try { if (typeof tchiloHideBusy === 'function') tchiloHideBusy(); } catch(e) {}
   if (panel === 'signup' && typeof window.tsuOpen === 'function') { try { window.tsuOpen(); } catch(e) { console.error(e); } return; }
   try { playLoginVideo(); } catch (e) {}
-  if (panel === 'access') { try { tchiloClearLoginFields(); } catch(e){} }
+  /* NÃO limpar email/password ao abrir Entrar — só limpar erro visual */
+  if (panel === 'access') {
+    try {
+      var err = document.getElementById('loginError');
+      if (err) err.textContent = '';
+      tchiloClearFieldErrors(document.getElementById('accessPanel') || document);
+    } catch(e){}
+  }
   var w = document.getElementById('loginWelcome');
   if (w) {
     w.classList.remove('is-visible');
@@ -3972,6 +3987,11 @@ async function tchiloLogin(e) {
     error.textContent=err?.message||'Não foi possível iniciar sessão.';
     tchiloMarkInvalid(identifierEl);
     tchiloMarkInvalid(passwordEl);
+    /* Manter o que o utilizador escreveu — nunca limpar após erro */
+    try {
+      if (identifierEl && !identifierEl.value && identifier) identifierEl.value = identifier;
+      if (passwordEl && !passwordEl.value && password) passwordEl.value = password;
+    } catch(eR){}
   }finally{
     tchiloSetLoading(btn, false);
   }

@@ -1,8 +1,10 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * App nativa = mesma interface do site (login, criar conta, feed…).
- * server.url → tchilopop.com para não ficar preso a snapshot antigo no AAB.
+ * App NATIVA com UI embutida em www/ (mesma interface do site no build).
+ * NÃO usa server.url → não é um browser a abrir tchilopop.com.
+ * Online: auth, feed cloud, mensagens, compras, lives.
+ * Offline: shell da app, ecrãs estáticos, sessão em cache local.
  */
 const config: CapacitorConfig = {
   appId: 'com.tchilo.isabstudio',
@@ -10,7 +12,6 @@ const config: CapacitorConfig = {
   webDir: 'www',
   bundledWebRuntime: false,
   server: {
-    url: 'https://tchilopop.com',
     androidScheme: 'https',
     iosScheme: 'https',
     cleartext: false,

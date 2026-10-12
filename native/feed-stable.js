@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v97 — login gate v2 (mesma UI) */
+/** tchilo-Pop loaders v98 — borders 0.5px + profile menu */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V97) return;
-  window.__TCHILO_FEED_STABLE_V97 = true;
+  if (window.__TCHILO_FEED_STABLE_V98) return;
+  window.__TCHILO_FEED_STABLE_V98 = true;
 
   function add(src, sync) {
     try {
@@ -45,7 +45,7 @@
     add('native/tchilo-nav-size-fix.js?v=4', true);
     add('native/tchilo-sheet-swipe.js?v=2', true);
     add('native/tchilo-ptr-fix.js?v=1', true);
-    add('native/topbar-border-thin.js?v=3', true);
+    add('native/topbar-border-thin.js?v=4', true);
     add('native/tchilo-ui-unlock.js?v=3', true);
     add('native/tchilo-login-session-fix.js?v=9', true);
     add('native/tchilo-hide-nav.js?v=4');
@@ -110,7 +110,7 @@
       'native/tchilo-publish-fix.js?v=5',
       'native/tchilo-video-pick.js?v=6',
       'native/tchilo-deeplink.js?v=2',
-      'native/tchilo-profile-share.js?v=11',
+      'native/tchilo-profile-share.js?v=12',
       'native/tchilo-profile-boost.js?v=2',
       'native/tchilo-create-buttons.js?v=5',
       'native/tchilo-name-sync.js?v=1',

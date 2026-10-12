@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v94 — Play Billing */
+/** tchilo-Pop loaders v95 — settings icons maiores */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V94) return;
-  window.__TCHILO_FEED_STABLE_V94 = true;
+  if (window.__TCHILO_FEED_STABLE_V95) return;
+  window.__TCHILO_FEED_STABLE_V95 = true;
 
   function add(src, sync) {
     try {
@@ -83,7 +83,7 @@
 
   function loadSecondary() {
     addMany([
-      'native/tchilo-settings-icons.js?v=27',
+      'native/tchilo-settings-icons.js?v=28',
       'native/tchilo-product-copy.js?v=2',
       'native/tchilo-legal-links.js?v=1',
       'native/tchilo-public-profile-bridge.js?v=1',

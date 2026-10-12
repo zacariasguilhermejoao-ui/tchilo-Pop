@@ -1,12 +1,12 @@
 /**
- * Tchilo — menu ⋯ no perfil: Definições, copiar link, partilhar, QR
- * v11 — repor opção Definições
+ * Tchilo — menu do perfil
+ * v12 — 3 traços (não ⋯); modal sem "Opções" nem @user; perfil próprio sem seta nem risco de cima
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV11) return;
+  if (window.__tchiloProfileShareV12) return;
+  window.__tchiloProfileShareV12 = true;
   window.__tchiloProfileShareV11 = true;
-  window.__tchiloProfileShareV10 = true;
 
   var openGuardUntil = 0;
 
@@ -44,9 +44,10 @@
       '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">' +
       '<path d="M6 6l12 12M18 6L6 18"/>' +
       '</svg>',
+    /* 3 traços horizontais */
     more:
-      '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">' +
-      '<circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/>' +
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">' +
+      '<path d="M4 7h16M4 12h16M4 17h16"/>' +
       '</svg>'
   };
 
@@ -81,6 +82,19 @@
       return (s && (s.username || s.user || s.name)) || '';
     } catch (e2) {
       return '';
+    }
+  }
+
+  function isOwnProfile() {
+    try {
+      var s = sessionUser();
+      var me = s && (s.username || s.user);
+      if (!me) return true;
+      var view = window.viewingProfileUser;
+      if (!view) return true;
+      return String(view).toLowerCase() === String(me).toLowerCase();
+    } catch (e) {
+      return true;
     }
   }
 
@@ -135,14 +149,18 @@
       '#tchiloProfileShareSheet{position:fixed;inset:0;z-index:2147483000;display:none;align-items:flex-end;justify-content:center;background:rgba(11,11,12,.42);}' +
       '#tchiloProfileShareSheet.open{display:flex!important;}' +
       '#tchiloProfileShareSheet .tchilo-ps-panel{width:min(100%,430px);background:var(--paper,#F6F1E7);border-radius:22px 22px 0 0;padding:12px 16px 28px;color:var(--ink,#0B0B0C);}' +
-      '#tchiloProfileShareSheet .tchilo-ps-handle{width:40px;height:4px;border-radius:4px;background:rgba(11,11,12,.18);margin:4px auto 12px;}' +
-      '#tchiloProfileShareSheet h3{margin:0 0 4px;font-size:18px;font-weight:800;}' +
-      '#tchiloProfileShareSheet .tchilo-ps-user{margin:0 0 12px;font-size:13px;opacity:.55;font-weight:600;}' +
+      '#tchiloProfileShareSheet .tchilo-ps-handle{width:40px;height:4px;border-radius:4px;background:rgba(11,11,12,.18);margin:4px auto 14px;}' +
+      '#tchiloProfileShareSheet h3,#tchiloProfileShareSheet .tchilo-ps-user{display:none!important;}' +
       '#tchiloProfileShareSheet .opt{display:flex;align-items:center;gap:14px;width:100%;padding:14px 10px;border:0;border-bottom:0.5px solid rgba(11,11,12,.08);background:transparent;text-align:left;font:600 16px system-ui,-apple-system,sans-serif;color:var(--ink,#0B0B0C);cursor:pointer;}' +
       '#tchiloProfileShareSheet .opt:last-child{border-bottom:0;}' +
       '#tchiloProfileShareSheet .opt .ic{width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}' +
       '#tchiloProfileShareSheet .opt-close{opacity:.7;}' +
-      '.tchilo-profile-more{margin-left:auto;width:40px;height:40px;border:0;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink,#0B0B0C);}' +
+      '.tchilo-profile-more{margin-left:auto;width:40px;height:40px;border:0;border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink,#0B0B0C);}' +
+      /* perfil próprio: sem seta de voltar e header limpo */
+      '#screen-profile .screen-header{border:0!important;border-bottom:none!important;box-shadow:none!important;}' +
+      '#screen-profile.own-profile .screen-header .back-btn,' +
+      'body:not(.viewing-other-profile) #screen-profile .screen-header .back-btn{' +
+      'display:none!important;visibility:hidden!important;width:0!important;height:0!important;padding:0!important;margin:0!important;overflow:hidden!important;}' +
       '#tchiloQrModal{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;background:rgba(11,11,12,.72);padding:20px;}' +
       '#tchiloQrModal.open{display:flex!important;}' +
       '#tchiloQrModal .card{background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);border-radius:20px;padding:18px;max-width:360px;width:100%;}' +
@@ -228,11 +246,10 @@
     wrap = document.createElement('div');
     wrap.id = 'tchiloProfileShareSheet';
     wrap.className = 'open';
+    /* sem título Opções e sem @username */
     wrap.innerHTML =
-      '<div class="tchilo-ps-panel" role="dialog" aria-label="Opções do perfil">' +
+      '<div class="tchilo-ps-panel" role="dialog" aria-label="Menu do perfil">' +
       '<div class="tchilo-ps-handle"></div>' +
-      '<h3>Opções</h3>' +
-      (user ? '<p class="tchilo-ps-user">@' + String(user).replace(/</g, '') + '</p>' : '') +
       '<button type="button" class="opt" data-act="settings"><span class="ic">' +
       IC.settings +
       '</span><span>Definições</span></button>' +
@@ -303,19 +320,37 @@
   window.tchiloOpenProfileShare = openSheet;
   window.openProfileShareSheet = openSheet;
 
-  function ensureHeaderBtn() {
+  function polishProfileHeader() {
     ensureCSS();
     var screen = document.getElementById('screen-profile');
     if (!screen) return;
     var header = screen.querySelector('.screen-header');
     if (!header) return;
+
+    var own = isOwnProfile();
+    if (own) {
+      screen.classList.add('own-profile');
+      document.body.classList.remove('viewing-other-profile');
+      var back = header.querySelector('.back-btn');
+      if (back) {
+        back.style.setProperty('display', 'none', 'important');
+        back.setAttribute('aria-hidden', 'true');
+      }
+    } else {
+      screen.classList.remove('own-profile');
+      document.body.classList.add('viewing-other-profile');
+    }
+
+    header.style.setProperty('border-bottom', 'none', 'important');
+    header.style.setProperty('box-shadow', 'none', 'important');
+
     var btn = document.getElementById('tchiloProfileMoreBtn');
     if (!btn) {
       btn = document.createElement('button');
       btn.type = 'button';
       btn.id = 'tchiloProfileMoreBtn';
       btn.className = 'tchilo-profile-more';
-      btn.setAttribute('aria-label', 'Mais opções');
+      btn.setAttribute('aria-label', 'Menu');
       btn.innerHTML = IC.more;
       btn.addEventListener('click', function (e) {
         e.preventDefault();
@@ -323,19 +358,23 @@
         openSheet();
       });
       header.appendChild(btn);
+    } else {
+      /* garantir ícone de 3 traços */
+      btn.innerHTML = IC.more;
     }
   }
 
-  ensureHeaderBtn();
-  setTimeout(ensureHeaderBtn, 400);
-  setTimeout(ensureHeaderBtn, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenu) {
+  polishProfileHeader();
+  setTimeout(polishProfileHeader, 400);
+  setTimeout(polishProfileHeader, 1500);
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV12) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
-      setTimeout(ensureHeaderBtn, 40);
+      setTimeout(polishProfileHeader, 40);
       return r;
     };
+    window.renderProfile.__shareMenuV12 = true;
     window.renderProfile.__shareMenu = true;
   }
 })();

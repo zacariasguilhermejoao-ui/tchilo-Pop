@@ -1,9 +1,7 @@
 name: Patch boot + login click fix
+# Desativado auto — só manual. Login/criar conta = index puro.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'scripts/patch_boot_login.py'
 jobs:
   patch:
     runs-on: ubuntu-latest
@@ -11,9 +9,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Apply patch
-        run: |
-          python3 scripts/patch_boot_login.py
+      - name: Apply patch (desativa overrides, usa index)
+        run: python3 scripts/patch_boot_login.py
       - name: Commit if changed
         run: |
           if git diff --quiet index.html; then
@@ -23,5 +20,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "fix: boot único + botões login clicáveis (sem processar 2x)"
+          git commit -m "fix: login/criar conta só do index (sem tsu/overrides)"
           git push

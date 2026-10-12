@@ -1,29 +1,10 @@
 name: Patch login in index
+# DESATIVADO — não sobrescrever área de Entrar/Criar conta do index
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'native/patch-login-index.py'
-      - '.github/workflows/patch-login-index.yml'
 jobs:
   patch:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Run patcher
-        run: |
-          python3 native/patch-login-index.py
-          echo "--- verify ---"
-          grep -c '__tchiloJustLoggedIn' index.html || true
-          grep -c 'Perfil da conta' index.html || true
-      - name: Commit
-        run: |
-          git config user.name "tchilo-bot"
-          git config user.email "bot@tchilopop.com"
-          git add index.html
-          git status
-          git diff --staged --stat
-          git diff --staged --quiet || git commit -m "index: FIX LOGIN - perfil opcional, gate guard, sem bounce"
-          git push
+      - name: Disabled
+        run: echo "patch-login-index desativado — usar login do index.html"

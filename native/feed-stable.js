@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v96 — login gate fix nativo */
+/** tchilo-Pop loaders v97 — login gate v2 (mesma UI) */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V96) return;
-  window.__TCHILO_FEED_STABLE_V96 = true;
+  if (window.__TCHILO_FEED_STABLE_V97) return;
+  window.__TCHILO_FEED_STABLE_V97 = true;
 
   function add(src, sync) {
     try {
@@ -29,8 +29,7 @@
   }
 
   function loadCritical() {
-    /* 1º: login clicável + parar vídeo pesado no nativo */
-    add('native/tchilo-login-gate-fix.js?v=1', true);
+    add('native/tchilo-login-gate-fix.js?v=2', true);
     add('native/tchilo-perf-throttle.js?v=1', true);
     add('native/tchilo-perf-boost.js?v=1', true);
     add('native/tchilo-click-sounds.js?v=1', true);

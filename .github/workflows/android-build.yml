@@ -7,7 +7,7 @@ name: Android app build
       - main
 
 env:
-  TCHILO_VERSION_NAME: "1.3.0"
+  TCHILO_VERSION_NAME: "1.3.1"
 
 jobs:
   build-android:
@@ -24,21 +24,45 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Prepare web assets
+      - name: Prepare web assets (mesma UI do site, ficheiros locais)
         run: |
           set -e
           rm -rf www
-          mkdir -p www/native www/redefinir-senha www/reset-password
-          if [ -f index.html ] && grep -q 'screen-feed' index.html && [ "$(wc -c < index.html)" -gt 100000 ]; then
-            cp index.html www/index.html
-          else
-            curl -fsSL "https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/79b2a12409f9465714832fb8f344b1fc37406475/index.html" -o www/index.html
+          mkdir -p www/native www/redefinir-senha www/reset-password www/resources
+
+          # SEMPRE o index.html do commit actual (mesma interface do site)
+          if [ ! -f index.html ]; then
+            echo "ERROR: index.html em falta no repo"
+            exit 1
           fi
-          test -s www/index.html
-          cp -a native/. www/native/ || true
+          BYTES=$(wc -c < index.html)
+          echo "index.html size=$BYTES"
+          if [ "$BYTES" -lt 50000 ]; then
+            echo "ERROR: index.html demasiado pequeno ($BYTES) — abortar"
+            exit 1
+          fi
+          if ! grep -q 'screen-feed' index.html; then
+            echo "ERROR: index.html sem screen-feed"
+            exit 1
+          fi
+          if ! grep -q 'loginGate' index.html; then
+            echo "ERROR: index.html sem loginGate"
+            exit 1
+          fi
+
+          cp index.html www/index.html
+          cp -a native/. www/native/
+          [ -d resources ] && cp -a resources/. www/resources/ || true
           [ -f redefinir-senha/index.html ] && cp redefinir-senha/index.html www/redefinir-senha/ || true
           [ -f reset-password/index.html ] && cp reset-password/index.html www/reset-password/ || true
           [ -f manifest.webmanifest ] && cp manifest.webmanifest www/ || true
+          [ -f capacitor.config.json ] && cp capacitor.config.json www/ || true
+
+          echo "www contents:"
+          ls -la www/ | head -20
+          ls www/native | wc -l
+          test -s www/index.html
+          test -d www/native
 
       - name: Add Android platform
         run: npx cap add android
@@ -65,7 +89,7 @@ jobs:
       - name: Bump version
         run: |
           set -e
-          VC=$((1300 + ${{ github.run_number }}))
+          VC=$((1400 + ${{ github.run_number }}))
           VN="${{ env.TCHILO_VERSION_NAME }}"
           echo "versionCode=$VC versionName=$VN"
           echo "TCHILO_VERSION_CODE=$VC" >> "$GITHUB_ENV"
@@ -166,6 +190,6 @@ jobs:
       - name: Upload release AAB
         uses: actions/upload-artifact@v4
         with:
-          name: tchilo-pop-android-release-aab-v1-3
+          name: tchilo-pop-android-release-aab-v1-3-1
           path: android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error

@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v98 — borders 0.5px + profile menu */
+/** tchilo-Pop loaders v99 — navbar 0.5px fix */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V98) return;
-  window.__TCHILO_FEED_STABLE_V98 = true;
+  if (window.__TCHILO_FEED_STABLE_V99) return;
+  window.__TCHILO_FEED_STABLE_V99 = true;
 
   function add(src, sync) {
     try {
@@ -34,7 +34,7 @@
     add('native/tchilo-perf-boost.js?v=1', true);
     add('native/tchilo-click-sounds.js?v=1', true);
     add('native/tchilo-final-css.js?v=4', true);
-    add('native/tchilo-borders-thin.js?v=1', true);
+    add('native/tchilo-borders-thin.js?v=2', true);
     add('native/tchilo-modal-ui.js?v=2', true);
     add('native/tchilo-store-policy.js?v=3', true);
     add('native/tchilo-nav-icons-lock.js?v=1', true);
@@ -45,7 +45,7 @@
     add('native/tchilo-nav-size-fix.js?v=4', true);
     add('native/tchilo-sheet-swipe.js?v=2', true);
     add('native/tchilo-ptr-fix.js?v=1', true);
-    add('native/topbar-border-thin.js?v=4', true);
+    add('native/topbar-border-thin.js?v=5', true);
     add('native/tchilo-ui-unlock.js?v=3', true);
     add('native/tchilo-login-session-fix.js?v=9', true);
     add('native/tchilo-hide-nav.js?v=4');

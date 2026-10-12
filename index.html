@@ -2438,24 +2438,6 @@ body .post-actions .act.liked svg.ic-like .ic-like-sep{ display:block; }
 /* Guardar ativo: preenchido */
 body .post-actions .act.saved.active svg.ic-save{ fill:var(--ink); stroke:var(--ink); }
 </style>
-
-<style id="tchilo-login-click-fix">
-#loginGate, #loginGate * { pointer-events: auto !important; }
-#loginGate .login-video,
-#loginGate .login-video-overlay { pointer-events: none !important; }
-#loginGate .login-choice button,
-#loginGate .login-create,
-#loginGate button[onclick*="showLoginPanel"] {
-  pointer-events: auto !important;
-  z-index: 5 !important;
-  position: relative !important;
-  touch-action: manipulation !important;
-  -webkit-tap-highlight-color: transparent;
-}
-#loginGate.hidden, #loginGate.hidden * { pointer-events: none !important; }
-body:not(.tchilo-session-on) #tchiloBusy { display: none !important; pointer-events: none !important; }
-</style>
-
 </head>
 <body>
 <script id="tchilo-click-fix-js-v1">
@@ -2498,8 +2480,6 @@ body:not(.tchilo-session-on) #tchiloBusy { display: none !important; pointer-eve
     try{
       var t=e.target;
       if(!t||!t.closest)return;
-      /* Nunca interferir com o ecrã de login/registo */
-      if(t.closest('#loginGate,.login-gate,#tsu'))return;
       var btn=t.closest('.nav-item,.nav-post,.icon-btn,.logo-img,button[data-screen]');
       if(!btn)return;
       unlock();
@@ -2523,8 +2503,11 @@ body:not(.tchilo-session-on) #tchiloBusy { display: none !important; pointer-eve
   document.addEventListener('touchend',onPointer,true);
   unlock();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',unlock);
-  /* Uma única verificação extra após paint — sem spam de unlock */
-  setTimeout(unlock,300);
+  setTimeout(unlock,100);
+  setTimeout(unlock,500);
+  setTimeout(unlock,1500);
+  setTimeout(unlock,3000);
+  setInterval(function(){if(hasSession())unlock();},4000);
 })();
 </script>
 
@@ -3832,15 +3815,7 @@ function showLoginGate() {
   document.getElementById('loginGate').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   document.body.classList.add('login-locked');
-  /* Só limpar campos no logout explícito — não após tentativa de login falhada */
-  if (window.__tchiloLoggingOut) {
-    try { tchiloClearLoginFields(); } catch(e){}
-  } else {
-    try {
-      var err = document.getElementById('loginError');
-      if (err) err.textContent = '';
-    } catch(e){}
-  }
+  tchiloClearLoginFields();
   showLoginHome();
   playLoginVideo();
 }
@@ -3860,17 +3835,9 @@ function showLoginGate() {
   });
 })();
 function showLoginPanel(panel) {
-  try { if (typeof tchiloHideBusy === 'function') tchiloHideBusy(); } catch(e) {}
-  /* tsuOpen desativado — Criar conta usa signupPanel do index */
+  if (panel === 'signup' && typeof window.tsuOpen === 'function') { try { window.tsuOpen(); } catch(e) { console.error(e); } return; }
   try { playLoginVideo(); } catch (e) {}
-  /* NÃO limpar email/password ao abrir Entrar — só limpar erro visual */
-  if (panel === 'access') {
-    try {
-      var err = document.getElementById('loginError');
-      if (err) err.textContent = '';
-      tchiloClearFieldErrors(document.getElementById('accessPanel') || document);
-    } catch(e){}
-  }
+  if (panel === 'access') { try { tchiloClearLoginFields(); } catch(e){} }
   var w = document.getElementById('loginWelcome');
   if (w) {
     w.classList.remove('is-visible');
@@ -3987,11 +3954,6 @@ async function tchiloLogin(e) {
     error.textContent=err?.message||'Não foi possível iniciar sessão.';
     tchiloMarkInvalid(identifierEl);
     tchiloMarkInvalid(passwordEl);
-    /* Manter o que o utilizador escreveu — nunca limpar após erro */
-    try {
-      if (identifierEl && !identifierEl.value && identifier) identifierEl.value = identifier;
-      if (passwordEl && !passwordEl.value && password) passwordEl.value = password;
-    } catch(eR){}
   }finally{
     tchiloSetLoading(btn, false);
   }
@@ -10547,7 +10509,14 @@ function bootApp() {
   };
   if (!allowedScreens[lastScreen]) lastScreen = 'feed';
   goTo(lastScreen);
-  /* Cloud refresh fica a cargo do wrapper de bootApp (uma só vez). */
+  /* Rede em segundo plano — não apaga o que já está no ecrã */
+  setTimeout(function(){
+    try {
+      if (typeof loadPublicFeedFromSupabase === 'function') {
+        loadPublicFeedFromSupabase(true);
+      }
+    } catch (eL) {}
+  }, 50);
 }
 
 function playLoginVideo() {
@@ -11540,14 +11509,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const oldBoot=window.bootApp;
   if(typeof oldBoot==='function'){
     window.bootApp=async function(){
-      /* Boot único: UI local primeiro, cloud uma vez, sem segundo ciclo */
-      if(window.__tchiloBootOnce){
-        try{oldBoot();}catch(e){console.error(e);}
-        return;
-      }
-      window.__tchiloBootOnce=true;
       if(!state.loading){
         state.loading=true;
+        /* stories carregam já em paralelo, sem esperar pelo resto */
         try{ loadCloudStories().then(function(){ try{renderStories();}catch(e){} }).catch(function(){}); }catch(e){}
         try{await loadCloudPosts();await loadCloudUserData();initTchiloRealtime();}
         finally{state.loading=false;}
@@ -12260,7 +12224,7 @@ function go(n){st.step=n;root.querySelectorAll('.tsu-s').forEach(function(x){x.c
   if(n===2)setTimeout(function(){var b=boxes()[0];b&&b.focus();},120);
   if(n===4)setTimeout(function(){var e=$('tsuPass');e&&e.focus();},120);
   if(n===3){applyCountry();if(!st.cc)detectCountry().then(function(cc){st.cc=cc;applyCountry();});}}
-window.tsuOpen=function(){/* desativado: usa index */try{if(typeof showLoginPanel==='function')showLoginPanel('signup');}catch(e){}return;};window.__tchiloTsuDisabled=true;window.__tsuOpenDead=function(){var im=document.querySelector('#loginGate .login-logo-img');
+window.tsuOpen=function(){var im=document.querySelector('#loginGate .login-logo-img');
   root.querySelectorAll('.tsu-logo').forEach(function(l){if(im&&im.src)l.src=im.src;});
   st={step:1,email:'',uid:null,username:'',photo:null,cool:0,exp:0,cc:null,verifying:false};
   clearInterval(st.t);

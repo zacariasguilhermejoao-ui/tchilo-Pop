@@ -4,10 +4,13 @@
   "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
+    "url": "https://tchilopop.com",
     "androidScheme": "https",
     "iosScheme": "https",
     "cleartext": false,
     "allowNavigation": [
+      "tchilopop.com",
+      "www.tchilopop.com",
       "*.supabase.co",
       "*.supabase.in",
       "api.deezer.com",
@@ -15,8 +18,9 @@
       "api.allorigins.win",
       "cdn.jsdelivr.net",
       "raw.githack.com",
-      "tchilopop.com",
-      "www.tchilopop.com"
+      "*.paddle.com",
+      "*.google.com",
+      "*.googleapis.com"
     ]
   },
   "plugins": {

@@ -55,13 +55,12 @@ jobs:
           M=android/app/src/main/AndroidManifest.xml
           test -f "$M"
           if ! grep -q 'com.android.vending.BILLING' "$M"; then
-            sed -i 's|<manifest |<manifest |' "$M"
             sed -i '0,/<manifest[^>]*>/s||&\n    <uses-permission android:name="com.android.vending.BILLING" />|' "$M"
             echo "BILLING injected"
           else
             echo "BILLING already present"
           fi
-          grep -n BILLING "$M"
+          grep -n BILLING "$M" || true
 
       - name: Bump version
         run: |
@@ -90,8 +89,9 @@ jobs:
             exit 0
           fi
           mkdir -p android/app
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/tchilo-upload.jks
+          echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n\r ' | base64 -d > android/app/tchilo-upload.jks
           test -s android/app/tchilo-upload.jks
+          ls -la android/app/tchilo-upload.jks
           echo "USE_UPLOAD_KEY=1" >> "$GITHUB_ENV"
           echo "Upload keystore ready"
 
@@ -102,23 +102,11 @@ jobs:
             cp firebase/google-services.json android/app/google-services.json
           fi
 
-      - name: Write ProGuard rules
-        run: |
-          mkdir -p android/app
-          printf '%s\n' \
-            '-keep class com.getcapacitor.** { *; }' \
-            '-keep class com.capacitorjs.** { *; }' \
-            '-keepattributes JavascriptInterface' \
-            '-keepattributes *Annotation*' \
-            '-keep class com.android.billingclient.** { *; }' \
-            '-dontwarn com.getcapacitor.**' \
-            '-dontwarn com.android.billingclient.**' \
-            > android/app/proguard-rules.pro
-
-      - name: Configure Gradle signing and ProGuard
+      - name: Configure Gradle signing
         run: |
           set -e
           test -f android/app/build.gradle
+          export USE_UPLOAD_KEY="${USE_UPLOAD_KEY:-0}"
           python3 scripts/patch-android-gradle.py
 
       - name: Setup Java 21
@@ -155,12 +143,14 @@ jobs:
           cd android
           chmod +x gradlew
           set +e
-          ./gradlew assembleDebug bundleRelease --stacktrace 2>&1 | tee /tmp/gradle.log
+          ./gradlew assembleDebug bundleRelease --stacktrace --info 2>&1 | tee /tmp/gradle.log
           EXIT=${PIPESTATUS[0]}
           set -e
           if [ "$EXIT" -ne 0 ]; then
-            grep -iE 'error:|FAILURE:|What went wrong|Could not|FAILED' /tmp/gradle.log | tail -80 || true
-            tail -60 /tmp/gradle.log || true
+            echo "========== FAILURE SUMMARY =========="
+            grep -n -iE 'FAILURE:|What went wrong|\* What|Execution failed|Could not|error:|A problem|Caused by:|keystore|password|signing|R8|Missing class' /tmp/gradle.log | tail -120 || true
+            echo "========== LAST 100 LINES =========="
+            tail -100 /tmp/gradle.log || true
             exit "$EXIT"
           fi
           echo "Build OK"

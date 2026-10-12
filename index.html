@@ -2438,6 +2438,24 @@ body .post-actions .act.liked svg.ic-like .ic-like-sep{ display:block; }
 /* Guardar ativo: preenchido */
 body .post-actions .act.saved.active svg.ic-save{ fill:var(--ink); stroke:var(--ink); }
 </style>
+
+<style id="tchilo-login-click-fix">
+#loginGate, #loginGate * { pointer-events: auto !important; }
+#loginGate .login-video,
+#loginGate .login-video-overlay { pointer-events: none !important; }
+#loginGate .login-choice button,
+#loginGate .login-create,
+#loginGate button[onclick*="showLoginPanel"] {
+  pointer-events: auto !important;
+  z-index: 5 !important;
+  position: relative !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent;
+}
+#loginGate.hidden, #loginGate.hidden * { pointer-events: none !important; }
+body:not(.tchilo-session-on) #tchiloBusy { display: none !important; pointer-events: none !important; }
+</style>
+
 </head>
 <body>
 <script id="tchilo-click-fix-js-v1">
@@ -2480,6 +2498,8 @@ body .post-actions .act.saved.active svg.ic-save{ fill:var(--ink); stroke:var(--
     try{
       var t=e.target;
       if(!t||!t.closest)return;
+      /* Nunca interferir com o ecrã de login/registo */
+      if(t.closest('#loginGate,.login-gate,#tsu'))return;
       var btn=t.closest('.nav-item,.nav-post,.icon-btn,.logo-img,button[data-screen]');
       if(!btn)return;
       unlock();
@@ -2503,11 +2523,8 @@ body .post-actions .act.saved.active svg.ic-save{ fill:var(--ink); stroke:var(--
   document.addEventListener('touchend',onPointer,true);
   unlock();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',unlock);
-  setTimeout(unlock,100);
-  setTimeout(unlock,500);
-  setTimeout(unlock,1500);
-  setTimeout(unlock,3000);
-  setInterval(function(){if(hasSession())unlock();},4000);
+  /* Uma única verificação extra após paint — sem spam de unlock */
+  setTimeout(unlock,300);
 })();
 </script>
 
@@ -3835,6 +3852,7 @@ function showLoginGate() {
   });
 })();
 function showLoginPanel(panel) {
+  try { if (typeof tchiloHideBusy === 'function') tchiloHideBusy(); } catch(e) {}
   if (panel === 'signup' && typeof window.tsuOpen === 'function') { try { window.tsuOpen(); } catch(e) { console.error(e); } return; }
   try { playLoginVideo(); } catch (e) {}
   if (panel === 'access') { try { tchiloClearLoginFields(); } catch(e){} }
@@ -10509,14 +10527,7 @@ function bootApp() {
   };
   if (!allowedScreens[lastScreen]) lastScreen = 'feed';
   goTo(lastScreen);
-  /* Rede em segundo plano — não apaga o que já está no ecrã */
-  setTimeout(function(){
-    try {
-      if (typeof loadPublicFeedFromSupabase === 'function') {
-        loadPublicFeedFromSupabase(true);
-      }
-    } catch (eL) {}
-  }, 50);
+  /* Cloud refresh fica a cargo do wrapper de bootApp (uma só vez). */
 }
 
 function playLoginVideo() {
@@ -11509,9 +11520,14 @@ document.addEventListener('DOMContentLoaded', function() {
   const oldBoot=window.bootApp;
   if(typeof oldBoot==='function'){
     window.bootApp=async function(){
+      /* Boot único: UI local primeiro, cloud uma vez, sem segundo ciclo */
+      if(window.__tchiloBootOnce){
+        try{oldBoot();}catch(e){console.error(e);}
+        return;
+      }
+      window.__tchiloBootOnce=true;
       if(!state.loading){
         state.loading=true;
-        /* stories carregam já em paralelo, sem esperar pelo resto */
         try{ loadCloudStories().then(function(){ try{renderStories();}catch(e){} }).catch(function(){}); }catch(e){}
         try{await loadCloudPosts();await loadCloudUserData();initTchiloRealtime();}
         finally{state.loading=false;}

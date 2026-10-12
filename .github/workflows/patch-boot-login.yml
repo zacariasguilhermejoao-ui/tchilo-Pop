@@ -1,10 +1,7 @@
 name: Patch boot + login click fix
+# Só manual — login/criar conta ficam no index
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'scripts/patch_boot_login.py'
-      - '.github/workflows/patch-boot-login.yml'
 jobs:
   patch:
     runs-on: ubuntu-latest
@@ -12,14 +9,11 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Apply patch (desativa overrides, usa index)
+      - name: Apply patch
         run: python3 scripts/patch_boot_login.py
       - name: Commit if changed
         run: |
-          if git diff --quiet index.html; then
-            echo "No changes"
-            exit 0
-          fi
+          if git diff --quiet index.html; then echo No changes; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html

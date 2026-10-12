@@ -1,7 +1,10 @@
 name: Patch boot + login click fix
-# Desativado auto — só manual. Login/criar conta = index puro.
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/patch_boot_login.py'
+      - '.github/workflows/patch-boot-login.yml'
 jobs:
   patch:
     runs-on: ubuntu-latest

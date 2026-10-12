@@ -17,7 +17,6 @@ if old_hijack in html:
     html = html.replace(old_hijack, "  /* tsuOpen desativado — Criar conta usa signupPanel do index */\n", 1)
     changed.append("no-tsu-hijack")
 else:
-    # variante sem espaços
     html2, n = re.subn(
         r"if\s*\(\s*panel\s*===\s*['\"]signup['\"]\s*&&\s*typeof\s+window\.tsuOpen\s*===\s*['\"]function['\"]\s*\)\s*\{\s*try\s*\{\s*window\.tsuOpen\(\);\s*\}\s*catch\s*\(e\)\s*\{\s*console\.error\(e\);\s*\}\s*return;\s*\}",
         "/* tsuOpen desativado — Criar conta usa signupPanel do index */",
@@ -28,7 +27,7 @@ else:
         html = html2
         changed.append("no-tsu-hijack-re")
 
-# 2) Neutralizar window.tsuOpen para redirecionar ao painel do index
+# 2) Neutralizar window.tsuOpen
 if "window.tsuOpen=function" in html and "__tchiloTsuDisabled" not in html:
     html = html.replace(
         "window.tsuOpen=function",
@@ -37,7 +36,7 @@ if "window.tsuOpen=function" in html and "__tchiloTsuDisabled" not in html:
     )
     changed.append("tsuOpen-noop")
 
-# 3) Remover tags de scripts nativos que sobrescrevem login (se estiverem no index)
+# 3) Remover tags de scripts nativos de override de login
 for src in [
     "native/tchilo-login-session-fix.js",
     "native/tchilo-login-gate-fix.js",

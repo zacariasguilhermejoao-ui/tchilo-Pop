@@ -1,22 +1,30 @@
 name: patch-camera-lazy
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'native/camera-tiktok.js'
       - 'scripts/patch_camera_lazy.py'
       - '.github/workflows/patch-camera-lazy.yml'
-  workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   patch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Patch camera-tiktok
         run: python3 scripts/patch_camera_lazy.py
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add native/camera-tiktok.js
-          git diff --staged --quiet || git commit -m "fix: camera-tiktok — MediaPipe só ao escolher efeito (não no boot)"
-          git push || true
+          git add native/camera-tiktok.js || true
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "fix: camera-tiktok — MediaPipe só ao escolher efeito (não no boot)"
+            git push
+          fi

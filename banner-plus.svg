@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="750" viewBox="0 0 1500 750">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff7a18"/>
+      <stop offset="100%" stop-color="#ffb347"/>
+    </linearGradient>
+  </defs>
+  <rect width="1500" height="750" fill="url(#g)"/>
+  <text x="80" y="320" font-family="system-ui,sans-serif" font-size="72" font-weight="800" fill="#111">Assine o plano Plus</text>
+  <text x="80" y="400" font-family="system-ui,sans-serif" font-size="36" font-weight="600" fill="#222">e tenha mais ferramentas</text>
+  <rect x="80" y="460" width="280" height="56" rx="12" fill="#111"/>
+  <text x="220" y="498" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="#fff">Assinar o Plus</text>
+</svg>

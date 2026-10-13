@@ -340,7 +340,7 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   .screen-header{
     display:flex; align-items:center; gap:12px;
     padding:16px 18px 12px;
-    border-bottom:3px solid var(--line);
+    border-bottom:none;
     flex-shrink:0;
   }
   .screen-header h1{font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;font-size:20px;font-weight:700;letter-spacing:-0.02em;flex:1;}
@@ -357,7 +357,7 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   }
   .stories{ flex-shrink:0; }
   .topbar{ flex-shrink:0; }
-  .post{ border-bottom:3px solid var(--line); }
+  .post{ border-bottom:none; }
   .post-head{
     display:flex; align-items:center; justify-content:space-between;
     padding:14px 18px 12px;
@@ -496,7 +496,7 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   .post-media.m11:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#17171A !important; color:var(--paper); animation:none !important; }
   .post-media.m12:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#D8C3A5 !important; color:var(--ink); animation:none !important; }
   .feed-skeleton{padding:0 0 24px}
-  .feed-skel-card{border-bottom:3px solid var(--line);padding:14px 18px 16px}
+  .feed-skel-card{border-bottom:none;padding:14px 18px 16px}
   .feed-skel-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
   .feed-skel-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(90deg,#e4e4e4,#f0f0f0,#e4e4e4);background-size:200% 100%;animation:tchiloSkel 1.15s ease-in-out infinite}
   .feed-skel-lines{flex:1}
@@ -1512,7 +1512,7 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
 
 
   .follow-suggestions{
-    padding:14px 18px; border-bottom:3px solid var(--line);
+    padding:14px 18px; border-bottom:none;
     background:var(--paper);
   }
   .follow-suggestions h3{
@@ -1573,7 +1573,7 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
 
   .feed-suggest{
     padding:16px 18px;
-    border-bottom:3px solid var(--line);
+    border-bottom:none;
     background:#fff;
   }
   .feed-suggest h3{ font-size:13px; font-weight:800; margin-bottom:12px; }
@@ -11864,6 +11864,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/tchilo-reels-icon.js?v=2" defer></script>
 <script src="native/tchilo-suggest-location-contacts.js?v=1" defer></script>
 <script src="native/tchilo-thin-borders.css.js?v=1" defer></script>
+<script src="native/tchilo-no-header-line.js?v=1" defer></script>
 <script src="native/tchilo-edit-profile-modern.js?v=1" defer></script>
 <script src="native/tchilo-ads-icon-fix.js?v=1" defer></script>
 

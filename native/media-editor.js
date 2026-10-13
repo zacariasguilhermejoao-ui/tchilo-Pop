@@ -1,4 +1,4 @@
-/** bootstrap: login v8 + media editor */
+/** bootstrap: login + media editor UI (sem remote antigo) */
 (function () {
   'use strict';
   if (window.__tchiloMediaEditorBoot) return;
@@ -14,12 +14,9 @@
   }
 
   // Login session MUST load first
-  loadScript('native/tchilo-login-session-fix.js?v=8');
+  loadScript('native/tchilo-login-session-fix.js?v=9');
   loadScript('native/tchilo-login-click-fix.js?v=5');
 
-  var SHA = 'acac5780f3459d23c0c9dd06e46340567fbb685b';
-  var BASE = 'https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/' + SHA + '/native/media-editor.js';
-  loadScript(BASE, function () {
-    loadScript('native/tchilo-media-editor-ui-v10.js?v=2');
-  });
+  // Editor UI local (já não puxa SHA antigo do raw.githubusercontent)
+  loadScript('native/tchilo-media-editor-ui-v10.js?v=3');
 })();

@@ -1,11 +1,15 @@
 /**
  * tchilo-Pop — arranque rápido no Android/iOS
  * Mostra posts guardados já no 1º frame; rede actualiza em segundo plano.
+ * v2: só 1 paint + 1 refresh (antes eram 4+2 → colava / reprocessava)
  */
 (function () {
   'use strict';
+  if (window.__tchiloBootFastV2) return;
+  window.__tchiloBootFastV2 = true;
 
   var booted = false;
+  var refreshed = false;
 
   function readLocalPosts() {
     var keys = ['tchilo_posts', 'tchilo_offline_meta_v1'];
@@ -54,21 +58,26 @@
   }
 
   function softNetworkRefresh() {
+    if (refreshed) return;
+    refreshed = true;
     try {
       if (typeof softRefreshFeed === 'function') softRefreshFeed(false);
       else if (typeof loadPostsFromCloud === 'function') loadPostsFromCloud();
       else if (typeof fetchPosts === 'function') fetchPosts();
       else if (typeof tchiloSyncFeed === 'function') tchiloSyncFeed();
+      else if (typeof loadPublicFeedFromSupabase === 'function') {
+        loadPublicFeedFromSupabase(!window.__publicFeedLoaded);
+      }
     } catch (e) {}
   }
 
   function boot() {
     paintNow();
-    setTimeout(paintNow, 0);
-    setTimeout(paintNow, 50);
-    setTimeout(paintNow, 150);
-    setTimeout(softNetworkRefresh, 200);
-    setTimeout(softNetworkRefresh, 1200);
+    // Uma única tentativa extra se o 1º frame ainda não tinha dados
+    setTimeout(function () {
+      if (!booted) paintNow();
+    }, 80);
+    setTimeout(softNetworkRefresh, 400);
   }
 
   if (document.readyState === 'loading') {
@@ -77,6 +86,7 @@
     boot();
   }
   document.addEventListener('resume', function () {
+    refreshed = false;
     softNetworkRefresh();
   });
 })();

@@ -40,26 +40,26 @@
     '[style*="border:3px solid"], [style*="border: 3px solid"] {',
     '  /* inline styles difíceis; cobrimos classes abaixo */',
     '}',
-    /* classes comuns com border ink 2/3px */',
+    '/* classes comuns com border ink 2/3px */',
     '.avatar, .user-avatar, .story-ring, .story-avatar {',
     '  /* anéis de story: manter legível mas mais fino */',
     '}',
     '.story-ring, .story-item .ring, .stories .ring {',
     '  border-width: 1.5px !important;',
     '}',
-    /* inputs e cards */',
+    '/* inputs e cards */',
     'input, select, textarea, .login-input, .search-input, .compose-input {',
     '  border-width: 1px !important;',
     '}',
     '.card, .sheet, .modal, .playlist-card, .notif-item {',
     '  border-width: 1px !important;',
     '}',
-    /* nav / topbar */',
+    '/* nav / topbar */',
     '.topbar, .bottom-nav, .tabbar {',
     '  border-top-width: 1px !important;',
     '  border-bottom-width: 1px !important;',
     '}',
-    /* === Ícones: preto em vez de azul === */',
+    '/* === Ícones: preto em vez de azul === */',
     '.icon-btn svg, .icon-btn svg * {',
     '  stroke: var(--ink, #0B0B0C) !important;',
     '  fill: none !important;',
@@ -71,7 +71,7 @@
     '  color: var(--ink, #0B0B0C) !important;',
     '  -webkit-text-fill-color: var(--ink, #0B0B0C) !important;',
     '}',
-    /* links/botões de ação azuis iOS → preto */',
+    '/* links/botões de ação azuis iOS → preto */',
     'button.saved-remove,',
     '.post-actions .act,',
     '.post-actions .act svg,',
@@ -79,7 +79,7 @@
     '  color: var(--ink, #0B0B0C) !important;',
     '  stroke: var(--ink, #0B0B0C) !important;',
     '}',
-    /* SVGs de UI com stroke grosso */',
+    '/* SVGs de UI com stroke grosso */',
     '.icon-btn svg, .topbar svg, .bottom-nav svg, .tabbar svg,',
     '.nav-icon svg, .header svg, .sheet-head svg, .back-btn svg {',
     '  stroke-width: 1.5 !important;',
@@ -87,31 +87,31 @@
     '.icon-btn svg *, .topbar svg *, .bottom-nav svg *, .tabbar svg * {',
     '  stroke-width: 1.5 !important;',
     '}',
-    /* azul explícito → preto (ícones e texto de ação) */',
+    '/* azul explícito → preto (ícones e texto de ação) */',
     '.saved-remove, a.action-link, button.linkish,',
     '[style*="color:#007AFF"], [style*="color: #007AFF"],',
     '[style*="color:#0A84FF"], [style*="color: #0A84FF"],',
     '[style*="color:rgb(0, 122, 255)"] {',
     '  color: var(--ink, #0B0B0C) !important;',
     '}',
-    /* follow e similares com borda grossa */',
+    '/* follow e similares com borda grossa */',
     '.follow-btn {',
     '  border: 1px solid var(--ink, #0B0B0C) !important;',
     '  box-shadow: none !important;',
     '}',
-    /* lista amigos / sugestões */',
+    '/* lista amigos / sugestões */',
     '.msg-item { border-bottom: 1px solid #e8e8e8 !important; }',
-    /* tabs genéricas com 2.5px */',
+    '/* tabs genéricas com 2.5px */',
     '.saved-tab, .feed-tab, .profile-tab, .segmented button {',
     '  border-width: 1px !important;',
     '}',
-    /* círculos de fechar / plus */',
+    '/* círculos de fechar / plus */',
     'button.close, .close-btn, .icon-close, .btn-circle {',
     '  border-width: 1px !important;',
     '  border-color: var(--ink, #0B0B0C) !important;',
     '  color: var(--ink, #0B0B0C) !important;',
     '}',
-    /* bottom nav icons black */',
+    '/* bottom nav icons black */',
     '.bottom-nav svg, .bottom-nav svg *, .tabbar svg, .tabbar svg * {',
     '  stroke: var(--ink, #0B0B0C) !important;',
     '  color: var(--ink, #0B0B0C) !important;',
@@ -122,7 +122,6 @@
   ].join('\n');
   (document.head || document.documentElement).appendChild(s);
 
-  /* Afinar stroke-width em SVGs inline já no DOM */
   function thinSvgs(root) {
     try {
       (root || document).querySelectorAll('svg [stroke-width], svg[stroke-width]').forEach(function (el) {
@@ -131,7 +130,6 @@
         var n = parseFloat(sw);
         if (n >= 2 && n <= 4) el.setAttribute('stroke-width', '1.5');
       });
-      /* ícones com fill/stroke azul */
       (root || document).querySelectorAll('svg [stroke], svg [fill]').forEach(function (el) {
         var st = (el.getAttribute('stroke') || '').toLowerCase();
         var fl = (el.getAttribute('fill') || '').toLowerCase();

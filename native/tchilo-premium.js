@@ -1,6 +1,6 @@
 /**
  * Tchilo Premium / Plus — banner + Google Play Billing
- * v7c — substitui estrela pelo banner; Paddle removido
+ * v7d — banner SVG; Paddle removido
  */
 (function () {
   "use strict";
@@ -13,7 +13,7 @@
   var PLAY_PRODUCT_TYPE = window.__TCHILO_PLAY_PRODUCT_TYPE || "subs";
   var BANNER_SRC =
     window.__TCHILO_BANNER_PLUS ||
-    (typeof location !== "undefined" ? location.origin + "/banner-plus.jpg" : "/banner-plus.jpg");
+    (typeof location !== "undefined" ? location.origin + "/banner-plus.svg" : "/banner-plus.svg");
 
   function toast(msg) {
     try {
@@ -203,8 +203,7 @@
       "#settings-premium-item.tchilo-plus-banner-btn,#tchiloPremiumBtn{" +
       "display:block!important;width:calc(100% - 36px)!important;margin:12px 18px 8px!important;" +
       "padding:0!important;border:0!important;border-radius:16px!important;overflow:hidden!important;" +
-      "background:transparent!important;cursor:pointer!important;line-height:0!important;" +
-      "box-shadow:none!important;}" +
+      "background:transparent!important;cursor:pointer!important;line-height:0!important;box-shadow:none!important;}" +
       "#settings-premium-item.tchilo-plus-banner-btn .si-icon," +
       "#settings-premium-item.tchilo-plus-banner-btn .chev," +
       "#settings-premium-item.tchilo-plus-banner-btn > span{display:none!important;}" +
@@ -229,11 +228,13 @@
     var old = document.getElementById("settings-premium-item");
     if (old && old.classList.contains("tchilo-plus-banner-btn") && old.querySelector("img")) return;
 
-    var src = BANNER_SRC || (typeof location !== "undefined" ? location.origin + "/banner-plus.jpg" : "/banner-plus.jpg");
+    var src =
+      BANNER_SRC ||
+      (typeof location !== "undefined" ? location.origin + "/banner-plus.svg" : "/banner-plus.svg");
     var html =
       '<img src="' +
       src +
-      '" alt="Assine o plano Plus" width="1500" height="750" style="display:block;width:100%;height:auto;border-radius:16px;object-fit:cover" loading="eager" onerror="this.onerror=null;this.style.display=\'none\';this.parentNode.insertAdjacentHTML(\'beforeend\',\'<div style=\\'background:linear-gradient(135deg,#ff7a18,#ffb347);border-radius:16px;padding:28px 20px;color:#111\\'><div style=\\'font:800 22px system-ui\\'>Assine o plano Plus</div><div style=\\'font:600 14px;margin-top:6px\\'>e tenha mais ferramentas</div><div style=\\'margin-top:14px;display:inline-block;background:#111;color:#fff;font:700 13px;padding:10px 16px;border-radius:10px\\'>Assinar o Plus</div></div>\');"/>';
+      '" alt="Assine o plano Plus" width="1500" height="750" style="display:block;width:100%;height:auto;border-radius:16px;object-fit:cover" loading="eager"/>';
 
     if (old) {
       old.className = "tchilo-plus-banner-btn";

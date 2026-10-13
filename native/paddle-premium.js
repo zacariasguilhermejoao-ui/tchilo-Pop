@@ -1,7 +1,7 @@
 /**
- * tchilo-Pop — Paddle: Tchilo Premium
+ * tchilo-Pop — Paddle: Tchilo Premium / Plus
+ * v3 — banner promocional Plus nas Definições
  * Client token only (never API secret in frontend)
- * perf: inject poll 15s em vez de 1.5s
  */
 (function () {
   "use strict";
@@ -177,17 +177,15 @@
     var btn = document.getElementById("tchiloPremiumBtn");
     if (!btn) return;
     var on = isPremiumLocal();
-    var title = btn.querySelector("[data-prem-title]");
-    var sub = btn.querySelector("[data-prem-sub]");
-    if (on) {
-      if (title) title.textContent = "Tchilo Premium";
-      if (sub) sub.textContent = "Ativo";
-      btn.classList.add("premium-on");
-    } else {
-      if (title) title.textContent = "Tchilo Premium";
-      if (sub) sub.textContent = "$3 · Ativar";
-      btn.classList.remove("premium-on");
-    }
+    if (on) btn.classList.add("premium-on");
+    else btn.classList.remove("premium-on");
+  }
+
+  function bannerSrc() {
+    if (window.__TCHILO_BANNER_PLUS) return window.__TCHILO_BANNER_PLUS;
+    return (
+      "https://raw.githubusercontent.com/zacariasguilhermejoao-ui/tchilo-Pop/main/resources/banner-plus.jpg"
+    );
   }
 
   function injectSettingsButton() {
@@ -202,23 +200,23 @@
       var st = document.createElement("style");
       st.id = "tchiloPremiumCSS";
       st.textContent =
-        "#tchiloPremiumBtn{display:flex;align-items:center;gap:12px;width:calc(100% - 36px);margin:12px 18px 4px;padding:14px 14px;border:0;border-radius:16px;background:linear-gradient(135deg,#c8f560 0%,#9ee0ff 100%);color:var(--ink,#0B0B0C);font:800 14px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;text-align:left;cursor:pointer;box-shadow:none}" +
-        "#tchiloPremiumBtn .prem-icon{width:42px;height:42px;border-radius:12px;border:0;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}" +
-        "#tchiloPremiumBtn .prem-text{flex:1;min-width:0}" +
-        "#tchiloPremiumBtn .prem-text b{display:block;font-size:15px}" +
-        "#tchiloPremiumBtn .prem-text span{display:block;font-size:12px;font-weight:700;opacity:.75;margin-top:2px}" +
-        "#tchiloPremiumBtn.premium-on{background:linear-gradient(135deg,#ffe566 0%,#c8f560 100%)}" +
-        "#tchiloPremiumBtn:active{opacity:.92}";
+        "#tchiloPremiumBtn{display:block;width:calc(100% - 36px);margin:12px 18px 8px;padding:0;border:0;border-radius:16px;overflow:hidden;background:transparent;cursor:pointer;box-shadow:none;line-height:0;position:relative}" +
+        "#tchiloPremiumBtn img{display:block;width:100%;height:auto;border-radius:16px;object-fit:cover}" +
+        "#tchiloPremiumBtn:active{opacity:.88}" +
+        "#tchiloPremiumBtn .prem-active-tag{display:none;position:absolute;right:12px;top:12px;background:rgba(11,11,12,.75);color:#fff;font:700 11px system-ui,sans-serif;padding:4px 8px;border-radius:8px}" +
+        "#tchiloPremiumBtn.premium-on .prem-active-tag{display:block}";
       document.head.appendChild(st);
     }
 
     var btn = document.createElement("button");
     btn.type = "button";
     btn.id = "tchiloPremiumBtn";
+    btn.setAttribute("aria-label", "Assinar o Plus");
     btn.innerHTML =
-      '<div class="prem-icon" aria-hidden="true">★</div>' +
-      '<div class="prem-text"><b data-prem-title>Tchilo Premium</b><span data-prem-sub>$3 · Ativar</span></div>' +
-      '<span class="chev" style="font-size:18px;opacity:.6">›</span>';
+      '<img src="' +
+      bannerSrc() +
+      '" alt="Assine o plano Plus" width="1500" height="750" loading="lazy"/>' +
+      '<span class="prem-active-tag">Plus ativo</span>';
     btn.onclick = function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -243,7 +241,6 @@
     }, 2500);
   }
 
-  /* perf: 15s em vez de 1.5s */
   setInterval(injectSettingsButton, 15000);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();

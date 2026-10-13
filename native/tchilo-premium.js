@@ -1,10 +1,11 @@
 /**
  * Tchilo Premium / Plus — banner + Google Play Billing
- * v7f — compra única (inapp) 4 USD; Paddle removido
+ * v7g — compra única inapp 4 USD; Capgo NativePurchases INAPP
  */
 (function () {
   "use strict";
-  if (window.__tchiloPremiumV7f) return;
+  if (window.__tchiloPremiumV7g) return;
+  window.__tchiloPremiumV7g = true;
   window.__tchiloPremiumV7f = true;
   window.__tchiloPremiumV7 = true;
   window.__tchiloPremiumV6 = true;
@@ -125,9 +126,18 @@
   function isNativeAndroid() {
     try {
       var C = window.Capacitor;
+      if (C && C.isNativePlatform && C.isNativePlatform()) {
+        if (C.getPlatform && C.getPlatform() === "android") return true;
+      }
       if (C && C.getPlatform && C.getPlatform() === "android") return true;
     } catch (e) {}
-    return /Android/i.test(navigator.userAgent || "");
+    return false;
+  }
+
+  function productTypeForApi() {
+    var t = String(PLAY_PRODUCT_TYPE || "inapp").toLowerCase();
+    if (t === "subs" || t === "subscription") return "subs";
+    return "inapp";
   }
 
   async function purchaseWithGooglePlay() {
@@ -137,21 +147,33 @@
         toast("O Plus compra-se na app Android (Google Play).");
         return false;
       }
-      toast("Billing Google Play ainda não está no build.");
+      toast("Billing Google Play ainda não está no build. Gera um AAB novo.");
       return false;
     }
     toast("A abrir Google Play…");
     var api = plugin.api;
     var productId = PLAY_PRODUCT_ID;
+    var pType = productTypeForApi();
     try {
       if (typeof api.purchaseProduct === "function") {
         var res = await api.purchaseProduct({
           productIdentifier: productId,
-          productType: PLAY_PRODUCT_TYPE === "subs" ? "subs" : "inapp",
+          productType: pType === "subs" ? "subs" : "inapp",
+          quantity: 1,
         });
-        if (res && (res.purchaseToken || res.transactionId || res.receipt)) {
+        var token =
+          (res && (res.purchaseToken || res.transactionId || res.orderId || res.receipt)) ||
+          null;
+        if (res && (token || res.productIdentifier || res.transactionId === "" || res)) {
+          if (token && typeof api.acknowledgePurchase === "function") {
+            try {
+              await api.acknowledgePurchase({ purchaseToken: token });
+            } catch (ackErr) {
+              console.warn("[premium] acknowledge", ackErr);
+            }
+          }
           markPremium({
-            purchaseToken: res.purchaseToken || res.transactionId || res.receipt,
+            purchaseToken: token || productId,
             productId: productId,
             provider: "google_play",
           });
@@ -162,7 +184,7 @@
         var res2 = await api.purchase({
           productId: productId,
           productIdentifier: productId,
-          type: PLAY_PRODUCT_TYPE,
+          type: pType,
         });
         if (res2 && (res2.purchaseToken || res2.transactionId || res2.orderId)) {
           markPremium({
@@ -176,7 +198,7 @@
       toast("Não foi possível concluir a compra.");
       return false;
     } catch (err) {
-      var msg = (err && (err.message || err.errorMessage)) || "Compra cancelada";
+      var msg = (err && (err.message || err.errorMessage || err.code)) || "Compra cancelada";
       if (/cancel/i.test(String(msg))) toast("Compra cancelada");
       else toast(String(msg));
       return false;

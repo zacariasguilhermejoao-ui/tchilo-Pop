@@ -1,0 +1,56 @@
+name: Bump premium script cache
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "native/tchilo-premium.js"
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bump script ?v= in index.html
+        run: |
+          set -e
+          test -f index.html
+          # force cache-bust for premium + keep paddle stub harmless
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("index.html")
+          t = p.read_text(encoding="utf-8", errors="replace")
+          old = t
+          t = t.replace("native/tchilo-premium.js?v=2", "native/tchilo-premium.js?v=7g")
+          t = t.replace("native/tchilo-premium.js?v=1", "native/tchilo-premium.js?v=7g")
+          t = t.replace("native/tchilo-premium.js\"", "native/tchilo-premium.js?v=7g\"")
+          t = t.replace("native/paddle-premium.js?v=1", "native/paddle-premium.js?v=3")
+          if t == old:
+              print("No version string matched; trying regex")
+              import re
+              t2, n = re.subn(
+                  r'native/tchilo-premium\.js(\?v=[^"\']*)?',
+                  'native/tchilo-premium.js?v=7g',
+                  t,
+                  count=3,
+              )
+              print("regex replacements", n)
+              t = t2
+          p.write_text(t, encoding="utf-8")
+          print("done, index size", p.stat().st_size)
+          PY
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "chore: cache-bust tchilo-premium.js?v=7g"
+            git push
+          fi

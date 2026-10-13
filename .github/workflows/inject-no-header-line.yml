@@ -14,52 +14,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Inject script tag into index.html
+      - name: Inject script + strip post borders in index.html
         run: |
           set -e
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p = Path("index.html")
           t = p.read_text(encoding="utf-8", errors="replace")
-          tag = '<script src="native/tchilo-no-header-line.js?v=1" defer></script>'
+          tag = '<script src="native/tchilo-no-header-line.js?v=2" defer></script>'
           if "tchilo-no-header-line.js" in t:
-              import re
               t2, n = re.subn(
                   r'<script[^>]*tchilo-no-header-line\.js[^>]*></script>',
                   tag,
                   t,
-                  count=2,
+                  count=3,
               )
-              print("already present, refreshed", n)
+              print("refreshed script tags", n)
               t = t2
           else:
-              # after thin-borders if present, else before </body>
-              needle = 'native/tchilo-thin-borders.css.js'
+              needle = "native/tchilo-thin-borders.css.js"
               i = t.find(needle)
               if i >= 0:
-                  # find end of that script tag
                   j = t.find("</script>", i)
-                  if j > 0:
-                      t = t[: j + 9] + "\n" + tag + t[j + 9 :]
-                      print("inserted after thin-borders")
-                  else:
-                      t = t.replace("</body>", tag + "\n</body>", 1)
-                      print("fallback body")
+                  t = t[: j + 9] + "\n" + tag + t[j + 9 :] if j > 0 else t.replace("</body>", tag + "\n</body>", 1)
               else:
                   t = t.replace("</body>", tag + "\n</body>", 1)
-                  print("inserted before body end")
-          # also neutralize inline 3px header border in CSS if present
-          t = t.replace(
-              "border-bottom:3px solid var(--line);",
-              "border-bottom:none;",
-          )
-          t = t.replace(
-              "border-bottom:3px solid var(--line)",
-              "border-bottom:none",
-          )
+              print("inserted script")
+
+          t = t.replace("border-bottom:3px solid var(--line);", "border-bottom:none;")
+          t = t.replace("border-bottom:3px solid var(--line)", "border-bottom:none")
+          t = t.replace("border:3px solid var(--ink);", "border:none;")
+          t = t.replace("border:3px solid var(--ink)", "border:none")
+          t = t.replace("border: 3px solid var(--ink);", "border:none;")
+          t = t.replace("border:3px solid #0B0B0C;", "border:none;")
+          t = t.replace("border:3px solid #000;", "border:none;")
+
           p.write_text(t, encoding="utf-8")
           print("index size", p.stat().st_size)
           assert "tchilo-no-header-line.js" in t
+          print("post-media 3px left", t.count("border:3px solid var(--ink)"))
           PY
 
       - name: Commit
@@ -70,6 +64,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes"
           else
-            git commit -m "chore: inject no-header-line + remove 3px header borders"
+            git commit -m "chore: remove post-media black borders + no-header-line v2"
             git push
           fi

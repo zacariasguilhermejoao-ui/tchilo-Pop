@@ -1,8 +1,8 @@
-/** tchilo-Pop loaders v99 — navbar 0.5px fix */
+/** tchilo-Pop loaders v100 — navbar 0.5px + megafone */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V99) return;
-  window.__TCHILO_FEED_STABLE_V99 = true;
+  if (window.__TCHILO_FEED_STABLE_V100) return;
+  window.__TCHILO_FEED_STABLE_V100 = true;
 
   function add(src, sync) {
     try {
@@ -46,6 +46,8 @@
     add('native/tchilo-sheet-swipe.js?v=2', true);
     add('native/tchilo-ptr-fix.js?v=1', true);
     add('native/topbar-border-thin.js?v=5', true);
+    /* último: força 0.5px na linha da navbar */
+    add('native/tchilo-navbar-hairline.js?v=1', true);
     add('native/tchilo-ui-unlock.js?v=3', true);
     add('native/tchilo-login-session-fix.js?v=9', true);
     add('native/tchilo-hide-nav.js?v=4');
@@ -84,7 +86,7 @@
 
   function loadSecondary() {
     addMany([
-      'native/tchilo-settings-icons.js?v=28',
+      'native/tchilo-settings-icons.js?v=29',
       'native/tchilo-product-copy.js?v=2',
       'native/tchilo-legal-links.js?v=1',
       'native/tchilo-public-profile-bridge.js?v=1',

@@ -1,16 +1,17 @@
 /**
  * Tchilo Premium / Plus — banner + Google Play Billing
- * v7e — banner-plus.jpg; Paddle removido
+ * v7f — compra única (inapp) 4 USD; Paddle removido
  */
 (function () {
   "use strict";
-  if (window.__tchiloPremiumV7) return;
+  if (window.__tchiloPremiumV7f) return;
+  window.__tchiloPremiumV7f = true;
   window.__tchiloPremiumV7 = true;
   window.__tchiloPremiumV6 = true;
   window.__tchiloPremiumV3 = true;
 
   var PLAY_PRODUCT_ID = window.__TCHILO_PLAY_PRODUCT_ID || "tchilo_plus";
-  var PLAY_PRODUCT_TYPE = window.__TCHILO_PLAY_PRODUCT_TYPE || "subs";
+  var PLAY_PRODUCT_TYPE = window.__TCHILO_PLAY_PRODUCT_TYPE || "inapp";
   var BANNER_SRC =
     window.__TCHILO_BANNER_PLUS ||
     (typeof location !== "undefined" ? location.origin + "/banner-plus.jpg" : "/banner-plus.jpg");
@@ -234,13 +235,13 @@
     var html =
       '<img src="' +
       src +
-      '?v=1" alt="Assine o plano Plus" width="1500" height="750" style="display:block;width:100%;height:auto;border-radius:16px;object-fit:cover" loading="eager"/>';
+      '?v=2" alt="Comprar o plano Plus" width="1500" height="750" style="display:block;width:100%;height:auto;border-radius:16px;object-fit:cover" loading="eager"/>';
 
     if (old) {
       old.className = "tchilo-plus-banner-btn";
       old.id = "settings-premium-item";
       old.type = "button";
-      old.setAttribute("aria-label", "Assinar o Plus");
+      old.setAttribute("aria-label", "Comprar o Plus");
       old.removeAttribute("onclick");
       old.innerHTML = html;
       old.onclick = function (e) {
@@ -257,7 +258,7 @@
     btn.type = "button";
     btn.id = "settings-premium-item";
     btn.className = "tchilo-plus-banner-btn";
-    btn.setAttribute("aria-label", "Assinar o Plus");
+    btn.setAttribute("aria-label", "Comprar o Plus");
     btn.style.cssText =
       "display:block;width:calc(100% - 36px);margin:12px 18px 8px;padding:0;border:0;border-radius:16px;overflow:hidden;background:transparent;cursor:pointer;line-height:0";
     btn.innerHTML = html;
@@ -289,16 +290,16 @@
       "<h1>Tchilo Plus</h1></div>" +
       '<div class="tp-scroll"><div class="tp-hero"><div class="tp-hero-icon">✦</div>' +
       "<h2 style='margin:0 0 8px;font:700 22px system-ui,sans-serif'>" +
-      (prem ? "Plus ativo" : "Assina o Plus") +
+      (prem ? "Plus ativo" : "Comprar o Plus") +
       "</h2><p style='margin:0;color:#666;font-size:14px'>" +
       (prem
         ? "Obrigado por apoiares o Tchilo."
-        : "Mais ferramentas para criadores. Pagamento seguro via Google Play.") +
+        : "Mais ferramentas para criadores. Compra única · 4 USD · Google Play.") +
       "</p></div>" +
       (prem
-        ? '<p class="note">Subscrição gerida na Google Play Store</p>'
-        : '<button type="button" class="tp-pay" data-a="pay">Assinar com Google Play</button>' +
-          '<p class="note">Pagamento seguro · Google Play Billing</p>') +
+        ? '<p class="note">Compra gerida na Google Play Store</p>'
+        : '<button type="button" class="tp-pay" data-a="pay">Comprar por 4 USD</button>' +
+          '<p class="note">Compra única · Pagamento seguro via Google Play</p>') +
       "</div>";
     sheet.classList.add("open");
     sheet.onclick = function (ev) {

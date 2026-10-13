@@ -1,11 +1,11 @@
 /**
- * tchilo-settings-icons v28
- * Ícones profissionais (estilo Lucide/Feather) só em Definições e subpáginas
+ * tchilo-settings-icons v29
+ * Ícones profissionais — anúncios = megafone
  */
 (function () {
   'use strict';
-  if (window.__TCHILO_SI_V28) return;
-  window.__TCHILO_SI_V28 = true;
+  if (window.__TCHILO_SI_V29) return;
+  window.__TCHILO_SI_V29 = true;
   window.__TCHILO_SI_V26 = true;
 
   var S =
@@ -16,9 +16,11 @@
     return '<svg ' + S + '>' + paths + '</svg>';
   }
 
-  /* Mapa label (PT + EN) → SVG profissional */
+  var MEGAPHONE =
+    '<path d="m3 11 19-5v12L3 13v-2z"/>' +
+    '<path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>';
+
   var ICONS = {
-    /* —— lista principal —— */
     'tchilo premium': svg(
       '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'
     ),
@@ -27,16 +29,8 @@
       '<circle cx="12" cy="12" r="10" fill="#1D9BF0"/>' +
       '<path d="M8 12.5l2.5 2.5 5.5-5.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' +
       '</svg>',
-    'gestor de anúncios': svg(
-      '<path d="M3 11v2a1 1 0 0 0 1 1h1.5L11 18V6L5.5 10H4a1 1 0 0 0-1 1z"/>' +
-      '<path d="M15.5 8.5a5 5 0 0 1 0 7"/>' +
-      '<path d="M18 6a8.5 8.5 0 0 1 0 12"/>'
-    ),
-    'meus anúncios': svg(
-      '<path d="M3 11v2a1 1 0 0 0 1 1h1.5L11 18V6L5.5 10H4a1 1 0 0 0-1 1z"/>' +
-      '<path d="M15.5 8.5a5 5 0 0 1 0 7"/>' +
-      '<path d="M18 6a8.5 8.5 0 0 1 0 12"/>'
-    ),
+    'gestor de anúncios': svg(MEGAPHONE),
+    'meus anúncios': svg(MEGAPHONE),
     'conta': svg(
       '<circle cx="12" cy="8" r="4"/>' +
       '<path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>'
@@ -73,8 +67,6 @@
       '<circle cx="12" cy="12" r="4"/>' +
       '<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>'
     ),
-
-    /* —— Conta —— */
     'editar perfil': svg(
       '<path d="M12 20h9"/>' +
       '<path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>'
@@ -86,8 +78,6 @@
       '<circle cx="12" cy="12" r="3"/>' +
       '<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
     ),
-
-    /* —— Notificações —— */
     'gostos': svg(
       '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>'
     ),
@@ -99,8 +89,6 @@
       '<circle cx="9" cy="7" r="4"/>' +
       '<path d="M19 8v6M22 11h-6"/>'
     ),
-
-    /* —— Stories toggles —— */
     'novos stories de quem sigo': svg(
       '<circle cx="12" cy="12" r="9"/>' +
       '<path d="M12 8v8M8 12h8"/>'
@@ -113,8 +101,6 @@
       '<circle cx="9" cy="7" r="4"/>' +
       '<path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>'
     ),
-
-    /* —— Privacidade extras (se existirem) —— */
     'conta privada': svg(
       '<rect x="5" y="11" width="14" height="10" rx="2"/>' +
       '<path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
@@ -130,8 +116,6 @@
     'atividade': svg(
       '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'
     ),
-
-    /* —— Legal —— */
     'termos de uso': svg(
       '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
       '<path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>'
@@ -151,8 +135,6 @@
       '<circle cx="10" cy="15" r="1.1" fill="currentColor" stroke="none"/>' +
       '<circle cx="15.5" cy="14.5" r="0.9" fill="currentColor" stroke="none"/>'
     ),
-
-    /* —— Avançado —— */
     'descarregar os meus dados': svg(
       '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>' +
       '<path d="M7 10l5 5 5-5M12 15V3"/>'
@@ -172,9 +154,9 @@
   };
 
   function injectCSS() {
-    if (document.getElementById('si-v28-css')) return;
+    if (document.getElementById('si-v29-css')) return;
     var st = document.createElement('style');
-    st.id = 'si-v28-css';
+    st.id = 'si-v29-css';
     st.textContent =
       '#screen-settings .settings-item .si-icon,' +
       '[id^="screen-settings"] .settings-item .si-icon,' +
@@ -221,9 +203,9 @@
       if (!html) return;
       var box = btn.querySelector('.si-icon');
       if (!box) return;
-      if (box.getAttribute('data-si') === key) return;
+      if (box.getAttribute('data-si') === key + '-v29') return;
       box.innerHTML = html;
-      box.setAttribute('data-si', key);
+      box.setAttribute('data-si', key + '-v29');
     });
   }
 
@@ -232,9 +214,7 @@
     var roots = document.querySelectorAll(
       '#screen-settings, [id^="screen-settings-"], #screen-settings .settings-list'
     );
-    if (!roots.length) {
-      applyIn(document.getElementById('screen-settings'));
-    }
+    if (!roots.length) applyIn(document.getElementById('screen-settings'));
     roots.forEach(applyIn);
     applyIn(document.getElementById('screen-settings'));
     document.querySelectorAll('[id^="screen-settings-"]').forEach(applyIn);
@@ -246,13 +226,13 @@
     setTimeout(run, ms);
   });
 
-  if (typeof window.goTo === 'function' && !window.goTo.__siV28) {
+  if (typeof window.goTo === 'function' && !window.goTo.__siV29) {
     var g = window.goTo;
     window.goTo = function (name) {
       var r = g.apply(this, arguments);
       if (name && String(name).indexOf('settings') === 0) setTimeout(run, 40);
       return r;
     };
-    window.goTo.__siV28 = true;
+    window.goTo.__siV29 = true;
   }
 })();

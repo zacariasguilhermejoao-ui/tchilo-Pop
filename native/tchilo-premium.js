@@ -1,6 +1,6 @@
 /**
  * Tchilo Premium / Plus — banner + Google Play Billing
- * v7d — banner SVG; Paddle removido
+ * v7e — banner-plus.jpg; Paddle removido
  */
 (function () {
   "use strict";
@@ -13,7 +13,7 @@
   var PLAY_PRODUCT_TYPE = window.__TCHILO_PLAY_PRODUCT_TYPE || "subs";
   var BANNER_SRC =
     window.__TCHILO_BANNER_PLUS ||
-    (typeof location !== "undefined" ? location.origin + "/banner-plus.svg" : "/banner-plus.svg");
+    (typeof location !== "undefined" ? location.origin + "/banner-plus.jpg" : "/banner-plus.jpg");
 
   function toast(msg) {
     try {
@@ -230,11 +230,11 @@
 
     var src =
       BANNER_SRC ||
-      (typeof location !== "undefined" ? location.origin + "/banner-plus.svg" : "/banner-plus.svg");
+      (typeof location !== "undefined" ? location.origin + "/banner-plus.jpg" : "/banner-plus.jpg");
     var html =
       '<img src="' +
       src +
-      '" alt="Assine o plano Plus" width="1500" height="750" style="display:block;width:100%;height:auto;border-radius:16px;object-fit:cover" loading="eager"/>';
+      '?v=1" alt="Assine o plano Plus" width="1500" height="750" style="display:block;width:100%;height:auto;border-radius:16px;object-fit:cover" loading="eager"/>';
 
     if (old) {
       old.className = "tchilo-plus-banner-btn";

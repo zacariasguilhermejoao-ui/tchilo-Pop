@@ -1,0 +1,75 @@
+name: Inject no-header-line script
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "native/tchilo-no-header-line.js"
+
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject script tag into index.html
+        run: |
+          set -e
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("index.html")
+          t = p.read_text(encoding="utf-8", errors="replace")
+          tag = '<script src="native/tchilo-no-header-line.js?v=1" defer></script>'
+          if "tchilo-no-header-line.js" in t:
+              import re
+              t2, n = re.subn(
+                  r'<script[^>]*tchilo-no-header-line\.js[^>]*></script>',
+                  tag,
+                  t,
+                  count=2,
+              )
+              print("already present, refreshed", n)
+              t = t2
+          else:
+              # after thin-borders if present, else before </body>
+              needle = 'native/tchilo-thin-borders.css.js'
+              i = t.find(needle)
+              if i >= 0:
+                  # find end of that script tag
+                  j = t.find("</script>", i)
+                  if j > 0:
+                      t = t[: j + 9] + "\n" + tag + t[j + 9 :]
+                      print("inserted after thin-borders")
+                  else:
+                      t = t.replace("</body>", tag + "\n</body>", 1)
+                      print("fallback body")
+              else:
+                  t = t.replace("</body>", tag + "\n</body>", 1)
+                  print("inserted before body end")
+          # also neutralize inline 3px header border in CSS if present
+          t = t.replace(
+              "border-bottom:3px solid var(--line);",
+              "border-bottom:none;",
+          )
+          t = t.replace(
+              "border-bottom:3px solid var(--line)",
+              "border-bottom:none",
+          )
+          p.write_text(t, encoding="utf-8")
+          print("index size", p.stat().st_size)
+          assert "tchilo-no-header-line.js" in t
+          PY
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "chore: inject no-header-line + remove 3px header borders"
+            git push
+          fi

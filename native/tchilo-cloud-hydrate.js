@@ -1,14 +1,18 @@
 /**
  * Tchilo — noutro browser: carregar feed + foto de perfil da Supabase
+ * v4: lock global + uma só hidratação no boot (evita colar / reprocessar)
  */
 (function () {
   'use strict';
-  if (window.__tchiloCloudHydrateV3) return;
+  if (window.__tchiloCloudHydrateV4) return;
+  window.__tchiloCloudHydrateV4 = true;
   window.__tchiloCloudHydrateV3 = true;
   window.__tchiloCloudHydrate = true;
 
   var hydrating = false;
   var lastHydrate = 0;
+  var bootDone = false;
+  var MIN_INTERVAL_MS = 2500; // não repetir antes disto (exceto force)
 
   function getSB() {
     return window.tchiloSupabase || window.SB || null;
@@ -105,7 +109,9 @@
   async function hydrateFeed() {
     try {
       if (typeof loadPublicFeedFromSupabase === 'function') {
-        await loadPublicFeedFromSupabase(true);
+        // force=false se já carregámos uma vez — evita reprocessar
+        var force = !window.__publicFeedLoaded;
+        await loadPublicFeedFromSupabase(force);
         return true;
       }
     } catch (e) {
@@ -152,6 +158,7 @@
       try {
         if (typeof renderFeed === 'function') renderFeed();
       } catch (e) {}
+      window.__publicFeedLoaded = true;
       return true;
     } catch (e) {
       console.warn('Tchilo hydrate feed fallback', e);
@@ -180,9 +187,7 @@
         if (!row || !row.username || !row.avatar_url) return;
         setCacheAvatar(row.username, row.avatar_url);
       });
-      try {
-        if (typeof renderFeed === 'function') renderFeed();
-      } catch (e) {}
+      // NÃO chamar renderFeed aqui — evita reprocessamento visual
     } catch (e) {
       console.warn('Tchilo hydrate avatars', e);
     }
@@ -191,7 +196,10 @@
   async function hydrateAll(reason) {
     if (hydrating) return;
     var now = Date.now();
-    if (now - lastHydrate < 800 && reason !== 'force') return;
+    var isForce = reason === 'force';
+    if (!isForce && now - lastHydrate < MIN_INTERVAL_MS) return;
+    if (!isForce && bootDone && (reason === 'boot' || reason === 'boot2')) return;
+
     hydrating = true;
     lastHydrate = now;
     try {
@@ -204,12 +212,17 @@
       await hydrateFeed();
       await hydrateAvatarsFromPosts();
 
+      // Só um render no final
       try {
         if (typeof renderFeed === 'function') renderFeed();
       } catch (e) {}
       try {
         if (typeof renderProfile === 'function') renderProfile();
       } catch (e) {}
+
+      if (reason === 'boot' || reason === 'boot2' || reason === 'login') {
+        bootDone = true;
+      }
     } finally {
       hydrating = false;
     }
@@ -220,12 +233,10 @@
       var orig = window.hideLoginGate;
       window.hideLoginGate = function () {
         var r = orig.apply(this, arguments);
+        // Uma só hidratação após login
         setTimeout(function () {
           hydrateAll('login');
-        }, 150);
-        setTimeout(function () {
-          hydrateAll('login-retry');
-        }, 1000);
+        }, 300);
         return r;
       };
       window.hideLoginGate.__hydrate = true;
@@ -237,7 +248,7 @@
         var r = await origS.apply(this, arguments);
         setTimeout(function () {
           hydrateAll('sync');
-        }, 200);
+        }, 400);
         return r;
       };
       window.tchiloSyncAuthSession.__hydrate = true;
@@ -247,10 +258,11 @@
       var origG = window.goTo;
       window.goTo = function (name) {
         var r = origG.apply(this, arguments);
-        if (name === 'feed' || name === 'profile') {
+        // Só se ainda não hidratámos no boot
+        if ((name === 'feed' || name === 'profile') && !bootDone) {
           setTimeout(function () {
             hydrateAll(name);
-          }, 80);
+          }, 120);
         }
         return r;
       };
@@ -260,13 +272,11 @@
 
   function boot() {
     patchLogin();
+    // Uma única hidratação no arranque (não 2–3)
     setTimeout(function () {
       patchLogin();
       hydrateAll('boot');
-    }, 100);
-    setTimeout(function () {
-      hydrateAll('boot2');
-    }, 1200);
+    }, 200);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

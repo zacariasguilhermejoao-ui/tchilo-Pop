@@ -1,11 +1,15 @@
 /*
  * Fix nomes no feed sem re-render completo (evita piscar / flash verde).
+ * v2: só uma resolução após cloud, guard mais forte.
  */
 (function () {
   'use strict';
+  if (window.__tchiloFeedNamesV2) return;
+  window.__tchiloFeedNamesV2 = true;
 
   var resolving = false;
   var ranOnce = false;
+  var lastResolve = 0;
 
   function isPlaceholderName(name) {
     if (!name) return true;
@@ -58,10 +62,7 @@
       if (capB && capB.textContent !== name) capB.textContent = name;
       var span = el.querySelector('.post-user .who span');
       if (span && p.username && !isPlaceholderName(p.username)) {
-        var timePart = span.textContent.replace(/^@[^·]*/, '').replace(/^\s*·?\s*/, '');
-        var next = '@' + p.username + (timePart ? ' · ' + timePart.replace(/^·\s*/, '') : '');
-        // simplify: only replace @user part
-        next = span.textContent.replace(/^@\S+/, '@' + p.username);
+        var next = span.textContent.replace(/^@\S+/, '@' + p.username);
         if (span.textContent !== next) span.textContent = next;
       }
     });
@@ -69,9 +70,12 @@
 
   async function resolveAllFeedNames() {
     if (resolving) return;
+    var now = Date.now();
+    if (ranOnce && now - lastResolve < 3000) return; // não repetir em 3s
     var SB = window.tchiloSupabase || window.SB || null;
     if (!SB) return;
     resolving = true;
+    lastResolve = now;
     try {
       var posts = [];
       try {
@@ -173,8 +177,8 @@
       var orig = window.loadPublicFeedFromSupabase;
       window.loadPublicFeedFromSupabase = async function (force) {
         var result = await orig.apply(this, arguments);
-        // Uma só resolução após o cloud (antes eram 2 → 2 re-renders)
-        setTimeout(resolveAllFeedNames, 500);
+        // Uma só resolução após o cloud
+        setTimeout(resolveAllFeedNames, 600);
         return result;
       };
       window.loadPublicFeedFromSupabase.__namesHooked = true;
@@ -183,8 +187,8 @@
 
   function boot() {
     hookFeedLoader();
-    setTimeout(resolveAllFeedNames, 1200);
-    setTimeout(hookFeedLoader, 1000);
+    setTimeout(resolveAllFeedNames, 1800);
+    setTimeout(hookFeedLoader, 1500);
   }
 
   if (document.readyState === 'loading') {

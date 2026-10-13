@@ -20,7 +20,7 @@
       '/* esconder bloco cores */',
       '#avatarColors, #screen-editprofile .avatar-colors { display: none !important; }',
       '#screen-editprofile label { }',
-      /* avatar preview limpo, sem anel grosso */',
+      '/* avatar preview limpo, sem anel grosso */',
       '#editAvatarPreview, .edit-avatar-preview {',
       '  width: 96px !important; height: 96px !important;',
       '  border-radius: 50% !important;',
@@ -31,7 +31,7 @@
       '  background: #f2f2f4 !important;',
       '}',
       '#editAvatarPreview img { width: 100%; height: 100%; object-fit: cover; display: block; }',
-      /* botões foto modernos (sem dashed grosso) */',
+      '/* botões foto modernos (sem dashed grosso) */',
       '#screen-editprofile .gallery-btn {',
       '  border: 1px solid rgba(11,11,12,.12) !important;',
       '  border-style: solid !important;',
@@ -75,7 +75,7 @@
       '  border-radius: 14px !important;',
       '  border: none !important;',
       '}',
-      /* ecrã segurança */',
+      '/* ecrã segurança */',
       '#screen-settings-security .sec-card {',
       '  margin: 16px;',
       '  padding: 0;',
@@ -107,7 +107,6 @@
     var form = $('editProfileForm');
     if (!form) return;
 
-    /* cores do avatar */
     var colors = $('avatarColors');
     if (colors) {
       colors.style.display = 'none';
@@ -131,7 +130,6 @@
       }
     });
 
-    /* botão confirmação email */
     form.querySelectorAll('button').forEach(function (btn) {
       var t = (btn.textContent || '').trim();
       if (/confirmação de email|confirm.*email|Enviar confirmação/i.test(t)) {
@@ -139,7 +137,6 @@
       }
     });
 
-    /* modernizar gallery-btn (já via CSS) */
     form.querySelectorAll('.gallery-btn').forEach(function (b) {
       b.style.borderStyle = 'solid';
       b.style.borderWidth = '1px';
@@ -224,7 +221,6 @@
       if (typeof showToast === 'function') showToast((e && e.message) || 'Não foi possível alterar');
       return;
     }
-    /* fallback local antigo */
     if (typeof openChangePassword === 'function' && openChangePassword._tchiloOriginal) {
       return openChangePassword._tchiloOriginal();
     }
@@ -279,11 +275,6 @@
     window.openChangePassword._tchiloSec = true;
   }
 
-  /* permitir goTo settings-security */
-  function patchGoToAllow() {
-    /* a app usa mapa de ecrãs; injetamos o ecrã no DOM — goTo costuma aceitar qualquer id screen-X */
-  }
-
   function boot() {
     injectStyles();
     hideEditProfileExtras();
@@ -295,7 +286,6 @@
     });
     if (document.body) obs.observe(document.body, { childList: true, subtree: true });
 
-    /* quando abre editar perfil */
     var origLoad = window.loadEditProfileForm;
     if (typeof origLoad === 'function' && !origLoad._tchiloMod) {
       window.loadEditProfileForm = function () {

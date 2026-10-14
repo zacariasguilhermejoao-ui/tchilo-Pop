@@ -1,8 +1,30 @@
-/** tchilo-Pop loaders v100 — navbar 0.5px + megafone */
+/** tchilo-Pop loaders — no login: NÃO carregar scripts pesados (telemóvel não cola) */
 (function () {
   'use strict';
-  if (window.__TCHILO_FEED_STABLE_V100) return;
-  window.__TCHILO_FEED_STABLE_V100 = true;
+  if (window.__TCHILO_FEED_STABLE_V101) return;
+  window.__TCHILO_FEED_STABLE_V101 = true;
+
+  function hasSession() {
+    try {
+      var s = JSON.parse(localStorage.getItem('tchilo_session') || 'null');
+      return !!(s && (s.id || s.username || s.email));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function loginGateOpen() {
+    try {
+      var g = document.getElementById('loginGate');
+      if (!g) return !hasSession();
+      var st = window.getComputedStyle(g);
+      if (st.display === 'none' || st.visibility === 'hidden') return false;
+      if (g.classList.contains('hidden')) return false;
+      return true;
+    } catch (e) {
+      return !hasSession();
+    }
+  }
 
   function add(src, sync) {
     try {
@@ -29,31 +51,20 @@
   }
 
   function loadCritical() {
-    add('native/tchilo-login-gate-fix.js?v=2', true);
-    add('native/tchilo-perf-throttle.js?v=1', true);
-    add('native/tchilo-perf-boost.js?v=1', true);
-    add('native/tchilo-click-sounds.js?v=1', true);
-    add('native/tchilo-final-css.js?v=4', true);
-    add('native/tchilo-borders-thin.js?v=2', true);
-    add('native/tchilo-modal-ui.js?v=2', true);
-    add('native/tchilo-store-policy.js?v=3', true);
-    add('native/tchilo-nav-icons-lock.js?v=1', true);
-    add('native/tchilo-logo-restore.js?v=10', true);
-    add('native/tchilo-feed-lock.js?v=4', true);
-    add('native/feed-noflicker.js?v=5', true);
-    add('native/tchilo-ui-stable.js?v=2', true);
-    add('native/tchilo-nav-size-fix.js?v=4', true);
-    add('native/tchilo-sheet-swipe.js?v=2', true);
-    add('native/tchilo-ptr-fix.js?v=1', true);
-    add('native/topbar-border-thin.js?v=5', true);
-    /* último: força 0.5px na linha da navbar */
-    add('native/tchilo-navbar-hairline.js?v=1', true);
-    add('native/tchilo-ui-unlock.js?v=3', true);
-    add('native/tchilo-login-session-fix.js?v=9', true);
-    add('native/tchilo-hide-nav.js?v=4');
+    add('native/tchilo-perf-throttle.js?v=1');
+    add('native/tchilo-perf-boost.js?v=1');
+    add('native/tchilo-final-css.js?v=4');
+    add('native/tchilo-ui-unlock.js?v=3');
     add('native/tchilo-router.js?v=5');
     add('native/tchilo-header-ui.js?v=5');
     add('native/tchilo-session-lock.js?v=1');
+    add('native/tchilo-hide-nav.js?v=4');
+    add('native/tchilo-feed-lock.js?v=4');
+    add('native/feed-noflicker.js?v=5');
+    add('native/tchilo-ui-stable.js?v=2');
+    add('native/tchilo-nav-size-fix.js?v=4');
+    add('native/tchilo-navbar-hairline.js?v=1');
+    add('native/topbar-border-thin.js?v=5');
   }
 
   function loadFeedLayer() {
@@ -134,22 +145,47 @@
   function whenIdle(fn, fallbackMs) {
     try {
       if (typeof requestIdleCallback === 'function') {
-        requestIdleCallback(function () {
-          fn();
-        }, { timeout: fallbackMs || 2500 });
+        requestIdleCallback(function () { fn(); }, { timeout: fallbackMs || 2500 });
         return;
       }
     } catch (e) {}
     setTimeout(fn, fallbackMs || 1200);
   }
 
-  function load() {
+  var started = false;
+  function loadApp() {
+    if (started) return;
+    started = true;
     loadCritical();
-    setTimeout(loadFeedLayer, 180);
+    setTimeout(loadFeedLayer, 200);
     whenIdle(loadSecondary, 1500);
     whenIdle(loadAds, 3500);
+    console.log('[Tchilo] feed-stable: scripts da app após login');
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load);
-  else load();
+  function tryStart() {
+    if (hasSession() && !loginGateOpen()) {
+      loadApp();
+      return true;
+    }
+    return false;
+  }
+
+  // No ecrã de login: não carregar nada daqui (index + legal-navbar bastam)
+  if (!tryStart()) {
+    console.log('[Tchilo] feed-stable: à espera do login (sem scripts pesados)');
+    var t = setInterval(function () {
+      if (tryStart()) clearInterval(t);
+    }, 400);
+    setTimeout(function () {
+      clearInterval(t);
+      if (!started && hasSession()) loadApp();
+    }, 120000);
+    try {
+      var obs = new MutationObserver(function () {
+        if (tryStart()) obs.disconnect();
+      });
+      if (document.body) obs.observe(document.body, { attributes: true, childList: true, subtree: true });
+    } catch (e) {}
+  }
 })();

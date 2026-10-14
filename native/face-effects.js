@@ -1,10 +1,18 @@
 /**
- * tchilo-Pop — câmara legada desativada (usa camera-tiktok)
- * Sem efeitos faciais.
- * perf: sem setInterval
+ * tchilo-Pop — no login não injeta scripts extra (telemóvel não cola)
  */
 (function () {
   'use strict';
+
+  function hasSession() {
+    try {
+      var s = JSON.parse(localStorage.getItem('tchilo_session') || 'null');
+      return !!(s && (s.id || s.username || s.email));
+    } catch (e) {
+      return false;
+    }
+  }
+
   function hideLegacy() {
     var el = document.getElementById('tchiloFaceFx');
     if (el) {
@@ -12,87 +20,44 @@
       el.classList.remove('open');
     }
   }
+
   window.openFaceEffects = function () {
     if (typeof window.tchiloOpenCamera === 'function') window.tchiloOpenCamera();
   };
   window.closeFaceEffects = function () {
     if (typeof window.tchiloCloseCamera === 'function') window.tchiloCloseCamera();
   };
+
+  function inject(src, attr) {
+    try {
+      if (document.querySelector('script[' + attr + ']')) return;
+      var s = document.createElement('script');
+      s.src = src;
+      s.setAttribute(attr, '1');
+      (document.head || document.documentElement).appendChild(s);
+    } catch (e) {}
+  }
+
+  function loadExtras() {
+    if (window.__tchiloFaceFxExtras) return;
+    window.__tchiloFaceFxExtras = true;
+    inject('native/tchilo-feed-icon.js?v=2', 'data-tchilo-feed-icon');
+    inject('native/tchilo-touch-lock.js?v=1', 'data-tchilo-touch-lock');
+    inject('native/tchilo-auto-lang.js?v=1', 'data-tchilo-auto-lang');
+    inject('native/tchilo-live.js?v=3', 'data-tchilo-live');
+    inject('native/tchilo-call.js?v=2', 'data-tchilo-call');
+    inject('native/tchilo-chat-ux.js?v=2', 'data-tchilo-chat-ux');
+  }
+
   function boot() {
     hideLegacy();
+    if (hasSession()) loadExtras();
   }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
-  setTimeout(boot, 500);
-  setTimeout(boot, 2000);
-})();
-
-/* Ícone custom do Feed */
-;(function () {
-  try {
-    if (document.querySelector('script[data-tchilo-feed-icon]')) return;
-    var s = document.createElement('script');
-    s.src = 'native/tchilo-feed-icon.js?v=2';
-    s.setAttribute('data-tchilo-feed-icon', '1');
-    (document.head || document.documentElement).appendChild(s);
-  } catch (e) {}
-})();
-
-/* Bloquear seleção / zoom indesejados */
-;(function () {
-  try {
-    if (document.querySelector('script[data-tchilo-touch-lock]')) return;
-    var s = document.createElement('script');
-    s.src = 'native/tchilo-touch-lock.js?v=1';
-    s.setAttribute('data-tchilo-touch-lock', '1');
-    (document.head || document.documentElement).appendChild(s);
-  } catch (e) {}
-})();
-
-/* Idioma automático do telefone */
-;(function () {
-  try {
-    if (document.querySelector('script[data-tchilo-auto-lang]')) return;
-    var s = document.createElement('script');
-    s.src = 'native/tchilo-auto-lang.js?v=1';
-    s.setAttribute('data-tchilo-auto-lang', '1');
-    s.defer = true;
-    (document.head || document.documentElement).appendChild(s);
-  } catch (e) {}
-})();
-
-/* Live (Realtime SFU) */
-;(function () {
-  try {
-    if (document.querySelector('script[data-tchilo-live]')) return;
-    var s = document.createElement('script');
-    s.src = 'native/tchilo-live.js?v=3';
-    s.setAttribute('data-tchilo-live', '1');
-    s.defer = true;
-    (document.head || document.documentElement).appendChild(s);
-  } catch (e) {}
-})();
-
-/* Calls 1-1 no chat */
-;(function () {
-  try {
-    if (document.querySelector('script[data-tchilo-call]')) return;
-    var s = document.createElement('script');
-    s.src = 'native/tchilo-call.js?v=2';
-    s.setAttribute('data-tchilo-call', '1');
-    s.defer = true;
-    (document.head || document.documentElement).appendChild(s);
-  } catch (e) {}
-})();
-
-/* Chat UX: mic/send, GIF, figurinhas, + */
-;(function () {
-  try {
-    if (document.querySelector('script[data-tchilo-chat-ux]')) return;
-    var s = document.createElement('script');
-    s.src = 'native/tchilo-chat-ux.js?v=2';
-    s.setAttribute('data-tchilo-chat-ux', '1');
-    s.defer = true;
-    (document.head || document.documentElement).appendChild(s);
-  } catch (e) {}
+  setTimeout(boot, 800);
+  setInterval(function () {
+    if (hasSession()) loadExtras();
+  }, 2000);
 })();

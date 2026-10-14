@@ -1,7 +1,8 @@
-/** Light paper theme for create flow, story compose, login — black icons */
+/** Light paper theme for create flow e story — SEM alterar login Entrar/Criar conta do index */
 (function () {
   'use strict';
-  if (window.__TCHILO_LIGHT_CREATE_V2) return;
+  if (window.__TCHILO_LIGHT_CREATE_V3) return;
+  window.__TCHILO_LIGHT_CREATE_V3 = true;
   window.__TCHILO_LIGHT_CREATE_V2 = true;
   window.__TCHILO_LIGHT_CREATE_V1 = true;
 
@@ -9,7 +10,6 @@
   var INK = 'var(--ink,#0B0B0C)';
 
   var css =
-    /* ===== CREATE / MEDIA PICKER ===== */
     '#tchiloMediaPicker{background:' + PAPER + '!important;color:' + INK + '!important}' +
     '#tchiloMediaPicker .mp-top{background:' + PAPER + '!important;color:' + INK + '!important}' +
     '#tchiloMediaPicker .mp-icon-btn{background:transparent!important;color:' + INK + '!important;border:0!important;box-shadow:none!important}' +
@@ -45,22 +45,6 @@
     '#tchiloMediaPicker .mp-pct{color:' + INK + '!important}' +
     '#tchiloMediaPicker .mp-pub-label{color:rgba(11,11,12,.55)!important}' +
     '#tchiloMediaPicker #mpMusicChip{background:rgba(11,11,12,.06)!important;color:' + INK + '!important}' +
-
-    /* ===== LOGIN / SIGNUP — paper theme, black icons (do not restyle .login-button layout) ===== */
-    '.login-gate{background:' + PAPER + '!important;color:' + INK + '!important}' +
-    '.login-gate .login-welcome,.login-gate .login-scroll{color:' + INK + '!important}' +
-    '.login-gate .login-panel,.login-gate .signup-panel-wide{background:' + PAPER + '!important;color:' + INK + '!important;border:0!important;box-shadow:none!important}' +
-    '.login-gate .login-panel h2,.login-gate .signup-panel-wide h2{color:' + INK + '!important}' +
-    '.login-gate .login-input,.login-gate select.login-input{' +
-    'background:#fff!important;color:' + INK + '!important;border:1px solid rgba(11,11,12,.12)!important;box-shadow:none!important}' +
-    '.login-gate .login-input::placeholder{color:rgba(11,11,12,.4)!important}' +
-    '.login-gate .login-back,.login-gate .login-forgot{color:' + INK + '!important}' +
-    '.login-gate .signup-kicker,.login-gate label{color:rgba(11,11,12,.55)!important}' +
-    '.login-gate .signup-progress span{background:rgba(11,11,12,.1)!important}' +
-    '.login-gate .signup-progress span.active{background:' + INK + '!important}' +
-    '.login-gate svg,.login-gate .login-logo-img{color:' + INK + '!important}' +
-
-    /* ===== generic white-on-white fix for create screens ===== */
     '#screen-create{background:' + PAPER + '!important;color:' + INK + '!important}' +
     '#screen-create .screen-header{background:' + PAPER + '!important;color:' + INK + '!important}' +
     '#screen-create .back-btn{color:' + INK + '!important;background:transparent!important;border:0!important;box-shadow:none!important}' +

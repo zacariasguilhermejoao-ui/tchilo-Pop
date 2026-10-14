@@ -58,6 +58,7 @@
     add('native/tchilo-router.js?v=5');
     add('native/tchilo-header-ui.js?v=5');
     add('native/tchilo-session-lock.js?v=1');
+    add('native/tchilo-account-switcher.js?v=1');
     add('native/tchilo-hide-nav.js?v=4');
     add('native/tchilo-feed-lock.js?v=4');
     add('native/feed-noflicker.js?v=5');

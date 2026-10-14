@@ -1,5 +1,5 @@
 /**
- * Tchilo — traços finos (1px) + ícones pretos
+ * Tchilo — traços finos (1px)
  * Topbar: sem caixas à volta dos ícones.
  */
 (function () {
@@ -45,13 +45,7 @@
     '  border-top-width: 1px !important;',
     '  border-bottom-width: 1px !important;',
     '}',
-    '.icon-btn svg, .icon-btn svg * {',
-    '  stroke: var(--ink, #0B0B0C) !important;',
-    '  fill: none !important;',
-    '}',
-    '.icon-btn svg [fill]:not([fill="none"]) {',
-    '  fill: var(--ink, #0B0B0C) !important;',
-    '}',
+    /* ícones: o desenho (fill/stroke) vem do index.html — este script não o altera */
     '.bottom-nav svg, .bottom-nav svg *, .tabbar svg, .tabbar svg * {',
     '  stroke: var(--ink, #0B0B0C) !important;',
     '  color: var(--ink, #0B0B0C) !important;',

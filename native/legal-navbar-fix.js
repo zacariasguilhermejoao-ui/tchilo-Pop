@@ -1,3 +1,5 @@
+/* carrega login-responsive o mais cedo possível */
+(function(){try{if(!document.querySelector('script[data-tchilo-login-responsive]')){var s=document.createElement('script');s.src='native/tchilo-login-responsive.js?v=1';s.setAttribute('data-tchilo-login-responsive','1');(document.head||document.documentElement).appendChild(s);}}catch(e){}})();
 /* LOGIN + STABILITY v15 — sem storm de bootApp apos login */
 (function () {
   'use strict';
@@ -99,9 +101,7 @@
       if (typeof bootApp === 'function') bootApp();
     } catch (e) {}
     try {
-      if (typeof goTo === 'function') {
-        var orig = window.goTo._orig || window.goTo;
-        /* chamar original se existir para evitar loops de router */
+      if (typeof window.goTo === 'function') {
         if (window.goTo._orig) window.goTo._orig.call(window, 'feed');
         else goTo('feed');
       }
@@ -109,7 +109,6 @@
     try {
       if (typeof renderFeed === 'function') renderFeed();
     } catch (e3) {}
-    /* Uma unica limpeza extra — sem storm */
     setTimeout(restoreChrome, 300);
   }
 
@@ -310,7 +309,6 @@
     };
   }
 
-  /* Clique nos icones — sem preventDefault agressivo se onclick existe */
   function onNav(e) {
     try {
       var t = e.target;
@@ -321,7 +319,6 @@
       var screen = btn.getAttribute('data-screen');
       var oc = btn.getAttribute('onclick') || '';
       if (!screen && !oc) return;
-      /* Se ja tem onclick, so garante chrome; deixa o handler nativo */
       if (oc) return;
       if (screen && typeof window.goTo === 'function') {
         e.preventDefault();

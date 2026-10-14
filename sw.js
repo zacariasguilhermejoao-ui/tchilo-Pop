@@ -1,6 +1,6 @@
 /* Tchilo Service Worker — offline shell + media cache + push + share target */
 /* eslint-disable no-restricted-globals */
-var SW_VERSION = 'tchilo-sw-v5';
+var SW_VERSION = 'tchilo-sw-v6';
 var SHELL_CACHE = SW_VERSION + '-shell';
 var MEDIA_CACHE = 'tchilo-media-v1';
 var RUNTIME_CACHE = SW_VERSION + '-runtime';

@@ -246,7 +246,7 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
     max-width:43%;
     height:196px;
     border-radius:12px;
-    border:1px solid var(--ink);
+    border:0.5px solid var(--ink);
     overflow:hidden;
     cursor:pointer;
     touch-action:pan-x pan-y;
@@ -495,6 +495,31 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   .post-media.m10:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#B9A7FF !important; color:var(--ink); animation:none !important; }
   .post-media.m11:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#17171A !important; color:var(--paper); animation:none !important; }
   .post-media.m12:not(.has-real-media):not(:has(img)):not(:has(video)){ background:#D8C3A5 !important; color:var(--ink); animation:none !important; }
+
+  /* ===== SKELETON (cinzento) — feed e perfil ===== */
+  .tk-skel,.tk-skel-line,.tk-skel-circle,.tk-skel-block{
+    background:linear-gradient(90deg,#e4e4e4 0%,#f0f0f0 50%,#e4e4e4 100%);
+    background-size:200% 100%;
+    animation:tchiloSkel 1.15s ease-in-out infinite;
+  }
+  .tk-skel-line{height:10px;border-radius:6px}
+  .tk-skel-circle{border-radius:50%}
+  .tk-skel-block{border-radius:12px}
+  .feed-skel-actions{display:flex;gap:16px;padding:12px 0 8px}
+  .feed-skel-actions i{display:block;width:26px;height:26px;border-radius:50%}
+  .feed-skel-actions i,.feed-skel-cap{background:linear-gradient(90deg,#e4e4e4 0%,#f0f0f0 50%,#e4e4e4 100%);background-size:200% 100%;animation:tchiloSkel 1.15s ease-in-out infinite}
+  .feed-skel-cap{height:10px;border-radius:6px;margin-top:6px}
+  .feed-skel-media{border-radius:12px}
+  .prof-skel{display:flex;flex-direction:column;align-items:center;padding-top:8px}
+  .prof-skel .tk-skel-circle{width:90px;height:90px}
+  .prof-skel-stats{display:flex;justify-content:space-around;width:100%;margin-top:22px}
+  .prof-skel-stat{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .profile-grid-item.tk-skel{border-radius:0;background:linear-gradient(90deg,#e4e4e4 0%,#f0f0f0 50%,#e4e4e4 100%);background-size:200% 100%;animation:tchiloSkel 1.15s ease-in-out infinite}
+  .profile-grid-item:has(img),.profile-grid-item:has(video){
+    background:linear-gradient(90deg,#e4e4e4 0%,#f0f0f0 50%,#e4e4e4 100%);
+    background-size:200% 100%;animation:tchiloSkel 1.15s ease-in-out infinite;
+  }
+  .tk-skel-num{display:inline-block;width:28px;height:18px;border-radius:6px;vertical-align:middle}
   .feed-skeleton{padding:0 0 24px}
   .feed-skel-card{border-bottom:none;padding:14px 18px 16px}
   .feed-skel-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
@@ -2476,6 +2501,17 @@ body .post-actions .act.liked svg.ic-like .ic-like-sep{ display:block; }
 /* Guardar ativo: preenchido */
 body .post-actions .act.saved.active svg.ic-save{ fill:var(--ink); stroke:var(--ink); }
 </style>
+<style id="tchilo-story-create-card-css">
+/* Cartão "Seu Story": foto de perfil (ou avatar) + botão + preto + legenda */
+html body .story-card.story-card-create{display:block!important;padding:0!important;position:relative;background:var(--paper,#fff)!important;}
+html body .story-card-create .story-create-top{position:absolute;left:0;right:0;top:0;height:70%;background:#eceef1;overflow:hidden;}
+html body .story-card-create .story-create-photo{width:100%;height:100%;object-fit:cover;display:block;}
+html body .story-card-create .story-create-avatar{display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+html body .story-card-create .story-create-avatar svg{width:58%;height:auto;max-height:90%;display:block;}
+html body .story-card-create .story-card-plus{position:absolute;left:50%;top:70%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%!important;display:flex;align-items:center;justify-content:center;background:#0B0B0C!important;color:#fff!important;border:3px solid var(--paper,#fff)!important;box-sizing:content-box;z-index:2;}
+html body .story-card-create .story-card-plus svg{width:20px;height:20px;display:block;}
+html body .story-card-create .story-create-label{position:absolute;left:0;right:0;bottom:0;height:30%;display:flex;align-items:flex-end;justify-content:center;padding:0 6px 11px;box-sizing:border-box;font-size:12px;font-weight:800;color:var(--ink,#0B0B0C);text-align:center;white-space:nowrap;}
+</style>
 </head>
 <body>
 <script id="tchilo-click-fix-js-v1">
@@ -2505,7 +2541,7 @@ body .post-actions .act.saved.active svg.ic-save{ fill:var(--ink); stroke:var(--
         sv.style.setProperty('z-index','-1','important');
       }
       var nav=document.querySelector('.navbar');
-      if(nav){
+      if(nav && !document.body.classList.contains('tchilo-nav-off')){
         nav.style.setProperty('display','flex','important');
         nav.style.setProperty('pointer-events','auto','important');
         nav.style.setProperty('opacity','1','important');
@@ -2648,7 +2684,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       </div>
     </div>
     <div class="login-panel" id="accessPanel">
-      <h2>Entrar</h2>
       <p class="auth-sub"><span class="auth-sub-s">Bem-vindo de volta</span><span class="auth-sub-l">Entra para continuar</span></p>
       <form class="login-form" onsubmit="tchiloLogin(event)">
           <input class="login-input" id="loginIdentifier" type="email" aria-label="E-mail" placeholder="Escreve o teu e-mail" autocomplete="email" inputmode="email">
@@ -2773,10 +2808,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     <input type="file" id="storyMediaInput" accept="image/*,video/*" style="display:none" onchange="onStoryMediaPicked(event)">
     <div class="stories" id="storiesBar">
       <div class="story-card story-card-create" onclick="openStoryCreateSheet()">
-        <div class="story-card-create-inner">
-          <div class="story-card-plus" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
-          <span>Criar story</span>
-        </div>
+        <div class="story-create-top"></div>
+        <div class="story-card-plus" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg></div>
+        <span class="story-create-label">Seu Story</span>
       </div>
     </div>
     <div id="feedPosts"></div>
@@ -2995,7 +3029,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       {sel:'.navbar .nav-item[data-screen="feed"]',type:'wrap'},
       {sel:'.navbar .nav-item[data-screen="reels"]',type:'wrap'},
       {sel:'.navbar .nav-item[data-screen="notifs"]',type:'wrap'},
-      {sel:'.topbar [data-top-messages]',type:'wrap'}
+      {sel:'.topbar [data-top-messages]',type:'wrap'},
+      {sel:'.topbar [data-index-live]',type:'wrap'}
     ];
     var locks=[],restores=0,t0=Date.now(),off=false;
     targets.forEach(function(t){
@@ -3044,6 +3079,172 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       });
     }
     observe();
+  })();
+  </script>
+
+  <style id="tchilo-icon-owner-css">
+    /* Só o desenho que está no index: sem pseudo-elementos nem imagens de fundo por cima */
+    .topbar [data-index-live]::before,.topbar [data-index-live]::after,
+    .topbar [data-top-messages]::before,.topbar [data-top-messages]::after{content:none!important;display:none!important;}
+    .topbar [data-index-live],.topbar [data-top-messages]{background-image:none!important;}
+    .tchilo-icon-intruder{display:none!important;visibility:hidden!important;pointer-events:none!important;width:0!important;height:0!important;}
+  </style>
+  <script id="tchilo-icon-owner-js">
+  /* Os ícones de live/story e de mensagens do topo são os do index. Scripts de native/ podem
+     continuar a ligar o clique, mas qualquer ícone novo no topo (live, story, mensagens) que
+     não seja o original é removido, e se o original for retirado, é reposto. */
+  (function(){
+    var bar=document.querySelector('.topbar'); if(!bar||!window.MutationObserver) return;
+    var originals=[];
+    ['[data-index-live]','[data-friend-suggest]','.topbar-icons [data-top-messages]'].forEach(function(sel){
+      var el=bar.querySelector(sel.replace('.topbar-icons ','')) ; if(!el) return;
+      originals.push({el:el,parent:el.parentNode,next:el.nextSibling});
+    });
+    var RX=/live|stor(y|ies)|mensag|message|sms|\bmsg\b|chat|direct|inbox/i;
+    function isOriginal(n){ return originals.some(function(o){ return o.el===n||o.el.contains(n); }); }
+    function ident(n){
+      try{ return (n.className&&n.className.baseVal!==undefined?n.className.baseVal:n.className)+' '+(n.id||'')+' '+(n.getAttribute('aria-label')||'')+' '+(n.getAttribute('title')||'')+' '+(n.getAttribute('onclick')||'')+' '+(n.getAttribute('src')||'')+' '+Object.keys(n.dataset||{}).join(' '); }catch(e){ return ''; }
+    }
+    var mo, restores=0, t0=Date.now();
+    function fix(){
+      mo.disconnect();
+      try{
+        originals.forEach(function(o){
+          if(!o.el.isConnected){
+            var par=o.parent&&o.parent.isConnected?o.parent:bar;
+            var nx=o.next&&o.next.parentNode===par?o.next:null;
+            par.insertBefore(o.el,nx);
+            restores++;
+          }
+        });
+        bar.querySelectorAll('*').forEach(function(n){
+          if(n.classList.contains('tchilo-icon-intruder')||isOriginal(n)) return;
+          var holder=n.closest('.icon-btn,button,a,[role="button"],img,svg')||n;
+          if(isOriginal(holder)) return;
+          var isIcon=/^(img|svg|canvas)$/i.test(n.tagName)||n.querySelector&&n.querySelector('svg,img,canvas');
+          if(!isIcon) return;
+          if(holder.hasAttribute('data-friend-suggest')||/Pesquisar|goTo\('search'\)/.test(ident(holder))) return;
+          if(RX.test(ident(holder))||RX.test(ident(n))){ holder.classList.add('tchilo-icon-intruder'); restores++; }
+        });
+      }catch(e){}
+      if(Date.now()-t0>3000){ t0=Date.now(); restores=0; }
+      if(restores<60) mo.observe(bar.parentNode||bar,{childList:true,subtree:true});
+    }
+    mo=new MutationObserver(function(){ fix(); });
+    mo.observe(bar.parentNode||bar,{childList:true,subtree:true});
+    window.addEventListener('load',function(){ setTimeout(fix,300); setTimeout(fix,1500); setTimeout(fix,4000); });
+  })();
+  </script>
+
+  <style id="tchilo-nav-visibility-css">
+    /* Barra feed/reels/notificações/perfil: escondida em subpáginas das definições e sem sessão */
+    html body.tchilo-nav-off .navbar,
+    html body.tchilo-nav-off .navbar *{display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;}
+  </style>
+  <script id="tchilo-nav-visibility-js">
+  (function(){
+    var SUB=/^screen-(settings-.+|about|terms|privacy|child|community)$/;
+    var raf=0;
+    function hasSession(){
+      try{ var o=JSON.parse(localStorage.getItem('tchilo_session')||'null'); return !!(o&&(o.id||o.username||o.email)); }catch(e){ return false; }
+    }
+    function gateVisible(){
+      var g=document.getElementById('loginGate'); if(!g||g.classList.contains('hidden')) return false;
+      var cs=window.getComputedStyle(g); return cs.display!=='none'&&cs.visibility!=='hidden';
+    }
+    function subActive(){
+      var a=document.querySelector('.screen.active'); return !!(a&&SUB.test(a.id||''));
+    }
+    function sync(){
+      raf=0;
+      try{
+        var b=document.body, nav=document.querySelector('.navbar'); if(!b) return;
+        var off=!hasSession()||gateVisible()||!!window.__tchiloLoggingOut||subActive();
+        if(b.classList.contains('tchilo-nav-off')!==off) b.classList.toggle('tchilo-nav-off',off);
+        if(nav){
+          var inl=nav.style.getPropertyValue('display');
+          if(off){ if(inl!=='none') nav.style.setProperty('display','none','important'); }
+          else if(inl==='none'){ nav.style.removeProperty('display'); }
+        }
+      }catch(e){}
+    }
+    function schedule(){ if(!raf) raf=requestAnimationFrame(sync); }
+    /* Chamada no fim de sessão: remove o estado de sessão que mantinha a barra forçada e o login escondido */
+    window.tchiloEnterLoggedOutState=function(){
+      try{
+        var b=document.body; b.classList.remove('tchilo-session-on'); b.classList.add('tchilo-logged-out');
+        var g=document.getElementById('loginGate');
+        if(g){ ['display','pointer-events','visibility','z-index','opacity'].forEach(function(p){ g.style.removeProperty(p); }); }
+        var nav=document.querySelector('.navbar');
+        if(nav){ ['display','pointer-events','visibility','opacity'].forEach(function(p){ nav.style.removeProperty(p); }); }
+      }catch(e){}
+      sync();
+    };
+    function start(){
+      var mo=new MutationObserver(schedule);
+      mo.observe(document.body,{attributes:true,attributeFilter:['class']});
+      var f=document.getElementById('appFrame'); if(f) mo.observe(f,{attributes:true,attributeFilter:['class'],subtree:true});
+      var g=document.getElementById('loginGate'); if(g) mo.observe(g,{attributes:true,attributeFilter:['class','style']});
+      var n=document.querySelector('.navbar'); if(n) mo.observe(n,{attributes:true,attributeFilter:['style']});
+      window.addEventListener('storage',schedule);
+      window.addEventListener('pageshow',schedule);
+      setInterval(schedule,500);
+      sync();
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+  })();
+  </script>
+
+  <style id="tchilo-reels-swipe-css">
+    #reelsTrack{touch-action:pan-y;}
+    #reelsViewer.tchilo-swipe-out{transition:transform .18s ease,opacity .18s ease;transform:translateX(-28px);opacity:0;}
+  </style>
+  <script id="tchilo-reels-swipe-js">
+  /* Reels: deslizar o dedo para a esquerda abre o perfil de quem publicou o vídeo atual */
+  (function(){
+    var sx=0, sy=0, st=0, tracking=false, busy=false;
+    function currentPost(track){
+      var slides=track.querySelectorAll('.reel-slide'); if(!slides.length) return null;
+      var tr=track.getBoundingClientRect(), mid=tr.top+tr.height/2, best=null, bestD=1e9;
+      slides.forEach(function(sl){
+        var r=sl.getBoundingClientRect(), d=Math.abs((r.top+r.height/2)-mid);
+        if(d<bestD){ bestD=d; best=sl; }
+      });
+      if(!best) return null;
+      var id=best.getAttribute('data-id'), list=[];
+      try{ if(typeof reelsPosts!=='undefined' && Array.isArray(reelsPosts)) list=reelsPosts; }catch(e){}
+      var post=list.find(function(x){ return String(x.id)===String(id); });
+      if(!post){ try{ post=getPosts().find(function(x){ return String(x.id)===String(id); }); }catch(e){} }
+      return post||null;
+    }
+    function openOwner(track){
+      var post=currentPost(track); if(!post||!post.username||busy) return;
+      busy=true;
+      var viewer=document.getElementById('reelsViewer');
+      if(viewer) viewer.classList.add('tchilo-swipe-out');
+      setTimeout(function(){
+        try{ closeReels(); }catch(e){}
+        if(viewer) viewer.classList.remove('tchilo-swipe-out');
+        try{ openUserProfile(post.username); }catch(e){}
+        busy=false;
+      },170);
+    }
+    function init(){
+      var track=document.getElementById('reelsTrack'); if(!track) return;
+      track.addEventListener('touchstart',function(e){
+        if(e.touches.length!==1){ tracking=false; return; }
+        if(e.target.closest&&e.target.closest('.reel-actions,.reel-follow,.reel-more,input,textarea')){ tracking=false; return; }
+        var t=e.touches[0]; sx=t.clientX; sy=t.clientY; st=Date.now(); tracking=true;
+      },{passive:true});
+      track.addEventListener('touchend',function(e){
+        if(!tracking) return; tracking=false;
+        var t=e.changedTouches&&e.changedTouches[0]; if(!t) return;
+        var dx=t.clientX-sx, dy=t.clientY-sy;
+        if(dx<-70 && Math.abs(dx)>Math.abs(dy)*1.6 && Date.now()-st<900) openOwner(track);
+      },{passive:true});
+      track.addEventListener('touchcancel',function(){ tracking=false; },{passive:true});
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
   })();
   </script>
 
@@ -3625,6 +3826,56 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 </div>
 
+<script id="tchilo-friendly-errors">
+(function(){
+  var GENERIC='Não foi possível concluir agora. Tenta novamente dentro de instantes.';
+  var SAFE=/^(Para entrar|Falha de rede ao enviar|Preenche|Tens de|Este |Email|E-mail|Username|A palavra|As palavras|Escolhe|Aguarda|Introduz|Digita|Verifica|Código|Sem ligação|Não foi possível)/i;
+  var TECH=/supabase|postgres|postgrest|\bjwt\b|token|storage|bucket|database|base de dados|banco de dados|row[- ]level|policy|schema|relation|column|constraint|violates|duplicate key|uuid|fetch|network request|load failed|failed to|timeout|timed out|\b[45]\d\d\b|\bapi\b|server|servi[cç]o de autentica|autentica[cç][aã]o indispon|indispon[ií]vel|recarrega a p[aá]gina|undefined|\bnull\b|typeerror|syntaxerror|json|\bsql\b|invalid login|credentials|rate limit|not confirmed|already registered|password should|\bauth\b|edge function|cors/i;
+  function friendly(err,fallback){
+    var m='';
+    try{ m=(err&&(err.message||err.error_description||err.error))||(typeof err==='string'?err:''); }catch(e){}
+    m=String(m||'').trim();
+    var l=m.toLowerCase();
+    var fb=fallback||GENERIC;
+    if(!m) return fb;
+    if(/failed to fetch|load failed|network|networkerror|timeout|timed out|offline|err_internet/.test(l)) return 'Sem ligação. Verifica a internet e tenta novamente.';
+    if(/invalid login|invalid credentials|credenciais/.test(l)) return 'E-mail ou palavra-passe incorretos.';
+    if(/not confirmed|n[aã]o confirmado/.test(l)) return 'Confirma o teu e-mail para entrar.';
+    if(/already registered|already been registered|user already|duplicate key/.test(l)) return 'Este e-mail já está registado.';
+    if(/rate limit|too many|seconds|security purposes/.test(l)) return 'Demasiadas tentativas. Aguarda alguns instantes e tenta de novo.';
+    if(/password.*(weak|short|least|same|different)|weak password/.test(l)) return 'Escolhe uma palavra-passe mais forte.';
+    if(/invalid.*email|email.*invalid|unable to validate email/.test(l)) return 'E-mail inválido.';
+    if(SAFE.test(m) && !TECH.test(m)) return m;
+    return fb;
+  }
+  window.tchiloFriendlyError=friendly;
+
+  /* Rede de segurança: se algum texto técnico chegar a um campo de erro, é substituído. */
+  var SEL='.login-error,[data-err],#loginError,#recoverError,#signupError,.tof-msg,[id$="Error"],[id$="Err"]';
+  var busy=false;
+  function clean(el){
+    try{
+      if(!el||!el.matches||!el.matches(SEL)) return;
+      var t=(el.textContent||'').trim();
+      if(!t||!TECH.test(t)) return;
+      busy=true;
+      el.textContent=friendly({message:t},GENERIC);
+      busy=false;
+    }catch(e){busy=false;}
+  }
+  function start(){
+    if(!document.body||!window.MutationObserver) return;
+    new MutationObserver(function(list){
+      if(busy) return;
+      list.forEach(function(m){
+        var n=m.target&&m.target.nodeType===3?m.target.parentElement:m.target;
+        while(n&&n!==document.body){ if(n.matches&&n.matches(SEL)){clean(n);break;} n=n.parentElement; }
+      });
+    }).observe(document.body,{childList:true,subtree:true,characterData:true});
+  }
+  if(document.body) start(); else document.addEventListener('DOMContentLoaded',start);
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ===== TCHILO / SUPABASE ===== */
@@ -3820,6 +4071,7 @@ function hideLoginGate() {
 function showLoginGate() {
   if(window.__tchiloJustLoggedIn && !window.__tchiloLoggingOut) return;
   try{var ls=JSON.parse(localStorage.getItem('tchilo_session')||'null');if(ls&&(ls.id||ls.username)&&!window.__tchiloLoggingOut){try{document.getElementById('loginGate').classList.add('hidden');document.body.classList.remove('login-locked');document.body.style.overflow='';}catch(e){}return;}}catch(e2){}
+  try{ if(typeof tchiloEnterLoggedOutState==='function') tchiloEnterLoggedOutState(); }catch(eLo){}
   document.getElementById('loginGate').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   document.body.classList.add('login-locked');
@@ -3959,7 +4211,7 @@ async function tchiloLogin(e) {
     await tchiloSupabaseLogin(identifier,password);
   }catch(err){
     console.error(err);
-    error.textContent=err?.message||'Não foi possível iniciar sessão.';
+    error.textContent=tchiloFriendlyError(err,'Não foi possível iniciar sessão. Tenta novamente.');
     tchiloMarkInvalid(identifierEl);
     tchiloMarkInvalid(passwordEl);
   }finally{
@@ -4113,7 +4365,7 @@ async function createAccount(e) {
           if(r.error) throw r.error;
           showToast('Email de confirmação reenviado.');
         }catch(err){
-          showToast(err?.message||'Não foi possível reenviar o email.');
+          showToast(tchiloFriendlyError(err,'Não foi possível reenviar o email.'));
         }finally{resend.disabled=false;}
       };
       showToast('Verifica o teu email para continuar.');
@@ -4139,7 +4391,7 @@ async function createAccount(e) {
     showToast('Conta criada! Bem-vindo/a, '+username+'!');
   }catch(err){
     console.error(err);
-    error.textContent=err?.message||'Não foi possível criar a conta.';
+    error.textContent=tchiloFriendlyError(err,'Não foi possível criar a conta. Tenta novamente.');
   }finally{
     tchiloSetLoading(submitBtn, false);
   }
@@ -4199,7 +4451,7 @@ async function submitPasswordRecovery(e) {
     console.warn('Tchilo recovery', err);
     if (errEl) {
       errEl.style.color = '#ff5c7a';
-      errEl.textContent = (err && err.message) ? err.message : 'Não foi possível enviar o email.';
+      errEl.textContent = tchiloFriendlyError(err,'Não foi possível enviar o email. Tenta novamente.');
     }
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Enviar link de recuperação'; }
@@ -4231,7 +4483,7 @@ async function submitNewPassword(e) {
     showLoginPanel('access');
   } catch (err) {
     console.warn('Tchilo new pass', err);
-    if (errEl) errEl.textContent = (err && err.message) ? err.message : 'Não foi possível atualizar a palavra-passe.';
+    if (errEl) errEl.textContent = tchiloFriendlyError(err,'Não foi possível atualizar a palavra-passe. Tenta novamente.');
   }
 }
 
@@ -4279,6 +4531,7 @@ async function logout() {
   try {
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
   } catch (e6) {}
+  try { if (typeof tchiloEnterLoggedOutState === 'function') tchiloEnterLoggedOutState(); } catch (e6b) {}
   try { showLoginGate(); } catch (e7) {}
   try {
     if (typeof playLoginVideo === 'function') playLoginVideo();
@@ -4468,8 +4721,9 @@ function goTo(name) {
        3) Hidrata a partir do Supabase se a sessão local faltar ou estiver incompleta */
     const profileBody = document.getElementById('profileBody');
     if (profileBody && !profileBody.innerHTML.trim()) {
-      profileBody.innerHTML =
-        '<div class="empty" style="padding:48px 24px"><b>A carregar perfil…</b></div>';
+      profileBody.innerHTML = (typeof tchiloProfileSkeletonHtml === 'function')
+        ? tchiloProfileSkeletonHtml(true)
+        : '<div class="empty" style="padding:48px 24px"><b>A carregar perfil…</b></div>';
     }
 
     const localSession = getSession();
@@ -4521,7 +4775,7 @@ function goTo(name) {
               profileBody.innerHTML =
                 '<div class="empty" style="padding:48px 24px">' +
                 '<b>Não foi possível carregar o perfil</b>' +
-                '<div style="margin-top:8px">' + String(err?.message || 'Erro de sincronização').replace(/</g,'&lt;') + '</div>' +
+                '<div style="margin-top:8px">' + String(tchiloFriendlyError(err,'Tenta novamente dentro de instantes.')).replace(/</g,'&lt;') + '</div>' +
                 '<button class="profile-btn" style="margin-top:18px;max-width:220px" type="button" onclick="goTo(\'profile\')">Tentar outra vez</button>' +
                 '</div>';
             }
@@ -4588,6 +4842,17 @@ function getPosts() {
    so a brand-new account can discover content from other real accounts. */
 let __publicFeedLoaded = false;
 let __publicFeedLoading = false;
+/* Flags visíveis em window (let não cria propriedade em window) para o skeleton do feed */
+window.__publicFeedLoading = false;
+window.__tchiloFeedPending = true;
+setTimeout(function(){
+  window.__tchiloFeedPending = false;
+  try {
+    var __fa = document.getElementById('screen-feed');
+    var __fp = document.getElementById('feedPosts');
+    if (__fa && __fa.classList.contains('active') && __fp && __fp.querySelector('.feed-skeleton') && typeof renderFeed === 'function') renderFeed();
+  } catch (e) {}
+}, 12000);
 
 
 async function resolvePlaceholderUsernames() {
@@ -4745,6 +5010,12 @@ function formatRelativeTime(isoDate) {
 async function loadPublicFeedFromSupabase(force) {
   if (__publicFeedLoading || (__publicFeedLoaded && !force) || !window.tchiloSupabase) return;
   __publicFeedLoading = true;
+  window.__publicFeedLoading = true;
+  try {
+    var __sa = document.getElementById('screen-feed');
+    var __sp = document.getElementById('feedPosts');
+    if (__sa && __sa.classList.contains('active') && __sp && !__sp.children.length && typeof renderFeed === 'function') renderFeed();
+  } catch (eSk) {}
   /* Se já há posts em cache, o ecrã já os mostra — não limpar */
   /* Se já há posts em cache, o ecrã já os mostra — não limpar */
   try {
@@ -4842,11 +5113,21 @@ async function loadPublicFeedFromSupabase(force) {
     const mergedList = Object.keys(byId).map(function(k){ return byId[k]; });
     save(KEYS.posts, mergedList);
     __publicFeedLoaded = true;
+    window.__publicFeedLoading = false;
+    window.__tchiloFeedPending = false;
     if (document.getElementById('screen-feed') && document.getElementById('screen-feed').classList.contains('active')) renderFeed();
   } catch (err) {
     console.warn('Tchilo public feed:', err && err.message ? err.message : err);
   } finally {
     __publicFeedLoading = false;
+    var __wasLoading = window.__publicFeedLoading || window.__tchiloFeedPending;
+    window.__publicFeedLoading = false;
+    window.__tchiloFeedPending = false;
+    try {
+      var __fa2 = document.getElementById('screen-feed');
+      var __fp2 = document.getElementById('feedPosts');
+      if (__wasLoading && __fa2 && __fa2.classList.contains('active') && __fp2 && __fp2.querySelector('.feed-skeleton')) renderFeed();
+    } catch (eFin) {}
   }
 }
 
@@ -6831,10 +7112,10 @@ function renderFeed() {
   renderSuggestions();
   if (!posts.length) {
     feed.__tchiloLastHtml = '';
-    if (window.__publicFeedLoading) {
+    if (window.__publicFeedLoading || window.__tchiloFeedPending) {
       var sk = '';
       for (var si = 0; si < 3; si++) {
-        sk += '<div class="feed-skel-card"><div class="feed-skel-head"><div class="feed-skel-av"></div><div class="feed-skel-lines"><div class="feed-skel-line m"></div><div class="feed-skel-line s"></div></div></div><div class="feed-skel-media"></div></div>';
+        sk += '<div class="feed-skel-card"><div class="feed-skel-head"><div class="feed-skel-av"></div><div class="feed-skel-lines"><div class="feed-skel-line m"></div><div class="feed-skel-line s"></div></div></div><div class="feed-skel-media"></div><div class="feed-skel-actions"><i></i><i></i><i></i></div><div class="feed-skel-cap" style="width:88%"></div><div class="feed-skel-cap" style="width:55%"></div></div>';
       }
       feed.innerHTML = '<div class="feed-skeleton" aria-busy="true" aria-label="A carregar">'+sk+'</div>';
     } else {
@@ -7238,7 +7519,7 @@ async function publishPostCore(){
     }
   }catch(err){
     console.error('Tchilo publish:',err);
-    showToast('Erro Supabase: '+(err&&err.message?err.message:'não foi possível publicar'));
+    showToast(tchiloFriendlyError(err,'Não foi possível publicar. Tenta novamente.'));
     return;
   }
 
@@ -7413,7 +7694,7 @@ async function sendChat(){
     }catch(e){console.warn('Tchilo chat sync',e);}
   }catch(err){
     console.warn(err);
-    showToast((err&&err.message)||(typeof t==='function'?t('Não foi possível enviar'):'Não foi possível enviar'));
+    showToast(tchiloFriendlyError(err,(typeof t==='function'?t('Não foi possível enviar'):'Não foi possível enviar')));
   }finally{
     tchiloSetLoading(btn,false);
   }
@@ -7803,6 +8084,11 @@ function handleNotif(action, name, initials, color) {
 }
 
 async function loadOwnProfilePostsFromSupabase(){
+  window.__tchiloProfilePostsLoading = true;
+  try { return await __loadOwnProfilePostsCore(); }
+  finally { window.__tchiloProfilePostsLoading = false; }
+}
+async function __loadOwnProfilePostsCore(){
   let session=getSession();
   const SB=window.tchiloSupabase;
   if(!SB) return false;
@@ -7901,6 +8187,26 @@ function startChatWith(username) {
   } catch (e) { showToast('Mensagens'); }
 }
 
+/* Skeleton cinzento do perfil */
+function tchiloProfileSkeletonHtml(withHeader) {
+  var cells = '';
+  for (var i = 0; i < 9; i++) cells += '<div class="profile-grid-item tk-skel"></div>';
+  var grid = '<div class="profile-grid" aria-busy="true" aria-label="A carregar">' + cells + '</div>';
+  if (!withHeader) return grid;
+  return '<div class="prof-skel" aria-busy="true" aria-label="A carregar perfil">' +
+    '<div class="tk-skel-circle"></div>' +
+    '<div class="tk-skel-line" style="width:140px;height:16px;margin-top:18px"></div>' +
+    '<div class="tk-skel-line" style="width:90px;margin-top:10px"></div>' +
+    '<div class="prof-skel-stats">' +
+      '<div class="prof-skel-stat"><div class="tk-skel-line" style="width:28px;height:18px"></div><div class="tk-skel-line" style="width:48px"></div></div>' +
+      '<div class="prof-skel-stat"><div class="tk-skel-line" style="width:28px;height:18px"></div><div class="tk-skel-line" style="width:62px"></div></div>' +
+      '<div class="prof-skel-stat"><div class="tk-skel-line" style="width:28px;height:18px"></div><div class="tk-skel-line" style="width:52px"></div></div>' +
+      '<div class="prof-skel-stat"><div class="tk-skel-line" style="width:28px;height:18px"></div><div class="tk-skel-line" style="width:70px"></div></div>' +
+    '</div>' +
+    '<div class="tk-skel-block" style="width:100%;height:44px;margin-top:22px"></div>' +
+    '</div>' + grid;
+}
+
 function renderProfile() {
   const profileBody = document.getElementById('profileBody');
   if (!profileBody) return;
@@ -7911,12 +8217,7 @@ function renderProfile() {
     /* Sem sessão local: nunca deixar o ecrã em branco.
        Mostra estado de carregamento e tenta hidratar a partir do Supabase. */
     if (!session || !session.username) {
-      profileBody.innerHTML =
-        '<div class="empty" style="padding:48px 24px">' +
-        '<b>A carregar perfil…</b>' +
-        '<div style="margin-top:8px">A sincronizar a tua sessão</div>' +
-        '<button class="profile-btn" style="margin-top:18px;max-width:220px" type="button" onclick="goTo(\'profile\')">Tentar outra vez</button>' +
-        '</div>';
+      profileBody.innerHTML = tchiloProfileSkeletonHtml(true);
       return;
     }
 
@@ -7938,8 +8239,44 @@ function renderProfile() {
         backBtn.onclick = function(){ closeOtherProfile(); };
       }
       if (titleEl) {
-        titleEl.textContent = '@' + username;
+        /* Sem nome no topo (nem no próprio perfil nem nos de outras pessoas).
+           O h1 fica vazio só para empurrar o botão de partilhar para a direita. */
+        titleEl.textContent = '';
         titleEl.style.textAlign = '';
+      }
+      /* Botão de partilhar (ícone do Tchilo) só em perfis de outras pessoas */
+      if (header) {
+        let shareBtn = header.querySelector('.tchilo-profile-share-btn');
+        if (isOther) {
+          if (!shareBtn) {
+            shareBtn = document.createElement('button');
+            shareBtn.type = 'button';
+            shareBtn.className = 'tchilo-profile-share-btn';
+            shareBtn.setAttribute('aria-label', 'Partilhar');
+            shareBtn.title = 'Partilhar';
+            shareBtn.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--ink);cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent';
+            shareBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M432 80 L309 432 L238 238 L80 168 Z"/><path d="M238 238 L432 80"/></svg>';
+            header.appendChild(shareBtn);
+          }
+          shareBtn.style.display = 'inline-flex';
+          shareBtn.onclick = function(ev){
+            ev.preventDefault(); ev.stopPropagation();
+            const text = '@' + username + ' no Tchilo';
+            if (navigator.share) {
+              navigator.share({ title: 'Tchilo', text: text }).then(function(){
+                try { showToast('Partilhado'); } catch(e){}
+              }).catch(function(){});
+            } else if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(function(){
+                try { showToast('Texto copiado'); } catch(e){}
+              }).catch(function(){ try { showToast(text); } catch(e){} });
+            } else {
+              try { showToast(text); } catch(e){}
+            }
+          };
+        } else if (shareBtn) {
+          shareBtn.style.display = 'none';
+        }
       }
       if (header) {
         header.style.justifyContent = '';
@@ -8000,6 +8337,8 @@ function renderProfile() {
           return '';
         }
       }).join('') + '</div>';
+    } else if (window.__tchiloProfilePostsLoading || window.__publicFeedLoading) {
+      grid = tchiloProfileSkeletonHtml(false);
     } else {
       grid = '<div class="empty profile-empty">' +
         '<img class="profile-empty-pop" src="' + TCHILO_PROFILE_POP_IMG + '" alt="" draggable="false">' +
@@ -8022,12 +8361,12 @@ function renderProfile() {
     profileBody.innerHTML =
       '<div class="profile-header">' +
       '<div class="profile-avatar" style="background:' + avatarColor + ';overflow:visible;position:relative">' + avatarHtml + (isOther ? '' : '<button type="button" id="tchiloProfileAvatarPlus" class="tchilo-av-add" aria-label="Adicionar foto" onclick="event.preventDefault();event.stopPropagation();var i=document.getElementById(\'editAvatarInput\');if(i){i.value=\'\';i.click();}else if(typeof goTo===\'function\')goTo(\'editprofile\');"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg></button>') + '</div>' +
-      '<h2>' + String(displayName).replace(/</g, '&lt;') + (isOther ? '' : '<button type="button" class="tchilo-edit-profile-btn" aria-label="Editar perfil" title="Editar perfil" onclick="event.preventDefault();event.stopPropagation();openEditProfile();" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin-left:6px;vertical-align:middle;padding:0;border:0;border-radius:0;background:transparent;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg></button>') + '</h2>' +
+      '<h2>' + String(displayName).replace(/</g, '&lt;') + (isOther ? '' : '<button type="button" class="tchilo-edit-profile-btn" aria-label="Editar perfil" title="Editar perfil" onclick="event.preventDefault();event.stopPropagation();openEditProfile();" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin-left:6px;vertical-align:middle;padding:0;border:0;border-radius:0;background:transparent;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg></button>' + '<button type="button" class="tchilo-saved-profile-btn" aria-label="Guardados" title="Guardados" onclick="event.preventDefault();event.stopPropagation();goTo(\'saved\');" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin-left:2px;vertical-align:middle;padding:0;border:0;border-radius:0;background:transparent;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a2 2 0 0 1 2 2v16l-8-4-8 4V5a2 2 0 0 1 2-2Z"/></svg></button>') + '</h2>' +
       '<div class="email">@' + username.replace(/</g, '&lt;') + (location ? ' · ' + String(location).replace(/</g, '&lt;') : '') + '</div>' +
       (badges ? '<div>' + badges + '</div>' : '') +
       (bio ? '<div style="font-size:13.5px;margin:8px 0 12px;max-width:280px">' + String(bio).replace(/</g, '&lt;') + '</div>' : '') +
       '<div class="profile-stats">' +
-      '<div class="profile-stat"><b>' + posts.length + '</b><span>posts</span></div>' +
+      '<div class="profile-stat"><b>' + ((!posts.length && (window.__tchiloProfilePostsLoading || window.__publicFeedLoading)) ? '<span class="tk-skel tk-skel-num"></span>' : posts.length) + '</b><span>posts</span></div>' +
       '<div class="profile-stat" style="cursor:pointer" onclick="openFollowList(\'' + String(username).replace(/'/g, '\\\'') + '\',\'followers\')"><b>' + followersCount + '</b><span>seguidores</span></div>' +
       (isOther ? '' : ('<div class="profile-stat" style="cursor:pointer" onclick="openFollowList(\'' + String(username).replace(/'/g, '\\\'') + '\',\'following\')"><b>' + followingCount + '</b><span>a seguir</span></div>')) +
       '<div class="profile-stat"><b>' + formatCount(totalViews) + '</b><span>visualizações</span></div>' +
@@ -8837,7 +9176,7 @@ async function requestEmailChange(){
     showToast('Enviámos confirmação para o novo email. Confirma para ativar.');
   }catch(err){
     console.warn(err);
-    showToast((err&&err.message)||'Não foi possível alterar o email');
+    showToast(tchiloFriendlyError(err,'Não foi possível alterar o email'));
   }
 }
 
@@ -8960,7 +9299,7 @@ async function saveProfile() {
     goTo(back);
   }catch(err){
     console.error('Tchilo profile:',err);
-    showToast('Erro ao guardar: '+(err&&err.message?err.message:'não foi possível guardar'));
+    showToast(tchiloFriendlyError(err,'Não foi possível guardar. Tenta novamente.'));
   }finally{
     tchiloSetLoading(saveBtn,false);
   }
@@ -9518,7 +9857,7 @@ const LANGUAGE_PACKS = {
     'Stories':'Stories','Novos stories de quem sigo':'New stories from people I follow','Respostas aos meus stories':'Replies to my stories','Stories de amigos':'Friends stories',
     'Guardados':'Saved','Privacidade e visibilidade':'Privacy & visibility','Privacidade':'Privacy','Conta privada':'Private account','Modo anónimo':'Anonymous mode','Mostrar estado de atividade':'Show activity status','Contas bloqueadas':'Blocked accounts',
     'Vídeos em alta qualidade':'High quality videos','Legal':'Legal','Idioma':'Language','Conta avançada':'Advanced account','Termos de uso':'Terms of use','Política de privacidade':'Privacy policy','Segurança de menores (CSAE)':'Child safety (CSAE)','Diretrizes da comunidade':'Community guidelines','Sobre':'About','Terminar sessão':'Log out',
-    'Nova publicação':'New post','Criar story':'Create story','Tu':'You','Seguir':'Follow','A seguir':'Following','Amigos':'Friends','visualizações':'views','partilhas':'shares','gostos':'likes','Publicação':'Post','Publicação guardada':'Saved post',
+    'Nova publicação':'New post','Criar story':'Create story','Seu Story':'Your Story','Tu':'You','Seguir':'Follow','A seguir':'Following','Amigos':'Friends','visualizações':'views','partilhas':'shares','gostos':'likes','Publicação':'Post','Publicação guardada':'Saved post',
     'Ainda sem publicações':'No posts yet','Quando esta pessoa publicar, as publicações aparecerão aqui.':'When this person posts, their posts will appear here.','Toca no + para partilhar a tua primeira foto ou vídeo.':'Tap + to share your first photo or video.','O teu feed está vazio':'Your feed is empty','Segue pessoas em Notificações → Sugestões ou publica algo!':'Follow people in Notifications → Suggestions or publish something!',
     'Perfil':'Profile','Feed':'Feed','Mensagens':'Messages','Pesquisa':'Search','Guardar alterações':'Save changes',
     'Em alta':'Trending','Explorar':'Explore','Para ti':'For you','Sugestões para seguir':'Suggestions to follow',
@@ -9552,7 +9891,7 @@ const LANGUAGE_PACKS = {
     'Stories':'Stories','Novos stories de quem sigo':'Nouvelles stories de mes abonnements','Respostas aos meus stories':'Réponses à mes stories','Stories de amigos':'Stories d\'amis',
     'Guardados':'Enregistrés','Privacidade e visibilidade':'Confidentialité et visibilité','Privacidade':'Confidentialité','Conta privada':'Compte privé','Modo anónimo':'Mode anonyme','Mostrar estado de atividade':'Afficher le statut d\'activité','Contas bloqueadas':'Comptes bloqués',
     'Vídeos em alta qualidade':'Vidéos en haute qualité','Legal':'Mentions légales','Idioma':'Langue','Conta avançada':'Compte avancé','Termos de uso':'Conditions d\'utilisation','Política de privacidade':'Politique de confidentialité','Segurança de menores (CSAE)':'Sécurité des mineurs (CSAE)','Diretrizes da comunidade':'Règles de la communauté','Sobre':'À propos','Terminar sessão':'Se déconnecter',
-    'Nova publicação':'Nouvelle publication','Criar story':'Créer une story','Tu':'Toi','Seguir':'Suivre','A seguir':'Abonnements','Amigos':'Amis','visualizações':'vues','partilhas':'partages','gostos':'j\'aime','Publicação':'Publication','Publicação guardada':'Publication enregistrée',
+    'Nova publicação':'Nouvelle publication','Criar story':'Créer une story','Seu Story':'Ta story','Tu':'Toi','Seguir':'Suivre','A seguir':'Abonnements','Amigos':'Amis','visualizações':'vues','partilhas':'partages','gostos':'j\'aime','Publicação':'Publication','Publicação guardada':'Publication enregistrée',
     'Ainda sem publicações':'Aucune publication pour le moment','Quando esta pessoa publicar, as publicações aparecerão aqui.':'Quand cette personne publiera, ses publications apparaîtront ici.','Toca no + para partilhar a tua primeira foto ou vídeo.':'Appuie sur + pour partager ta première photo ou vidéo.','O teu feed está vazio':'Ton fil est vide','Segue pessoas em Notificações → Sugestões ou publica algo!':'Suis des gens dans Notifications → Suggestions ou publie quelque chose !',
     'Perfil':'Profil','Feed':'Fil','Mensagens':'Messages','Pesquisa':'Recherche','Guardar alterações':'Enregistrer',
     'Em alta':'Tendances','Explorar':'Explorer','Para ti':'Pour toi','Sugestões para seguir':'Suggestions à suivre',
@@ -9584,7 +9923,7 @@ const LANGUAGE_PACKS = {
     'Stories':'Storie','Novos stories de quem sigo':'Nuove storie da chi seguo','Respostas aos meus stories':'Risposte alle mie storie','Stories de amigos':'Storie degli amici',
     'Guardados':'Salvati','Privacidade e visibilidade':'Privacy e visibilità','Privacidade':'Privacy','Conta privada':'Account privato','Modo anónimo':'Modalità anonima','Mostrar estado de atividade':'Mostra stato attività','Contas bloqueadas':'Account bloccati',
     'Vídeos em alta qualidade':'Video in alta qualità','Legal':'Note legali','Idioma':'Lingua','Conta avançada':'Account avanzato','Termos de uso':'Termini di utilizzo','Política de privacidade':'Informativa sulla privacy','Segurança de menores (CSAE)':'Sicurezza minori (CSAE)','Diretrizes da comunidade':'Linee guida della community','Sobre':'Informazioni','Terminar sessão':'Esci',
-    'Nova publicação':'Nuova pubblicazione','Criar story':'Crea storia','Tu':'Tu','Seguir':'Segui','A seguir':'Seguiti','Amigos':'Amici','visualizações':'visualizzazioni','partilhas':'condivisioni','gostos':'mi piace','Publicação':'Pubblicazione','Publicação guardada':'Pubblicazione salvata',
+    'Nova publicação':'Nuova pubblicazione','Criar story':'Crea storia','Seu Story':'La tua storia','Tu':'Tu','Seguir':'Segui','A seguir':'Seguiti','Amigos':'Amici','visualizações':'visualizzazioni','partilhas':'condivisioni','gostos':'mi piace','Publicação':'Pubblicazione','Publicação guardada':'Pubblicazione salvata',
     'Ainda sem publicações':'Ancora nessun post','Quando esta pessoa publicar, as publicações aparecerão aqui.':'Quando questa persona pubblicherà, i suoi post appariranno qui.','Toca no + para partilhar a tua primeira foto ou vídeo.':'Tocca + per condividere la tua prima foto o il tuo primo video.','O teu feed está vazio':'Il tuo feed è vuoto','Segue pessoas em Notificações → Sugestões ou publica algo!':'Segui persone in Notifiche → Suggerimenti o pubblica qualcosa!',
     'Perfil':'Profilo','Feed':'Feed','Mensagens':'Messaggi','Pesquisa':'Cerca','Guardar alterações':'Salva modifiche',
     'Em alta':'Di tendenza','Explorar':'Esplora','Para ti':'Per te','Sugestões para seguir':'Suggerimenti da seguire',
@@ -9616,7 +9955,7 @@ const LANGUAGE_PACKS = {
     'Stories':'快拍','Novos stories de quem sigo':'关注的人的新快拍','Respostas aos meus stories':'快拍回复','Stories de amigos':'好友快拍',
     'Guardados':'收藏','Privacidade e visibilidade':'隐私与可见性','Privacidade':'隐私','Conta privada':'私密账户','Modo anónimo':'匿名模式','Mostrar estado de atividade':'显示在线状态','Contas bloqueadas':'已屏蔽账户',
     'Vídeos em alta qualidade':'高清视频','Legal':'法律','Idioma':'语言','Conta avançada':'高级账户','Termos de uso':'使用条款','Política de privacidade':'隐私政策','Segurança de menores (CSAE)':'未成年人安全','Diretrizes da comunidade':'社区准则','Sobre':'关于','Terminar sessão':'退出登录',
-    'Nova publicação':'新帖子','Criar story':'创建快拍','Tu':'你','Seguir':'关注','A seguir':'正在关注','Amigos':'好友','visualizações':'次观看','partilhas':'次分享','gostos':'赞','Publicação':'帖子','Publicação guardada':'已收藏帖子',
+    'Nova publicação':'新帖子','Criar story':'创建快拍','Seu Story':'你的快拍','Tu':'你','Seguir':'关注','A seguir':'正在关注','Amigos':'好友','visualizações':'次观看','partilhas':'次分享','gostos':'赞','Publicação':'帖子','Publicação guardada':'已收藏帖子',
     'Ainda sem publicações':'还没有帖子','Quando esta pessoa publicar, as publicações aparecerão aqui.':'当对方发布后，帖子会显示在这里。','Toca no + para partilhar a tua primeira foto ou vídeo.':'点击 + 分享你的第一张照片或视频。','O teu feed está vazio':'动态为空','Segue pessoas em Notificações → Sugestões ou publica algo!':'在通知→推荐中关注他人，或发布内容！',
     'Perfil':'个人主页','Feed':'动态','Mensagens':'消息','Pesquisa':'搜索','Guardar alterações':'保存更改',
     'Em alta':'热门','Explorar':'探索','Para ti':'为你推荐','Sugestões para seguir':'推荐关注',
@@ -9929,7 +10268,7 @@ async function publishPost(){
     await publishPostCore();
   } catch (e) {
     console.error('Tchilo publish outer:', e);
-    showToast('Erro: ' + ((e && e.message) || 'não foi possível publicar'));
+    showToast(tchiloFriendlyError(e,'Não foi possível publicar. Tenta novamente.'));
   } finally {
     tchiloSetLoading(btn,false);
     try{ tchiloHideBusy(); }catch(e){}
@@ -10053,7 +10392,7 @@ async function publishStory(data){
     item._synced=true;
   }catch(err){
     console.error('Tchilo story cloud:',err&&err.message?err.message:err);
-    showToast('Story não publicado: '+(err&&err.message?err.message:'erro na nuvem'));
+    showToast(tchiloFriendlyError(err,'Não foi possível publicar o story. Tenta novamente.'));
     return;
   }
   const all=getStoriesStore();
@@ -10190,6 +10529,18 @@ function tchiloSeededShuffle(arr, seed){
   for(let i=a.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; }
   return a;
 }
+function tchiloStoryCreateHTML(){
+  var sess=null, url=null;
+  try{ sess=getSession(); }catch(e){}
+  try{ url=(sess&&sess.username&&resolveUserAvatarUrl(sess.username))||(sess&&sess.avatar)||null; }catch(e){}
+  var photo = url
+    ? '<img class="story-create-photo" src="'+String(url).replace(/"/g,'&quot;')+'" alt="" draggable="false">'
+    : '<div class="story-create-avatar">'+tchiloDefaultAvatarImg('')+'</div>';
+  var label=(typeof t==='function')?t('Seu Story'):'Seu Story';
+  return '<div class="story-create-top">'+photo+'</div>'
+    +'<div class="story-card-plus" aria-hidden="true">'+'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg>'+'</div>'
+    +'<span class="story-create-label">'+String(label).replace(/</g,'&lt;')+'</span>';
+}
 function __tchiloRenderStoriesNow(){
   const bar=document.getElementById('storiesBar');
   if(!bar) return;
@@ -10202,7 +10553,7 @@ function __tchiloRenderStoriesNow(){
   const createEl=document.createElement('div');
   createEl.className='story-card story-card-create';
   createEl.onclick=openStoryCreateSheet;
-  createEl.innerHTML='<div class="story-card-create-inner"><div class="story-card-plus" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div><span>Criar story</span></div>';
+  createEl.innerHTML=tchiloStoryCreateHTML();
   frag.appendChild(createEl);
 
   /* O teu story (se existir) */
@@ -10304,6 +10655,7 @@ function __tchiloRenderStoriesNow(){
   attachStoryVideoThumbnails(bar);
   tchiloStoriesAutoplay(bar);
 }
+(function(){ var last=null; setInterval(function(){ try{ var se=getSession(); var u=se&&se.username?(resolveUserAvatarUrl(se.username)||''):''; if(last!==null&&u!==last&&typeof renderStories==='function') renderStories(); last=u; }catch(e){} },2000); })();
 /* Chamadas repetidas juntam-se numa só (a 1.ª é imediata) */
 function renderStories(){
   const bar=document.getElementById('storiesBar');
@@ -12404,7 +12756,7 @@ async function createTchilo(btn){
     try{saveProfileExtra(uv,Object.assign({},getProfileExtra(uv)||{},extra));}catch(e3){}
     try{if(window.tchiloCloud&&window.tchiloCloud.syncNormalized)await window.tchiloCloud.syncNormalized('profile_extra',getProfileExtra(uv));}catch(e4){}
     finish();
-  }catch(e){err((e&&e.message)||'Não foi possível criar o Tchilo. Tenta novamente.');}finally{busy(btn,false);}}
+  }catch(e){err(tchiloFriendlyError(e,'Não foi possível criar o Tchilo. Tenta novamente.'));}finally{busy(btn,false);}}
 async function verify(btn){
   if(st.verifying)return;var c=codeVal();
   if(c.length<OTP_LEN){err('Digita os '+OTP_LEN+' dígitos do código.');return;}
@@ -12616,5 +12968,6 @@ $('tsuPhoto').addEventListener('change',function(){var f=this.files[0];if(!f)ret
   if(navigator.onLine===false)show();
 })();
 </script>
+<style id="tchilo-login-no-title">#loginGate.panel-open #accessPanel .auth-sub{margin-top:24px !important}</style>
 </body>
 </html>

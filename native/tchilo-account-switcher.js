@@ -11,7 +11,6 @@
   var SAVED_KEY = 'tchilo_saved_accounts';
   var AUTH_MAP_KEY = 'tchilo_auth_by_user';
   var SB_AUTH_KEY = 'sb-edgngwoxhdxcvyzpqjbj-auth-token';
-  var ICON_URL = 'PLACEHOLDER_ICON';
 
   function toast(msg) {
     try {
@@ -123,11 +122,7 @@
       'position:relative;width:40px;height:40px;border:0;border-radius:50%;' +
       'background:transparent;display:inline-flex;align-items:center;justify-content:center;' +
       'cursor:pointer;padding:0;flex-shrink:0;margin-right:4px;}' +
-      '#tchiloAccSwitchBtn img{width:26px;height:26px;display:block;object-fit:contain;}' +
-      'html[data-theme="dark"] #tchiloAccSwitchBtn img,' +
-      'html.dark #tchiloAccSwitchBtn img,' +
-      'body.dark #tchiloAccSwitchBtn img,' +
-      '[data-theme="dark"] #tchiloAccSwitchBtn img{filter:invert(1);}' +
+      '#tchiloAccSwitchBtn svg{width:26px;height:26px;display:block;color:var(--ink,#0B0B0C);}' +
       '#screen-profile .screen-header{display:flex;align-items:center;gap:4px;}' +
       '#tchiloAccSwitchModal{position:fixed;inset:0;z-index:2147483600;display:none;' +
       'align-items:flex-end;justify-content:center;background:rgba(11,11,12,.48);}' +
@@ -265,27 +260,21 @@
   async function loginWithOtherAccount() {
     var sess = readSession();
     if (sess && sess.id) snapshotCurrentAuth(sess.id);
-
     try {
       if (window.tchiloSupabase && window.tchiloSupabase.auth) {
         await window.tchiloSupabase.auth.signOut({ scope: 'local' });
       }
     } catch (e) {}
-
     try {
       if (typeof clearSession === 'function') clearSession();
       else localStorage.removeItem('tchilo_session');
     } catch (e2) {}
-
     try {
       window.__tchiloLockedSession = null;
     } catch (e3) {}
-
     toast('Entra com outra conta');
     setTimeout(function () {
-      try {
-        location.reload();
-      } catch (e6) {}
+      try { location.reload(); } catch (e6) {}
     }, 400);
   }
 
@@ -294,19 +283,14 @@
     if (
       sess &&
       ((id && sess.id && String(sess.id) === String(id)) ||
-        (username &&
-          sess.username &&
-          String(sess.username).toLowerCase() === String(username).toLowerCase()))
+        (username && sess.username && String(sess.username).toLowerCase() === String(username).toLowerCase()))
     ) {
       closeModal();
       return;
     }
-
     if (sess && sess.id) snapshotCurrentAuth(sess.id);
-
     var map = loadAuthMap();
     var tokenRaw = id && map[String(id)] ? map[String(id)] : null;
-
     if (!tokenRaw) {
       toast('Sessão desta conta não está guardada. Entra de novo.');
       closeModal();
@@ -320,20 +304,15 @@
       await loginWithOtherAccount();
       return;
     }
-
     closeModal();
     toast('A mudar de conta…');
-
     try {
       localStorage.setItem(SB_AUTH_KEY, tokenRaw);
     } catch (e) {}
-
     try {
       if (window.tchiloSupabase && window.tchiloSupabase.auth) {
         var parsed = null;
-        try {
-          parsed = JSON.parse(tokenRaw);
-        } catch (eP) {}
+        try { parsed = JSON.parse(tokenRaw); } catch (eP) {}
         if (parsed) {
           var at = parsed.access_token || (parsed.currentSession && parsed.currentSession.access_token);
           var rt = parsed.refresh_token || (parsed.currentSession && parsed.currentSession.refresh_token);
@@ -345,7 +324,6 @@
     } catch (e2) {
       console.warn('[Tchilo] setSession auth', e2);
     }
-
     var list = loadSaved();
     var acc = list.find(function (a) {
       return (id && String(a.id) === String(id)) || (username && a.username === username);
@@ -361,19 +339,13 @@
         anonymousMode: false
       });
     }
-
     try {
-      window.__tchiloLockedSession = acc
-        ? { username: acc.username, id: acc.id, email: acc.email }
-        : null;
+      window.__tchiloLockedSession = acc ? { username: acc.username, id: acc.id, email: acc.email } : null;
       window.viewingProfileUser = null;
       window.__tchiloViewingProfileUser = null;
     } catch (e3) {}
-
     setTimeout(function () {
-      try {
-        location.reload();
-      } catch (e4) {}
+      try { location.reload(); } catch (e4) {}
     }, 350);
   }
 
@@ -381,31 +353,26 @@
     ensureCSS();
     var header = document.querySelector('#screen-profile .screen-header');
     if (!header) return;
-
     var existing = document.getElementById('tchiloAccSwitchBtn');
     var own = isOwnProfile() && !!readSession();
-
     if (!own) {
       if (existing) existing.style.display = 'none';
       return;
     }
-
     if (existing) {
       existing.style.display = '';
       return;
     }
-
     var btn = document.createElement('button');
     btn.id = 'tchiloAccSwitchBtn';
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Mudar de conta');
-    btn.innerHTML = '<img src="' + ICON_URL + '" alt="" width="26" height="26">';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 19.5c0-3.2 2.9-5.8 6.5-5.8s6.5 2.6 6.5 5.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17.2 5.2l2.3 2.3 2.3-2.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 3.8v4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
       openModal();
     });
-
     var back = header.querySelector('.back-btn');
     if (back && back.parentNode === header) {
       header.insertBefore(btn, back);
@@ -460,9 +427,7 @@
   }
 
   try {
-    var obs = new MutationObserver(function () {
-      injectButton();
-    });
+    var obs = new MutationObserver(function () { injectButton(); });
     obs.observe(document.documentElement, { childList: true, subtree: true });
   } catch (e) {}
 })();

@@ -26,7 +26,11 @@
       icon.className = 'si-icon';
       btn.insertBefore(icon, btn.firstChild);
     }
-    icon.innerHTML = ADS_ICON_SVG;
+    /* evita loop infinito: so escreve se ainda nao tiver o icone (escrever dispara o proprio observer) */
+    if (icon.getAttribute('data-tchilo-ads') !== '1' || !icon.querySelector('svg')) {
+      icon.innerHTML = ADS_ICON_SVG;
+      icon.setAttribute('data-tchilo-ads', '1');
+    }
     icon.style.color = 'var(--ink, #0B0B0C)';
     icon.style.border = '0';
     icon.style.background = 'transparent';

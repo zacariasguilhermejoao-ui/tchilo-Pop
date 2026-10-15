@@ -1,10 +1,11 @@
 /**
- * Tchilo — seletor de contas no perfil v2
- * Ícone no canto superior esquerdo → modal com contas guardadas + "Entrar com outra conta"
+ * Tchilo — seletor de contas no perfil v3
+ * SEM MutationObserver (evita freeze no arranque)
  */
 (function () {
   'use strict';
-  if (window.__tchiloAccountSwitcherV2) return;
+  if (window.__tchiloAccountSwitcherV3) return;
+  window.__tchiloAccountSwitcherV3 = true;
   window.__tchiloAccountSwitcherV2 = true;
   window.__tchiloAccountSwitcherV1 = true;
 
@@ -119,40 +120,34 @@
     st.id = 'tchiloAccountSwitcherCSS';
     st.textContent =
       '#tchiloAccSwitchBtn{' +
-      'position:relative!important;width:40px!important;height:40px!important;border:0!important;border-radius:50%!important;' +
-      'background:transparent!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;' +
-      'cursor:pointer!important;padding:0!important;flex-shrink:0!important;margin-right:4px!important;' +
-      'visibility:visible!important;opacity:1!important;z-index:10!important;}' +
-      '#tchiloAccSwitchBtn svg{width:26px!important;height:26px!important;display:block!important;color:var(--ink,#0B0B0C)!important;}' +
-      /* Esconder o botão concorrente que eu tinha criado */
+      'position:relative;width:40px;height:40px;border:0;border-radius:50%;' +
+      'background:transparent;display:inline-flex;align-items:center;justify-content:center;' +
+      'cursor:pointer;padding:0;flex-shrink:0;margin-right:4px;z-index:5;}' +
+      '#tchiloAccSwitchBtn svg{width:26px;height:26px;display:block;color:var(--ink,#0B0B0C);}' +
       '#tchiloAccountSwitchBtn{display:none!important;}' +
-      '#screen-profile .screen-header{display:flex!important;align-items:center!important;gap:4px!important;}' +
       '#tchiloAccSwitchModal{position:fixed;inset:0;z-index:2147483600;display:none;' +
       'align-items:flex-end;justify-content:center;background:rgba(11,11,12,.48);}' +
       '#tchiloAccSwitchModal.open{display:flex!important;}' +
       '#tchiloAccSwitchModal .panel{width:min(100%,430px);max-height:78vh;overflow:auto;' +
       'background:var(--paper,#fff);color:var(--ink,#0B0B0C);border-radius:18px 18px 0 0;' +
-      'padding:14px 16px 28px;box-shadow:0 -8px 40px rgba(0,0,0,.18);}' +
+      'padding:14px 16px 28px;}' +
       '#tchiloAccSwitchModal .handle{width:40px;height:4px;border-radius:2px;' +
       'background:rgba(128,128,128,.35);margin:2px auto 14px;}' +
       '#tchiloAccSwitchModal .title{font-size:16px;font-weight:700;margin:0 0 12px;text-align:center;}' +
       '#tchiloAccSwitchModal .acc-row{display:flex;align-items:center;gap:12px;padding:10px 8px;' +
-      'border-radius:12px;cursor:pointer;border:0;background:transparent;width:100%;text-align:left;' +
-      'color:inherit;font:inherit;}' +
-      '#tchiloAccSwitchModal .acc-row:active,#tchiloAccSwitchModal .acc-row:hover{background:rgba(128,128,128,.1);}' +
+      'border-radius:12px;cursor:pointer;border:0;background:transparent;width:100%;text-align:left;color:inherit;font:inherit;}' +
       '#tchiloAccSwitchModal .acc-av{width:44px;height:44px;border-radius:50%;object-fit:cover;' +
       'background:rgba(128,128,128,.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;' +
       'font-weight:700;font-size:16px;overflow:hidden;}' +
       '#tchiloAccSwitchModal .acc-av img{width:100%;height:100%;object-fit:cover;}' +
       '#tchiloAccSwitchModal .acc-meta{flex:1;min-width:0;}' +
-      '#tchiloAccSwitchModal .acc-name{font-weight:650;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-      '#tchiloAccSwitchModal .acc-user{font-size:13px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-      '#tchiloAccSwitchModal .acc-check{width:24px;height:24px;flex-shrink:0;display:block;}' +
+      '#tchiloAccSwitchModal .acc-name{font-weight:650;font-size:15px;}' +
+      '#tchiloAccSwitchModal .acc-user{font-size:13px;opacity:.65;}' +
+      '#tchiloAccSwitchModal .acc-check{width:24px;height:24px;flex-shrink:0;}' +
       '#tchiloAccSwitchModal .divider{height:1px;background:rgba(128,128,128,.18);margin:10px 0;}' +
-      '#tchiloAccSwitchModal .other-btn{display:flex;align-items:center;justify-content:center;gap:8px;' +
+      '#tchiloAccSwitchModal .other-btn{display:flex;align-items:center;justify-content:center;' +
       'width:100%;padding:14px 12px;border-radius:14px;border:1.5px solid rgba(128,128,128,.25);' +
       'background:transparent;color:inherit;font-weight:650;font-size:15px;cursor:pointer;}' +
-      '#tchiloAccSwitchModal .other-btn:active{opacity:.85;}' +
       '#tchiloAccSwitchModal .empty{text-align:center;opacity:.6;padding:12px 8px;font-size:14px;}';
     (document.head || document.documentElement).appendChild(st);
   }
@@ -190,6 +185,14 @@
     return '<div class="acc-av">' + letter + '</div>';
   }
 
+  function escapeHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
+  }
+
   function renderList() {
     var listEl = document.getElementById('tchiloAccSwitchList');
     if (!listEl) return;
@@ -212,7 +215,7 @@
             acc.username &&
             String(sess.username).toLowerCase() === String(acc.username).toLowerCase()));
       var check = isCurrent
-        ? '<svg class="acc-check" viewBox="0 0 1024 1024" fill="none" aria-hidden="true"><path d="M170 540L400 770L854 254" stroke="#18E8B0" stroke-width="96" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        ? '<svg class="acc-check" viewBox="0 0 1024 1024" fill="none"><path d="M170 540L400 770L854 254" stroke="#18E8B0" stroke-width="96" stroke-linecap="round" stroke-linejoin="round"/></svg>'
         : '<span class="acc-check"></span>';
       html +=
         '<button type="button" class="acc-row" data-id="' +
@@ -232,19 +235,9 @@
     listEl.innerHTML = html;
     listEl.querySelectorAll('.acc-row').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var id = btn.getAttribute('data-id');
-        var user = btn.getAttribute('data-user');
-        switchToAccount(id, user);
+        switchToAccount(btn.getAttribute('data-id'), btn.getAttribute('data-user'));
       });
     });
-  }
-
-  function escapeHtml(s) {
-    return String(s || '')
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"');
   }
 
   function openModal() {
@@ -277,7 +270,9 @@
     } catch (e3) {}
     toast('Entra com outra conta');
     setTimeout(function () {
-      try { location.reload(); } catch (e6) {}
+      try {
+        location.reload();
+      } catch (e6) {}
     }, 400);
   }
 
@@ -297,13 +292,6 @@
     if (!tokenRaw) {
       toast('Sessão desta conta não está guardada. Entra de novo.');
       closeModal();
-      var list = loadSaved();
-      var acc = list.find(function (a) {
-        return (id && String(a.id) === String(id)) || (username && a.username === username);
-      });
-      try {
-        sessionStorage.setItem('tchilo_prefill_email', (acc && acc.email) || '');
-      } catch (e) {}
       await loginWithOtherAccount();
       return;
     }
@@ -315,7 +303,9 @@
     try {
       if (window.tchiloSupabase && window.tchiloSupabase.auth) {
         var parsed = null;
-        try { parsed = JSON.parse(tokenRaw); } catch (eP) {}
+        try {
+          parsed = JSON.parse(tokenRaw);
+        } catch (eP) {}
         if (parsed) {
           var at = parsed.access_token || (parsed.currentSession && parsed.currentSession.access_token);
           var rt = parsed.refresh_token || (parsed.currentSession && parsed.currentSession.refresh_token);
@@ -324,9 +314,7 @@
           }
         }
       }
-    } catch (e2) {
-      console.warn('[Tchilo] setSession auth', e2);
-    }
+    } catch (e2) {}
     var list = loadSaved();
     var acc = list.find(function (a) {
       return (id && String(a.id) === String(id)) || (username && a.username === username);
@@ -345,10 +333,11 @@
     try {
       window.__tchiloLockedSession = acc ? { username: acc.username, id: acc.id, email: acc.email } : null;
       window.viewingProfileUser = null;
-      window.__tchiloViewingProfileUser = null;
     } catch (e3) {}
     setTimeout(function () {
-      try { location.reload(); } catch (e4) {}
+      try {
+        location.reload();
+      } catch (e4) {}
     }, 350);
   }
 
@@ -356,18 +345,8 @@
     ensureCSS();
     var header = document.querySelector('#screen-profile .screen-header');
     if (!header) return;
-    var existing = document.getElementById('tchiloAccSwitchBtn');
-    var own = isOwnProfile() && !!readSession();
-    if (!own) {
-      if (existing) existing.style.display = 'none';
-      return;
-    }
-    if (existing) {
-      existing.style.display = 'inline-flex';
-      existing.style.visibility = 'visible';
-      existing.style.opacity = '1';
-      return;
-    }
+    if (document.getElementById('tchiloAccSwitchBtn')) return;
+    if (!(isOwnProfile() && readSession())) return;
     var btn = document.createElement('button');
     btn.id = 'tchiloAccSwitchBtn';
     btn.type = 'button';
@@ -384,33 +363,10 @@
       e.stopPropagation();
       openModal();
     });
-    var back = header.querySelector('.back-btn');
-    if (back && back.parentNode === header) {
-      header.insertBefore(btn, back);
-    } else {
-      header.insertBefore(btn, header.firstChild);
-    }
-  }
-
-  function patchSetSession() {
-    if (typeof window.setSession !== 'function') return;
-    if (window.setSession.__accSwitch) return;
-    var orig = window.setSession;
-    window.setSession = function (user) {
-      var r = orig.apply(this, arguments);
-      try {
-        if (user && (user.id || user.username)) {
-          upsertAccount(user);
-          snapshotCurrentAuth(user.id);
-        }
-      } catch (e) {}
-      return r;
-    };
-    window.setSession.__accSwitch = true;
+    header.insertBefore(btn, header.firstChild);
   }
 
   function boot() {
-    patchSetSession();
     injectButton();
     try {
       var s = readSession();
@@ -423,25 +379,8 @@
 
   boot();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  setTimeout(boot, 300);
-  setTimeout(boot, 1200);
-  setTimeout(boot, 2500);
-
-  if (typeof window.goTo === 'function' && !window.goTo.__accSwitch) {
-    var g = window.goTo;
-    window.goTo = function () {
-      var r = g.apply(this, arguments);
-      setTimeout(injectButton, 50);
-      setTimeout(injectButton, 200);
-      return r;
-    };
-    window.goTo.__accSwitch = true;
-  }
+  setTimeout(boot, 500);
+  setTimeout(boot, 2000);
 
   window.tchiloOpenAccountSwitcher = openModal;
-
-  try {
-    var obs = new MutationObserver(function () { injectButton(); });
-    obs.observe(document.documentElement, { childList: true, subtree: true });
-  } catch (e) {}
 })();

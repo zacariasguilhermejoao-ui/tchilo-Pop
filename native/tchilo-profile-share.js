@@ -1,10 +1,11 @@
 /**
  * Tchilo — menu do perfil
- * v13 — ícone seletor de contas (users) em vez dos 3 traços antigos
+ * v14 — volta os 3 traços no lado direito (não mexer no seletor de contas da esquerda)
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV13) return;
+  if (window.__tchiloProfileShareV14) return;
+  window.__tchiloProfileShareV14 = true;
   window.__tchiloProfileShareV13 = true;
   window.__tchiloProfileShareV12 = true;
   window.__tchiloProfileShareV11 = true;
@@ -22,15 +23,6 @@
     '<circle cx="14.5" cy="17" r="1.4" fill="#18E8B0"/>' +
     '<circle cx="18" cy="17" r="1.4" fill="#F800A0"/>' +
     '<circle cx="21.5" cy="17" r="1.4" fill="#7800F8"/>' +
-    '</svg>';
-
-  /* Ícone seletor de contas — dois utilizadores (Lucide users) */
-  var IC_ACCOUNT_SWITCH =
-    '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>' +
-    '<circle cx="9" cy="7" r="4"/>' +
-    '<path d="M22 21v-2a4 4 0 0 0-3-3.87"/>' +
-    '<path d="M16 3.13a4 4 0 0 1 0 7.75"/>' +
     '</svg>';
 
   var IC = {
@@ -54,8 +46,11 @@
       '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">' +
       '<path d="M6 6l12 12M18 6L6 18"/>' +
       '</svg>',
-    /* Ícone seletor de contas */
-    more: IC_ACCOUNT_SWITCH
+    /* 3 traços horizontais — lado direito */
+    more:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">' +
+      '<path d="M4 7h16M4 12h16M4 17h16"/>' +
+      '</svg>'
   };
 
   function toast(msg) {
@@ -355,7 +350,7 @@
       btn.type = 'button';
       btn.id = 'tchiloProfileMoreBtn';
       btn.className = 'tchilo-profile-more';
-      btn.setAttribute('aria-label', 'Seletor de contas');
+      btn.setAttribute('aria-label', 'Menu');
       btn.innerHTML = IC.more;
       btn.addEventListener('click', function (e) {
         e.preventDefault();
@@ -364,23 +359,23 @@
       });
       header.appendChild(btn);
     } else {
-      /* Forçar sempre o ícone de seletor de contas (nunca o antigo) */
+      /* Garantir os 3 traços no lado direito */
       btn.innerHTML = IC.more;
-      btn.setAttribute('aria-label', 'Seletor de contas');
+      btn.setAttribute('aria-label', 'Menu');
     }
   }
 
   polishProfileHeader();
   setTimeout(polishProfileHeader, 400);
   setTimeout(polishProfileHeader, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV13) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV14) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
       setTimeout(polishProfileHeader, 40);
       return r;
     };
-    window.renderProfile.__shareMenuV13 = true;
+    window.renderProfile.__shareMenuV14 = true;
     window.renderProfile.__shareMenu = true;
   }
 })();

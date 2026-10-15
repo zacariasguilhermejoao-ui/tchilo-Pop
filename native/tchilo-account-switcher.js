@@ -144,7 +144,7 @@
       '#tchiloAccSwitchModal .acc-meta{flex:1;min-width:0;}' +
       '#tchiloAccSwitchModal .acc-name{font-weight:650;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
       '#tchiloAccSwitchModal .acc-user{font-size:13px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-      '#tchiloAccSwitchModal .acc-check{width:22px;height:22px;flex-shrink:0;color:#18E8B0;}' +
+      '#tchiloAccSwitchModal .acc-check{width:24px;height:24px;flex-shrink:0;display:block;}' +
       '#tchiloAccSwitchModal .divider{height:1px;background:rgba(128,128,128,.18);margin:10px 0;}' +
       '#tchiloAccSwitchModal .other-btn{display:flex;align-items:center;justify-content:center;gap:8px;' +
       'width:100%;padding:14px 12px;border-radius:14px;border:1.5px solid rgba(128,128,128,.25);' +
@@ -209,7 +209,7 @@
             acc.username &&
             String(sess.username).toLowerCase() === String(acc.username).toLowerCase()));
       var check = isCurrent
-        ? '<svg class="acc-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>'
+        ? '<svg class="acc-check" viewBox="0 0 1024 1024" fill="none" aria-hidden="true"><path d="M170 540L400 770L854 254" stroke="#18E8B0" stroke-width="96" stroke-linecap="round" stroke-linejoin="round"/></svg>'
         : '<span class="acc-check"></span>';
       html +=
         '<button type="button" class="acc-row" data-id="' +
@@ -367,7 +367,7 @@
     btn.id = 'tchiloAccSwitchBtn';
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Mudar de conta');
-    btn.innerHTML = '<svg viewBox="0 0 1024 1024" width="26" height="26" fill="none" aria-hidden="true"><circle cx="512" cy="401" r="100" stroke="currentColor" stroke-width="52"/><path d="M305 723V690A111 111 0 0 1 416 579H606A111 111 0 0 1 718 690V723Z" stroke="currentColor" stroke-width="52" stroke-linejoin="round"/><path d="M512 102A410 410 0 1 1 125 650" stroke="currentColor" stroke-width="64" stroke-linecap="round"/><path d="M233 703L127 652L76 762" stroke="currentColor" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 19.5c0-3.2 2.9-5.8 6.5-5.8s6.5 2.6 6.5 5.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17.2 5.2l2.3 2.3 2.3-2.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 3.8v4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();

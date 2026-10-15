@@ -1,20 +1,30 @@
 /**
  * Tchilo — menu do perfil
- * v16 — carrega seletor de contas (esquerda) + 3 traços (direita)
+ * v17 — carrega seletor de contas + tranca ícone mensagem + 3 traços
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV16) return;
+  if (window.__tchiloProfileShareV17) return;
+  window.__tchiloProfileShareV17 = true;
   window.__tchiloProfileShareV16 = true;
   window.__tchiloProfileShareV15 = true;
   window.__tchiloProfileShareV14 = true;
 
-  /* Carregar o seletor de contas se ainda não estiver carregado */
-  if (!window.__tchiloAccountSwitcherV2 && !window.__tchiloAccountSwitcherV1) {
+  function loadScript(src) {
+    if (document.querySelector('script[src*="' + src.split('?')[0] + '"]')) return;
     var s = document.createElement('script');
-    s.src = 'native/tchilo-account-switcher.js?v=2';
+    s.src = src;
     s.async = true;
     (document.head || document.documentElement).appendChild(s);
+  }
+
+  /* Seletor de contas */
+  if (!window.__tchiloAccountSwitcherV2 && !window.__tchiloAccountSwitcherV1) {
+    loadScript('native/tchilo-account-switcher.js?v=2');
+  }
+  /* Tranca do ícone de mensagem do index */
+  if (!window.__tchiloMsgIconLockV1) {
+    loadScript('native/tchilo-msg-icon-lock.js?v=1');
   }
 
   var openGuardUntil = 0;
@@ -304,11 +314,9 @@
     header.style.setProperty('border-bottom', 'none', 'important');
     header.style.setProperty('box-shadow', 'none', 'important');
 
-    /* Remover botão concorrente antigo */
     var oldAcc = document.getElementById('tchiloAccountSwitchBtn');
     if (oldAcc) oldAcc.remove();
 
-    /* 3 traços no lado DIREITO */
     var btn = document.getElementById('tchiloProfileMoreBtn');
     if (!btn) {
       btn = document.createElement('button');
@@ -332,14 +340,14 @@
   polishProfileHeader();
   setTimeout(polishProfileHeader, 400);
   setTimeout(polishProfileHeader, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV16) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV17) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
       setTimeout(polishProfileHeader, 40);
       return r;
     };
-    window.renderProfile.__shareMenuV16 = true;
+    window.renderProfile.__shareMenuV17 = true;
     window.renderProfile.__shareMenu = true;
   }
 })();

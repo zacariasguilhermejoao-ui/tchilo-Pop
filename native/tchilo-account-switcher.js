@@ -1,10 +1,11 @@
 /**
- * Tchilo — seletor de contas no perfil v3
- * SEM MutationObserver (evita freeze no arranque)
+ * Tchilo — seletor de contas no perfil v4
+ * Ícone no header do perfil — SEM MutationObserver
  */
 (function () {
   'use strict';
-  if (window.__tchiloAccountSwitcherV3) return;
+  if (window.__tchiloAccountSwitcherV4) return;
+  window.__tchiloAccountSwitcherV4 = true;
   window.__tchiloAccountSwitcherV3 = true;
   window.__tchiloAccountSwitcherV2 = true;
   window.__tchiloAccountSwitcherV1 = true;
@@ -121,8 +122,9 @@
     st.textContent =
       '#tchiloAccSwitchBtn{' +
       'position:relative;width:40px;height:40px;border:0;border-radius:50%;' +
-      'background:transparent;display:inline-flex;align-items:center;justify-content:center;' +
-      'cursor:pointer;padding:0;flex-shrink:0;margin-right:4px;z-index:5;}' +
+      'background:transparent;display:inline-flex!important;align-items:center;justify-content:center;' +
+      'cursor:pointer;padding:0;flex-shrink:0;margin-right:4px;z-index:5;' +
+      'visibility:visible!important;opacity:1!important;}' +
       '#tchiloAccSwitchBtn svg{width:26px;height:26px;display:block;color:var(--ink,#0B0B0C);}' +
       '#tchiloAccountSwitchBtn{display:none!important;}' +
       '#tchiloAccSwitchModal{position:fixed;inset:0;z-index:2147483600;display:none;' +
@@ -344,9 +346,27 @@
   function injectButton() {
     ensureCSS();
     var header = document.querySelector('#screen-profile .screen-header');
-    if (!header) return;
-    if (document.getElementById('tchiloAccSwitchBtn')) return;
-    if (!(isOwnProfile() && readSession())) return;
+    if (!header) return false;
+
+    var existing = document.getElementById('tchiloAccSwitchBtn');
+    var own = isOwnProfile() && !!readSession();
+
+    if (!own) {
+      if (existing) existing.style.display = 'none';
+      return false;
+    }
+
+    if (existing) {
+      existing.style.display = 'inline-flex';
+      existing.style.visibility = 'visible';
+      existing.style.opacity = '1';
+      /* garantir que está no header */
+      if (existing.parentNode !== header) {
+        header.insertBefore(existing, header.firstChild);
+      }
+      return true;
+    }
+
     var btn = document.createElement('button');
     btn.id = 'tchiloAccSwitchBtn';
     btn.type = 'button';
@@ -364,10 +384,18 @@
       openModal();
     });
     header.insertBefore(btn, header.firstChild);
+    return true;
+  }
+
+  function scheduleInject() {
+    injectButton();
+    setTimeout(injectButton, 80);
+    setTimeout(injectButton, 250);
+    setTimeout(injectButton, 600);
   }
 
   function boot() {
-    injectButton();
+    scheduleInject();
     try {
       var s = readSession();
       if (s && s.id) {
@@ -378,9 +406,48 @@
   }
 
   boot();
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  setTimeout(boot, 500);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  }
+  setTimeout(boot, 800);
   setTimeout(boot, 2000);
+
+  /* Ao ir para o perfil, mete o ícone (sem observer) */
+  if (typeof window.goTo === 'function' && !window.goTo.__accSwitchV4) {
+    var g = window.goTo;
+    window.goTo = function () {
+      var args = arguments;
+      var r = g.apply(this, args);
+      var name = String(args[0] || '');
+      if (name === 'profile' || name.indexOf('profile') !== -1) {
+        scheduleInject();
+      }
+      return r;
+    };
+    window.goTo.__accSwitchV4 = true;
+  }
+
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__accSwitchV4) {
+    var rp = window.renderProfile;
+    window.renderProfile = function () {
+      var r = rp.apply(this, arguments);
+      scheduleInject();
+      return r;
+    };
+    window.renderProfile.__accSwitchV4 = true;
+  }
+
+  /* Clique no tab Perfil da navbar */
+  document.addEventListener(
+    'click',
+    function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var nav = t.closest('.nav-item[data-screen="profile"]');
+      if (nav) scheduleInject();
+    },
+    true
+  );
 
   window.tchiloOpenAccountSwitcher = openModal;
 })();

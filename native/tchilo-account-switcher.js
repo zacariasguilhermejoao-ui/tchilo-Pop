@@ -367,7 +367,7 @@
     btn.id = 'tchiloAccSwitchBtn';
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Mudar de conta');
-    btn.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 19.5c0-3.2 2.9-5.8 6.5-5.8s6.5 2.6 6.5 5.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17.2 5.2l2.3 2.3 2.3-2.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 3.8v4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+    btn.innerHTML = '<svg viewBox="0 0 1024 1024" width="26" height="26" fill="none" aria-hidden="true"><circle cx="512" cy="401" r="100" stroke="currentColor" stroke-width="52"/><path d="M305 723V690A111 111 0 0 1 416 579H606A111 111 0 0 1 718 690V723Z" stroke="currentColor" stroke-width="52" stroke-linejoin="round"/><path d="M512 102A410 410 0 1 1 125 650" stroke="currentColor" stroke-width="64" stroke-linecap="round"/><path d="M233 703L127 652L76 762" stroke="currentColor" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();

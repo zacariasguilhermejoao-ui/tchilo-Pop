@@ -7,7 +7,8 @@
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV23) return;
+  if (window.__tchiloProfileShareV24) return;
+  window.__tchiloProfileShareV24 = true;
   window.__tchiloProfileShareV23 = true;
   window.__tchiloProfileShareV22 = true;
   window.__tchiloProfileShareV21 = true;
@@ -440,6 +441,7 @@
 
     var own = isOwnProfile();
     if (own) {
+      try { window.viewingProfileUser = null; } catch (e0) {}
       screen.classList.add('own-profile');
       document.body.classList.remove('viewing-other-profile');
       var back = header.querySelector('.back-btn');
@@ -495,7 +497,7 @@
   polishProfileHeader();
   setTimeout(polishProfileHeader, 400);
   setTimeout(polishProfileHeader, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV23) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV24) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
@@ -503,7 +505,7 @@
       setTimeout(polishProfileHeader, 200);
       return r;
     };
-    window.renderProfile.__shareMenuV23 = true;
+    window.renderProfile.__shareMenuV24 = true;
     window.renderProfile.__shareMenuV21 = true;
     window.renderProfile.__shareMenuV20 = true;
     window.renderProfile.__shareMenu = true;

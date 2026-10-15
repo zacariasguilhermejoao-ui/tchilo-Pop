@@ -1,11 +1,12 @@
 /**
- * Tchilo — sem riscos pretos (headers + quadros dos posts)
+ * Tchilo — sem riscos pretos (headers + itens de definições + quadros dos posts)
  * + esconde seta de voltar só em ecrãs principais (NÃO em Guardados nem settings)
- * v3
+ * v4
  */
 (function () {
   "use strict";
-  if (window.__tchiloNoHeaderLineV3) return;
+  if (window.__tchiloNoHeaderLineV4) return;
+  window.__tchiloNoHeaderLineV4 = true;
   window.__tchiloNoHeaderLineV3 = true;
   window.__tchiloNoHeaderLineV2 = true;
   window.__tchiloNoHeaderLineV1 = true;
@@ -62,6 +63,19 @@
     "border-bottom:none!important;" +
     "border-bottom-width:0!important;" +
     "box-shadow:none!important;}" +
+    /* === RISCOS entre itens de definições — removidos em TODAS as páginas === */
+    "html body .settings-item," +
+    "html body #screen-settings .settings-item," +
+    "html body [id^=\"screen-settings-\"] .settings-item," +
+    "html body .settings-list .settings-item," +
+    "html body #screen-saved .settings-item," +
+    "html body .saved-tabs," +
+    "html body .saved-tab{" +
+    "border:none!important;" +
+    "border-bottom:none!important;" +
+    "border-bottom-width:0!important;" +
+    "border-top:none!important;" +
+    "box-shadow:none!important;}" +
     /* Seta desnecessária em ecrãs com navbar — SEM incluir Guardados nem settings */
     "#screen-notifs > .screen-header .back-btn," +
     "#screen-notifs .screen-header .back-btn," +
@@ -105,7 +119,6 @@
   }
 
   function hideBackOnMainTabs() {
-    /* NÃO inclui screen-saved nem screen-settings */
     var ids = [
       "screen-notifs",
       "screen-messages",
@@ -146,7 +159,6 @@
         btn.tabIndex = 0;
       }
     });
-    /* Subpáginas de settings */
     document.querySelectorAll('[id^="screen-settings-"]').forEach(function (sc) {
       var hdr = sc.querySelector(".screen-header");
       if (!hdr) return;
@@ -165,7 +177,7 @@
     try {
       document
         .querySelectorAll(
-          ".screen-header, .settings-header, .page-header, .chat-header, .topbar, .post-media, .media-frame, .post-frame"
+          ".screen-header, .settings-header, .page-header, .chat-header, .topbar, .post-media, .media-frame, .post-frame, .settings-item"
         )
         .forEach(function (el) {
           if (el.classList.contains("post-media") || el.classList.contains("media-frame") || el.classList.contains("post-frame")) {

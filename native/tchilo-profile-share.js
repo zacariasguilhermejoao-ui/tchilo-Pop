@@ -1,10 +1,11 @@
 /**
  * Tchilo — menu do perfil
- * v12 — 3 traços (não ⋯); modal sem "Opções" nem @user; perfil próprio sem seta nem risco de cima
+ * v13 — ícone seletor de contas (users) em vez dos 3 traços antigos
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV12) return;
+  if (window.__tchiloProfileShareV13) return;
+  window.__tchiloProfileShareV13 = true;
   window.__tchiloProfileShareV12 = true;
   window.__tchiloProfileShareV11 = true;
 
@@ -21,6 +22,15 @@
     '<circle cx="14.5" cy="17" r="1.4" fill="#18E8B0"/>' +
     '<circle cx="18" cy="17" r="1.4" fill="#F800A0"/>' +
     '<circle cx="21.5" cy="17" r="1.4" fill="#7800F8"/>' +
+    '</svg>';
+
+  /* Ícone seletor de contas — dois utilizadores (Lucide users) */
+  var IC_ACCOUNT_SWITCH =
+    '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>' +
+    '<circle cx="9" cy="7" r="4"/>' +
+    '<path d="M22 21v-2a4 4 0 0 0-3-3.87"/>' +
+    '<path d="M16 3.13a4 4 0 0 1 0 7.75"/>' +
     '</svg>';
 
   var IC = {
@@ -44,11 +54,8 @@
       '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">' +
       '<path d="M6 6l12 12M18 6L6 18"/>' +
       '</svg>',
-    /* 3 traços horizontais */
-    more:
-      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">' +
-      '<path d="M4 7h16M4 12h16M4 17h16"/>' +
-      '</svg>'
+    /* Ícone seletor de contas */
+    more: IC_ACCOUNT_SWITCH
   };
 
   function toast(msg) {
@@ -156,7 +163,6 @@
       '#tchiloProfileShareSheet .opt .ic{width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}' +
       '#tchiloProfileShareSheet .opt-close{opacity:.7;}' +
       '.tchilo-profile-more{margin-left:auto;width:40px;height:40px;border:0;border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink,#0B0B0C);}' +
-      /* perfil próprio: sem seta de voltar e header limpo */
       '#screen-profile .screen-header{border:0!important;border-bottom:none!important;box-shadow:none!important;}' +
       '#screen-profile.own-profile .screen-header .back-btn,' +
       'body:not(.viewing-other-profile) #screen-profile .screen-header .back-btn{' +
@@ -246,7 +252,6 @@
     wrap = document.createElement('div');
     wrap.id = 'tchiloProfileShareSheet';
     wrap.className = 'open';
-    /* sem título Opções e sem @username */
     wrap.innerHTML =
       '<div class="tchilo-ps-panel" role="dialog" aria-label="Menu do perfil">' +
       '<div class="tchilo-ps-handle"></div>' +
@@ -350,7 +355,7 @@
       btn.type = 'button';
       btn.id = 'tchiloProfileMoreBtn';
       btn.className = 'tchilo-profile-more';
-      btn.setAttribute('aria-label', 'Menu');
+      btn.setAttribute('aria-label', 'Seletor de contas');
       btn.innerHTML = IC.more;
       btn.addEventListener('click', function (e) {
         e.preventDefault();
@@ -359,22 +364,23 @@
       });
       header.appendChild(btn);
     } else {
-      /* garantir ícone de 3 traços */
+      /* Forçar sempre o ícone de seletor de contas (nunca o antigo) */
       btn.innerHTML = IC.more;
+      btn.setAttribute('aria-label', 'Seletor de contas');
     }
   }
 
   polishProfileHeader();
   setTimeout(polishProfileHeader, 400);
   setTimeout(polishProfileHeader, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV12) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV13) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
       setTimeout(polishProfileHeader, 40);
       return r;
     };
-    window.renderProfile.__shareMenuV12 = true;
+    window.renderProfile.__shareMenuV13 = true;
     window.renderProfile.__shareMenu = true;
   }
 })();

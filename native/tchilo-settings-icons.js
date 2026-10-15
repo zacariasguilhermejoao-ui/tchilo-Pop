@@ -6,7 +6,8 @@
  */
 (function () {
   'use strict';
-  if (window.__TCHILO_SI_V33) return;
+  if (window.__TCHILO_SI_V34) return;
+  window.__TCHILO_SI_V34 = true;
   window.__TCHILO_SI_V33 = true;
   window.__TCHILO_SI_V32 = true;
   window.__TCHILO_SI_V31 = true;
@@ -40,6 +41,7 @@
     /* === Ícones 3D novos === */
     'selo verificado': img('selo-verificado-3d.png'),
     'gestor de anuncios': img('meus-anuncios-3d.png'),
+    'meus anuncios': img('meus-anuncios-3d.png'),
     'meus anuncios': img('meus-anuncios-3d.png'),
     'anuncios': img('meus-anuncios-3d.png'),
     'conta': img('conta-3d.png'),
@@ -75,9 +77,9 @@
   };
 
   function injectCSS() {
-    if (document.getElementById('tchilo-si-css-v33')) return;
+    if (document.getElementById('tchilo-si-css-v34')) return;
     var st = document.createElement('style');
-    st.id = 'tchilo-si-css-v33';
+    st.id = 'tchilo-si-css-v34';
     st.textContent =
       '#screen-settings .settings-item .si-icon,' +
       '[id^="screen-settings"] .settings-item .si-icon,' +
@@ -169,9 +171,9 @@
       if (!html) return;
       var box = btn.querySelector('.si-icon');
       if (!box) return;
-      if (box.getAttribute('data-si') === key + '-v33') return;
+      if (box.getAttribute('data-si') === key + '-v34') return;
       box.innerHTML = html;
-      box.setAttribute('data-si', key + '-v33');
+      box.setAttribute('data-si', key + '-v34');
       box.removeAttribute('style');
     });
   }
@@ -194,6 +196,19 @@
     });
   }
 
+  function forceAdsIcon() {
+    var btn = document.getElementById('tchiloAdsMgrBtn');
+    if (!btn) return;
+    var box = btn.querySelector('.si-icon');
+    if (!box) return;
+    var html = ICONS['meus anuncios'];
+    if (!html) return;
+    if (box.getAttribute('data-si') === 'meus anuncios-v34' && box.querySelector('img')) return;
+    box.innerHTML = html;
+    box.setAttribute('data-si', 'meus anuncios-v34');
+    box.setAttribute('data-tchilo-ads', '3d');
+  }
+
   function run() {
     injectCSS();
     ensureBackButtons();
@@ -206,6 +221,7 @@
     document.querySelectorAll('[id^="screen-settings-"]').forEach(applyIn);
     var ads = document.getElementById('tchiloAdsMgrBtn');
     if (ads) applyIn(ads.parentNode || document);
+    forceAdsIcon();
   }
 
   run();

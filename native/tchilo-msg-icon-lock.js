@@ -1,24 +1,15 @@
 /**
- * Tchilo — ícone de mensagens = exactamente o SVG do index.html
- * Não substitui por outro desenho; só restaura se algo o alterar.
+ * Tchilo — ícone de mensagens = o que está no index.html
+ * v5 — NÃO força um SVG inventado. Guarda o SVG original do index
+ * e só o repõe se outro script o alterar/remover.
  */
 (function () {
   'use strict';
-  if (window.__tchiloMsgIconLockV4) return;
-  window.__tchiloMsgIconLockV4 = true;
+  if (window.__tchiloMsgIconLockV5) return;
+  window.__tchiloMsgIconLockV5 = true;
 
-  /* SVG exacto do index (data-top-messages) — balão com 3 pontos via mask */
-  var INDEX_SVG =
-    '<svg viewBox="0 0 512 512" aria-hidden="true" width="34" height="34" style="width:34px;height:34px;display:block;">' +
-    '<defs><mask id="tchiloMsgDots" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">' +
-    '<rect width="512" height="512" fill="#fff"/>' +
-    '<circle cx="168" cy="224" r="24" fill="#000"/>' +
-    '<circle cx="256" cy="224" r="24" fill="#000"/>' +
-    '<circle cx="344" cy="224" r="24" fill="#000"/>' +
-    '</mask></defs>' +
-    '<path d="M184 72 H328 a112 112 0 0 1 112 112 V264 a112 112 0 0 1 -112 112 H252 L196 452 V376 H184 a112 112 0 0 1 -112 -112 V184 a112 112 0 0 1 112 -112 Z" ' +
-    'fill="currentColor" stroke="currentColor" stroke-width="24" stroke-linejoin="round" mask="url(#tchiloMsgDots)"/>' +
-    '</svg>';
+  var savedHTML = null;
+  var savedOuter = null;
 
   function ensureCSS() {
     if (document.getElementById('tchiloMsgIconLockCSS')) return;
@@ -28,37 +19,98 @@
       'html body .topbar [data-top-messages],html body [data-top-messages]{' +
       'display:inline-flex!important;align-items:center!important;justify-content:center!important;' +
       'width:44px!important;height:44px!important;border:none!important;background:transparent!important;' +
-      'opacity:1!important;}' +
-      'html body .topbar [data-top-messages] svg{width:34px!important;height:34px!important;display:block!important;}';
+      'opacity:1!important;background-image:none!important;}' +
+      'html body .topbar [data-top-messages]::before,html body .topbar [data-top-messages]::after,' +
+      'html body [data-top-messages]::before,html body [data-top-messages]::after{' +
+      'content:none!important;display:none!important;}' +
+      'html body .topbar [data-top-messages] > svg,' +
+      'html body [data-top-messages] > svg{' +
+      'width:34px!important;height:34px!important;display:block!important;' +
+      'visibility:visible!important;opacity:1!important;}';
     (document.head || document.documentElement).appendChild(st);
   }
 
-  function isIndexMsgSvg(sv) {
+  function hostEl() {
+    return document.querySelector('.topbar [data-top-messages], [data-top-messages]');
+  }
+
+  function capture() {
+    var host = hostEl();
+    if (!host) return false;
+    var sv = host.querySelector(':scope > svg') || host.querySelector('svg');
     if (!sv) return false;
-    var h = sv.innerHTML || '';
-    return h.indexOf('M184 72') !== -1 && (h.indexOf('tchiloMsgDots') !== -1 || h.indexOf('circle') !== -1);
+    /* guarda exactamente o que está no index */
+    savedHTML = sv.outerHTML;
+    savedOuter = sv.cloneNode(true);
+    return true;
+  }
+
+  function looksLikeSaved(sv) {
+    if (!sv || !savedHTML) return false;
+    try {
+      /* comparação leve: path principal + tamanho */
+      var a = (sv.innerHTML || '').replace(/\s+/g, ' ').trim();
+      var b = (savedOuter.innerHTML || '').replace(/\s+/g, ' ').trim();
+      if (a === b) return true;
+      /* se tiver o mesmo path d principal */
+      var pa = sv.querySelector('path');
+      var pb = savedOuter.querySelector('path');
+      if (pa && pb && pa.getAttribute('d') === pb.getAttribute('d')) return true;
+    } catch (e) {}
+    return false;
   }
 
   function restore() {
     ensureCSS();
-    var host = document.querySelector('.topbar [data-top-messages], [data-top-messages]');
+    var host = hostEl();
     if (!host) return;
-    var sv = host.querySelector('svg');
-    if (isIndexMsgSvg(sv)) return;
+    if (!savedHTML && !capture()) return;
+
+    var sv = host.querySelector(':scope > svg') || host.querySelector('svg');
+    if (looksLikeSaved(sv)) return;
+
+    /* remove SVGs/imgs intrusos e repõe o original do index */
+    try {
+      Array.prototype.slice.call(host.querySelectorAll('svg, img')).forEach(function (n) {
+        try { n.parentNode.removeChild(n); } catch (e) {}
+      });
+    } catch (e2) {}
+
     var tpl = document.createElement('template');
-    tpl.innerHTML = INDEX_SVG;
+    tpl.innerHTML = savedHTML;
     var fresh = tpl.content.firstChild;
-    if (sv && sv.parentNode) {
-      try { sv.parentNode.replaceChild(fresh, sv); } catch (e) {}
-    } else {
+    if (fresh) {
       host.insertBefore(fresh, host.firstChild);
     }
   }
 
-  ensureCSS();
-  restore();
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', restore);
+  function boot() {
+    ensureCSS();
+    capture();
+    restore();
   }
-  [400, 1200, 3000].forEach(function (ms) { setTimeout(restore, ms); });
+
+  boot();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  }
+  [100, 400, 1000, 2500, 5000].forEach(function (ms) {
+    setTimeout(function () {
+      if (!savedHTML) capture();
+      restore();
+    }, ms);
+  });
+
+  try {
+    var moT = null;
+    new MutationObserver(function () {
+      if (moT) clearTimeout(moT);
+      moT = setTimeout(restore, 40);
+    }).observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'style', 'src', 'd', 'viewBox']
+    });
+  } catch (e) {}
 })();

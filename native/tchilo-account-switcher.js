@@ -451,3 +451,36 @@
 
   window.tchiloOpenAccountSwitcher = openModal;
 })();
+
+
+/* v8: hide account switch on other profiles */
+(function(){
+  function hideIfOther(){
+    try{
+      var other = !!(window.viewingProfileUser);
+      if(other){
+        var me=null;
+        try{ me=(typeof getSession==='function'&&getSession())||JSON.parse(localStorage.getItem('tchilo_session')||'null'); }catch(e){}
+        var my = me && (me.username||me.user);
+        if(my && String(window.viewingProfileUser).toLowerCase()===String(my).toLowerCase()) other=false;
+      }
+      var btn=document.getElementById('tchiloAccountSwitchBtn');
+      if(!btn) return;
+      if(other){
+        btn.style.setProperty('display','none','important');
+        btn.style.setProperty('visibility','hidden','important');
+        btn.style.setProperty('pointer-events','none','important');
+      } else {
+        btn.style.removeProperty('display');
+        btn.style.removeProperty('visibility');
+        btn.style.removeProperty('pointer-events');
+      }
+    }catch(e){}
+  }
+  setInterval(hideIfOther, 800);
+  if(typeof window.renderProfile==='function' && !window.renderProfile.__accHide){
+    var r=window.renderProfile;
+    window.renderProfile=function(){ var x=r.apply(this,arguments); setTimeout(hideIfOther,50); return x; };
+    window.renderProfile.__accHide=true;
+  }
+})();

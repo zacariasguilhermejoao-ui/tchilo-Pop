@@ -1,10 +1,11 @@
 /**
  * Tchilo — menu do perfil
- * v18 — carrega seletor de contas + tranca ícone mensagem + 3 traços
+ * v19 — carrega seletor + msg lock + no-header SEM observers (anti-freeze)
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV18) return;
+  if (window.__tchiloProfileShareV19) return;
+  window.__tchiloProfileShareV19 = true;
   window.__tchiloProfileShareV18 = true;
   window.__tchiloProfileShareV17 = true;
   window.__tchiloProfileShareV16 = true;
@@ -24,17 +25,15 @@
     (document.head || document.documentElement).appendChild(s);
   }
 
-  /* Seletor de contas */
-  if (!window.__tchiloAccountSwitcherV2 && !window.__tchiloAccountSwitcherV1) {
-    loadScript('native/tchilo-account-switcher.js?v=3');
+  /* Versões SEM MutationObserver (v6/v3) — anti-freeze */
+  if (!window.__tchiloAccountSwitcherV3) {
+    loadScript('native/tchilo-account-switcher.js?v=6');
   }
-  /* Tranca do ícone de mensagem do index */
-  if (!window.__tchiloMsgIconLockV2) {
-    loadScript('native/tchilo-msg-icon-lock.js?v=2');
+  if (!window.__tchiloMsgIconLockV3) {
+    loadScript('native/tchilo-msg-icon-lock.js?v=3');
   }
-  /* Reforçar remoção de riscos (caso cache antigo do index) */
-  if (!window.__tchiloNoHeaderLineV5) {
-    loadScript('native/tchilo-no-header-line.js?v=5');
+  if (!window.__tchiloNoHeaderLineV6) {
+    loadScript('native/tchilo-no-header-line.js?v=6');
   }
 
   var openGuardUntil = 0;
@@ -350,14 +349,14 @@
   polishProfileHeader();
   setTimeout(polishProfileHeader, 400);
   setTimeout(polishProfileHeader, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV18) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV19) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
       setTimeout(polishProfileHeader, 40);
       return r;
     };
-    window.renderProfile.__shareMenuV18 = true;
+    window.renderProfile.__shareMenuV19 = true;
     window.renderProfile.__shareMenu = true;
   }
 })();

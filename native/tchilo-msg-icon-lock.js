@@ -1,15 +1,12 @@
 /**
- * Tchilo — tranca o ícone de mensagens do topbar
- * SVG do index (bolha com 3 pontos) — NADA substitui
- * v2
+ * Tchilo — ícone de mensagens do topbar (SVG do index)
+ * v3 — SEM MutationObserver (evita freeze)
  */
 (function () {
   'use strict';
-  if (window.__tchiloMsgIconLockV2) return;
-  window.__tchiloMsgIconLockV2 = true;
-  window.__tchiloMsgIconLockV1 = true;
+  if (window.__tchiloMsgIconLockV3) return;
+  window.__tchiloMsgIconLockV3 = true;
 
-  /* Bolha preenchida + 3 pontos (sem mask — mais estável) */
   var ORIGINAL_SVG =
     '<svg viewBox="0 0 512 512" aria-hidden="true" width="34" height="34" ' +
     'style="width:34px;height:34px;display:block;color:var(--ink,#0B0B0C)">' +
@@ -21,127 +18,41 @@
     '</svg>';
 
   function ensureCSS() {
-    var st = document.getElementById('tchiloMsgIconLockCSS');
-    if (!st) {
-      st = document.createElement('style');
-      st.id = 'tchiloMsgIconLockCSS';
-      (document.head || document.documentElement).appendChild(st);
-    }
+    if (document.getElementById('tchiloMsgIconLockCSS')) return;
+    var st = document.createElement('style');
+    st.id = 'tchiloMsgIconLockCSS';
     st.textContent =
-      'html body .topbar [data-top-messages],' +
-      'html body [data-top-messages]{' +
+      'html body .topbar [data-top-messages],html body [data-top-messages]{' +
       'display:inline-flex!important;align-items:center!important;justify-content:center!important;' +
       'width:44px!important;height:44px!important;border:none!important;background:transparent!important;' +
-      'color:#0B0B0C!important;opacity:1!important;visibility:visible!important;}' +
-      'html body.theme-dark .topbar [data-top-messages],' +
-      'html body[data-theme="dark"] .topbar [data-top-messages]{' +
-      'color:#F6F1E7!important;}' +
-      'html body .topbar [data-top-messages] svg,' +
-      'html body [data-top-messages] svg{' +
-      'width:34px!important;height:34px!important;display:block!important;' +
-      'opacity:1!important;visibility:visible!important;}' +
-      'html body .topbar [data-top-messages] img,' +
-      'html body .topbar [data-top-messages] canvas,' +
-      'html body .topbar [data-top-messages] i{' +
-      'display:none!important;}' +
-      'html body .topbar [data-top-messages]::before,' +
-      'html body .topbar [data-top-messages]::after{content:none!important;display:none!important;}';
-    try {
-      document.head.appendChild(st);
-    } catch (e) {}
-  }
-
-  function isOurSvg(sv) {
-    if (!sv) return false;
-    var h = sv.innerHTML || '';
-    return h.indexOf('M184 72') !== -1;
+      'color:#0B0B0C!important;opacity:1!important;}' +
+      'html body .topbar [data-top-messages] svg{width:34px!important;height:34px!important;display:block!important;}';
+    (document.head || document.documentElement).appendChild(st);
   }
 
   function restore() {
     ensureCSS();
     var host = document.querySelector('.topbar [data-top-messages], [data-top-messages]');
     if (!host) return;
-
-    host.querySelectorAll('img,canvas,i').forEach(function (n) {
-      try {
-        n.remove();
-      } catch (e) {}
-    });
-
     var sv = host.querySelector('svg');
-    if (!isOurSvg(sv)) {
-      var tpl = document.createElement('template');
-      tpl.innerHTML = ORIGINAL_SVG;
-      var fresh = tpl.content.firstChild;
-      if (sv && sv.parentNode) {
-        try {
-          sv.parentNode.replaceChild(fresh, sv);
-        } catch (e2) {
-          host.insertBefore(fresh, host.firstChild);
-          try {
-            sv.remove();
-          } catch (e3) {}
-        }
-      } else {
-        host.insertBefore(fresh, host.firstChild);
-      }
+    var ok = sv && (sv.innerHTML || '').indexOf('M184 72') !== -1;
+    if (ok) return;
+    var tpl = document.createElement('template');
+    tpl.innerHTML = ORIGINAL_SVG;
+    var fresh = tpl.content.firstChild;
+    if (sv && sv.parentNode) {
+      try { sv.parentNode.replaceChild(fresh, sv); } catch (e) {}
     } else {
-      sv.setAttribute('width', '34');
-      sv.setAttribute('height', '34');
-      sv.style.width = '34px';
-      sv.style.height = '34px';
-      sv.style.display = 'block';
-      sv.style.opacity = '1';
+      host.insertBefore(fresh, host.firstChild);
     }
-
-    host.style.setProperty('color', '#0B0B0C', 'important');
-    host.style.setProperty('opacity', '1', 'important');
-    host.style.setProperty('visibility', 'visible', 'important');
   }
 
-  function boot() {
-    restore();
-  }
-
-  boot();
+  ensureCSS();
+  restore();
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
+    document.addEventListener('DOMContentLoaded', restore);
   }
-  [50, 150, 400, 1000, 2000, 4000, 8000].forEach(function (ms) {
-    setTimeout(restore, ms);
-  });
-
-  try {
-    var mo = new MutationObserver(function () {
-      restore();
-    });
-    function observe() {
-      var host = document.querySelector('.topbar [data-top-messages], [data-top-messages]');
-      var topbar = document.querySelector('.topbar');
-      if (host) {
-        mo.observe(host, {
-          childList: true,
-          subtree: true,
-          attributes: true,
-          attributeFilter: ['style', 'class', 'src', 'fill', 'stroke', 'opacity']
-        });
-      }
-      if (topbar) {
-        mo.observe(topbar, { childList: true, subtree: true });
-      }
-    }
-    observe();
-    setTimeout(observe, 500);
-  } catch (e) {}
-
-  if (typeof window.goTo === 'function' && !window.goTo.__msgIconLock) {
-    var g = window.goTo;
-    window.goTo = function () {
-      var r = g.apply(this, arguments);
-      setTimeout(restore, 30);
-      setTimeout(restore, 150);
-      return r;
-    };
-    window.goTo.__msgIconLock = true;
-  }
+  setTimeout(restore, 400);
+  setTimeout(restore, 1500);
+  setTimeout(restore, 3000);
 })();

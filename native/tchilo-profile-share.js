@@ -1,10 +1,11 @@
 /**
  * Tchilo — menu do perfil
- * v14 — volta os 3 traços no lado direito (não mexer no seletor de contas da esquerda)
+ * v15 — seletor de contas à esquerda + 3 traços à direita
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV14) return;
+  if (window.__tchiloProfileShareV15) return;
+  window.__tchiloProfileShareV15 = true;
   window.__tchiloProfileShareV14 = true;
   window.__tchiloProfileShareV13 = true;
   window.__tchiloProfileShareV12 = true;
@@ -23,6 +24,15 @@
     '<circle cx="14.5" cy="17" r="1.4" fill="#18E8B0"/>' +
     '<circle cx="18" cy="17" r="1.4" fill="#F800A0"/>' +
     '<circle cx="21.5" cy="17" r="1.4" fill="#7800F8"/>' +
+    '</svg>';
+
+  /* Ícone seletor de contas — pessoa com badge (lado esquerdo) */
+  var IC_ACCOUNT_SWITCH =
+    '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>' +
+    '<circle cx="9" cy="7" r="4"/>' +
+    '<circle cx="19" cy="8" r="2.5" fill="currentColor" stroke="none"/>' +
+    '<path d="M17.5 8.5l.7.7 1.5-1.5" stroke="#fff" stroke-width="1.5" fill="none"/>' +
     '</svg>';
 
   var IC = {
@@ -46,11 +56,11 @@
       '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">' +
       '<path d="M6 6l12 12M18 6L6 18"/>' +
       '</svg>',
-    /* 3 traços horizontais — lado direito */
     more:
       '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">' +
       '<path d="M4 7h16M4 12h16M4 17h16"/>' +
-      '</svg>'
+      '</svg>',
+    accountSwitch: IC_ACCOUNT_SWITCH
   };
 
   function toast(msg) {
@@ -110,12 +120,8 @@
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(
-          function () {
-            toast('Link copiado');
-          },
-          function () {
-            toast('Não foi possível copiar');
-          }
+          function () { toast('Link copiado'); },
+          function () { toast('Não foi possível copiar'); }
         );
         return;
       }
@@ -158,7 +164,9 @@
       '#tchiloProfileShareSheet .opt .ic{width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}' +
       '#tchiloProfileShareSheet .opt-close{opacity:.7;}' +
       '.tchilo-profile-more{margin-left:auto;width:40px;height:40px;border:0;border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink,#0B0B0C);}' +
-      '#screen-profile .screen-header{border:0!important;border-bottom:none!important;box-shadow:none!important;}' +
+      /* Seletor de contas — lado esquerdo */
+      '.tchilo-account-switch{width:40px;height:40px;border:0;border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink,#0B0B0C);flex-shrink:0;}' +
+      '#screen-profile .screen-header{border:0!important;border-bottom:none!important;box-shadow:none!important;display:flex!important;align-items:center!important;}' +
       '#screen-profile.own-profile .screen-header .back-btn,' +
       'body:not(.viewing-other-profile) #screen-profile .screen-header .back-btn{' +
       'display:none!important;visibility:hidden!important;width:0!important;height:0!important;padding:0!important;margin:0!important;overflow:hidden!important;}' +
@@ -179,9 +187,7 @@
     var el = document.getElementById('tchiloProfileShareSheet');
     if (!el) return;
     el.classList.remove('open');
-    try {
-      el.remove();
-    } catch (e) {}
+    try { el.remove(); } catch (e) {}
   }
 
   function closeQr() {
@@ -200,27 +206,20 @@
     modal.innerHTML =
       '<div class="card" role="dialog">' +
       '<div class="qr-title">QR do perfil</div>' +
-      '<div class="qr-user">@' +
-      String(username || '').replace(/</g, '') +
-      '</div>' +
+      '<div class="qr-user">@' + String(username || '').replace(/</g, '') + '</div>' +
       '<div id="tchiloQrMount" style="min-height:220px;display:flex;align-items:center;justify-content:center;font-weight:700">A gerar QR…</div>' +
       '<div class="actions">' +
       '<button type="button" class="primary" data-q="copy">Copiar link</button>' +
       '<button type="button" class="ghost" data-q="close">Fechar</button>' +
       '</div></div>';
     modal.classList.add('open');
-    modal.onclick = function (e) {
-      if (e.target === modal) closeQr();
-    };
+    modal.onclick = function (e) { if (e.target === modal) closeQr(); };
     modal.querySelectorAll('[data-q]').forEach(function (btn) {
       btn.onclick = function (e) {
         e.stopPropagation();
         var q = btn.getAttribute('data-q');
         if (q === 'close') closeQr();
-        if (q === 'copy') {
-          copyText(url);
-          closeQr();
-        }
+        if (q === 'copy') { copyText(url); closeQr(); }
       };
     });
     try {
@@ -231,8 +230,7 @@
       } else if (mount) {
         mount.innerHTML =
           '<img alt="QR" style="width:200px;height:200px" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' +
-          encodeURIComponent(url) +
-          '"/>';
+          encodeURIComponent(url) + '"/>';
       }
     } catch (e) {}
   }
@@ -250,75 +248,54 @@
     wrap.innerHTML =
       '<div class="tchilo-ps-panel" role="dialog" aria-label="Menu do perfil">' +
       '<div class="tchilo-ps-handle"></div>' +
-      '<button type="button" class="opt" data-act="settings"><span class="ic">' +
-      IC.settings +
-      '</span><span>Definições</span></button>' +
-      '<button type="button" class="opt" data-act="copy"><span class="ic">' +
-      IC.link +
-      '</span><span>Copiar link</span></button>' +
-      '<button type="button" class="opt" data-act="share"><span class="ic">' +
-      IC.share +
-      '</span><span>Partilhar URL</span></button>' +
-      '<button type="button" class="opt" data-act="qr"><span class="ic">' +
-      IC.qr +
-      '</span><span>QR code do perfil</span></button>' +
-      '<button type="button" class="opt opt-close" data-act="close"><span class="ic">' +
-      IC.close +
-      '</span><span>Fechar</span></button>' +
+      '<button type="button" class="opt" data-act="settings"><span class="ic">' + IC.settings + '</span><span>Definições</span></button>' +
+      '<button type="button" class="opt" data-act="copy"><span class="ic">' + IC.link + '</span><span>Copiar link</span></button>' +
+      '<button type="button" class="opt" data-act="share"><span class="ic">' + IC.share + '</span><span>Partilhar URL</span></button>' +
+      '<button type="button" class="opt" data-act="qr"><span class="ic">' + IC.qr + '</span><span>QR code do perfil</span></button>' +
+      '<button type="button" class="opt opt-close" data-act="close"><span class="ic">' + IC.close + '</span><span>Fechar</span></button>' +
       '</div>';
     document.body.appendChild(wrap);
-    wrap.addEventListener(
-      'click',
-      function (e) {
-        if (e.target === wrap) {
-          e.preventDefault();
-          e.stopPropagation();
-          closeSheet();
-        }
-      },
-      true
-    );
+    wrap.addEventListener('click', function (e) {
+      if (e.target === wrap) { e.preventDefault(); e.stopPropagation(); closeSheet(); }
+    }, true);
     wrap.querySelectorAll('[data-act]').forEach(function (btn) {
-      btn.addEventListener(
-        'click',
-        function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          openGuardUntil = 0;
-          var act = btn.getAttribute('data-act');
-          if (act === 'close') return closeSheet();
-          if (act === 'copy') {
-            copyText(url);
-            closeSheet();
-            return;
-          }
-          if (act === 'share') {
-            shareNative(url, 'Tchilo @' + user);
-            closeSheet();
-            return;
-          }
-          if (act === 'qr') {
-            closeSheet();
-            setTimeout(function () {
-              openQrModal(user, url);
-            }, 80);
-            return;
-          }
-          if (act === 'settings') {
-            closeSheet();
-            setTimeout(function () {
-              if (typeof goTo === 'function') goTo('settings');
-              else if (typeof window.goTo === 'function') window.goTo('settings');
-            }, 40);
-          }
-        },
-        true
-      );
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openGuardUntil = 0;
+        var act = btn.getAttribute('data-act');
+        if (act === 'close') return closeSheet();
+        if (act === 'copy') { copyText(url); closeSheet(); return; }
+        if (act === 'share') { shareNative(url, 'Tchilo @' + user); closeSheet(); return; }
+        if (act === 'qr') {
+          closeSheet();
+          setTimeout(function () { openQrModal(user, url); }, 80);
+          return;
+        }
+        if (act === 'settings') {
+          closeSheet();
+          setTimeout(function () {
+            if (typeof goTo === 'function') goTo('settings');
+            else if (typeof window.goTo === 'function') window.goTo('settings');
+          }, 40);
+        }
+      }, true);
     });
   }
 
   window.tchiloOpenProfileShare = openSheet;
   window.openProfileShareSheet = openSheet;
+
+  function openAccountSwitcher() {
+    /* Abre o seletor de contas — por agora usa o menu (podes ligar à tua lógica depois) */
+    if (typeof window.tchiloOpenAccountSwitcher === 'function') {
+      window.tchiloOpenAccountSwitcher();
+      return;
+    }
+    /* Fallback: ir para definições de conta */
+    if (typeof goTo === 'function') goTo('settings-account');
+    else if (typeof window.goTo === 'function') window.goTo('settings-account');
+  }
 
   function polishProfileHeader() {
     ensureCSS();
@@ -336,14 +313,38 @@
         back.style.setProperty('display', 'none', 'important');
         back.setAttribute('aria-hidden', 'true');
       }
+
+      /* === Seletor de contas no lado ESQUERDO === */
+      var accBtn = document.getElementById('tchiloAccountSwitchBtn');
+      if (!accBtn) {
+        accBtn = document.createElement('button');
+        accBtn.type = 'button';
+        accBtn.id = 'tchiloAccountSwitchBtn';
+        accBtn.className = 'tchilo-account-switch';
+        accBtn.setAttribute('aria-label', 'Seletor de contas');
+        accBtn.innerHTML = IC.accountSwitch;
+        accBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          openAccountSwitcher();
+        });
+        /* Inserir no início do header (lado esquerdo) */
+        header.insertBefore(accBtn, header.firstChild);
+      } else {
+        accBtn.innerHTML = IC.accountSwitch;
+        accBtn.style.display = 'flex';
+      }
     } else {
       screen.classList.remove('own-profile');
       document.body.classList.add('viewing-other-profile');
+      var acc = document.getElementById('tchiloAccountSwitchBtn');
+      if (acc) acc.style.display = 'none';
     }
 
     header.style.setProperty('border-bottom', 'none', 'important');
     header.style.setProperty('box-shadow', 'none', 'important');
 
+    /* === 3 traços no lado DIREITO === */
     var btn = document.getElementById('tchiloProfileMoreBtn');
     if (!btn) {
       btn = document.createElement('button');
@@ -359,7 +360,6 @@
       });
       header.appendChild(btn);
     } else {
-      /* Garantir os 3 traços no lado direito */
       btn.innerHTML = IC.more;
       btn.setAttribute('aria-label', 'Menu');
     }
@@ -368,14 +368,14 @@
   polishProfileHeader();
   setTimeout(polishProfileHeader, 400);
   setTimeout(polishProfileHeader, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV14) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV15) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
       setTimeout(polishProfileHeader, 40);
       return r;
     };
-    window.renderProfile.__shareMenuV14 = true;
+    window.renderProfile.__shareMenuV15 = true;
     window.renderProfile.__shareMenu = true;
   }
 })();

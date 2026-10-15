@@ -1,17 +1,23 @@
 /**
  * Tchilo — menu do perfil
- * v17 — carrega seletor de contas + tranca ícone mensagem + 3 traços
+ * v18 — carrega seletor de contas + tranca ícone mensagem + 3 traços
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV17) return;
+  if (window.__tchiloProfileShareV18) return;
+  window.__tchiloProfileShareV18 = true;
   window.__tchiloProfileShareV17 = true;
   window.__tchiloProfileShareV16 = true;
   window.__tchiloProfileShareV15 = true;
   window.__tchiloProfileShareV14 = true;
 
   function loadScript(src) {
-    if (document.querySelector('script[src*="' + src.split('?')[0] + '"]')) return;
+    var base = src.split('?')[0];
+    var exists = false;
+    document.querySelectorAll('script[src]').forEach(function (el) {
+      if ((el.getAttribute('src') || '').indexOf(base) !== -1) exists = true;
+    });
+    if (exists) return;
     var s = document.createElement('script');
     s.src = src;
     s.async = true;
@@ -20,11 +26,15 @@
 
   /* Seletor de contas */
   if (!window.__tchiloAccountSwitcherV2 && !window.__tchiloAccountSwitcherV1) {
-    loadScript('native/tchilo-account-switcher.js?v=2');
+    loadScript('native/tchilo-account-switcher.js?v=3');
   }
   /* Tranca do ícone de mensagem do index */
-  if (!window.__tchiloMsgIconLockV1) {
-    loadScript('native/tchilo-msg-icon-lock.js?v=1');
+  if (!window.__tchiloMsgIconLockV2) {
+    loadScript('native/tchilo-msg-icon-lock.js?v=2');
+  }
+  /* Reforçar remoção de riscos (caso cache antigo do index) */
+  if (!window.__tchiloNoHeaderLineV5) {
+    loadScript('native/tchilo-no-header-line.js?v=5');
   }
 
   var openGuardUntil = 0;
@@ -340,14 +350,14 @@
   polishProfileHeader();
   setTimeout(polishProfileHeader, 400);
   setTimeout(polishProfileHeader, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV17) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV18) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
       setTimeout(polishProfileHeader, 40);
       return r;
     };
-    window.renderProfile.__shareMenuV17 = true;
+    window.renderProfile.__shareMenuV18 = true;
     window.renderProfile.__shareMenu = true;
   }
 })();

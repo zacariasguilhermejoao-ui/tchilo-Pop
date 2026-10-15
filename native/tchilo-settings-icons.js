@@ -1,12 +1,14 @@
 /**
- * tchilo-settings-icons v31
- * Gestor de anúncios = megafone Lucide (outline profissional)
+ * tchilo-settings-icons v32
+ * Gestor de anúncios = megafone Lucide
  * + Toggle switches pretos quando ligados
- * Fonte: https://lucide.dev/icons/megaphone (ISC)
+ * + Botão voltar sempre visível em Guardados e subpáginas de definições
+ * + Remove risco/linha superior em subpáginas de definições
  */
 (function () {
   'use strict';
-  if (window.__TCHILO_SI_V31) return;
+  if (window.__TCHILO_SI_V32) return;
+  window.__TCHILO_SI_V32 = true;
   window.__TCHILO_SI_V31 = true;
   window.__TCHILO_SI_V30 = true;
   window.__TCHILO_SI_V29 = true;
@@ -20,7 +22,6 @@
     return '<svg ' + S + '>' + paths + '</svg>';
   }
 
-  /* Lucide megaphone — https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/megaphone.svg */
   var MEGAPHONE =
     '<path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>' +
     '<path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14"/>' +
@@ -161,9 +162,9 @@
   };
 
   function injectCSS() {
-    if (document.getElementById('si-v31-css')) return;
+    if (document.getElementById('si-v32-css')) return;
     var st = document.createElement('style');
-    st.id = 'si-v31-css';
+    st.id = 'si-v32-css';
     st.textContent =
       /* Ícones de settings */
       '#screen-settings .settings-item .si-icon,' +
@@ -207,7 +208,39 @@
       '.settings-toggle.on::after{' +
       'transform:translateX(20px)!important;background:#fff!important;opacity:1!important;' +
       '}' +
-      '.settings-toggle:active{transform:none!important;}';
+      '.settings-toggle:active{transform:none!important;}' +
+
+      /* === Botão VOLTAR sempre visível em Guardados + todas subpáginas de definições === */
+      '#screen-saved .screen-header .back-btn,' +
+      '#screen-settings .screen-header .back-btn,' +
+      '[id^="screen-settings-"] .screen-header .back-btn,' +
+      '#screen-notifs .screen-header .back-btn{' +
+      'display:flex!important;visibility:visible!important;opacity:1!important;' +
+      'width:36px!important;height:36px!important;min-width:36px!important;' +
+      'border:0!important;background:transparent!important;box-shadow:none!important;' +
+      'border-radius:50%!important;flex-shrink:0!important;cursor:pointer!important;' +
+      '}' +
+      '#screen-saved .screen-header .back-btn svg,' +
+      '#screen-settings .screen-header .back-btn svg,' +
+      '[id^="screen-settings-"] .screen-header .back-btn svg,' +
+      '#screen-notifs .screen-header .back-btn svg{' +
+      'display:block!important;width:18px!important;height:18px!important;' +
+      '}' +
+
+      /* === Remove risco / linha superior em subpáginas de definições e Guardados === */
+      '#screen-saved .screen-header,' +
+      '#screen-settings .screen-header,' +
+      '[id^="screen-settings-"] .screen-header,' +
+      '#screen-notifs .screen-header{' +
+      'border-top:none!important;border-bottom:none!important;' +
+      'box-shadow:none!important;outline:none!important;' +
+      '}' +
+      '#screen-saved,' +
+      '#screen-settings,' +
+      '[id^="screen-settings-"],' +
+      '#screen-notifs{' +
+      'border-top:none!important;box-shadow:none!important;' +
+      '}';
     (document.head || document.documentElement).appendChild(st);
   }
 
@@ -235,20 +268,38 @@
           }
         }
       }
-      /* fallback: qualquer item com "anuncio" no nome */
       if (!html && key.indexOf('anuncio') !== -1) html = svg(MEGAPHONE);
       if (!html) return;
       var box = btn.querySelector('.si-icon');
       if (!box) return;
-      if (box.getAttribute('data-si') === key + '-v31') return;
+      if (box.getAttribute('data-si') === key + '-v32') return;
       box.innerHTML = html;
-      box.setAttribute('data-si', key + '-v31');
+      box.setAttribute('data-si', key + '-v32');
       box.removeAttribute('style');
+    });
+  }
+
+  function ensureBackButtons() {
+    var selectors = [
+      '#screen-saved .screen-header .back-btn',
+      '#screen-settings .screen-header .back-btn',
+      '[id^="screen-settings-"] .screen-header .back-btn',
+      '#screen-notifs .screen-header .back-btn'
+    ];
+    selectors.forEach(function (sel) {
+      document.querySelectorAll(sel).forEach(function (btn) {
+        btn.style.display = 'flex';
+        btn.style.visibility = 'visible';
+        btn.style.opacity = '1';
+        btn.removeAttribute('aria-hidden');
+        btn.setAttribute('aria-label', 'Voltar');
+      });
     });
   }
 
   function run() {
     injectCSS();
+    ensureBackButtons();
     var roots = document.querySelectorAll(
       '#screen-settings, [id^="screen-settings-"], #screen-settings .settings-list'
     );
@@ -266,13 +317,16 @@
     setTimeout(run, ms);
   });
 
-  if (typeof window.goTo === 'function' && !window.goTo.__siV31) {
+  if (typeof window.goTo === 'function' && !window.goTo.__siV32) {
     var g = window.goTo;
     window.goTo = function (name) {
       var r = g.apply(this, arguments);
-      if (name && String(name).indexOf('settings') === 0) setTimeout(run, 40);
+      if (name && (String(name).indexOf('settings') === 0 || name === 'saved' || name === 'notifs')) {
+        setTimeout(run, 40);
+        setTimeout(ensureBackButtons, 60);
+      }
       return r;
     };
-    window.goTo.__siV31 = true;
+    window.goTo.__siV32 = true;
   }
 })();

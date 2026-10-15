@@ -1,11 +1,11 @@
 /**
- * Tchilo — seletor de contas no perfil
+ * Tchilo — seletor de contas no perfil v2
  * Ícone no canto superior esquerdo → modal com contas guardadas + "Entrar com outra conta"
- * Troca de conta: termina sessão atual e entra na selecionada (tokens Supabase por conta).
  */
 (function () {
   'use strict';
-  if (window.__tchiloAccountSwitcherV1) return;
+  if (window.__tchiloAccountSwitcherV2) return;
+  window.__tchiloAccountSwitcherV2 = true;
   window.__tchiloAccountSwitcherV1 = true;
 
   var SAVED_KEY = 'tchilo_saved_accounts';
@@ -119,11 +119,14 @@
     st.id = 'tchiloAccountSwitcherCSS';
     st.textContent =
       '#tchiloAccSwitchBtn{' +
-      'position:relative;width:40px;height:40px;border:0;border-radius:50%;' +
-      'background:transparent;display:inline-flex;align-items:center;justify-content:center;' +
-      'cursor:pointer;padding:0;flex-shrink:0;margin-right:4px;}' +
-      '#tchiloAccSwitchBtn svg{width:26px;height:26px;display:block;color:var(--ink,#0B0B0C);}' +
-      '#screen-profile .screen-header{display:flex;align-items:center;gap:4px;}' +
+      'position:relative!important;width:40px!important;height:40px!important;border:0!important;border-radius:50%!important;' +
+      'background:transparent!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;' +
+      'cursor:pointer!important;padding:0!important;flex-shrink:0!important;margin-right:4px!important;' +
+      'visibility:visible!important;opacity:1!important;z-index:10!important;}' +
+      '#tchiloAccSwitchBtn svg{width:26px!important;height:26px!important;display:block!important;color:var(--ink,#0B0B0C)!important;}' +
+      /* Esconder o botão concorrente que eu tinha criado */
+      '#tchiloAccountSwitchBtn{display:none!important;}' +
+      '#screen-profile .screen-header{display:flex!important;align-items:center!important;gap:4px!important;}' +
       '#tchiloAccSwitchModal{position:fixed;inset:0;z-index:2147483600;display:none;' +
       'align-items:flex-end;justify-content:center;background:rgba(11,11,12,.48);}' +
       '#tchiloAccSwitchModal.open{display:flex!important;}' +
@@ -360,14 +363,22 @@
       return;
     }
     if (existing) {
-      existing.style.display = '';
+      existing.style.display = 'inline-flex';
+      existing.style.visibility = 'visible';
+      existing.style.opacity = '1';
       return;
     }
     var btn = document.createElement('button');
     btn.id = 'tchiloAccSwitchBtn';
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Mudar de conta');
-    btn.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 19.5c0-3.2 2.9-5.8 6.5-5.8s6.5 2.6 6.5 5.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17.2 5.2l2.3 2.3 2.3-2.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 3.8v4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+    btn.innerHTML =
+      '<svg viewBox="0 0 1024 1024" width="26" height="26" fill="none" aria-hidden="true">' +
+      '<circle cx="512" cy="401" r="100" stroke="currentColor" stroke-width="52"/>' +
+      '<path d="M305 723V690A111 111 0 0 1 416 579H606A111 111 0 0 1 718 690V723Z" stroke="currentColor" stroke-width="52" stroke-linejoin="round"/>' +
+      '<path d="M512 102A410 410 0 1 1 125 650" stroke="currentColor" stroke-width="64" stroke-linecap="round"/>' +
+      '<path d="M233 703L127 652L76 762" stroke="currentColor" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg>';
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -414,6 +425,7 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   setTimeout(boot, 300);
   setTimeout(boot, 1200);
+  setTimeout(boot, 2500);
 
   if (typeof window.goTo === 'function' && !window.goTo.__accSwitch) {
     var g = window.goTo;
@@ -425,6 +437,8 @@
     };
     window.goTo.__accSwitch = true;
   }
+
+  window.tchiloOpenAccountSwitcher = openModal;
 
   try {
     var obs = new MutationObserver(function () { injectButton(); });

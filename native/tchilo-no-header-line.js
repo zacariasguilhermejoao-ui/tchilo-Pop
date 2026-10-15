@@ -1,48 +1,65 @@
 /**
- * Tchilo — sem riscos pretos (headers + itens de definições + quadros dos posts)
- * + esconde seta de voltar só em ecrãs principais (NÃO em Guardados nem settings)
- * v4
+ * Tchilo — sem riscos pretos em headers, legal, settings e itens
+ * v5 — nuclear: remove border/box-shadow em tudo o que parece risco
  */
 (function () {
   "use strict";
-  if (window.__tchiloNoHeaderLineV4) return;
+  if (window.__tchiloNoHeaderLineV5) return;
+  window.__tchiloNoHeaderLineV5 = true;
   window.__tchiloNoHeaderLineV4 = true;
   window.__tchiloNoHeaderLineV3 = true;
   window.__tchiloNoHeaderLineV2 = true;
   window.__tchiloNoHeaderLineV1 = true;
 
   var CSS =
-    /* Headers de página: sem linha de baixo nem de cima */
+    /* ===== HEADERS: zero riscos ===== */
     "html body .screen-header," +
     "html body .screen > .screen-header," +
     "html body [id^=\"screen-\"] > .screen-header," +
     "html body [id^=\"screen-settings\"] > .screen-header," +
+    "html body [id^=\"screen-legal\"] > .screen-header," +
+    "html body #screen-settings-legal > .screen-header," +
+    "html body #screen-settings-account > .screen-header," +
+    "html body #screen-settings-account-advanced > .screen-header," +
+    "html body #screen-settings-notifs > .screen-header," +
     "html body .settings-header," +
     "html body .page-header," +
     "html body .subpage-header," +
     "html body .chat-header," +
-    "html body .legal-header{" +
+    "html body .legal-header," +
+    "html body .screen-header h1," +
+    "html body .screen-header::after," +
+    "html body .screen-header::before{" +
+    "border:none!important;" +
     "border-bottom:none!important;" +
     "border-bottom-width:0!important;" +
+    "border-bottom-color:transparent!important;" +
     "border-top:none!important;" +
     "border-top-width:0!important;" +
     "box-shadow:none!important;" +
-    "outline:none!important;}" +
-    /* Topbar do feed */
+    "outline:none!important;" +
+    "background-image:none!important;}" +
+    /* Pseudo-elementos dos headers */
+    "html body .screen-header::after," +
+    "html body .screen-header::before," +
+    "html body .settings-header::after," +
+    "html body .settings-header::before{" +
+    "content:none!important;display:none!important;height:0!important;border:0!important;}" +
+    /* Topbar */
     "html body .topbar," +
     "html body #appFrame .topbar," +
     "html body .app .topbar{" +
     "border-bottom:none!important;" +
     "border-bottom-width:0!important;" +
     "box-shadow:none!important;}" +
-    /* Stories strip */
+    /* Stories strip — linha fina ok */
     "html body .stories," +
     "html body .stories-row," +
     "html body #storiesRow{" +
     "border-bottom-width:0.5px!important;" +
     "border-bottom-style:solid!important;" +
     "border-bottom-color:rgba(11,11,12,.10)!important;}" +
-    /* Quadros dos posts no feed — sem borda preta */
+    /* Posts */
     "html body .post-media," +
     "html body .post .post-media," +
     "html body #screen-feed .post-media," +
@@ -52,31 +69,34 @@
     "html body .post-card .post-media," +
     "html body .media-frame," +
     "html body .post-frame{" +
-    "border:none!important;" +
-    "border-width:0!important;" +
-    "box-shadow:none!important;" +
-    "outline:none!important;}" +
-    /* Separador entre posts — sem risco grosso */
+    "border:none!important;border-width:0!important;box-shadow:none!important;outline:none!important;}" +
     "html body .post," +
     "html body #screen-feed .post," +
     "html body #feedList .post{" +
-    "border-bottom:none!important;" +
-    "border-bottom-width:0!important;" +
-    "box-shadow:none!important;}" +
-    /* === RISCOS entre itens de definições — removidos em TODAS as páginas === */
+    "border-bottom:none!important;border-bottom-width:0!important;box-shadow:none!important;}" +
+    /* Itens de definições / legal / lista */
     "html body .settings-item," +
     "html body #screen-settings .settings-item," +
     "html body [id^=\"screen-settings-\"] .settings-item," +
     "html body .settings-list .settings-item," +
     "html body #screen-saved .settings-item," +
     "html body .saved-tabs," +
-    "html body .saved-tab{" +
+    "html body .saved-tab," +
+    "html body .legal-item," +
+    "html body .settings-list," +
+    "html body .settings-list > *{" +
     "border:none!important;" +
     "border-bottom:none!important;" +
     "border-bottom-width:0!important;" +
     "border-top:none!important;" +
     "box-shadow:none!important;}" +
-    /* Seta desnecessária em ecrãs com navbar — SEM incluir Guardados nem settings */
+    /* Divider genérico */
+    "html body .divider," +
+    "html body hr," +
+    "html body .settings-divider," +
+    "html body .list-divider{" +
+    "display:none!important;height:0!important;border:0!important;}" +
+    /* Back buttons */
     "#screen-notifs > .screen-header .back-btn," +
     "#screen-notifs .screen-header .back-btn," +
     "#screen-messages > .screen-header .back-btn," +
@@ -87,13 +107,13 @@
     "#screen-feed > .screen-header .back-btn," +
     "#screen-reels > .screen-header .back-btn{" +
     "display:none!important;}" +
-    /* Guardados + settings: FORÇAR botão voltar visível */
     "#screen-saved > .screen-header .back-btn," +
     "#screen-saved .screen-header .back-btn," +
     "#screen-settings > .screen-header .back-btn," +
     "#screen-settings .screen-header .back-btn," +
     "[id^=\"screen-settings-\"] > .screen-header .back-btn," +
-    "[id^=\"screen-settings-\"] .screen-header .back-btn{" +
+    "[id^=\"screen-settings-\"] .screen-header .back-btn," +
+    "[id^=\"screen-legal\"] .screen-header .back-btn{" +
     "display:flex!important;visibility:visible!important;opacity:1!important;" +
     "width:36px!important;height:36px!important;min-width:36px!important;" +
     "border:0!important;background:transparent!important;}" +
@@ -113,6 +133,7 @@
       (document.head || document.documentElement).appendChild(st);
     }
     st.textContent = CSS;
+    /* Re-append no fim do head para ganhar prioridade */
     try {
       document.head.appendChild(st);
     } catch (e) {}
@@ -159,7 +180,7 @@
         btn.tabIndex = 0;
       }
     });
-    document.querySelectorAll('[id^="screen-settings-"]').forEach(function (sc) {
+    document.querySelectorAll('[id^="screen-settings-"], [id^="screen-legal"]').forEach(function (sc) {
       var hdr = sc.querySelector(".screen-header");
       if (!hdr) return;
       var btn = hdr.querySelector(".back-btn");
@@ -177,24 +198,19 @@
     try {
       document
         .querySelectorAll(
-          ".screen-header, .settings-header, .page-header, .chat-header, .topbar, .post-media, .media-frame, .post-frame, .settings-item"
+          ".screen-header, .settings-header, .page-header, .chat-header, .legal-header, .topbar, .post-media, .media-frame, .post-frame, .settings-item, .legal-item, .settings-list, .divider, hr"
         )
         .forEach(function (el) {
-          if (el.classList.contains("post-media") || el.classList.contains("media-frame") || el.classList.contains("post-frame")) {
-            el.style.border = "none";
-            el.style.borderWidth = "0";
-            el.style.boxShadow = "none";
-          } else {
-            el.style.borderBottom = "none";
-            el.style.borderBottomWidth = "0";
-            el.style.borderTop = "none";
-            el.style.borderTopWidth = "0";
-            el.style.boxShadow = "none";
-          }
+          el.style.setProperty("border", "none", "important");
+          el.style.setProperty("border-bottom", "none", "important");
+          el.style.setProperty("border-bottom-width", "0", "important");
+          el.style.setProperty("border-top", "none", "important");
+          el.style.setProperty("border-top-width", "0", "important");
+          el.style.setProperty("box-shadow", "none", "important");
         });
       document.querySelectorAll(".post").forEach(function (el) {
-        el.style.borderBottom = "none";
-        el.style.borderBottomWidth = "0";
+        el.style.setProperty("border-bottom", "none", "important");
+        el.style.setProperty("border-bottom-width", "0", "important");
       });
     } catch (e) {}
   }
@@ -210,16 +226,31 @@
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", run);
   }
-  setTimeout(run, 100);
-  setTimeout(run, 500);
+  setTimeout(run, 50);
+  setTimeout(run, 200);
+  setTimeout(run, 600);
   setTimeout(run, 1500);
+  setTimeout(run, 3000);
 
   try {
     var mo = new MutationObserver(function () {
       hideBackOnMainTabs();
       showBackOnSavedAndSettings();
       stripBorders();
+      inject();
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
   } catch (e2) {}
+
+  /* Também ao navegar */
+  if (typeof window.goTo === "function" && !window.goTo.__noHeaderLine) {
+    var g = window.goTo;
+    window.goTo = function () {
+      var r = g.apply(this, arguments);
+      setTimeout(run, 30);
+      setTimeout(run, 150);
+      return r;
+    };
+    window.goTo.__noHeaderLine = true;
+  }
 })();

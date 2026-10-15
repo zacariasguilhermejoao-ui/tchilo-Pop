@@ -1,10 +1,11 @@
 /**
  * Tchilo — menu do perfil
- * v19 — carrega seletor + msg lock + no-header SEM observers (anti-freeze)
+ * v20 — força seletor de contas v4 no header do perfil
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV19) return;
+  if (window.__tchiloProfileShareV20) return;
+  window.__tchiloProfileShareV20 = true;
   window.__tchiloProfileShareV19 = true;
   window.__tchiloProfileShareV18 = true;
   window.__tchiloProfileShareV17 = true;
@@ -25,9 +26,12 @@
     (document.head || document.documentElement).appendChild(s);
   }
 
-  /* Versões SEM MutationObserver (v6/v3) — anti-freeze */
-  if (!window.__tchiloAccountSwitcherV3) {
-    loadScript('native/tchilo-account-switcher.js?v=6');
+  /* Seletor de contas v4 + locks leves */
+  if (!window.__tchiloAccountSwitcherV4) {
+    var sAcc = document.createElement('script');
+    sAcc.src = 'native/tchilo-account-switcher.js?v=7';
+    sAcc.async = true;
+    (document.head || document.documentElement).appendChild(sAcc);
   }
   if (!window.__tchiloMsgIconLockV3) {
     loadScript('native/tchilo-msg-icon-lock.js?v=3');
@@ -344,19 +348,26 @@
       btn.innerHTML = IC.more;
       btn.setAttribute('aria-label', 'Menu');
     }
+
+    /* Pedir ao seletor de contas para meter o ícone */
+    try {
+      if (typeof window.tchiloOpenAccountSwitcher === 'function') {
+        /* só garante botão — inject é interno */
+      }
+    } catch (e) {}
   }
 
   polishProfileHeader();
   setTimeout(polishProfileHeader, 400);
   setTimeout(polishProfileHeader, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV19) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV20) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
       setTimeout(polishProfileHeader, 40);
       return r;
     };
-    window.renderProfile.__shareMenuV19 = true;
+    window.renderProfile.__shareMenuV20 = true;
     window.renderProfile.__shareMenu = true;
   }
 })();

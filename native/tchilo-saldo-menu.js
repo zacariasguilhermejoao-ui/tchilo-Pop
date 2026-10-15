@@ -1,10 +1,11 @@
 /**
- * Injeta "Saldo" no menu ⋯ do perfil (ícone carteira)
+ * Injeta "Saldo" no menu ⋯ — SÓ no próprio perfil
+ * v2
  */
 (function () {
   'use strict';
-  if (window.__tchiloSaldoMenuV1) return;
-  window.__tchiloSaldoMenuV1 = true;
+  if (window.__tchiloSaldoMenuV2) return;
+  window.__tchiloSaldoMenuV2 = true;
 
   var WALLET =
     '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -13,12 +14,40 @@
     '<path d="M16 14h2"/>' +
     '</svg>';
 
+  function isOwn() {
+    try {
+      var s = null;
+      if (typeof getSession === 'function') s = getSession();
+      else s = JSON.parse(localStorage.getItem('tchilo_session') || 'null');
+      var me = s && (s.username || s.user);
+      if (!me) return false;
+      var view = window.viewingProfileUser;
+      if (!view) return true;
+      return String(view).toLowerCase() === String(me).toLowerCase();
+    } catch (e) {
+      return !window.viewingProfileUser;
+    }
+  }
+
   function inject() {
     var sheet = document.getElementById('tchiloProfileShareSheet');
-    if (!sheet || sheet.querySelector('[data-act="saldo"]')) return;
+    if (!sheet || !sheet.classList.contains('open')) return;
+
+    /* Remover saldo se não for próprio perfil */
+    if (!isOwn()) {
+      var bad = sheet.querySelector('[data-act="saldo"]');
+      if (bad) bad.remove();
+      return;
+    }
+
+    if (sheet.querySelector('[data-act="saldo"]')) return;
 
     var panel = sheet.querySelector('.tchilo-ps-panel');
     if (!panel) return;
+
+    /* Só injeta se existir Definições (menu próprio) */
+    var settings = panel.querySelector('[data-act="settings"]');
+    if (!settings) return;
 
     var btn = document.createElement('button');
     btn.type = 'button';
@@ -26,14 +55,10 @@
     btn.setAttribute('data-act', 'saldo');
     btn.innerHTML = '<span class="ic">' + WALLET + '</span><span>Saldo</span>';
 
-    /* Depois de Definições, ou no topo */
-    var settings = panel.querySelector('[data-act="settings"]');
-    if (settings && settings.nextSibling) {
+    if (settings.nextSibling) {
       settings.parentNode.insertBefore(btn, settings.nextSibling);
     } else {
-      var firstOpt = panel.querySelector('.opt');
-      if (firstOpt) panel.insertBefore(btn, firstOpt);
-      else panel.appendChild(btn);
+      settings.parentNode.appendChild(btn);
     }
 
     btn.addEventListener(
@@ -43,7 +68,6 @@
         e.stopPropagation();
         try {
           sheet.classList.remove('open');
-          sheet.remove();
         } catch (err) {}
         setTimeout(function () {
           if (typeof window.tchiloOpenSaldo === 'function') window.tchiloOpenSaldo();
@@ -54,14 +78,10 @@
     );
   }
 
-  function watch() {
-    try {
-      new MutationObserver(function () {
-        inject();
-      }).observe(document.body || document.documentElement, { childList: true, subtree: true });
-    } catch (e) {}
-  }
-
-  watch();
+  try {
+    new MutationObserver(function () {
+      inject();
+    }).observe(document.body || document.documentElement, { childList: true, subtree: true });
+  } catch (e) {}
   setTimeout(inject, 300);
 })();

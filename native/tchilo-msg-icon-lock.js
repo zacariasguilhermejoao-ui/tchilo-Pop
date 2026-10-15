@@ -1,15 +1,17 @@
 /**
- * Tchilo — ícone de mensagens = o que está no index.html
- * v5 — NÃO força um SVG inventado. Guarda o SVG original do index
- * e só o repõe se outro script o alterar/remover.
+ * Ícone de mensagens = exactamente o do index.html
+ * v6 — captura o SVG do index e repõe sempre que for alterado
  */
 (function () {
   'use strict';
-  if (window.__tchiloMsgIconLockV5) return;
-  window.__tchiloMsgIconLockV5 = true;
+  if (window.__tchiloMsgIconLockV6) return;
+  window.__tchiloMsgIconLockV6 = true;
 
   var savedHTML = null;
-  var savedOuter = null;
+
+  function hostEl() {
+    return document.querySelector('.topbar [data-top-messages], [data-top-messages]');
+  }
 
   function ensureCSS() {
     if (document.getElementById('tchiloMsgIconLockCSS')) return;
@@ -21,17 +23,10 @@
       'width:44px!important;height:44px!important;border:none!important;background:transparent!important;' +
       'opacity:1!important;background-image:none!important;}' +
       'html body .topbar [data-top-messages]::before,html body .topbar [data-top-messages]::after,' +
-      'html body [data-top-messages]::before,html body [data-top-messages]::after{' +
-      'content:none!important;display:none!important;}' +
-      'html body .topbar [data-top-messages] > svg,' +
-      'html body [data-top-messages] > svg{' +
-      'width:34px!important;height:34px!important;display:block!important;' +
-      'visibility:visible!important;opacity:1!important;}';
+      'html body [data-top-messages]::before,html body [data-top-messages]::after{content:none!important;display:none!important;}' +
+      'html body .topbar [data-top-messages] > svg,html body [data-top-messages] > svg{' +
+      'width:34px!important;height:34px!important;display:block!important;visibility:visible!important;opacity:1!important;}';
     (document.head || document.documentElement).appendChild(st);
-  }
-
-  function hostEl() {
-    return document.querySelector('.topbar [data-top-messages], [data-top-messages]');
   }
 
   function capture() {
@@ -39,37 +34,34 @@
     if (!host) return false;
     var sv = host.querySelector(':scope > svg') || host.querySelector('svg');
     if (!sv) return false;
-    /* guarda exactamente o que está no index */
-    savedHTML = sv.outerHTML;
-    savedOuter = sv.cloneNode(true);
+    var html = sv.outerHTML;
+    /* só guarda se parecer o do index (path do balão) */
+    if (html.indexOf('M184 72') === -1 && html.indexOf('viewBox="0 0 512 512"') === -1) {
+      /* ainda assim guarda o que estiver no index no 1º paint */
+    }
+    savedHTML = html;
     return true;
-  }
-
-  function looksLikeSaved(sv) {
-    if (!sv || !savedHTML) return false;
-    try {
-      /* comparação leve: path principal + tamanho */
-      var a = (sv.innerHTML || '').replace(/\s+/g, ' ').trim();
-      var b = (savedOuter.innerHTML || '').replace(/\s+/g, ' ').trim();
-      if (a === b) return true;
-      /* se tiver o mesmo path d principal */
-      var pa = sv.querySelector('path');
-      var pb = savedOuter.querySelector('path');
-      if (pa && pb && pa.getAttribute('d') === pb.getAttribute('d')) return true;
-    } catch (e) {}
-    return false;
   }
 
   function restore() {
     ensureCSS();
     var host = hostEl();
     if (!host) return;
-    if (!savedHTML && !capture()) return;
+    if (!savedHTML) capture();
+    if (!savedHTML) return;
 
     var sv = host.querySelector(':scope > svg') || host.querySelector('svg');
-    if (looksLikeSaved(sv)) return;
+    var ok = false;
+    if (sv) {
+      try {
+        ok = sv.outerHTML.replace(/\s+/g, ' ') === savedHTML.replace(/\s+/g, ' ');
+        if (!ok && savedHTML.indexOf('M184 72') !== -1) {
+          ok = (sv.innerHTML || '').indexOf('M184 72') !== -1;
+        }
+      } catch (e) {}
+    }
+    if (ok) return;
 
-    /* remove SVGs/imgs intrusos e repõe o original do index */
     try {
       Array.prototype.slice.call(host.querySelectorAll('svg, img')).forEach(function (n) {
         try { n.parentNode.removeChild(n); } catch (e) {}
@@ -79,9 +71,7 @@
     var tpl = document.createElement('template');
     tpl.innerHTML = savedHTML;
     var fresh = tpl.content.firstChild;
-    if (fresh) {
-      host.insertBefore(fresh, host.firstChild);
-    }
+    if (fresh) host.insertBefore(fresh, host.firstChild);
   }
 
   function boot() {
@@ -91,10 +81,8 @@
   }
 
   boot();
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  }
-  [100, 400, 1000, 2500, 5000].forEach(function (ms) {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  [50, 200, 600, 1500, 3000, 6000].forEach(function (ms) {
     setTimeout(function () {
       if (!savedHTML) capture();
       restore();
@@ -102,15 +90,15 @@
   });
 
   try {
-    var moT = null;
+    var t = null;
     new MutationObserver(function () {
-      if (moT) clearTimeout(moT);
-      moT = setTimeout(restore, 40);
+      if (t) clearTimeout(t);
+      t = setTimeout(restore, 30);
     }).observe(document.documentElement, {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['class', 'style', 'src', 'd', 'viewBox']
+      attributeFilter: ['class', 'style', 'src', 'd', 'viewBox', 'innerHTML']
     });
   } catch (e) {}
 })();

@@ -122,9 +122,15 @@
     st.textContent =
       '#tchiloAccSwitchBtn{' +
       'position:relative;width:40px;height:40px;border:0;border-radius:50%;' +
-      'background:transparent;display:inline-flex!important;align-items:center;justify-content:center;' +
+      'background:transparent;display:none;align-items:center;justify-content:center;' +
       'cursor:pointer;padding:0;flex-shrink:0;margin-right:4px;z-index:5;' +
-      'visibility:visible!important;opacity:1!important;}' +
+      'visibility:hidden;opacity:0;pointer-events:none;}' +
+      '#screen-profile.own-profile #tchiloAccSwitchBtn,' +
+      'body:not(.viewing-other-profile) #screen-profile #tchiloAccSwitchBtn{' +
+      'display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;}' +
+      'body.viewing-other-profile #tchiloAccSwitchBtn,' +
+      '#screen-profile:not(.own-profile) #tchiloAccSwitchBtn{' +
+      'display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}' +
       '#tchiloAccSwitchBtn svg{width:26px;height:26px;display:block;color:var(--ink,#0B0B0C);}' +
       '#tchiloAccountSwitchBtn{display:none!important;}' +
       '#tchiloAccSwitchModal{position:fixed;inset:0;z-index:2147483600;display:none;' +
@@ -352,7 +358,12 @@
     var own = isOwnProfile() && !!readSession();
 
     if (!own) {
-      if (existing) existing.style.display = 'none';
+      if (existing) {
+        existing.style.setProperty('display', 'none', 'important');
+        existing.style.setProperty('visibility', 'hidden', 'important');
+        existing.style.setProperty('opacity', '0', 'important');
+        existing.style.setProperty('pointer-events', 'none', 'important');
+      }
       return false;
     }
 
@@ -450,37 +461,4 @@
   );
 
   window.tchiloOpenAccountSwitcher = openModal;
-})();
-
-
-/* v8: hide account switch on other profiles */
-(function(){
-  function hideIfOther(){
-    try{
-      var other = !!(window.viewingProfileUser);
-      if(other){
-        var me=null;
-        try{ me=(typeof getSession==='function'&&getSession())||JSON.parse(localStorage.getItem('tchilo_session')||'null'); }catch(e){}
-        var my = me && (me.username||me.user);
-        if(my && String(window.viewingProfileUser).toLowerCase()===String(my).toLowerCase()) other=false;
-      }
-      var btn=document.getElementById('tchiloAccountSwitchBtn');
-      if(!btn) return;
-      if(other){
-        btn.style.setProperty('display','none','important');
-        btn.style.setProperty('visibility','hidden','important');
-        btn.style.setProperty('pointer-events','none','important');
-      } else {
-        btn.style.removeProperty('display');
-        btn.style.removeProperty('visibility');
-        btn.style.removeProperty('pointer-events');
-      }
-    }catch(e){}
-  }
-  setInterval(hideIfOther, 800);
-  if(typeof window.renderProfile==='function' && !window.renderProfile.__accHide){
-    var r=window.renderProfile;
-    window.renderProfile=function(){ var x=r.apply(this,arguments); setTimeout(hideIfOther,50); return x; };
-    window.renderProfile.__accHide=true;
-  }
 })();

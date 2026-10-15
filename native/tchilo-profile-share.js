@@ -7,7 +7,8 @@
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV22) return;
+  if (window.__tchiloProfileShareV23) return;
+  window.__tchiloProfileShareV23 = true;
   window.__tchiloProfileShareV22 = true;
   window.__tchiloProfileShareV21 = true;
   window.__tchiloProfileShareV20 = true;
@@ -82,7 +83,12 @@
     /* ban — bloquear (já no index) */
     block:
       '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>'
+      '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>',
+    scan:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>' +
+      '<path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>' +
+      '<rect x="7" y="7" width="10" height="10" rx="1"/></svg>'
   };
 
   function toast(msg) {
@@ -206,8 +212,11 @@
       'body:not(.viewing-other-profile) #screen-profile .screen-header .back-btn{display:none!important;}' +
       /* seletor de contas: só próprio perfil */
       '#screen-profile:not(.own-profile) #tchiloAccountSwitchBtn,' +
-      'body.viewing-other-profile #tchiloAccountSwitchBtn{' +
-      'display:none!important;visibility:hidden!important;pointer-events:none!important;}' +
+      'body.viewing-other-profile #tchiloAccountSwitchBtn,' +
+      'body.viewing-other-profile #tchiloAccSwitchBtn,' +
+      '#screen-profile:not(.own-profile) #tchiloAccSwitchBtn,' +
+      '#screen-profile:not(.own-profile) #tchiloAccountSwitchBtn{' +
+      'display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}' +
       /* menu 3 traços: sempre visível no header do perfil */
       '#tchiloProfileMoreBtn{margin-left:auto;display:inline-flex!important;align-items:center;justify-content:center;width:40px;height:40px;border:0;background:transparent;border-radius:50%;cursor:pointer;color:var(--ink);visibility:visible!important;pointer-events:auto!important;}' +
       'body.viewing-other-profile #screen-profile .tchilo-profile-share-btn{display:inline-flex!important;}';
@@ -255,7 +264,8 @@
         optHtml('settings', IC.settings, 'Definições') +
         optHtml('share', IC.share, 'Partilhar URL') +
         optHtml('copy', IC.copy, 'Copiar link') +
-        optHtml('qr', IC.qr, 'Código QR');
+        optHtml('qr', IC.qr, 'O meu código QR') +
+        optHtml('scan', IC.scan, 'Ler QR');
     } else {
       var following = isFollowingUser(user);
       body =
@@ -267,6 +277,7 @@
           following ? IC.unfollow : IC.follow,
           following ? 'Deixar de seguir' : 'Seguir @' + user
         ) +
+        optHtml('scan', IC.scan, 'Ler QR de um perfil') +
         optHtml('report', IC.report, 'Denunciar @' + user) +
         optHtml('block', IC.block, 'Bloquear @' + user, true);
     }
@@ -318,12 +329,38 @@
     }
     if (act === 'qr') {
       closeSheet();
-      try {
-        if (typeof window.tchiloShowQr === 'function') window.tchiloShowQr(url);
-        else copyText(url);
-      } catch (err2) {
-        copyText(url);
-      }
+      setTimeout(function () {
+        try {
+          if (typeof window.tchiloShowQr === 'function') window.tchiloShowQr(url);
+          else {
+            /* fallback visual */
+            var img =
+              'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' +
+              encodeURIComponent(url);
+            if (typeof tchiloModalOpen === 'function') {
+              tchiloModalOpen({
+                title: 'Código QR',
+                bodyHtml: '<div style="text-align:center"><img src="' + img + '" width="200" height="200" alt="QR" style="border-radius:12px"/></div>',
+                buttons: [{ label: 'Fechar', value: true, primary: true }]
+              });
+            } else {
+              copyText(url);
+            }
+          }
+        } catch (err2) {
+          copyText(url);
+        }
+      }, 60);
+      return;
+    }
+    if (act === 'scan') {
+      closeSheet();
+      setTimeout(function () {
+        try {
+          if (typeof window.tchiloScanQr === 'function') window.tchiloScanQr();
+          else if (typeof showToast === 'function') showToast('Leitor de QR indisponível');
+        } catch (eSc) {}
+      }, 60);
       return;
     }
     if (act === 'message') {
@@ -458,7 +495,7 @@
   polishProfileHeader();
   setTimeout(polishProfileHeader, 400);
   setTimeout(polishProfileHeader, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV22) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV23) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
@@ -466,7 +503,7 @@
       setTimeout(polishProfileHeader, 200);
       return r;
     };
-    window.renderProfile.__shareMenuV22 = true;
+    window.renderProfile.__shareMenuV23 = true;
     window.renderProfile.__shareMenuV21 = true;
     window.renderProfile.__shareMenuV20 = true;
     window.renderProfile.__shareMenu = true;

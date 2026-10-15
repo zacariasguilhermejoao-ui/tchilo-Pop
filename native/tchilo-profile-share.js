@@ -1,10 +1,14 @@
 /**
- * Tchilo — menu do perfil
- * v21 — seletor + menu ⋯ SÓ no próprio perfil; em perfis de outros só partilhar
+ * Tchilo — menu do perfil (3 traços)
+ * v22
+ * - Próprio perfil: Definições, Partilhar URL, QR
+ * - Perfil visitado: Copiar link, Partilhar, Mensagem, Seguir/Deixar, Denunciar, Bloquear
+ * Ícones: reutiliza os do app + Lucide-style (copy, link, ban, flag, message)
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV21) return;
+  if (window.__tchiloProfileShareV22) return;
+  window.__tchiloProfileShareV22 = true;
   window.__tchiloProfileShareV21 = true;
   window.__tchiloProfileShareV20 = true;
 
@@ -29,32 +33,56 @@
     loadScript('native/tchilo-no-header-line.js?v=6');
   } catch (e2) {}
 
-  var IC_QR =
-    '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-    '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>' +
-    '<path d="M14 14h3v3h-3zM20 14v6M14 20h6"/>' +
-    '</svg>';
-
+  /* Ícones SVG (estilo Lucide / já usados no index) */
   var IC = {
-    share:
-      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/>' +
-      '<path d="M8.5 13.5l7 4M15.5 6.5l-7 4"/>' +
-      '</svg>',
-    qr: IC_QR,
+    more:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">' +
+      '<path d="M4 7h16M4 12h16M4 17h16"/></svg>',
     settings:
       '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
       '<circle cx="12" cy="12" r="3"/>' +
-      '<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' +
-      '</svg>',
-    close:
-      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">' +
-      '<path d="M6 6l12 12M18 6L6 18"/>' +
-      '</svg>',
-    more:
-      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">' +
-      '<path d="M4 7h16M4 12h16M4 17h16"/>' +
-      '</svg>'
+      '<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+    share:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/>' +
+      '<path d="M8.5 13.5l7 4M15.5 6.5l-7 4"/></svg>',
+    qr:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>' +
+      '<path d="M14 14h3v3h-3zM20 14v6M14 20h6"/></svg>',
+    /* Lucide copy */
+    copy:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>' +
+      '<path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
+    /* Lucide link */
+    link:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>' +
+      '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+    /* message — balão (estilo index) */
+    message:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg>',
+    /* user-plus / follow — do post menu */
+    follow:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/>' +
+      '<path d="M19 16v6"/><path d="M22 19h-6"/></svg>',
+    /* user-minus / unfollow */
+    unfollow:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>' +
+      '<circle cx="9" cy="7" r="4"/><path d="M22 11h-6"/></svg>',
+    /* flag — denunciar (já no index) */
+    report:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>' +
+      '<line x1="4" x2="4" y1="22" y2="15"/></svg>',
+    /* ban — bloquear (já no index) */
+    block:
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>'
   };
 
   function toast(msg) {
@@ -111,14 +139,19 @@
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(
           function () { toast('Link copiado'); },
-          function () { toast('Não foi possível copiar'); }
+          function () { fallbackCopy(text); }
         );
         return;
       }
     } catch (e) {}
+    fallbackCopy(text);
+  }
+
+  function fallbackCopy(text) {
     try {
       var ta = document.createElement('textarea');
       ta.value = text;
+      ta.style.cssText = 'position:fixed;left:-9999px;top:0';
       document.body.appendChild(ta);
       ta.select();
       document.execCommand('copy');
@@ -132,11 +165,25 @@
   function shareNative(url, title) {
     try {
       if (navigator.share) {
-        navigator.share({ title: title || 'Tchilo', url: url }).catch(function () {});
+        navigator.share({ title: title || 'Tchilo', url: url, text: title || '' }).catch(function () {
+          copyText(url);
+        });
         return;
       }
     } catch (e) {}
     copyText(url);
+  }
+
+  function isFollowingUser(username) {
+    try {
+      if (typeof isFollowing === 'function') return !!isFollowing(username);
+    } catch (e) {}
+    try {
+      var list = typeof getFollowing === 'function' ? getFollowing() : [];
+      return list.indexOf(username) >= 0;
+    } catch (e2) {
+      return false;
+    }
   }
 
   function ensureCSS() {
@@ -146,24 +193,23 @@
     st.textContent =
       '#tchiloProfileShareSheet{position:fixed;inset:0;z-index:2147483000;display:none;align-items:flex-end;justify-content:center;background:rgba(11,11,12,.42);}' +
       '#tchiloProfileShareSheet.open{display:flex!important;}' +
-      '#tchiloProfileShareSheet .tchilo-ps-panel{width:min(100%,430px);background:var(--paper,#F6F1E7);border-radius:22px 22px 0 0;padding:12px 16px 28px;color:var(--ink,#0B0B0C);}' +
+      '#tchiloProfileShareSheet .tchilo-ps-panel{width:min(100%,430px);background:var(--paper,#F6F1E7);border-radius:22px 22px 0 0;padding:12px 16px calc(28px + env(safe-area-inset-bottom));color:var(--ink,#0B0B0C);}' +
       '#tchiloProfileShareSheet .tchilo-ps-handle{width:40px;height:4px;border-radius:4px;background:rgba(11,11,12,.18);margin:4px auto 12px;}' +
       '#tchiloProfileShareSheet .tchilo-ps-title{text-align:center;font:700 16px system-ui,-apple-system,sans-serif;margin:0 0 10px;}' +
       '#tchiloProfileShareSheet .opt{display:flex;align-items:center;gap:12px;width:100%;padding:14px 10px;border:0;background:transparent;text-align:left;font:500 15px system-ui,sans-serif;cursor:pointer;color:inherit;border-radius:12px;}' +
       '#tchiloProfileShareSheet .opt:active{background:rgba(11,11,12,.06);}' +
-      '#tchiloProfileShareSheet .opt .ic{width:28px;display:flex;align-items:center;justify-content:center;}' +
-      '#tchiloProfileShareSheet .cancel{width:100%;margin-top:8px;padding:14px;border:0;border-radius:14px;background:rgba(11,11,12,.06);font:700 15px system-ui,sans-serif;cursor:pointer;}' +
+      '#tchiloProfileShareSheet .opt.danger{color:#c62828;}' +
+      '#tchiloProfileShareSheet .opt .ic{width:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}' +
+      '#tchiloProfileShareSheet .cancel{width:100%;margin-top:8px;padding:14px;border:0;border-radius:14px;background:rgba(11,11,12,.06);font:700 15px system-ui,sans-serif;cursor:pointer;color:inherit;}' +
       '#screen-profile .screen-header{border:0!important;border-bottom:none!important;box-shadow:none!important;display:flex!important;align-items:center!important;}' +
       '#screen-profile.own-profile .screen-header .back-btn,' +
-      'body:not(.viewing-other-profile) #screen-profile .screen-header .back-btn{' +
-      'display:none!important;}' +
-      /* menu ⋯ e seletor: SÓ no próprio perfil */
-      '#screen-profile:not(.own-profile) #tchiloProfileMoreBtn,' +
-      'body.viewing-other-profile #tchiloProfileMoreBtn,' +
+      'body:not(.viewing-other-profile) #screen-profile .screen-header .back-btn{display:none!important;}' +
+      /* seletor de contas: só próprio perfil */
       '#screen-profile:not(.own-profile) #tchiloAccountSwitchBtn,' +
       'body.viewing-other-profile #tchiloAccountSwitchBtn{' +
       'display:none!important;visibility:hidden!important;pointer-events:none!important;}' +
-      '#tchiloProfileMoreBtn{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:0;background:transparent;border-radius:50%;cursor:pointer;color:var(--ink);}' +
+      /* menu 3 traços: sempre visível no header do perfil */
+      '#tchiloProfileMoreBtn{margin-left:auto;display:inline-flex!important;align-items:center;justify-content:center;width:40px;height:40px;border:0;background:transparent;border-radius:50%;cursor:pointer;color:var(--ink);visibility:visible!important;pointer-events:auto!important;}' +
       'body.viewing-other-profile #screen-profile .tchilo-profile-share-btn{display:inline-flex!important;}';
     document.head.appendChild(st);
   }
@@ -173,75 +219,176 @@
     if (el) el.classList.remove('open');
   }
 
+  function optHtml(act, icon, label, danger) {
+    return (
+      '<button type="button" class="opt' +
+      (danger ? ' danger' : '') +
+      '" data-act="' +
+      act +
+      '"><span class="ic">' +
+      icon +
+      '</span><span>' +
+      label +
+      '</span></button>'
+    );
+  }
+
   function openSheet() {
-    /* Só no próprio perfil */
-    if (!isOwnProfile()) {
-      /* em perfil alheio: partilhar URL simples */
-      var user = currentProfileUsername();
-      shareNative(profileUrl(user), 'Tchilo @' + user);
-      return;
-    }
     ensureCSS();
     var user = currentProfileUsername();
+    if (!user) {
+      toast('Perfil indisponível');
+      return;
+    }
     var url = profileUrl(user);
+    var own = isOwnProfile();
     var wrap = document.getElementById('tchiloProfileShareSheet');
     if (!wrap) {
       wrap = document.createElement('div');
       wrap.id = 'tchiloProfileShareSheet';
       document.body.appendChild(wrap);
     }
+
+    var body = '';
+    if (own) {
+      body =
+        optHtml('settings', IC.settings, 'Definições') +
+        optHtml('share', IC.share, 'Partilhar URL') +
+        optHtml('copy', IC.copy, 'Copiar link') +
+        optHtml('qr', IC.qr, 'Código QR');
+    } else {
+      var following = isFollowingUser(user);
+      body =
+        optHtml('copy', IC.copy, 'Copiar link do perfil') +
+        optHtml('share', IC.share, 'Partilhar perfil') +
+        optHtml('message', IC.message, 'Enviar mensagem') +
+        optHtml(
+          following ? 'unfollow' : 'follow',
+          following ? IC.unfollow : IC.follow,
+          following ? 'Deixar de seguir' : 'Seguir @' + user
+        ) +
+        optHtml('report', IC.report, 'Denunciar @' + user) +
+        optHtml('block', IC.block, 'Bloquear @' + user, true);
+    }
+
     wrap.innerHTML =
       '<div class="tchilo-ps-panel">' +
       '<div class="tchilo-ps-handle"></div>' +
       '<div class="tchilo-ps-title">Opções</div>' +
-      '<button type="button" class="opt" data-act="settings"><span class="ic">' +
-      IC.settings +
-      '</span><span>Definições</span></button>' +
-      '<button type="button" class="opt" data-act="share"><span class="ic">' +
-      IC.share +
-      '</span><span>Partilhar URL</span></button>' +
-      '<button type="button" class="opt" data-act="qr"><span class="ic">' +
-      IC.qr +
-      '</span><span>Código QR</span></button>' +
+      body +
       '<button type="button" class="cancel" data-a="close">Cancelar</button></div>';
 
     wrap.classList.add('open');
     wrap.onclick = function (e) {
       if (e.target === wrap) closeSheet();
     };
+
     wrap.querySelectorAll('.opt, .cancel').forEach(function (b) {
       b.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        var act = b.getAttribute('data-act');
         if (b.classList.contains('cancel') || b.getAttribute('data-a') === 'close') {
           closeSheet();
           return;
         }
-        if (act === 'share') {
-          shareNative(url, 'Tchilo @' + user);
-          closeSheet();
-          return;
-        }
-        if (act === 'settings') {
-          closeSheet();
-          try {
-            if (typeof goTo === 'function') goTo('settings');
-            else if (typeof window.goTo === 'function') window.goTo('settings');
-          } catch (err) {}
-          return;
-        }
-        if (act === 'qr') {
-          closeSheet();
-          try {
-            if (typeof window.tchiloShowQr === 'function') window.tchiloShowQr(url);
-            else copyText(url);
-          } catch (err2) {
-            copyText(url);
-          }
-        }
+        var act = b.getAttribute('data-act');
+        handleAction(act, user, url);
       });
     });
+  }
+
+  function handleAction(act, user, url) {
+    if (act === 'copy') {
+      copyText(url);
+      closeSheet();
+      return;
+    }
+    if (act === 'share') {
+      shareNative(url, 'Tchilo @' + user);
+      closeSheet();
+      return;
+    }
+    if (act === 'settings') {
+      closeSheet();
+      try {
+        if (typeof goTo === 'function') goTo('settings');
+        else if (typeof window.goTo === 'function') window.goTo('settings');
+      } catch (err) {}
+      return;
+    }
+    if (act === 'qr') {
+      closeSheet();
+      try {
+        if (typeof window.tchiloShowQr === 'function') window.tchiloShowQr(url);
+        else copyText(url);
+      } catch (err2) {
+        copyText(url);
+      }
+      return;
+    }
+    if (act === 'message') {
+      closeSheet();
+      try {
+        if (typeof startChatWith === 'function') startChatWith(user);
+        else if (typeof window.startChatWith === 'function') window.startChatWith(user);
+        else toast('Mensagens indisponíveis');
+      } catch (eMsg) {
+        toast('Não foi possível abrir a conversa');
+      }
+      return;
+    }
+    if (act === 'follow' || act === 'unfollow') {
+      closeSheet();
+      try {
+        if (typeof toggleFollow === 'function') toggleFollow(user);
+        if (typeof renderProfile === 'function') renderProfile();
+        if (typeof renderFeed === 'function') renderFeed();
+        toast(act === 'follow' ? 'A seguir @' + user : 'Deixaste de seguir @' + user);
+      } catch (eFol) {
+        toast('Não foi possível atualizar');
+      }
+      return;
+    }
+    if (act === 'report') {
+      closeSheet();
+      try {
+        if (typeof openReport === 'function') openReport('user', user);
+        else toast('Denúncia enviada sobre @' + user);
+      } catch (eRep) {
+        toast('Não foi possível denunciar');
+      }
+      return;
+    }
+    if (act === 'block') {
+      closeSheet();
+      (async function () {
+        try {
+          var ok = true;
+          if (typeof tchiloConfirm === 'function') {
+            ok = await tchiloConfirm({
+              title: 'Bloquear @' + user + '?',
+              message: 'Deixas de ver as publicações desta conta. Podes desbloquear nas definições.',
+              confirmText: 'Bloquear',
+              cancelText: 'Cancelar',
+              danger: true
+            });
+          }
+          if (!ok) return;
+          if (typeof blockUser === 'function') blockUser(user);
+          if (typeof renderFeed === 'function') renderFeed();
+          try {
+            if (typeof closeOtherProfile === 'function') closeOtherProfile();
+            else if (typeof goTo === 'function') {
+              window.viewingProfileUser = null;
+              goTo('feed');
+            }
+          } catch (eBack) {}
+        } catch (eBlk) {
+          toast('Não foi possível bloquear');
+        }
+      })();
+      return;
+    }
   }
 
   window.tchiloOpenProfileShare = openSheet;
@@ -271,7 +418,7 @@
     header.style.setProperty('border-bottom', 'none', 'important');
     header.style.setProperty('box-shadow', 'none', 'important');
 
-    /* Seletor de contas: só próprio perfil */
+    /* Seletor: só próprio perfil */
     var oldAcc = document.getElementById('tchiloAccountSwitchBtn');
     if (oldAcc) {
       if (own) {
@@ -285,40 +432,33 @@
       }
     }
 
+    /* Menu 3 traços: SEMPRE no perfil (próprio ou visitado) */
     var btn = document.getElementById('tchiloProfileMoreBtn');
-    if (own) {
-      if (!btn) {
-        btn = document.createElement('button');
-        btn.type = 'button';
-        btn.id = 'tchiloProfileMoreBtn';
-        btn.className = 'tchilo-profile-more';
-        btn.setAttribute('aria-label', 'Menu');
-        btn.innerHTML = IC.more;
-        btn.addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          openSheet();
-        });
-        header.appendChild(btn);
-      } else {
-        btn.innerHTML = IC.more;
-        btn.style.display = 'inline-flex';
-        btn.style.visibility = 'visible';
-        btn.style.pointerEvents = 'auto';
-      }
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'tchiloProfileMoreBtn';
+      btn.className = 'tchilo-profile-more';
+      btn.setAttribute('aria-label', 'Opções');
+      btn.innerHTML = IC.more;
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openSheet();
+      });
+      header.appendChild(btn);
     } else {
-      if (btn) {
-        btn.style.setProperty('display', 'none', 'important');
-        btn.style.setProperty('visibility', 'hidden', 'important');
-        btn.style.setProperty('pointer-events', 'none', 'important');
-      }
+      btn.innerHTML = IC.more;
+      btn.style.display = 'inline-flex';
+      btn.style.visibility = 'visible';
+      btn.style.pointerEvents = 'auto';
     }
   }
 
   polishProfileHeader();
   setTimeout(polishProfileHeader, 400);
   setTimeout(polishProfileHeader, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV21) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV22) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
@@ -326,6 +466,7 @@
       setTimeout(polishProfileHeader, 200);
       return r;
     };
+    window.renderProfile.__shareMenuV22 = true;
     window.renderProfile.__shareMenuV21 = true;
     window.renderProfile.__shareMenuV20 = true;
     window.renderProfile.__shareMenu = true;

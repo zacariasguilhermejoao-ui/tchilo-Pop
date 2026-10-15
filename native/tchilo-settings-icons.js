@@ -1,11 +1,13 @@
 /**
- * tchilo-settings-icons v30
+ * tchilo-settings-icons v31
  * Gestor de anúncios = megafone Lucide (outline profissional)
+ * + Toggle switches pretos quando ligados
  * Fonte: https://lucide.dev/icons/megaphone (ISC)
  */
 (function () {
   'use strict';
-  if (window.__TCHILO_SI_V30) return;
+  if (window.__TCHILO_SI_V31) return;
+  window.__TCHILO_SI_V31 = true;
   window.__TCHILO_SI_V30 = true;
   window.__TCHILO_SI_V29 = true;
   window.__TCHILO_SI_V26 = true;
@@ -159,10 +161,11 @@
   };
 
   function injectCSS() {
-    if (document.getElementById('si-v30-css')) return;
+    if (document.getElementById('si-v31-css')) return;
     var st = document.createElement('style');
-    st.id = 'si-v30-css';
+    st.id = 'si-v31-css';
     st.textContent =
+      /* Ícones de settings */
       '#screen-settings .settings-item .si-icon,' +
       '[id^="screen-settings"] .settings-item .si-icon,' +
       '.settings-list .settings-item .si-icon,' +
@@ -179,7 +182,32 @@
       'display:block!important;visibility:visible!important;opacity:1!important;' +
       'width:28px!important;height:28px!important;}' +
       '#screen-settings .settings-item .si-icon img,' +
-      '[id^="screen-settings"] .settings-item .si-icon img{display:none!important;}';
+      '[id^="screen-settings"] .settings-item .si-icon img{display:none!important;}' +
+
+      /* === Toggle switch real — ligado = preto === */
+      '.settings-toggle{' +
+      'width:48px!important;height:28px!important;border-radius:14px!important;' +
+      'border:none!important;background:color-mix(in srgb, var(--ink) 18%, transparent)!important;' +
+      'position:relative!important;flex-shrink:0!important;' +
+      'transition:background .2s ease!important;' +
+      'display:block!important;align-items:unset!important;justify-content:unset!important;' +
+      'box-sizing:border-box!important;' +
+      '}' +
+      '.settings-toggle::after{' +
+      'content:""!important;position:absolute!important;top:3px!important;left:3px!important;' +
+      'width:22px!important;height:22px!important;border-radius:50%!important;' +
+      'background:#fff!important;box-shadow:0 1px 3px rgba(0,0,0,.22)!important;' +
+      'transition:transform .2s ease!important;' +
+      'mask:none!important;-webkit-mask:none!important;opacity:1!important;' +
+      'transform:translateX(0)!important;' +
+      '}' +
+      '.settings-toggle.on{' +
+      'background:var(--ink,#0B0B0C)!important;border-color:transparent!important;' +
+      '}' +
+      '.settings-toggle.on::after{' +
+      'transform:translateX(20px)!important;background:#fff!important;opacity:1!important;' +
+      '}' +
+      '.settings-toggle:active{transform:none!important;}';
     (document.head || document.documentElement).appendChild(st);
   }
 
@@ -212,9 +240,9 @@
       if (!html) return;
       var box = btn.querySelector('.si-icon');
       if (!box) return;
-      if (box.getAttribute('data-si') === key + '-v30') return;
+      if (box.getAttribute('data-si') === key + '-v31') return;
       box.innerHTML = html;
-      box.setAttribute('data-si', key + '-v30');
+      box.setAttribute('data-si', key + '-v31');
       box.removeAttribute('style');
     });
   }
@@ -238,13 +266,13 @@
     setTimeout(run, ms);
   });
 
-  if (typeof window.goTo === 'function' && !window.goTo.__siV30) {
+  if (typeof window.goTo === 'function' && !window.goTo.__siV31) {
     var g = window.goTo;
     window.goTo = function (name) {
       var r = g.apply(this, arguments);
       if (name && String(name).indexOf('settings') === 0) setTimeout(run, 40);
       return r;
     };
-    window.goTo.__siV30 = true;
+    window.goTo.__siV31 = true;
   }
 })();

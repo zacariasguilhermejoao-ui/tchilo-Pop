@@ -1,15 +1,21 @@
 /**
  * Tchilo — menu do perfil
- * v15 — seletor de contas à esquerda + 3 traços à direita
+ * v16 — carrega seletor de contas (esquerda) + 3 traços (direita)
  */
 (function () {
   'use strict';
-  if (window.__tchiloProfileShareV15) return;
+  if (window.__tchiloProfileShareV16) return;
+  window.__tchiloProfileShareV16 = true;
   window.__tchiloProfileShareV15 = true;
   window.__tchiloProfileShareV14 = true;
-  window.__tchiloProfileShareV13 = true;
-  window.__tchiloProfileShareV12 = true;
-  window.__tchiloProfileShareV11 = true;
+
+  /* Carregar o seletor de contas se ainda não estiver carregado */
+  if (!window.__tchiloAccountSwitcherV2 && !window.__tchiloAccountSwitcherV1) {
+    var s = document.createElement('script');
+    s.src = 'native/tchilo-account-switcher.js?v=2';
+    s.async = true;
+    (document.head || document.documentElement).appendChild(s);
+  }
 
   var openGuardUntil = 0;
 
@@ -24,15 +30,6 @@
     '<circle cx="14.5" cy="17" r="1.4" fill="#18E8B0"/>' +
     '<circle cx="18" cy="17" r="1.4" fill="#F800A0"/>' +
     '<circle cx="21.5" cy="17" r="1.4" fill="#7800F8"/>' +
-    '</svg>';
-
-  /* Ícone seletor de contas — pessoa com badge (lado esquerdo) */
-  var IC_ACCOUNT_SWITCH =
-    '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>' +
-    '<circle cx="9" cy="7" r="4"/>' +
-    '<circle cx="19" cy="8" r="2.5" fill="currentColor" stroke="none"/>' +
-    '<path d="M17.5 8.5l.7.7 1.5-1.5" stroke="#fff" stroke-width="1.5" fill="none"/>' +
     '</svg>';
 
   var IC = {
@@ -59,8 +56,7 @@
     more:
       '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">' +
       '<path d="M4 7h16M4 12h16M4 17h16"/>' +
-      '</svg>',
-    accountSwitch: IC_ACCOUNT_SWITCH
+      '</svg>'
   };
 
   function toast(msg) {
@@ -68,9 +64,7 @@
       if (typeof showToast === 'function') showToast(String(msg));
       else alert(String(msg));
     } catch (e) {
-      try {
-        alert(String(msg));
-      } catch (e2) {}
+      try { alert(String(msg)); } catch (e2) {}
     }
   }
 
@@ -164,12 +158,12 @@
       '#tchiloProfileShareSheet .opt .ic{width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}' +
       '#tchiloProfileShareSheet .opt-close{opacity:.7;}' +
       '.tchilo-profile-more{margin-left:auto;width:40px;height:40px;border:0;border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink,#0B0B0C);}' +
-      /* Seletor de contas — lado esquerdo */
-      '.tchilo-account-switch{width:40px;height:40px;border:0;border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink,#0B0B0C);flex-shrink:0;}' +
       '#screen-profile .screen-header{border:0!important;border-bottom:none!important;box-shadow:none!important;display:flex!important;align-items:center!important;}' +
       '#screen-profile.own-profile .screen-header .back-btn,' +
       'body:not(.viewing-other-profile) #screen-profile .screen-header .back-btn{' +
       'display:none!important;visibility:hidden!important;width:0!important;height:0!important;padding:0!important;margin:0!important;overflow:hidden!important;}' +
+      '#tchiloAccSwitchBtn{display:inline-flex!important;visibility:visible!important;opacity:1!important;}' +
+      '#tchiloAccountSwitchBtn{display:none!important;}' +
       '#tchiloQrModal{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;background:rgba(11,11,12,.72);padding:20px;}' +
       '#tchiloQrModal.open{display:flex!important;}' +
       '#tchiloQrModal .card{background:var(--paper,#F3F1E9);color:var(--ink,#0B0B0C);border-radius:20px;padding:18px;max-width:360px;width:100%;}' +
@@ -286,17 +280,6 @@
   window.tchiloOpenProfileShare = openSheet;
   window.openProfileShareSheet = openSheet;
 
-  function openAccountSwitcher() {
-    /* Abre o seletor de contas — por agora usa o menu (podes ligar à tua lógica depois) */
-    if (typeof window.tchiloOpenAccountSwitcher === 'function') {
-      window.tchiloOpenAccountSwitcher();
-      return;
-    }
-    /* Fallback: ir para definições de conta */
-    if (typeof goTo === 'function') goTo('settings-account');
-    else if (typeof window.goTo === 'function') window.goTo('settings-account');
-  }
-
   function polishProfileHeader() {
     ensureCSS();
     var screen = document.getElementById('screen-profile');
@@ -313,38 +296,19 @@
         back.style.setProperty('display', 'none', 'important');
         back.setAttribute('aria-hidden', 'true');
       }
-
-      /* === Seletor de contas no lado ESQUERDO === */
-      var accBtn = document.getElementById('tchiloAccountSwitchBtn');
-      if (!accBtn) {
-        accBtn = document.createElement('button');
-        accBtn.type = 'button';
-        accBtn.id = 'tchiloAccountSwitchBtn';
-        accBtn.className = 'tchilo-account-switch';
-        accBtn.setAttribute('aria-label', 'Seletor de contas');
-        accBtn.innerHTML = IC.accountSwitch;
-        accBtn.addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          openAccountSwitcher();
-        });
-        /* Inserir no início do header (lado esquerdo) */
-        header.insertBefore(accBtn, header.firstChild);
-      } else {
-        accBtn.innerHTML = IC.accountSwitch;
-        accBtn.style.display = 'flex';
-      }
     } else {
       screen.classList.remove('own-profile');
       document.body.classList.add('viewing-other-profile');
-      var acc = document.getElementById('tchiloAccountSwitchBtn');
-      if (acc) acc.style.display = 'none';
     }
 
     header.style.setProperty('border-bottom', 'none', 'important');
     header.style.setProperty('box-shadow', 'none', 'important');
 
-    /* === 3 traços no lado DIREITO === */
+    /* Remover botão concorrente antigo */
+    var oldAcc = document.getElementById('tchiloAccountSwitchBtn');
+    if (oldAcc) oldAcc.remove();
+
+    /* 3 traços no lado DIREITO */
     var btn = document.getElementById('tchiloProfileMoreBtn');
     if (!btn) {
       btn = document.createElement('button');
@@ -368,14 +332,14 @@
   polishProfileHeader();
   setTimeout(polishProfileHeader, 400);
   setTimeout(polishProfileHeader, 1500);
-  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV15) {
+  if (typeof window.renderProfile === 'function' && !window.renderProfile.__shareMenuV16) {
     var rp = window.renderProfile;
     window.renderProfile = function () {
       var r = rp.apply(this, arguments);
       setTimeout(polishProfileHeader, 40);
       return r;
     };
-    window.renderProfile.__shareMenuV15 = true;
+    window.renderProfile.__shareMenuV16 = true;
     window.renderProfile.__shareMenu = true;
   }
 })();

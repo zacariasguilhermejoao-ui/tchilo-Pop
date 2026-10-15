@@ -1,80 +1,42 @@
 /**
- * tchilo-Pop — sheets full-screen where needed
- * v3 — storyCreateSheet full screen when open
+ * tchilo-Pop — sheets: manter bottom sheets (como o modal de Presentes já existente)
+ * v5 — NÃO cria estilo novo. Só desfaz full-screen forçado e deixa o swipe funcionar.
+ * O visual e comportamento de referência é o #tchiloGiftSheet que já existe.
  */
 (function () {
   'use strict';
-  if (window.__tchiloSheetsFullFixV3) return;
-  window.__tchiloSheetsFullFixV3 = true;
-  window.__tchiloSheetsFullFixV2 = true;
-  window.__tchiloSheetsFullFix = true;
+  if (window.__tchiloSheetsFullV5) return;
+  window.__tchiloSheetsFullV5 = true;
 
   function injectCSS() {
-    var old = document.getElementById('tchiloSheetsFullCSS');
-    if (old) old.remove();
+    if (document.getElementById('tchilo-sheets-full-css-v5')) return;
     var st = document.createElement('style');
-    st.id = 'tchiloSheetsFullCSS';
+    st.id = 'tchilo-sheets-full-css-v5';
+    /* Só reverte full-screen forçado nos .sheet; não redesenha o look */
     st.textContent = [
-      '#commentSheet.sheet.open{align-items:stretch!important;justify-content:stretch!important;background:var(--paper,#F6F1E7)!important;}',
+      '#commentSheet.sheet.open{',
+      '  align-items:flex-end!important;justify-content:center!important;',
+      '  background:rgba(11,11,12,.48)!important;',
+      '}',
       '#commentSheet .sheet-panel{',
-      '  width:100%!important;max-width:none!important;max-height:none!important;height:100%!important;',
-      '  border-radius:0!important;border:0!important;border-bottom:0!important;',
-      '  box-shadow:none!important;display:flex!important;flex-direction:column!important;',
-      '  padding:0!important;padding-top:env(safe-area-inset-top)!important;',
+      '  width:100%!important;max-width:480px!important;',
+      '  max-height:min(82vh,720px)!important;height:auto!important;',
+      '  border-radius:18px 18px 0 0!important;',
       '}',
-      '#commentSheet .sheet-handle{display:none!important;}',
-      '#commentSheet .sheet-title{',
-      '  margin:0!important;padding:14px 16px!important;border-bottom:2.5px solid var(--ink,#0B0B0C)!important;',
-      '  font-size:20px!important;display:flex!important;align-items:center!important;gap:10px!important;',
+      '#tchiloModalHost:not(.tm-full){align-items:flex-end!important;justify-content:center!important;}',
+      '#tchiloModalHost:not(.tm-full) .tm-sheet{',
+      '  width:100%!important;max-width:480px!important;',
+      '  max-height:min(78vh,640px)!important;height:auto!important;',
+      '  border-radius:18px 18px 0 0!important;',
       '}',
-      '#commentSheet .sheet-list{flex:1!important;min-height:0!important;padding:12px 16px!important;}',
-      '#commentSheet .sheet-input-bar{',
-      '  border-top:2.5px solid var(--ink,#0B0B0C)!important;',
-      '  padding:10px 14px calc(10px + env(safe-area-inset-bottom))!important;background:var(--paper,#F6F1E7)!important;',
-      '}',
-
-      '#storyCreateSheet{display:none!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;}',
-      '#storyCreateSheet.is-open,#storyCreateSheet.open{',
-      '  display:flex!important;visibility:visible!important;pointer-events:auto!important;',
-      '  align-items:stretch!important;justify-content:stretch!important;',
-      '  background:var(--paper,#F6F1E7)!important;position:fixed!important;inset:0!important;z-index:200!important;',
-      '  padding:0!important;',
-      '}',
-      '#storyCreateSheet.is-open > div,#storyCreateSheet.open > div{',
-      '  width:100%!important;max-width:none!important;max-height:none!important;',
-      '  height:100%!important;min-height:100%!important;',
-      '  border-radius:0!important;margin:0!important;border:0!important;box-shadow:none!important;',
-      '  padding:16px 18px calc(24px + env(safe-area-inset-bottom))!important;',
-      '  overflow:auto!important;background:var(--paper,#F6F1E7)!important;',
-      '  box-sizing:border-box!important;',
-      '}',
-
-      '#tchiloSGSheet{',
-      '  left:0!important;right:0!important;top:0!important;bottom:0!important;',
-      '  max-height:none!important;height:100%!important;border-radius:0!important;',
-      '  border-left:0!important;border-right:0!important;border-top:0!important;',
-      '}',
-
-      '#tchiloModalHost.tm-full{align-items:stretch!important;justify-content:stretch!important;padding:0!important;}',
-      '#tchiloModalHost.tm-full .tm-backdrop{display:none!important;}',
       '#tchiloModalHost.tm-full .tm-sheet{',
       '  width:100%!important;max-width:none!important;max-height:none!important;height:100%!important;',
-      '  border-radius:0!important;border:0!important;box-shadow:none!important;',
-      '  padding-bottom:env(safe-area-inset-bottom)!important;',
+      '  border-radius:0!important;',
       '}',
       '#tchiloModalHost.tm-full .tm-handle{display:none!important;}',
-      '#tchiloModalHost.tm-full .tm-head{',
-      '  padding:14px 18px!important;padding-top:calc(14px + env(safe-area-inset-top))!important;',
-      '  border-bottom:2.5px solid var(--ink,#0B0B0C)!important;',
-      '}',
-
-      '.menu-sheet .sheet-panel,',
-      '#shareSheet .sheet-panel,',
-      '#reportSheet .sheet-panel,',
-      '#postMenuSheet .sheet-panel,',
-      '#reelMenuSheet .sheet-panel,',
-      '#storyMenuSheet .sheet-panel{',
-      '  max-height:min(52vh,420px)!important;',
+      '.menu-sheet .sheet-panel,#shareSheet .sheet-panel,#reportSheet .sheet-panel,',
+      '#postMenuSheet .sheet-panel,#reelMenuSheet .sheet-panel,#storyMenuSheet .sheet-panel{',
+      '  max-height:min(58vh,460px)!important;',
       '}'
     ].join('');
     document.head.appendChild(st);
@@ -91,50 +53,47 @@
     btn.className = 'tchilo-sheet-back';
     btn.setAttribute('aria-label', 'Voltar');
     btn.style.cssText =
-      'width:36px;height:36px;border-radius:12px;border:2.5px solid var(--ink,#0B0B0C);' +
+      'width:36px;height:36px;border-radius:12px;border:1.5px solid rgba(11,11,12,.12);' +
       'background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;';
     btn.innerHTML =
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     btn.onclick = function (e) {
       e.preventDefault();
       e.stopPropagation();
-      if (typeof closeComments === 'function') closeComments();
+      try { if (typeof window.closeComments === 'function') window.closeComments(); } catch (err) {}
     };
     title.insertBefore(btn, title.firstChild);
   }
 
   function patchModalFull() {
-    if (typeof window.tchiloModalOpen !== 'function' || window.tchiloModalOpen.__sheetsFull) return;
+    if (typeof window.tchiloModalOpen !== 'function' || window.tchiloModalOpen.__sheetsFullV5) return;
     var orig = window.tchiloModalOpen;
     window.tchiloModalOpen = function (opts) {
       opts = opts || {};
-      var body = opts.bodyHtml || '';
-      var longBody = body.length > 80 || /attach-sheet|grid|tm-option|interest/i.test(body);
-      var manyBtns = (opts.buttons || []).length > 3;
-      var forceFull = opts.fullScreen === true || longBody || manyBtns;
-      var forceSheet = opts.fullScreen === false;
       var r = orig.apply(this, arguments);
       setTimeout(function () {
         var h = document.getElementById('tchiloModalHost');
         if (!h) return;
+        var forceFull = opts.fullScreen === true;
+        var forceSheet = opts.fullScreen === false;
         if (forceSheet) h.classList.remove('tm-full');
         else if (forceFull) h.classList.add('tm-full');
         else h.classList.remove('tm-full');
       }, 0);
       return r;
     };
-    window.tchiloModalOpen.__sheetsFull = true;
+    window.tchiloModalOpen.__sheetsFullV5 = true;
   }
 
   function patchOpenComments() {
-    if (typeof window.openComments !== 'function' || window.openComments.__sheetsFull) return;
+    if (typeof window.openComments !== 'function' || window.openComments.__sheetsFullV5) return;
     var orig = window.openComments;
     window.openComments = function () {
       var r = orig.apply(this, arguments);
       setTimeout(ensureCommentBack, 30);
       return r;
     };
-    window.openComments.__sheetsFull = true;
+    window.openComments.__sheetsFullV5 = true;
   }
 
   function forceStoryCreateFull(el) {
@@ -187,7 +146,5 @@
   }
 
   boot();
-  [100, 500, 1500].forEach(function (ms) {
-    setTimeout(boot, ms);
-  });
+  [100, 500, 1500].forEach(function (ms) { setTimeout(boot, ms); });
 })();

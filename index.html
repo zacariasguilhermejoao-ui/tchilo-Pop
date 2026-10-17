@@ -541,6 +541,23 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   }
   .tk-skel-num{display:inline-block;width:28px;height:18px;border-radius:6px;vertical-align:middle}
   .feed-skeleton{padding:0 0 24px}
+
+  /* ===== SKELETON cinzento: mensagens, notificações, comentários, chat, botões de login ===== */
+  .tk-sk-row{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:2px solid #e8e8e8}
+  .tk-sk-row.top{align-items:flex-start}
+  .tk-sk-row .tk-sk-body{flex:1;min-width:0}
+  .tk-sk-cm{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px}
+  .tk-sk-bubble-wrap{display:flex;padding:4px 14px}
+  .tk-sk-bubble-wrap.me{justify-content:flex-end}
+  .tk-sk-bubble{height:38px;border-radius:18px}
+  .tk-sk-list{pointer-events:none}
+  #loginGate .login-choice button.login-svg-btn:not(.tk-loaded){
+    background:linear-gradient(90deg,#e4e4e4 0%,#f0f0f0 50%,#e4e4e4 100%)!important;
+    background-size:200% 100%!important;animation:tchiloSkel 1.15s ease-in-out infinite;
+    border-radius:999px!important;
+  }
+  #loginGate .login-choice button.login-svg-btn:not(.tk-loaded) img{opacity:0}
+  #loginGate .login-choice button.login-svg-btn img{transition:opacity .15s}
   .feed-skel-card{border-bottom:none;padding:14px 18px 16px}
   .feed-skel-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
   .feed-skel-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(90deg,#e4e4e4,#f0f0f0,#e4e4e4);background-size:200% 100%;animation:tchiloSkel 1.15s ease-in-out infinite}
@@ -2532,6 +2549,24 @@ html body .story-card-create .story-card-plus{position:absolute;left:50%;top:70%
 html body .story-card-create .story-card-plus svg{width:20px;height:20px;display:block;}
 html body .story-card-create .story-create-label{position:absolute;left:0;right:0;bottom:0;height:30%;display:flex;align-items:flex-end;justify-content:center;padding:0 6px 11px;box-sizing:border-box;font-size:12px;font-weight:800;color:var(--ink,#0B0B0C);text-align:center;white-space:nowrap;}
 </style>
+<style id="login-svg-buttons-early">/* Mesmos estilos do bloco final, aplicados logo no head para os botões não "saltarem" no primeiro desenho */
+.login-choice button.login-svg-btn,.login-choice button.login-svg-btn:first-child,.login-choice button.login-svg-btn:last-child{
+  background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;
+  width:100%!important;height:auto!important;min-height:0!important;border-radius:0!important;
+  display:block!important;cursor:pointer;line-height:0;
+}
+.login-choice button.login-svg-btn img{display:block;width:100%;height:auto;aspect-ratio:764/88;pointer-events:none;}
+.login-choice button.login-svg-btn:active{transform:scale(.98);}
+.login-terms-note{width:100%;margin:0 0 4px;text-align:center;font-size:13.5px;line-height:1.5;color:#fff!important;}
+#loginGate .login-terms-note a{color:#4DA3FF!important;font-weight:700;text-decoration:none!important;cursor:pointer;}
+#loginGate:has(#loginWelcome.is-visible) #loginScroll{display:flex!important;flex-direction:column!important;}
+#loginGate #loginWelcome.is-visible{margin-top:auto!important;padding-top:0!important;padding-bottom:calc(clamp(56px,14vh,130px) + env(safe-area-inset-bottom))!important;}
+#loginGate p.login-terms-note{color:#fff!important;}
+.login-gate.panel-open .login-logo-white{display:none!important;}
+.login-gate:not(.panel-open) .login-logo-img:not(.login-logo-white){display:none!important;}
+#loginGate:has(#loginWelcome.is-visible) .login-footer,
+#loginGate:has(#loginWelcome.is-visible) .login-legal-links{display:none!important;}
+</style>
 </head>
 <body>
 <script id="tchilo-click-fix-js-v1">
@@ -2588,7 +2623,7 @@ html body .story-card-create .story-create-label{position:absolute;left:0;right:
         e.preventDefault();
         e.stopPropagation();
         if(screen==='feed'&&typeof window.onNavFeed==='function')window.onNavFeed();
-        else if(screen==='profile'){window.viewingProfileUser=null;window.goTo('profile');}
+        else if(screen==='profile'){if(typeof window.tchiloGoMyProfile==='function')window.tchiloGoMyProfile();else window.goTo('profile');}
         else window.goTo(screen);
       }
     }catch(err){}
@@ -2701,9 +2736,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     <div class="login-welcome is-visible" id="loginWelcome" class="is-visible">
       <p class="login-terms-note">Ao tocares num dos botões abaixo, concordas com os <a onclick="openLegalFromLogin('terms')">Termos de uso</a>, com a <a onclick="openLegalFromLogin('privacy')">Política de Privacidade</a> e com as regras de <a onclick="openLegalFromLogin('child')">Segurança infantil</a> do Tchilo.</p>
       <div class="login-choice">
-        <button type="button" class="login-svg-btn" aria-label="Entrar" onclick="showLoginPanel('access')"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NjQiIGhlaWdodD0iODgiIHZpZXdCb3g9IjAgMCA3NjQgODgiPgogIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI3NjQiIGhlaWdodD0iODgiIHJ4PSI0NCIgZmlsbD0iI0ZGRDYwMCIvPgogIDx0ZXh0IHg9IjM4MiIgeT0iNDQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIgogICAgICAgIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXdlaWdodD0iNjAwIgogICAgICAgIGZpbGw9IiMxNzE3MTciPkVudHJhcjwvdGV4dD4KPC9zdmc+Cg==" alt="Entrar" draggable="false"></button>
-        <button type="button" class="login-svg-btn" aria-label="Criar conta" onclick="showLoginPanel('signup')"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NjQiIGhlaWdodD0iODgiIHZpZXdCb3g9IjAgMCA3NjQgODgiPgogIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI3NjQiIGhlaWdodD0iODgiIHJ4PSI0NCIgZmlsbD0iIzY0MjhDOCIvPgogIDx0ZXh0IHg9IjM4MiIgeT0iNDQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIgogICAgICAgIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXdlaWdodD0iNjAwIgogICAgICAgIGZpbGw9IiNGRkZGRkYiPkNyaWFyIENvbnRhPC90ZXh0Pgo8L3N2Zz4K" alt="Criar conta" draggable="false"></button>
-        <button type="button" class="login-svg-btn" aria-label="Continuar com Google" onclick="tchiloGoogleLogin()"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICAgd2lkdGg9Ijc2NCIgaGVpZ2h0PSI4OCIgdmlld0JveD0iMCAwIDc2NCA4OCIKICAgICByb2xlPSJpbWciIGFyaWEtbGFiZWxsZWRieT0idGl0bGUiPgogIDx0aXRsZSBpZD0idGl0bGUiPkNvbnRpbnVhciBjb20gR29vZ2xlPC90aXRsZT4KICA8cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iNzYyIiBoZWlnaHQ9Ijg2IiByeD0iNDMiCiAgICAgICAgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjREFEQ0UwIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyMzYgMjkpIHNjYWxlKDEuMjUpIj4KICAgIDxwYXRoIGZpbGw9IiM0Mjg1RjQiIGQ9Ik0yMy40OSAxMi4yN2MwLS43OC0uMDctMS41My0uMi0yLjI3SDEydjQuNTFoNi40NGE1LjUgNS41IDAgMCAxLTIuMzkgMy42MXYyLjk0aDMuODdjMi4yNy0yLjA5IDMuNTctNS4xNyAzLjU3LTguNzl6Ii8+CiAgICA8cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNMTIgMjRjMy4yNCAwIDUuOTYtMS4wNyA3Ljk1LTIuOTRsLTMuODctMi45NGMtMS4wNy43Mi0yLjQ0IDEuMTUtNC4wOCAxLjE1LTMuMTMgMC01Ljc5LTIuMTEtNi43NC00Ljk1SDEuMjZ2My4wM0ExMiAxMiAwIDAgMCAxMiAyNHoiLz4KICAgIDxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik01LjI2IDE0LjMyQTcuMjIgNy4yMiAwIDAgMSA0Ljg4IDEyYzAtLjgxLjE0LTEuNTkuMzgtMi4zMlY2LjY1SDEuMjZBMTIgMTIgMCAwIDAgMCAxMmMwIDEuOTQuNDYgMy43OCAxLjI2IDUuMzV6Ii8+CiAgICA8cGF0aCBmaWxsPSIjRUE0MzM1IiBkPSJNMTIgNC43M2MxLjc3IDAgMy4zNS42MSA0LjYgMS44bDMuNDItMy40MkMxNy45NSAxLjE5IDE1LjI0IDAgMTIgMEExMiAxMiAwIDAgMCAxLjI2IDYuNjVsNCAzLjAzQzYuMjEgNi44NCA4Ljg3IDQuNzMgMTIgNC43M3oiLz4KICA8L2c+CiAgPHRleHQgeD0iNDA0IiB5PSI0NCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIKICAgICAgICB0ZXh0LWFuY2hvcj0ibWlkZGxlIgogICAgICAgIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIgogICAgICAgIGZvbnQtc2l6ZT0iMjUiIGZvbnQtd2VpZ2h0PSI2MDAiCiAgICAgICAgZmlsbD0iIzNDNDA0MyI+Q29udGludWFyIGNvbSBHb29nbGU8L3RleHQ+Cjwvc3ZnPgo=" alt="Continuar com Google" draggable="false"></button>
+        <button type="button" class="login-svg-btn" aria-label="Entrar" onclick="showLoginPanel('access')"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NjQiIGhlaWdodD0iODgiIHZpZXdCb3g9IjAgMCA3NjQgODgiPgogIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI3NjQiIGhlaWdodD0iODgiIHJ4PSI0NCIgZmlsbD0iI0ZGRDYwMCIvPgogIDx0ZXh0IHg9IjM4MiIgeT0iNDQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIgogICAgICAgIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXdlaWdodD0iNjAwIgogICAgICAgIGZpbGw9IiMxNzE3MTciPkVudHJhcjwvdGV4dD4KPC9zdmc+Cg==" alt="Entrar" onload="this.parentNode.classList.add('tk-loaded')" draggable="false"></button>
+        <button type="button" class="login-svg-btn" aria-label="Criar conta" onclick="showLoginPanel('signup')"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NjQiIGhlaWdodD0iODgiIHZpZXdCb3g9IjAgMCA3NjQgODgiPgogIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI3NjQiIGhlaWdodD0iODgiIHJ4PSI0NCIgZmlsbD0iIzY0MjhDOCIvPgogIDx0ZXh0IHg9IjM4MiIgeT0iNDQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIgogICAgICAgIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXdlaWdodD0iNjAwIgogICAgICAgIGZpbGw9IiNGRkZGRkYiPkNyaWFyIENvbnRhPC90ZXh0Pgo8L3N2Zz4K" alt="Criar conta" onload="this.parentNode.classList.add('tk-loaded')" draggable="false"></button>
+        <button type="button" class="login-svg-btn" aria-label="Continuar com Google" onclick="tchiloGoogleLogin()"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICAgd2lkdGg9Ijc2NCIgaGVpZ2h0PSI4OCIgdmlld0JveD0iMCAwIDc2NCA4OCIKICAgICByb2xlPSJpbWciIGFyaWEtbGFiZWxsZWRieT0idGl0bGUiPgogIDx0aXRsZSBpZD0idGl0bGUiPkNvbnRpbnVhciBjb20gR29vZ2xlPC90aXRsZT4KICA8cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iNzYyIiBoZWlnaHQ9Ijg2IiByeD0iNDMiCiAgICAgICAgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjREFEQ0UwIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyMzYgMjkpIHNjYWxlKDEuMjUpIj4KICAgIDxwYXRoIGZpbGw9IiM0Mjg1RjQiIGQ9Ik0yMy40OSAxMi4yN2MwLS43OC0uMDctMS41My0uMi0yLjI3SDEydjQuNTFoNi40NGE1LjUgNS41IDAgMCAxLTIuMzkgMy42MXYyLjk0aDMuODdjMi4yNy0yLjA5IDMuNTctNS4xNyAzLjU3LTguNzl6Ii8+CiAgICA8cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNMTIgMjRjMy4yNCAwIDUuOTYtMS4wNyA3Ljk1LTIuOTRsLTMuODctMi45NGMtMS4wNy43Mi0yLjQ0IDEuMTUtNC4wOCAxLjE1LTMuMTMgMC01Ljc5LTIuMTEtNi43NC00Ljk1SDEuMjZ2My4wM0ExMiAxMiAwIDAgMCAxMiAyNHoiLz4KICAgIDxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik01LjI2IDE0LjMyQTcuMjIgNy4yMiAwIDAgMSA0Ljg4IDEyYzAtLjgxLjE0LTEuNTkuMzgtMi4zMlY2LjY1SDEuMjZBMTIgMTIgMCAwIDAgMCAxMmMwIDEuOTQuNDYgMy43OCAxLjI2IDUuMzV6Ii8+CiAgICA8cGF0aCBmaWxsPSIjRUE0MzM1IiBkPSJNMTIgNC43M2MxLjc3IDAgMy4zNS42MSA0LjYgMS44bDMuNDItMy40MkMxNy45NSAxLjE5IDE1LjI0IDAgMTIgMEExMiAxMiAwIDAgMCAxLjI2IDYuNjVsNCAzLjAzQzYuMjEgNi44NCA4Ljg3IDQuNzMgMTIgNC43M3oiLz4KICA8L2c+CiAgPHRleHQgeD0iNDA0IiB5PSI0NCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIKICAgICAgICB0ZXh0LWFuY2hvcj0ibWlkZGxlIgogICAgICAgIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIgogICAgICAgIGZvbnQtc2l6ZT0iMjUiIGZvbnQtd2VpZ2h0PSI2MDAiCiAgICAgICAgZmlsbD0iIzNDNDA0MyI+Q29udGludWFyIGNvbSBHb29nbGU8L3RleHQ+Cjwvc3ZnPgo=" alt="Continuar com Google" onload="this.parentNode.classList.add('tk-loaded')" draggable="false"></button>
+        <button type="button" class="login-svg-btn" aria-label="Continuar com Spotify" onclick="tchiloSpotifyLogin()"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3NjQiIGhlaWdodD0iODgiIHZpZXdCb3g9IjAgMCA3NjQgODgiIHJvbGU9ImltZyIgYXJpYS1sYWJlbGxlZGJ5PSJ0aXRsZSI+CiAgPHRpdGxlIGlkPSJ0aXRsZSI+Q29udGludWFyIGNvbSBTcG90aWZ5PC90aXRsZT4KICA8cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iNzYyIiBoZWlnaHQ9Ijg2IiByeD0iNDMiIGZpbGw9IiMxREI5NTQiLz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyMTggMjIpIj4KICAgIDxjaXJjbGUgY3g9IjIyIiBjeT0iMjIiIHI9IjIyIiBmaWxsPSIjRkZGRkZGIi8+CiAgICA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxREI5NTQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CiAgICAgIDxwYXRoIGQ9Ik0xMCAxNS41IEMxOCAxMy4xIDI3LjggMTQuNiAzNCAxOC4yIiBzdHJva2Utd2lkdGg9IjMuNiIvPgogICAgICA8cGF0aCBkPSJNMTEuNSAyMiBDMTkgMTkuOSAyNi43IDIxLjMgMzIuMiAyNC40IiBzdHJva2Utd2lkdGg9IjMuMiIvPgogICAgICA8cGF0aCBkPSJNMTMgMjggQzE5LjIgMjYuNCAyNS4yIDI3LjcgMjkuOCAzMC4zIiBzdHJva2Utd2lkdGg9IjIuOCIvPgogICAgPC9nPgogIDwvZz4KICA8dGV4dCB4PSI0MTAiIHk9IjQ0IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIEhlbHZldGljYSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNSIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iI0ZGRkZGRiI+Q29udGludWFyIGNvbSBTcG90aWZ5PC90ZXh0Pgo8L3N2Zz4K" alt="Continuar com Spotify" onload="this.parentNode.classList.add('tk-loaded')" draggable="false"></button>
       </div>
     </div>
     <div class="login-panel" id="accessPanel">
@@ -3028,7 +3064,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       <span class="badge badge-dot" id="badge-notif"></span>
       <div class="dot"></div>
     </button>
-    <button class="nav-item" data-screen="profile" onclick="viewingProfileUser=null;goTo('profile')">
+    <button class="nav-item" data-screen="profile" onclick="tchiloGoMyProfile()">
       <svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="256" cy="168" r="84"/><path d="M84 436 V412 a96 96 0 0 1 96 -96 H332 a96 96 0 0 1 96 96 V436 Z"/></svg>
       <div class="dot"></div>
     </button>
@@ -4682,6 +4718,11 @@ function initPullToRefreshScreens() {
 }
 
 function goTo(name) {
+  /* O perfil de outra pessoa só vale enquanto estou nele: ao ir para um separador
+     do menu (feed, pesquisa, mensagens, notificações...), deixa de estar "colado". */
+  if (name === 'feed' || name === 'search' || name === 'messages' || name === 'notifs' || name === 'create' || name === 'friends') {
+    try { viewingProfileUser = null; } catch (e) {}
+  }
   /* Ao sair do feed, o chrome nunca pode ficar escondido.
      O menu inferior e os cabeçalhos de navegação devem estar sempre acessíveis
      nas telas internas (incluindo perfis de outras pessoas). */
@@ -5033,6 +5074,20 @@ async function loadPublicFeedFromSupabase(force) {
   if (__publicFeedLoading || (__publicFeedLoaded && !force) || !window.tchiloSupabase) return;
   __publicFeedLoading = true;
   window.__publicFeedLoading = true;
+  window.__tkFeedError = false;
+  /* Rede muito lenta: ao fim de 20s deixa de ficar preso no skeleton e oferece "Tentar novamente".
+     Se a resposta chegar mais tarde, o feed é desenhado na mesma. */
+  var __tkWd = setTimeout(function(){
+    if (!__publicFeedLoading) return;
+    __publicFeedLoading = false;
+    window.__publicFeedLoading = false;
+    window.__tchiloFeedPending = false;
+    window.__tkFeedError = true;
+    try {
+      var __wa = document.getElementById('screen-feed'), __wp = document.getElementById('feedPosts');
+      if (__wa && __wa.classList.contains('active') && __wp && __wp.querySelector('.feed-skeleton')) renderFeed();
+    } catch (eW) {}
+  }, 20000);
   try {
     var __sa = document.getElementById('screen-feed');
     var __sp = document.getElementById('feedPosts');
@@ -5135,12 +5190,15 @@ async function loadPublicFeedFromSupabase(force) {
     const mergedList = Object.keys(byId).map(function(k){ return byId[k]; });
     save(KEYS.posts, mergedList);
     __publicFeedLoaded = true;
+    window.__tkFeedError = false;
     window.__publicFeedLoading = false;
     window.__tchiloFeedPending = false;
     if (document.getElementById('screen-feed') && document.getElementById('screen-feed').classList.contains('active')) renderFeed();
   } catch (err) {
     console.warn('Tchilo public feed:', err && err.message ? err.message : err);
+    window.__tkFeedError = true;
   } finally {
+    clearTimeout(__tkWd);
     __publicFeedLoading = false;
     var __wasLoading = window.__publicFeedLoading || window.__tchiloFeedPending;
     window.__publicFeedLoading = false;
@@ -7140,6 +7198,9 @@ function renderFeed() {
         sk += '<div class="feed-skel-card"><div class="feed-skel-head"><div class="feed-skel-av"></div><div class="feed-skel-lines"><div class="feed-skel-line m"></div><div class="feed-skel-line s"></div></div></div><div class="feed-skel-media"></div><div class="feed-skel-actions"><i></i><i></i><i></i></div><div class="feed-skel-cap" style="width:88%"></div><div class="feed-skel-cap" style="width:55%"></div></div>';
       }
       feed.innerHTML = '<div class="feed-skeleton" aria-busy="true" aria-label="A carregar">'+sk+'</div>';
+    } else if (window.__tkFeedError) {
+      feed.innerHTML = '<div class="empty"><b>' + t('Não foi possível carregar o feed') + '</b>' + t('Verifica a tua ligação e tenta novamente.') +
+        '<div style="margin-top:14px"><button type="button" class="follow-btn" style="width:auto;padding:10px 18px" onclick="tkRetryFeed()">' + t('Tentar novamente') + '</button></div></div>';
     } else {
       feed.innerHTML = '<div class="empty"><b>O teu feed está vazio</b>Quando existirem publicações públicas, elas aparecerão aqui.</div>';
     }
@@ -7563,6 +7624,10 @@ function renderMessages() {
   const list = document.getElementById('msgList');
   const chats = getChats();
   const names = Object.keys(chats).filter(function(name){ return Array.isArray(chats[name]) && chats[name].length; });
+  if (!names.length && window.__tkPending && window.__tkPending.messages) {
+    list.innerHTML = tkSkRows('messages', 7);
+    return;
+  }
   if (!names.length) {
     list.innerHTML = '<div class="empty msg-empty">' +
       '<img class="msg-empty-pop" src="' + TCHILO_MSG_POP_IMG + '" alt="" draggable="false">' +
@@ -7676,6 +7741,10 @@ function renderChatBody() {
   if (!body) return;
   const chats = getChats();
   const thread = chats[currentChatUser] || [];
+  if (!thread.length && window.__tkPending && window.__tkPending.messages) {
+    body.innerHTML = tkSkRows('chat', 5);
+    return;
+  }
   body.innerHTML = thread.map(renderChatMessageHtml).join('');
   body.scrollTop = body.scrollHeight;
 }
@@ -7986,6 +8055,10 @@ function renderCommentList() {
   const extras = all[currentCommentPostId] || [];
 
   const combined = extras;
+  if (!combined.length && window.__tkPending && window.__tkPending.comments) {
+    list.innerHTML = tkSkRows('comments', 4);
+    return;
+  }
   if (!combined.length) {
     list.innerHTML = '<div class="empty"><b>' + t('Sem comentários') + '</b></div>';
     return;
@@ -8078,6 +8151,10 @@ function renderNotifs() {
     return true;
   }).sort(function(a, b) { return (+b.createdAt || 0) - (+a.createdAt || 0); }).slice(0, 100);
 
+  if (!items.length && window.__tkPending && window.__tkPending.notifs) {
+    list.innerHTML = tkSkRows('notifs', 7);
+    return;
+  }
   if (!items.length) {
     /* Mascote só aparece para quem ainda não recebeu nenhuma notificação */
     var pop = all.length ? '' : '<img class="notif-empty-pop" src="' + TCHILO_POP_IMG + '" alt="" draggable="false">';
@@ -8196,6 +8273,13 @@ function closeOtherProfile() {
   viewingProfileUser = null;
   goTo('profile');
 }
+/* Ir SEMPRE para o meu perfil: limpa o perfil de outra pessoa que estava aberto */
+function tchiloGoMyProfile() {
+  viewingProfileUser = null;
+  goTo('profile');
+  try { renderProfile(); } catch (e) {}
+}
+window.tchiloGoMyProfile = tchiloGoMyProfile;
 function startChatWith(username) {
   if (!username) return;
   try {
@@ -8208,6 +8292,54 @@ function startChatWith(username) {
     else showToast('Abre Mensagens para falar com @' + username);
   } catch (e) { showToast('Mensagens'); }
 }
+
+/* Tentar novamente no feed: volta ao skeleton enquanto carrega */
+function tkRetryFeed() {
+  window.__tkFeedError = false;
+  window.__tchiloFeedPending = true;
+  try { renderFeed(); } catch (e) {}
+  try { loadPublicFeedFromSupabase(true); } catch (e) {}
+}
+/* ===== Skeletons cinzentos: mensagens / notificações / comentários / chat ===== */
+window.__tkPending = { messages:true, notifs:true, comments:true };
+function tkSkRows(kind, n) {
+  var h = '';
+  for (var i = 0; i < n; i++) {
+    if (kind === 'messages') {
+      h += '<div class="tk-sk-row"><div class="tk-skel tk-skel-circle" style="width:46px;height:46px;flex-shrink:0"></div>' +
+        '<div class="tk-sk-body"><div class="tk-skel tk-skel-line" style="width:' + (38 + (i*13)%24) + '%;height:12px"></div>' +
+        '<div class="tk-skel tk-skel-line" style="width:' + (62 + (i*17)%30) + '%;margin-top:9px"></div></div></div>';
+    } else if (kind === 'notifs') {
+      h += '<div class="tk-sk-row top"><div class="tk-skel tk-skel-circle" style="width:40px;height:40px;flex-shrink:0"></div>' +
+        '<div class="tk-sk-body"><div class="tk-skel tk-skel-line" style="width:' + (70 + (i*11)%25) + '%;height:11px"></div>' +
+        '<div class="tk-skel tk-skel-line" style="width:' + (35 + (i*9)%20) + '%;margin-top:8px"></div>' +
+        '<div class="tk-skel tk-skel-line" style="width:14%;height:8px;margin-top:8px"></div></div></div>';
+    } else if (kind === 'comments') {
+      h += '<div class="tk-sk-cm"><div class="tk-skel tk-skel-circle" style="width:32px;height:32px;flex-shrink:0"></div>' +
+        '<div style="flex:1;min-width:0"><div class="tk-skel tk-skel-line" style="width:' + (28 + (i*12)%20) + '%;height:11px"></div>' +
+        '<div class="tk-skel tk-skel-line" style="width:' + (60 + (i*15)%35) + '%;margin-top:8px"></div></div></div>';
+    } else if (kind === 'chat') {
+      var me = (i % 2 === 1);
+      h += '<div class="tk-sk-bubble-wrap' + (me ? ' me' : '') + '"><div class="tk-skel tk-sk-bubble" style="width:' + (38 + (i*14)%30) + '%"></div></div>';
+    }
+  }
+  return '<div class="tk-sk-list" aria-busy="true" aria-label="A carregar">' + h + '</div>';
+}
+function tkPendingDone(kind) {
+  if (!window.__tkPending || !window.__tkPending[kind]) return;
+  window.__tkPending[kind] = false;
+  function on(id, cls) { var e = document.getElementById(id); return !!(e && e.classList.contains(cls || 'active')); }
+  try {
+    if (kind === 'messages') {
+      if (on('screen-messages') && !on('chatScreen', 'open')) renderMessages();
+      if (on('chatScreen', 'open')) renderChatBody();
+    }
+    if (kind === 'notifs' && on('screen-notifs')) renderNotifs();
+    if (kind === 'comments' && on('commentSheet', 'open')) renderCommentList();
+  } catch (e) {}
+}
+/* segurança: nunca deixar o skeleton preso (sem sessão / sem rede) */
+setTimeout(function(){ ['messages','notifs','comments'].forEach(tkPendingDone); }, 30000);
 
 /* Skeleton cinzento do perfil */
 function tchiloProfileSkeletonHtml(withHeader) {
@@ -10907,6 +11039,7 @@ async function pullLatestMessagesOnce() {
     }
     rows.reverse().forEach(mergeIncomingMessage);
   } catch (e) { console.warn('Tchilo pull messages', e); }
+  finally { try { tkPendingDone('messages'); } catch (e) {} }
 }
 
 async function pullLatestNotificationsOnce() {
@@ -10920,6 +11053,7 @@ async function pullLatestNotificationsOnce() {
     if (error || !data) return;
     data.reverse().forEach(mergeIncomingNotification);
   } catch (e) {}
+  finally { try { tkPendingDone('notifs'); } catch (e) {} }
 }
 
 function loadNotificationsFromCloud() {
@@ -11889,6 +12023,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   async function loadCloudCommentsForFeed(){
+    try{ return await __loadCloudCommentsInner(); }
+    finally{ try{ tkPendingDone('comments'); }catch(e){} }
+  }
+  async function __loadCloudCommentsInner(){
     try{
       const posts=getPosts().slice(0,80);
       if(!posts.length) return;
@@ -13001,13 +13139,17 @@ $('tsuPhoto').addEventListener('change',function(){var f=this.files[0];if(!f)ret
 })();
 </script>
 <style id="tchilo-login-no-title">#loginGate.panel-open #accessPanel .auth-sub{margin-top:24px !important}</style>
+<script id="tk-login-skel">(function(){function ok(){document.querySelectorAll('.login-svg-btn').forEach(function(b){b.classList.add('tk-loaded');});}
+function chk(){document.querySelectorAll('.login-svg-btn img').forEach(function(i){if(i.complete&&i.naturalWidth)i.parentNode.classList.add('tk-loaded');});}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',chk);else chk();
+setTimeout(ok,2500);})();</script>
 <style id="login-svg-buttons">
 .login-choice button.login-svg-btn,.login-choice button.login-svg-btn:first-child,.login-choice button.login-svg-btn:last-child{
   background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;
   width:100%!important;height:auto!important;min-height:0!important;border-radius:0!important;
   display:block!important;cursor:pointer;line-height:0;
 }
-.login-choice button.login-svg-btn img{display:block;width:100%;height:auto;pointer-events:none;}
+.login-choice button.login-svg-btn img{display:block;width:100%;height:auto;aspect-ratio:764/88;pointer-events:none;}
 .login-choice button.login-svg-btn:active{transform:scale(.98);}
 .login-terms-note{width:100%;margin:0 0 4px;text-align:center;font-size:13.5px;line-height:1.5;color:#fff!important;}
 #loginGate .login-terms-note a{color:#4DA3FF!important;font-weight:700;text-decoration:none!important;cursor:pointer;}
@@ -13027,6 +13169,15 @@ async function tchiloGoogleLogin(){
   }catch(err){
     console.error('Google login error:',err);
     alert('Não foi possível entrar com Google. Tenta novamente.');
+  }
+}
+async function tchiloSpotifyLogin(){
+  try{
+    const {error}=await tchiloSupabase.auth.signInWithOAuth({provider:'spotify',options:{redirectTo:(typeof TCHILO_SITE_URL!=='undefined'&&TCHILO_SITE_URL)||window.location.origin}});
+    if(error) throw error;
+  }catch(err){
+    console.error('Spotify login error:',err);
+    alert('Não foi possível entrar com Spotify. Tenta novamente.');
   }
 }
 </script>

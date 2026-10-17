@@ -134,8 +134,21 @@
     });
   }
 
+  function adsReady() {
+    if (window.__apOld) return true;
+    if (
+      typeof window.tchiloOpenAdCreate === "function" &&
+      window.tchiloOpenAdCreate !== openProCreate
+    ) {
+      window.__apOld = true;
+      return true;
+    }
+    return false;
+  }
+
   async function ensureAdsScript(cb) {
-    if (typeof window.tchiloOpenAdCreate === "function") {
+    if (adsReady()) {
+      forceProCreate();
       cb && cb(true);
       return;
     }
@@ -145,14 +158,16 @@
       await new Promise(function (r) {
         setTimeout(r, 100);
       });
-      if (typeof window.tchiloOpenAdCreate === "function") {
+      if (adsReady()) {
+        forceProCreate();
         cb && cb(true);
         return;
       }
     }
     var n = 0;
     var t = setInterval(function () {
-      if (typeof window.tchiloOpenAdCreate === "function") {
+      if (adsReady()) {
+        forceProCreate();
         clearInterval(t);
         cb && cb(true);
       } else if (++n > 15) {
@@ -297,6 +312,8 @@
         });
         var fb = document.getElementById("tchiloAdsFallback");
         if (fb) fb.classList.remove("open");
+        var pr = document.getElementById("tchiloAdsPro");
+        if (pr) pr.classList.remove("open");
       } catch (e) {
         alert("Não foi possível abrir o pagamento");
       }
@@ -314,13 +331,321 @@
     document.head.appendChild(s);
   }
 
+  /* ====== Tela profissional "Turbinar post" (tudo numa só página, a descer) ====== */
+  function proCSS() {
+    if (document.getElementById("tchiloAdsProCSS")) return;
+    var st = document.createElement("style");
+    st.id = "tchiloAdsProCSS";
+    st.textContent =
+      "#tchiloAdsPro{display:none;position:fixed;inset:0;z-index:4000;flex-direction:column;background:var(--paper,#fff);color:var(--ink,#111);font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}" +
+      "#tchiloAdsPro.open{display:flex}" +
+      "#tchiloAdsPro *{box-sizing:border-box}" +
+      "#tchiloAdsPro .ap-top{flex:none;display:flex;align-items:center;justify-content:space-between;padding:calc(8px + env(safe-area-inset-top)) 8px 8px;border-bottom:1px solid rgba(127,127,127,.25);background:var(--paper,#fff)}" +
+      "#tchiloAdsPro .ap-top h1{margin:0;font-size:17px;font-weight:700;text-align:center;flex:1}" +
+      "#tchiloAdsPro .ap-top button{width:40px;height:40px;border:0;background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%}" +
+      "#tchiloAdsPro .ap-top .ap-sp{width:40px}" +
+      "#tchiloAdsPro .ap-scroll{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:16px}" +
+      "#tchiloAdsPro .ap-sec{padding:16px}" +
+      "#tchiloAdsPro .ap-gap{height:8px;background:rgba(127,127,127,.16)}" +
+      "#tchiloAdsPro .ap-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 4px;font-size:17px;font-weight:700}" +
+      "#tchiloAdsPro .ap-sub{margin:0 0 12px;font-size:14px;line-height:1.45;color:var(--muted,#65676b)}" +
+      "#tchiloAdsPro .ap-post{border:1px solid rgba(127,127,127,.3);border-radius:10px;overflow:hidden;background:var(--paper,#fff)}" +
+      "#tchiloAdsPro .ap-ph{display:flex;align-items:center;gap:10px;padding:10px 12px}" +
+      "#tchiloAdsPro .ap-av{width:38px;height:38px;border-radius:50%;background:#0866ff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden;flex:none}" +
+      "#tchiloAdsPro .ap-av img{width:100%;height:100%;object-fit:cover}" +
+      "#tchiloAdsPro .ap-pn{font-size:15px;font-weight:700;line-height:1.2}" +
+      "#tchiloAdsPro .ap-ps{font-size:12.5px;color:var(--muted,#65676b);line-height:1.3}" +
+      "#tchiloAdsPro .ap-pt{padding:0 12px 10px;font-size:15px;line-height:1.4;white-space:pre-wrap;word-break:break-word}" +
+      "#tchiloAdsPro .ap-pm img,#tchiloAdsPro .ap-pm video{display:block;width:100%;max-height:340px;object-fit:cover;background:#000}" +
+      "#tchiloAdsPro .ap-pc{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:rgba(127,127,127,.12)}" +
+      "#tchiloAdsPro .ap-pc b{display:block;font-size:14px}" +
+      "#tchiloAdsPro .ap-pc span{display:block;font-size:12.5px;color:var(--muted,#65676b);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}" +
+      "#tchiloAdsPro .ap-pc i{font-style:normal;font-size:13px;font-weight:700;padding:8px 12px;border-radius:8px;background:rgba(127,127,127,.25);white-space:nowrap}" +
+      "#tchiloAdsPro textarea,#tchiloAdsPro input[type=url]{width:100%;border:1px solid rgba(127,127,127,.4);border-radius:10px;background:transparent;color:inherit;font:inherit;font-size:16px;padding:12px;outline:none}" +
+      "#tchiloAdsPro textarea{min-height:110px;resize:vertical}" +
+      "#tchiloAdsPro textarea:focus,#tchiloAdsPro input[type=url]:focus{border-color:#0866ff}" +
+      "#tchiloAdsPro .ap-cnt{text-align:right;font-size:12px;color:var(--muted,#65676b);margin-top:4px}" +
+      "#tchiloAdsPro .ap-lab{display:block;font-size:13px;font-weight:600;color:var(--muted,#65676b);margin:14px 0 6px}" +
+      "#tchiloAdsPro .ap-opt{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;padding:12px 4px;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer}" +
+      "#tchiloAdsPro .ap-oi{width:36px;height:36px;border-radius:50%;background:rgba(127,127,127,.18);display:flex;align-items:center;justify-content:center;flex:none}" +
+      "#tchiloAdsPro .ap-ot{flex:1}" +
+      "#tchiloAdsPro .ap-ot b{display:block;font-size:16px;font-weight:600}" +
+      "#tchiloAdsPro .ap-ot span{display:block;font-size:13.5px;line-height:1.4;color:var(--muted,#65676b);margin-top:2px}" +
+      "#tchiloAdsPro .ap-rd{width:22px;height:22px;border-radius:50%;border:2px solid rgba(127,127,127,.6);flex:none;margin-top:6px;display:flex;align-items:center;justify-content:center}" +
+      "#tchiloAdsPro .ap-opt.on .ap-rd{border-color:#0866ff}" +
+      "#tchiloAdsPro .ap-opt.on .ap-rd::after{content:'';width:12px;height:12px;border-radius:50%;background:#0866ff}" +
+      "#tchiloAdsPro .ap-big{text-align:center;font-size:44px;font-weight:700;color:#0866ff;margin:6px 0 2px}" +
+      "#tchiloAdsPro .ap-bigs{text-align:center;font-size:13px;color:var(--muted,#65676b);margin-bottom:10px}" +
+      "#tchiloAdsPro input[type=range]{width:100%;accent-color:#0866ff;margin:6px 0}" +
+      "#tchiloAdsPro .ap-rl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted,#65676b)}" +
+      "#tchiloAdsPro .ap-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid rgba(127,127,127,.2);font-size:15px}" +
+      "#tchiloAdsPro .ap-row:first-of-type{border-top:0}" +
+      "#tchiloAdsPro .ap-row span{color:var(--muted,#65676b)}" +
+      "#tchiloAdsPro .ap-row b{font-weight:600;text-align:right}" +
+      "#tchiloAdsPro .ap-step{display:flex;align-items:center;gap:10px}" +
+      "#tchiloAdsPro .ap-step button{width:34px;height:34px;border-radius:50%;border:2px solid #0866ff;background:transparent;color:#0866ff;font-size:20px;font-weight:700;line-height:1;cursor:pointer}" +
+      "#tchiloAdsPro .ap-step output{min-width:28px;text-align:center;font-weight:700;font-size:17px}" +
+      "#tchiloAdsPro .ap-info{display:flex;gap:10px;padding:12px;border-radius:10px;background:rgba(8,102,255,.1);font-size:13.5px;line-height:1.45;margin-top:12px}" +
+      "#tchiloAdsPro .ap-pay{display:flex;align-items:center;gap:12px}" +
+      "#tchiloAdsPro .ap-pay .ap-oi{border-radius:8px}" +
+      "#tchiloAdsPro .ap-bar{flex:none;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(127,127,127,.25);background:var(--paper,#fff)}" +
+      "#tchiloAdsPro .ap-go{width:100%;height:50px;border:0;border-radius:999px;background:#0866ff;color:#fff;font:inherit;font-size:17px;font-weight:700;cursor:pointer}" +
+      "#tchiloAdsPro .ap-go:active{opacity:.9}" +
+      "#tchiloAdsPro .ap-go:disabled{opacity:.6}" +
+      "#tchiloAdsPro .ap-legal{margin:8px 4px 0;text-align:center;font-size:12px;line-height:1.4;color:var(--muted,#65676b)}";
+    document.head.appendChild(st);
+  }
+
+  var AP_ICON_LINK =
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L11 4.93"/><path d="M14 11a5 5 0 0 0-7.07 0L4.81 13.12a5 5 0 0 0 7.07 7.07L13 19.07"/></svg>';
+  var AP_ICON_MSG =
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>';
+  var AP_ICON_CARD =
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>';
+
+  function openProCreate() {
+    proCSS();
+    var old = document.getElementById("tchiloAdsPro");
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+
+    var draft = {};
+    try {
+      if (window.__tchiloBoostPostId && window.__tchiloBoostDraft)
+        draft = window.__tchiloBoostDraft || {};
+    } catch (e0) {}
+
+    var user = sessionUser() || {};
+    var name = String(user.displayName || user.username || "O teu perfil");
+    var state = { type: "click", days: 3, busy: false };
+
+    var el = document.createElement("div");
+    el.id = "tchiloAdsPro";
+    el.setAttribute("role", "dialog");
+    el.setAttribute("aria-label", "Turbinar post");
+    el.innerHTML =
+      '<div class="ap-top"><button type="button" id="apBack" aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button><h1>Turbinar post</h1><span class="ap-sp"></span></div>' +
+      '<div class="ap-scroll" id="apScroll">' +
+      /* 1. Pré-visualização */
+      '<div class="ap-sec"><div class="ap-h">Pré-visualização</div><p class="ap-sub">É assim que o teu anúncio vai aparecer no feed.</p>' +
+      '<div class="ap-post"><div class="ap-ph"><div class="ap-av" id="apAv"></div><div><div class="ap-pn" id="apName"></div><div class="ap-ps">Patrocinado</div></div></div>' +
+      '<div class="ap-pt" id="apPrevText"></div><div class="ap-pm" id="apPrevMedia"></div>' +
+      '<div class="ap-pc"><div><b id="apCtaT">Mais informações</b><span id="apCtaS"></span></div><i id="apCtaB">Saber mais</i></div></div></div>' +
+      '<div class="ap-gap"></div>' +
+      /* 2. Texto */
+      '<div class="ap-sec"><div class="ap-h">Texto do anúncio</div><p class="ap-sub">Explica em poucas palavras o que estás a promover.</p>' +
+      '<textarea id="apBody" maxlength="500" placeholder="Descrição do anúncio…"></textarea><div class="ap-cnt" id="apCnt">0/500</div></div>' +
+      '<div class="ap-gap"></div>' +
+      /* 3. Objetivo */
+      '<div class="ap-sec"><div class="ap-h">Objetivo</div><p class="ap-sub">Que resultados gostarias de obter com este anúncio?</p>' +
+      '<button type="button" class="ap-opt on" data-type="click"><span class="ap-oi">' + AP_ICON_LINK + '</span><span class="ap-ot"><b>Mais cliques no site</b><span>Leva as pessoas para o teu site ou página.</span></span><span class="ap-rd"></span></button>' +
+      '<button type="button" class="ap-opt" data-type="message"><span class="ap-oi">' + AP_ICON_MSG + '</span><span class="ap-ot"><b>Mais mensagens</b><span>Mostra o anúncio a pessoas com probabilidade de te enviar uma mensagem no Tchilo.</span></span><span class="ap-rd"></span></button>' +
+      '<div id="apLinkBox"><label class="ap-lab" for="apLink">Link do site</label><input id="apLink" type="url" inputmode="url" autocapitalize="off" placeholder="https://exemplo.com"></div></div>' +
+      '<div class="ap-gap"></div>' +
+      /* 4. Orçamento e duração */
+      '<div class="ap-sec"><div class="ap-h">Orçamento e duração</div><p class="ap-sub">O custo é de $1 por dia de anúncio.</p>' +
+      '<div class="ap-big" id="apBig">$3</div><div class="ap-bigs">orçamento total</div>' +
+      '<input type="range" id="apRange" min="1" max="30" step="1" value="3" aria-label="Duração em dias"><div class="ap-rl"><span>$1</span><span>$30</span></div>' +
+      '<div class="ap-row"><span>Duração</span><div class="ap-step"><button type="button" id="apMinus" aria-label="Menos um dia">−</button><output id="apDays">3</output><button type="button" id="apPlus" aria-label="Mais um dia">+</button></div></div>' +
+      '<div class="ap-row"><span>Termina em</span><b id="apEnd"></b></div>' +
+      '<div class="ap-row"><span>Alcance estimado</span><b id="apReach"></b></div>' +
+      '<div class="ap-info"><span>Depois do pagamento, o anúncio é analisado e começa a ser mostrado.</span></div></div>' +
+      '<div class="ap-gap"></div>' +
+      /* 5. Pagamento */
+      '<div class="ap-sec"><div class="ap-h">Dados de pagamento</div>' +
+      '<div class="ap-pay"><span class="ap-oi">' + AP_ICON_CARD + '</span><div class="ap-ot"><b>Pagamento seguro</b><span>Escolhes o método de pagamento no passo seguinte, através do Paddle.</span></div></div>' +
+      '<div class="ap-row"><span>Duração</span><b id="apSumD"></b></div>' +
+      '<div class="ap-row"><span>Total a pagar</span><b id="apSumT"></b></div></div>' +
+      '</div>' +
+      '<div class="ap-bar"><button type="button" class="ap-go" id="apGo">Turbinar post agora</button><p class="ap-legal">Ao tocar em Turbinar post agora, aceitas os Termos de uso do Tchilo para anúncios.</p></div>';
+    document.body.appendChild(el);
+
+    function $(id) { return document.getElementById(id); }
+
+    /* avatar + nome */
+    var av = $("apAv");
+    if (user.avatar) {
+      var im = document.createElement("img");
+      im.src = user.avatar;
+      im.alt = "";
+      av.appendChild(im);
+    } else {
+      av.textContent = name.charAt(0).toUpperCase();
+    }
+    $("apName").textContent = name;
+
+    /* media do post */
+    var mediaBox = $("apPrevMedia");
+    if (draft.media_url) {
+      var mEl;
+      if (draft.media_type === "video") {
+        mEl = document.createElement("video");
+        mEl.muted = true;
+        mEl.playsInline = true;
+        mEl.controls = true;
+        mEl.preload = "metadata";
+      } else {
+        mEl = document.createElement("img");
+        mEl.alt = "";
+      }
+      mEl.src = draft.media_url;
+      mediaBox.appendChild(mEl);
+    } else {
+      mediaBox.style.display = "none";
+    }
+
+    var body = $("apBody");
+    var link = $("apLink");
+    body.value = draft.body || "";
+
+    function refreshPreview() {
+      var t = body.value;
+      $("apPrevText").textContent = t || "O texto do teu anúncio aparece aqui.";
+      $("apCnt").textContent = t.length + "/500";
+      if (state.type === "click") {
+        var host = (link.value || "").trim().replace(/^https?:\/\//i, "").split("/")[0];
+        $("apCtaT").textContent = "Mais informações";
+        $("apCtaS").textContent = host || "o teu site";
+        $("apCtaB").textContent = "Saber mais";
+      } else {
+        $("apCtaT").textContent = "Fala connosco";
+        $("apCtaS").textContent = "Mensagem no Tchilo";
+        $("apCtaB").textContent = "Enviar mensagem";
+      }
+    }
+
+    function refreshDays() {
+      var d = Math.max(1, Math.min(30, parseInt(state.days, 10) || 1));
+      state.days = d;
+      var end = new Date();
+      end.setDate(end.getDate() + d);
+      $("apBig").textContent = "$" + d;
+      $("apRange").value = String(d);
+      $("apDays").textContent = String(d);
+      $("apEnd").textContent = end.toLocaleDateString("pt-PT", {
+        weekday: "short", day: "numeric", month: "long", year: "numeric"
+      });
+      $("apReach").textContent =
+        (d * 800).toLocaleString("pt-PT") + " – " + (d * 1000).toLocaleString("pt-PT") + " pessoas";
+      $("apSumD").textContent = d + (d === 1 ? " dia" : " dias");
+      $("apSumT").textContent = "$" + d;
+    }
+
+    body.addEventListener("input", refreshPreview);
+    link.addEventListener("input", refreshPreview);
+    $("apRange").addEventListener("input", function () {
+      state.days = this.value;
+      refreshDays();
+    });
+    $("apMinus").onclick = function () { state.days = (parseInt(state.days, 10) || 1) - 1; refreshDays(); };
+    $("apPlus").onclick = function () { state.days = (parseInt(state.days, 10) || 1) + 1; refreshDays(); };
+
+    var opts = el.querySelectorAll(".ap-opt");
+    Array.prototype.forEach.call(opts, function (b) {
+      b.onclick = function () {
+        state.type = b.getAttribute("data-type");
+        Array.prototype.forEach.call(opts, function (o) {
+          o.classList.toggle("on", o === b);
+        });
+        $("apLinkBox").style.display = state.type === "click" ? "" : "none";
+        refreshPreview();
+      };
+    });
+
+    $("apBack").onclick = function () { closePro(); };
+
+    $("apGo").onclick = function () { proPay(state, body, link, $("apGo")); };
+
+    refreshPreview();
+    refreshDays();
+    el.classList.add("open");
+    var sc = $("apScroll");
+    if (sc) sc.scrollTop = 0;
+  }
+
+  function closePro() {
+    var el = document.getElementById("tchiloAdsPro");
+    if (el) el.classList.remove("open");
+    window.__tchiloBoostPostId = null;
+  }
+
+  async function proPay(state, bodyEl, linkEl, btn) {
+    if (state.busy) return;
+    var body = (bodyEl.value || "").trim();
+    var type = state.type || "click";
+    var link = (linkEl.value || "").trim();
+    var days = Math.max(1, Math.min(30, parseInt(state.days, 10) || 1));
+    if (!body) {
+      alert("Escreve a descrição do anúncio");
+      bodyEl.focus();
+      return;
+    }
+    if (type === "click") {
+      if (!link) {
+        alert("Indica o link do site");
+        linkEl.focus();
+        return;
+      }
+      if (!/^https?:\/\//i.test(link)) link = "https://" + link;
+    }
+    var uid = myId();
+    if (!uid) {
+      alert("Inicia sessão");
+      return;
+    }
+    var SB = window.SB || window.tchiloSupabase;
+    if (!SB) {
+      alert("Sem ligação à base de dados");
+      return;
+    }
+    var draftMedia = {};
+    try {
+      if (window.__tchiloBoostPostId) draftMedia = window.__tchiloBoostDraft || {};
+    } catch (e0) {}
+    var row = {
+      user_id: uid,
+      status: "pending",
+      ad_type: type,
+      body: body,
+      media_url: draftMedia.media_url || null,
+      media_type: draftMedia.media_type || null,
+      link_url: type === "click" ? link : null,
+      days: days,
+      reach_min: days * 800,
+      reach_max: days * 1000,
+      impressions: 0,
+      clicks: 0,
+      conversations: 0
+    };
+    state.busy = true;
+    btn.disabled = true;
+    btn.textContent = "A preparar…";
+    try {
+      var ins = await SB.from("ads").insert(row).select("id").single();
+      if (ins.error || !ins.data) {
+        alert("Erro ao guardar. Confirma o SQL dos anúncios no Supabase.");
+      } else {
+        openPaddleAd(ins.data.id, days);
+      }
+    } catch (e) {
+      alert("Erro: " + (e && e.message ? e.message : e));
+    }
+    state.busy = false;
+    btn.disabled = false;
+    btn.textContent = "Turbinar post agora";
+  }
+
+  /* garante que qualquer "Criar anúncio" abre a tela nova */
+  function forceProCreate() {
+    if (window.tchiloOpenAdCreate !== openProCreate) window.tchiloOpenAdCreate = openProCreate;
+  }
+
   function openMgr() {
     ensureAdsScript(function (ok) {
       if (ok && typeof window.tchiloOpenAdsManager === "function")
         window.tchiloOpenAdsManager();
       else if (ok && typeof window.tchiloOpenAdCreate === "function")
         window.tchiloOpenAdCreate();
-      else openFallbackCreate();
+      else openProCreate();
     });
   }
 
@@ -337,6 +662,7 @@
     }
     try {
       window.__tchiloBoostPostId = postId || null;
+      if (!postId) window.__tchiloBoostDraft = null;
       if (postId && typeof getPosts === "function") {
         var posts = getPosts() || [];
         var p = posts.find(function (x) {
@@ -367,19 +693,7 @@
       }
     } catch (e) {}
 
-    ensureAdsScript(function (ok) {
-      if (ok && typeof window.tchiloOpenAdCreate === "function") {
-        try {
-          if (
-            window.__tchiloBoostDraft &&
-            typeof window.tchiloApplyAdDraft === "function"
-          ) {
-            window.tchiloApplyAdDraft(window.__tchiloBoostDraft);
-          }
-        } catch (e2) {}
-        window.tchiloOpenAdCreate();
-      } else openFallbackCreate();
-    });
+    openProCreate();
   }
 
   function injectSettings() {
@@ -545,6 +859,7 @@
     injectBoostButtons();
     observeFeed();
     patchPostMenu();
+    if (window.__apOld) forceProCreate();
     // força re-patch se alguém redefiniu renderFeed
     if (typeof window.renderFeed === "function" && !window.renderFeed.__adsBoostStable) {
       patchRenderFeed();

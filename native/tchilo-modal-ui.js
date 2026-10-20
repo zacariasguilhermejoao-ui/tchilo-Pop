@@ -10,6 +10,7 @@
 
   function injectCSS() {
     var st = document.getElementById('tchiloModalUiCSS');
+    if (st && st.__tkDone) return; /* já escrito: não voltar a mexer no DOM */
     if (!st) {
       st = document.createElement('style');
       st.id = 'tchiloModalUiCSS';
@@ -77,6 +78,7 @@
       '.sheet .sheet-panel button.primary,' +
       '.sheet-panel > .actions button:last-child:not(.cancel):not(.ghost){' +
       'background:#0B0B0C!important;color:#fff!important;border:0!important;}';
+    st.__tkDone = true;
   }
 
   function dedupeHandles(root) {

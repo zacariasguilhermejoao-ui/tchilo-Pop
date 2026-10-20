@@ -152,6 +152,7 @@
   function applyIn(root) {
     if (!root) return;
     root.querySelectorAll('.settings-item').forEach(function (btn) {
+      if (btn.hasAttribute('data-own-icon')) return; /* linha com ícone próprio */
       var label = labelOf(btn);
       if (!label) return;
       var key = label

@@ -57,7 +57,7 @@
       st.id = 'tchiloProfileScrollCSS';
       (document.head || document.documentElement).appendChild(st);
     }
-    st.textContent = CSS;
+    if (st.textContent !== CSS) st.textContent = CSS;
   }
 
   function isProfileActive() {

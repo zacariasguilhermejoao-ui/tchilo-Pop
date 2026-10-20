@@ -178,6 +178,7 @@
   /** Pré-carrega media dos posts atuais */
   function prefetchFromPosts(posts) {
     if (!isOnline()) return;
+    if (window.tchiloDataSaverOn && window.tchiloDataSaverOn()) return; /* poupança de dados */
     var list = (posts || []).slice(0, MAX_PREFETCH);
     saveOfflineMeta(list.concat(loadOfflineMeta()).slice(0, 30));
     var urls = collectMediaUrls(list).slice(0, MAX_PREFETCH);

@@ -1,7 +1,7 @@
 /**
  * Ao tocar no ícone de Perfil da navbar → sempre o TEU perfil e as TUAS opções.
- * Limpa viewingProfileUser antes de renderizar.
- * v1
+ * Limpa viewingProfileUser (via tchiloGoMyProfile do index) antes de renderizar.
+ * v2
  */
 (function () {
   'use strict';
@@ -22,9 +22,21 @@
 
   function goOwnProfile() {
     clearOther();
+    /* viewingProfileUser no index é declarado com "let" (não existe em window), por isso
+       window.viewingProfileUser = null não limpa nada. A função tchiloGoMyProfile() do
+       index está no mesmo scope e limpa a variável verdadeira — é ela que tem de correr. */
+    var done = false;
     try {
-      if (typeof goTo === 'function') goTo('profile');
+      if (typeof window.tchiloGoMyProfile === 'function') {
+        window.tchiloGoMyProfile();
+        done = true;
+      }
     } catch (e) {}
+    if (!done) {
+      try {
+        if (typeof goTo === 'function') goTo('profile');
+      } catch (e1) {}
+    }
     try {
       if (typeof renderProfile === 'function') setTimeout(renderProfile, 30);
     } catch (e2) {}

@@ -57,23 +57,26 @@
       st.id = 'tchiloChatUiCleanCSS';
       (document.head || document.documentElement).appendChild(st);
     }
-    st.textContent = CSS;
+    if (st.textContent !== CSS) st.textContent = CSS;
     try {
       var old = document.getElementById('tchiloChatComposerCSS');
-      if (old) old.textContent = '';
+      if (old && old.textContent) old.textContent = '';
     } catch (e) {}
   }
 
   function setIcon(el, html) {
     if (!el) return;
     try {
+      if (el.__tkIcon === html && el.firstChild) return; /* já está igual: não mexer no DOM */
       el.innerHTML = html;
+      el.__tkIcon = html;
     } catch (e) {}
   }
 
   function forceStyle(el, css) {
     if (!el) return;
     try {
+      if (el.getAttribute('style') === css) return;
       el.setAttribute('style', css);
     } catch (e) {}
   }
@@ -96,11 +99,10 @@
     if (!mic) return;
     var hasText = !!(inp && String(inp.value || '').trim().length > 0);
     if (hasText) {
-      mic.classList.add('tchilo-mic-hide');
-      mic.style.display = 'none';
+      if (!mic.classList.contains('tchilo-mic-hide')) mic.classList.add('tchilo-mic-hide');
+      if (mic.style.display !== 'none') mic.style.display = 'none';
     } else {
-      mic.classList.remove('tchilo-mic-hide');
-      mic.style.display = 'inline-flex';
+      if (mic.classList.contains('tchilo-mic-hide')) mic.classList.remove('tchilo-mic-hide');
       setIcon(mic, MIC);
       forceStyle(
         mic,
@@ -231,8 +233,11 @@
     setTimeout(polish, ms);
   });
   try {
+    var polishTimer = null;
     new MutationObserver(function () {
-      polish();
+      /* agrupa as alterações: antes corria a cada mudança e voltava a mexer no DOM, num ciclo sem fim */
+      if (polishTimer) return;
+      polishTimer = setTimeout(function () { polishTimer = null; polish(); }, 150);
     }).observe(document.body || document.documentElement, {
       childList: true,
       subtree: true

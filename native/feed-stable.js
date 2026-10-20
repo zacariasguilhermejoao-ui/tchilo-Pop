@@ -87,12 +87,12 @@
       'native/tchilo-music-stop.js?v=2',
       'native/tchilo-music-feed-fix.js?v=3',
       'native/tchilo-menu-clean.js?v=1',
-      'native/tchilo-chat-ui-clean.js?v=6',
+      'native/tchilo-chat-ui-clean.js?v=7',
       'native/tchilo-chat-attach.js?v=4',
       'native/tchilo-chat-msg-actions.js?v=2',
       'native/tchilo-chat-supabase.js?v=1',
       'native/tchilo-chat-nav.js?v=1',
-      'native/tchilo-profile-scroll.js?v=3'
+      'native/tchilo-profile-scroll.js?v=4'
     ]);
   }
 

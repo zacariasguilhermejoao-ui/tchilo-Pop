@@ -705,8 +705,15 @@
     btn.type = "button";
     btn.id = "tchiloAdsMgrBtn";
     btn.className = "settings-item";
+    /* O botão nasce já com o ícone 3D final e as marcas que tchilo-ads-icon-fix.js e
+       tchilo-settings-icons.js reconhecem (data-si / data-tchilo-ads). Antes nascia com a
+       letra "A" e esses dois scripts trocavam o ícone várias vezes seguidas (A → img → img),
+       e cada troca fazia o ícone piscar. Agora nenhum deles tem nada para reescrever. */
     btn.innerHTML =
-      '<div class="si-icon">A</div><span>Meus Anúncios</span><div class="chev">›</div>';
+      '<div class="si-icon" data-si="meus anuncios-v34" data-tchilo-ads="3d">' +
+      '<img src="native/settings-icons/meus-anuncios-3d.png?v=3d1" alt="" width="28" height="28" ' +
+      'decoding="async" style="width:28px;height:28px;object-fit:contain;display:block;pointer-events:none;" />' +
+      '</div><span>Meus Anúncios</span><div class="chev">›</div>';
     btn.onclick = function (e) {
       e.preventDefault();
       e.stopPropagation();

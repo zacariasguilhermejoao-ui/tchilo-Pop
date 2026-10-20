@@ -4,7 +4,8 @@
 <script id="tchilo-fresh-index">
 /* Limpa uma vez o cache antigo do site (service worker + caches), para o index novo aparecer. Mudar FRESH_V força nova limpeza. */
 (function(){
-  var FRESH_V='2026-10-17-icons-1';
+  var FRESH_V='2026-10-19-offline-1';
+  window.TCHILO_BUILD=FRESH_V;
   try{
     if(location.protocol==='file:') return;
     if(localStorage.getItem('tchilo_fresh_v')===FRESH_V) return;
@@ -541,6 +542,9 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   }
   .tk-skel-num{display:inline-block;width:28px;height:18px;border-radius:6px;vertical-align:middle}
   .feed-skeleton{padding:0 0 24px}
+  /* Definições: ícone 3D com skeleton até a imagem carregar */
+  .si-icon.tk-icon-loading{background:linear-gradient(90deg,#e4e4e4 0%,#f0f0f0 50%,#e4e4e4 100%)!important;background-size:200% 100%!important;animation:tchiloSkel 1.15s ease-in-out infinite;border-radius:10px!important}
+  .si-icon.tk-icon-loading img{opacity:0!important}
 
   /* ===== SKELETON cinzento: mensagens, notificações, comentários, chat, botões de login ===== */
   .tk-sk-row{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:2px solid #e8e8e8}
@@ -2852,7 +2856,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   <div class="screen active" id="screen-feed">
     <div class="feed" id="feedList">
     <div class="topbar">
-            <div class="icon-btn" data-index-live="1" role="button" aria-label="Live" onclick="if(typeof tchiloOpenLiveSetup==='function'){tchiloOpenLiveSetup();}" style="border:none;background:transparent;width:44px;height:44px;"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:34px;height:34px;display:block;"><g stroke-width="28"><rect x="64" y="96" width="384" height="272" rx="60"/><path d="M184 432 H328"/><path d="M256 368 V432"/></g><path d="M148 200 V264 H186 M216 200 V264 M246 200 L271 264 L296 200 M364 200 H326 V264 H364 M326 232 H358" stroke-width="20"/></svg></div>
+            <div class="icon-btn" data-index-live="1" role="button" aria-label="Live" onclick="if(typeof tchiloOpenLiveLobby==='function'){tchiloOpenLiveLobby();}else if(typeof tchiloOpenLiveSetup==='function'){tchiloOpenLiveSetup();}" style="border:none;background:transparent;width:44px;height:44px;"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:34px;height:34px;display:block;"><g stroke-width="28"><rect x="64" y="96" width="384" height="272" rx="60"/><path d="M184 432 H328"/><path d="M256 368 V432"/></g><path d="M148 200 V264 H186 M216 200 V264 M246 200 L271 264 L296 200 M364 200 H326 V264 H364 M326 232 H358" stroke-width="20"/></svg></div>
             <div class="icon-btn" data-friend-suggest="1" role="button" aria-label="Sugestões de amizades" title="Sugestões de amizades" onclick="goTo('friends');" style="border:none;background:transparent;width:44px;height:44px;margin-left:2px;"><svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="28" aria-hidden="true" style="width:34px;height:34px;display:block;"><circle cx="181" cy="167" r="70"/><path d="M51 415 V387 a92 92 0 0 1 92 -92 H219 a92 92 0 0 1 92 92 V415 Z"/><path d="M274.13 97.85 A70 70 0 1 1 274.13 236.15"/><path d="M321.86 295 H323 a92 92 0 0 1 92 92 V415"/><path d="M431 137 V197"/><path d="M401 167 H461"/></svg></div>
             <div class="icon-btn" onclick="goTo('search')" aria-label="Pesquisar" style="border:none;background:transparent;width:44px;height:44px;">
           <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:30px;height:30px;display:block;"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L20.5 20.5"/></svg>
@@ -2871,7 +2875,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         <span class="story-create-label">Seu Story</span>
       </div>
     </div>
-    <div id="feedPosts"></div>
+    <div id="feedPosts"><div class="feed-skeleton" aria-busy="true" aria-label="A carregar"><div class="feed-skel-card"><div class="feed-skel-head"><div class="feed-skel-av"></div><div class="feed-skel-lines"><div class="feed-skel-line m"></div><div class="feed-skel-line s"></div></div></div><div class="feed-skel-media"></div><div class="feed-skel-actions"><i></i><i></i><i></i></div><div class="feed-skel-cap" style="width:88%"></div><div class="feed-skel-cap" style="width:55%"></div></div><div class="feed-skel-card"><div class="feed-skel-head"><div class="feed-skel-av"></div><div class="feed-skel-lines"><div class="feed-skel-line m"></div><div class="feed-skel-line s"></div></div></div><div class="feed-skel-media"></div><div class="feed-skel-actions"><i></i><i></i><i></i></div><div class="feed-skel-cap" style="width:88%"></div><div class="feed-skel-cap" style="width:55%"></div></div></div></div>
     </div><!-- /feedList -->
   </div>
 
@@ -2931,7 +2935,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       </button>
       <h1>Perfil</h1>
     </div>
-    <div class="profile-body" id="profileBody"></div>
+    <div class="profile-body" id="profileBody"><div class="prof-skel" aria-busy="true" aria-label="A carregar perfil"><div class="tk-skel-circle"></div><div class="tk-skel-line" style="width:140px;height:16px;margin-top:18px"></div><div class="tk-skel-line" style="width:90px;margin-top:10px"></div><div class="prof-skel-stats"><div class="prof-skel-stat"><div class="tk-skel-line" style="width:28px;height:18px"></div><div class="tk-skel-line" style="width:48px"></div></div><div class="prof-skel-stat"><div class="tk-skel-line" style="width:28px;height:18px"></div><div class="tk-skel-line" style="width:62px"></div></div><div class="prof-skel-stat"><div class="tk-skel-line" style="width:28px;height:18px"></div><div class="tk-skel-line" style="width:52px"></div></div><div class="prof-skel-stat"><div class="tk-skel-line" style="width:28px;height:18px"></div><div class="tk-skel-line" style="width:70px"></div></div></div><div class="tk-skel-block" style="width:100%;height:44px;margin-top:22px"></div></div><div class="profile-grid" aria-busy="true" aria-label="A carregar"><div class="profile-grid-item tk-skel"></div><div class="profile-grid-item tk-skel"></div><div class="profile-grid-item tk-skel"></div><div class="profile-grid-item tk-skel"></div><div class="profile-grid-item tk-skel"></div><div class="profile-grid-item tk-skel"></div><div class="profile-grid-item tk-skel"></div><div class="profile-grid-item tk-skel"></div><div class="profile-grid-item tk-skel"></div></div></div>
   </div>
 
   <div class="screen" id="screen-create">
@@ -3380,6 +3384,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         <span>Stories</span>
         <div class="chev">›</div>
       </button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="openSettingsGroup('wellbeing')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/><path d="M12 6.6V12l3.7 2.3" fill="none" style="stroke:var(--paper,#fff)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span>Tempo e bem-estar</span>
+        <div class="chev">›</div>
+      </button>
       <button class="settings-item" type="button" onclick="goTo('saved')">
         <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a2 2 0 0 1 2 2v16l-8-4-8 4V5a2 2 0 0 1 2-2Z"/><path d="M9 8h6M9 12h4"/></svg></div>
         <span>Guardados</span>
@@ -3395,6 +3404,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         <span>Legal</span>
         <div class="chev">›</div>
       </button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="openSettingsGroup('playback')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/><path d="M10 7.7v8.6l6.9-4.3z" style="fill:var(--paper,#fff)" stroke="none"/></svg></div>
+        <span>Reprodução e dados</span>
+        <div class="chev">›</div>
+      </button>
       <button class="settings-item" type="button" onclick="goTo('settings-language')">
         <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.6 3.6 5.6 3.6 9s-1.2 6.4-3.6 9c-2.4-2.6-3.6-6.4-3.6-9S9.6 5.6 12 3Z"/></svg></div>
         <span>Idioma</span>
@@ -3405,6 +3419,16 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></div>
         <span>Tema</span>
         <span id="currentThemeLabel" style="font-size:12px;color:var(--muted)">Clássico</span>
+        <div class="chev">›</div>
+      </button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="openSettingsGroup('accessibility')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/><circle cx="12" cy="7.3" r="1.6" style="fill:var(--paper,#fff)" stroke="none"/><path d="M7.2 10.3l4.8 1 4.8-1M12 11.4v3.7l-2.5 3.6M12 15.1l2.5 3.6" fill="none" style="stroke:var(--paper,#fff)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span>Acessibilidade</span>
+        <div class="chev">›</div>
+      </button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="openSettingsGroup('help')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/><path d="M9.5 9.7a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.1.9-1.1 1.7" fill="none" style="stroke:var(--paper,#fff)" stroke-width="2.1" stroke-linecap="round"/><circle cx="12" cy="16.9" r="1.15" style="fill:var(--paper,#fff)" stroke="none"/></svg></div>
+        <span>Ajuda e suporte</span>
         <div class="chev">›</div>
       </button>
       <button class="settings-item" type="button" onclick="openSettingsGroup('advanced')">
@@ -3445,6 +3469,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       <button class="settings-item" type="button" onclick="openChangePassword()">
         <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
         <span>Palavra-passe e segurança</span>
+        <div class="chev">›</div>
+      </button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloOpenPhoneSettings()">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+        <span>Número de telefone</span>
+        <span class="tm-value" id="tp-row-value"></span>
         <div class="chev">›</div>
       </button>
     </div>
@@ -3532,13 +3562,130 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         <span>Vídeos em alta qualidade</span>
         <div class="settings-toggle" id="tog-video-hq"></div>
       </button>
-      <button class="settings-item" type="button" onclick="openBlocked()">
+      <button class="settings-item" type="button" data-own-icon="1" onclick="openSettingsGroup('blocked')">
         <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M5.5 5.5l13 13"/></svg></div>
         <span>Contas bloqueadas</span>
         <span id="blockedCount" style="font-size:12px;color:var(--muted)">0</span>
         <div class="chev">›</div>
       </button>
     </div>
+  </div>
+
+  <div class="screen" id="screen-settings-wellbeing">
+    <div class="screen-header">
+      <button class="back-btn" data-tchilo-back="1" aria-label="Voltar" onclick="goTo('settings')"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></button>
+      <h1>Tempo e bem-estar</h1>
+    </div>
+    <div class="settings-list">
+      <div class="settings-item" style="cursor:default" data-own-icon="1">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <span>Tempo hoje</span>
+        <span class="tm-value" id="tm-today">—</span>
+      </div>
+      <div class="settings-group">Lembrete de pausa</div>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMorePick('breakEvery',0)"><span>Desligado</span><span class="lang-dot" data-pick="breakEvery:0"></span></button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMorePick('breakEvery',15)"><span>A cada 15 minutos</span><span class="lang-dot" data-pick="breakEvery:15"></span></button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMorePick('breakEvery',30)"><span>A cada 30 minutos</span><span class="lang-dot" data-pick="breakEvery:30"></span></button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMorePick('breakEvery',60)"><span>A cada 1 hora</span><span class="lang-dot" data-pick="breakEvery:60"></span></button>
+      <div class="settings-group">Limite diário</div>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMorePick('dailyLimit',0)"><span>Sem limite</span><span class="lang-dot" data-pick="dailyLimit:0"></span></button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMorePick('dailyLimit',30)"><span>30 minutos</span><span class="lang-dot" data-pick="dailyLimit:30"></span></button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMorePick('dailyLimit',60)"><span>1 hora</span><span class="lang-dot" data-pick="dailyLimit:60"></span></button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMorePick('dailyLimit',120)"><span>2 horas</span><span class="lang-dot" data-pick="dailyLimit:120"></span></button>
+      <p class="tm-note">O tempo conta só com a Tchilo aberta neste dispositivo. Ao atingires o limite, a app avisa-te.</p>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-settings-playback">
+    <div class="screen-header">
+      <button class="back-btn" data-tchilo-back="1" aria-label="Voltar" onclick="goTo('settings')"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></button>
+      <h1>Reprodução e dados</h1>
+    </div>
+    <div class="settings-list">
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMoreToggle('autoplayReels')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10.5 8.5l5 3.5-5 3.5z"/></svg></div>
+        <span><b class="si-l">Reels automáticos</b><em class="si-sub">Reproduz o Reel seguinte ao deslizar</em></span>
+        <div class="settings-toggle" id="tm-tog-autoplayReels"></div>
+      </button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMoreToggle('dataSaver')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M5 19h14"/></svg></div>
+        <span><b class="si-l">Poupança de dados</b><em class="si-sub">Não pré-carrega vídeos e desliga os Reels automáticos</em></span>
+        <div class="settings-toggle" id="tm-tog-dataSaver"></div>
+      </button>
+      <div class="settings-group">Armazenamento</div>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloClearMediaCache()">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg></div>
+        <span><b class="si-l">Libertar espaço</b><em class="si-sub">Apaga vídeos e imagens guardados neste dispositivo</em></span>
+        <span class="tm-value" id="tm-cache-size">—</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-settings-accessibility">
+    <div class="screen-header">
+      <button class="back-btn" data-tchilo-back="1" aria-label="Voltar" onclick="goTo('settings')"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></button>
+      <h1>Acessibilidade</h1>
+    </div>
+    <div class="settings-list">
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMoreToggle('reduceMotion')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg></div>
+        <span><b class="si-l">Reduzir movimento</b><em class="si-sub">Desliga animações e transições</em></span>
+        <div class="settings-toggle" id="tm-tog-reduceMotion"></div>
+      </button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloMoreToggle('highContrast')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></div>
+        <span><b class="si-l">Mais contraste</b><em class="si-sub">Texto secundário e linhas mais escuros</em></span>
+        <div class="settings-toggle" id="tm-tog-highContrast"></div>
+      </button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-settings-help">
+    <div class="screen-header">
+      <button class="back-btn" data-tchilo-back="1" aria-label="Voltar" onclick="goTo('settings')"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></button>
+      <h1>Ajuda e suporte</h1>
+    </div>
+    <div class="settings-list">
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloOpenWeb('faq/')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7"/><path d="M12 17h.01"/></svg></div>
+        <span>Central de Ajuda</span>
+        <div class="chev">›</div>
+      </button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloOpenWeb('contacto/')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg></div>
+        <span>Contactar-nos</span>
+        <div class="chev">›</div>
+      </button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloOpenWeb('precos/')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12l9-9h7v7l-9 9z"/><circle cx="15" cy="9" r="1.2"/></svg></div>
+        <span>Preços e planos</span>
+        <div class="chev">›</div>
+      </button>
+      <button class="settings-item" type="button" data-own-icon="1" onclick="tchiloOpenWeb('reembolso/')">
+        <div class="si-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></div>
+        <span>Reembolsos</span>
+        <div class="chev">›</div>
+      </button>
+      <div class="settings-item" style="cursor:default" data-own-icon="1"><span>Versão</span><span class="tm-value" id="tm-version">—</span></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-settings-blocked">
+    <div class="screen-header">
+      <button class="back-btn" data-tchilo-back="1" aria-label="Voltar" onclick="goTo('settings')"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></button>
+      <h1>Contas bloqueadas</h1>
+    </div>
+    <div class="settings-list">
+      <div id="tm-blocked-list"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-settings-phone">
+    <div class="screen-header">
+      <button class="back-btn" data-tchilo-back="1" aria-label="Voltar" onclick="goTo('settings-account')"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></button>
+      <h1>Número de telefone</h1>
+    </div>
+    <div class="settings-list" id="tp-body"></div>
   </div>
 
   <!-- SETTINGS: LEGAL -->
@@ -3934,7 +4081,67 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if(document.body) start(); else document.addEventListener('DOMContentLoaded',start);
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script id="tchilo-supabase-loader">
+/* App nativa (Android/iOS): usa a biblioteca guardada na própria app (native/vendor/supabase.js, descarregada no build)
+   → arranca e funciona sem internet. No site, ou se o ficheiro faltar, usa o CDN. */
+(function(){
+  var nat=false;
+  try{
+    nat=!!(window.Capacitor&&typeof window.Capacitor.isNativePlatform==='function'&&window.Capacitor.isNativePlatform())
+      ||location.protocol==='capacitor:'||(location.protocol==='https:'&&location.hostname==='localhost'&&!location.port);
+  }catch(e){}
+  if(nat)document.write('<script src="native/vendor/supabase.js"><\/script>');
+})();
+</script>
+<script>if(!window.supabase)document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');</script>
+<script id="tchilo-supabase-guard">
+/* Último recurso: se a biblioteca não carregar (sem internet e sem cópia local), a app arranca em modo offline
+   com um cliente vazio em vez de falhar no arranque. Ao voltar a internet, recarrega. */
+(function(){
+  if(window.supabase&&typeof window.supabase.createClient==='function')return;
+  var OFF={name:'AuthRetryableFetchError',message:'Sem ligação à internet',status:0};
+  function res(){return Promise.resolve({data:null,error:OFF});}
+  function resAuth(){return Promise.resolve({data:{user:null,session:null},error:OFF});}
+  function chain(){
+    var p=new Proxy(function(){},{
+      get:function(t,k){
+        if(k==='then')return function(ok,ko){return res().then(ok,ko);};
+        if(k==='catch')return function(f){return res().catch(f);};
+        if(k==='finally')return function(f){return res().finally(f);};
+        if(k===Symbol.toPrimitive)return function(){return '';};
+        return p;
+      },
+      apply:function(){return p;}
+    });
+    return p;
+  }
+  function stored(){
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(/^sb-.+-auth-token$/.test(k)){var s=JSON.parse(localStorage.getItem(k)||'null');if(s&&s.user)return s;}
+      }
+    }catch(e){}
+    return null;
+  }
+  var auth={
+    getSession:function(){var s=stored();return Promise.resolve({data:{session:s},error:null});},
+    getUser:function(){var s=stored();return Promise.resolve({data:{user:s?s.user:null},error:null});},
+    onAuthStateChange:function(){return {data:{subscription:{unsubscribe:function(){}}}};},
+    signOut:function(){return Promise.resolve({error:null});},
+    signInWithPassword:resAuth,signInWithOtp:resAuth,verifyOtp:resAuth,signUp:resAuth,updateUser:resAuth,
+    resend:resAuth,resetPasswordForEmail:resAuth,refreshSession:resAuth,setSession:resAuth,exchangeCodeForSession:resAuth,signInWithOAuth:resAuth
+  };
+  window.supabase={createClient:function(url,key){
+    return {supabaseUrl:url,supabaseKey:key,auth:auth,from:chain,rpc:chain,channel:chain,removeChannel:chain,getChannels:function(){return [];},storage:chain(),functions:chain()};
+  }};
+  window.__tchiloSupabaseStub=true;
+  window.addEventListener('online',function(){
+    try{if(sessionStorage.getItem('tchilo_stub_reload'))return;sessionStorage.setItem('tchilo_stub_reload','1');}catch(e){}
+    location.reload();
+  });
+})();
+</script>
 <script>
 /* ===== TCHILO / SUPABASE ===== */
 const TCHILO_SUPABASE_URL = 'https://edgngwoxhdxcvyzpqjbj.supabase.co';
@@ -4791,6 +4998,7 @@ function goTo(name) {
 
     const localSession = getSession();
     if (localSession && localSession.username) {
+      window.__tchiloProfilePostsLoading = true; /* skeleton da grelha já no 1.º render */
       renderProfile();
       loadOwnProfilePostsFromSupabase().then(function(){
         if (document.getElementById('screen-profile')?.classList.contains('active')) renderProfile();
@@ -5091,7 +5299,7 @@ async function loadPublicFeedFromSupabase(force) {
   try {
     var __sa = document.getElementById('screen-feed');
     var __sp = document.getElementById('feedPosts');
-    if (__sa && __sa.classList.contains('active') && __sp && !__sp.children.length && typeof renderFeed === 'function') renderFeed();
+    if (__sa && __sa.classList.contains('active') && __sp && (!__sp.children.length || __sp.querySelector('.empty')) && typeof renderFeed === 'function') renderFeed();
   } catch (eSk) {}
   /* Se já há posts em cache, o ecrã já os mostra — não limpar */
   /* Se já há posts em cache, o ecrã já os mostra — não limpar */
@@ -5814,7 +6022,7 @@ function setupReelsObserver() {
       const vid = en.target.querySelector('video');
       if (!vid) return;
       if (en.isIntersecting && en.intersectionRatio > 0.6) {
-        vid.play().catch(function(){});
+        if (!window.tchiloReelsAutoplayOn || window.tchiloReelsAutoplayOn()) vid.play().catch(function(){});
       } else {
         vid.pause();
       }
@@ -10006,6 +10214,136 @@ const LANG_LABELS = { pt:'Português', en:'English', fr:'Français', it:'Italian
 /* Chaves em Português (fonte de verdade). t('...') devolve o texto no idioma actual. */
 const LANGUAGE_PACKS = {
   en: {
+    "Sem ligação · modo offline":"No connection · offline mode",
+    "Esta funcionalidade precisa de internet. Verifica o Wi-Fi ou os dados móveis e tenta novamente.":"This feature needs internet. Check your Wi-Fi or mobile data and try again.",
+    "Versão":"Version",
+    "Precisas de internet para ver as lives.":"You need internet to see lives.",
+    "Adiciona o teu número para o validares com um código por SMS.":"Add your number to verify it with an SMS code.",
+    "Adicionar":"Add",
+    "Aguarda alguns instantes antes de pedires um novo código.":"Wait a moment before requesting a new code.",
+    "Algo correu mal. Tenta novamente.":"Something went wrong. Please try again.",
+    "Alterar número":"Change number",
+    "Cancelar":"Cancel",
+    "Confirmar":"Confirm",
+    "Continuar":"Continue",
+    "Código inválido ou expirado. Verifica-o ou recebe um novo código.":"Invalid or expired code. Check it or get a new code.",
+    "Código recebido por SMS":"Code received by SMS",
+    "Digita aqui o código que enviámos por SMS para":"Enter the code we sent by SMS to",
+    "Digita o código que enviámos por SMS.":"Enter the code we sent by SMS.",
+    "Digita o código que recebeste por SMS.":"Enter the code you received by SMS.",
+    "Digita o teu número de telefone para receberes o código por SMS e autenticares a tua conta TCHILOPOP.":"Enter your phone number to receive the code by SMS and verify your TCHILOPOP account.",
+    "E-mail":"Email",
+    "Entrar":"Sign in",
+    "Entrar com código SMS":"Sign in with SMS code",
+    "Entrar com palavra-passe":"Sign in with password",
+    "Enviar código":"Send code",
+    "Enviar link de recuperação":"Send recovery link",
+    "Enviámos um código por SMS para":"We sent an SMS code to",
+    "Enviámos um novo código por SMS.":"We sent a new code by SMS.",
+    "Escolhe a tua nova palavra-passe":"Choose your new password",
+    "Este número já está associado a outra conta.":"This number is already linked to another account.",
+    "Este número já tem uma conta":"This number already has an account",
+    "Indica o número da tua conta. Vamos enviar um código por SMS para criares uma nova palavra-passe.":"Enter your account number. We will send an SMS code so you can create a new password.",
+    "Não encontrámos uma conta com este número.":"We could not find an account with this number.",
+    "Não foi possível enviar o SMS. Tenta novamente daqui a pouco.":"Could not send the SMS. Please try again shortly.",
+    "Não foi possível enviar o SMS. Tenta novamente.":"Could not send the SMS. Please try again.",
+    "Não foi possível iniciar sessão. Tenta novamente.":"Could not sign in. Please try again.",
+    "Número de telefone":"Phone number",
+    "Número de telefone inválido.":"Invalid phone number.",
+    "Número ou palavra-passe incorretos.":"Incorrect number or password.",
+    "Número verificado":"Number verified",
+    "O acesso por telemóvel ainda não está disponível. Usa o e-mail.":"Phone access is not available yet. Use email.",
+    "O código expira em alguns minutos.":"The code expires in a few minutes.",
+    "O número":"The number",
+    "O número não será visível para os outros utilizadores; pedimo-lo apenas para confirmar a tua conta no TCHILOPOP.":"Your number will not be visible to other users; we only ask for it to confirm your TCHILOPOP account.",
+    "O teu número ainda não está verificado. Indica-o para receberes o código por SMS.":"Your number is not verified yet. Enter it to receive the code by SMS.",
+    "Por verificar":"Not verified",
+    "Preenche os dois campos.":"Fill in both fields.",
+    "Receber código":"Get code",
+    "Receber novo código":"Get a new code",
+    "Sem ligação ao servidor. Tenta novamente.":"No connection to the server. Please try again.",
+    "Telemóvel":"Phone",
+    "Usamos o teu número para entrares na conta e a recuperares. Não é visível para os outros utilizadores.":"We use your number to sign in and recover your account. It is not visible to other users.",
+    "Usar outro número":"Use another number",
+    "Vamos enviar-te um SMS com um código de confirmação. Podem aplicar-se custos da tua operadora.":"We will send you an SMS with a confirmation code. Carrier charges may apply.",
+    "Verificado":"Verified",
+    "Verificar":"Verify",
+    "já está associado a uma conta do Tchilo. Podes iniciar sessão com ele ou usar outro número para criares uma conta nova.":"is already linked to a Tchilo account. You can sign in with it or use another number to create a new account.",
+    "Em direto":"Live now",
+    "Iniciar live":"Go live",
+    "Ninguém está em direto neste momento.":"Nobody is live right now.",
+    "Quando alguém começar uma live, aparece aqui.":"When someone goes live, it shows up here.",
+    "Ao vivo":"Live",
+    "a ver":"watching",
+    "Não foi possível carregar as lives.":"Could not load lives.",
+    "Tentar novamente":"Try again",
+    "A ligar…":"Connecting…",
+    "Não foi possível ligar a esta live.":"Could not connect to this live.",
+    "A live terminou.":"The live has ended.",
+    "Fechar":"Close",
+    "Voltar":"Back",
+    "Não foi possível abrir a configuração da live":"Could not open live setup",
+    "Tempo e bem-estar":"Time & well-being",
+    "Reprodução e dados":"Playback & data",
+    "Acessibilidade":"Accessibility",
+    "Ajuda e suporte":"Help & support",
+    "Contas bloqueadas":"Blocked accounts",
+    "Tempo hoje":"Time today",
+    "Menos de 1 min":"Less than 1 min",
+    "Lembrete de pausa":"Break reminder",
+    "Desligado":"Off",
+    "A cada 15 minutos":"Every 15 minutes",
+    "A cada 30 minutos":"Every 30 minutes",
+    "A cada 1 hora":"Every hour",
+    "Limite diário":"Daily limit",
+    "Sem limite":"No limit",
+    "30 minutos":"30 minutes",
+    "1 hora":"1 hour",
+    "2 horas":"2 hours",
+    "O tempo conta só com a Tchilo aberta neste dispositivo. Ao atingires o limite, a app avisa-te.":"Time only counts while Tchilo is open on this device. When you reach the limit, the app lets you know.",
+    "Reels automáticos":"Auto-play Reels",
+    "Reproduz o Reel seguinte ao deslizar":"Plays the next Reel as you swipe",
+    "Poupança de dados":"Data saver",
+    "Não pré-carrega vídeos e desliga os Reels automáticos":"No video preloading, and Reels no longer auto-play",
+    "Armazenamento":"Storage",
+    "Libertar espaço":"Free up space",
+    "Apaga vídeos e imagens guardados neste dispositivo":"Deletes videos and images stored on this device",
+    "Reduzir movimento":"Reduce motion",
+    "Desliga animações e transições":"Turns off animations and transitions",
+    "Mais contraste":"More contrast",
+    "Texto secundário e linhas mais escuros":"Darker secondary text and lines",
+    "Central de Ajuda":"Help Center",
+    "Contactar-nos":"Contact us",
+    "Preços e planos":"Pricing & plans",
+    "Reembolsos":"Refunds",
+    "Desbloquear":"Unblock",
+    "Não tens contas bloqueadas.":"You have no blocked accounts.",
+    "Desbloqueaste":"You unblocked",
+    "Reels automáticos ligados":"Auto-play Reels on",
+    "Reels automáticos desligados":"Auto-play Reels off",
+    "Poupança de dados ligada":"Data saver on",
+    "Poupança de dados desligada":"Data saver off",
+    "Movimento reduzido":"Reduced motion",
+    "Animações normais":"Normal animations",
+    "Mais contraste ligado":"More contrast on",
+    "Contraste normal":"Normal contrast",
+    "Lembrete de pausa guardado":"Break reminder saved",
+    "Lembrete de pausa desligado":"Break reminder off",
+    "Limite diário guardado":"Daily limit saved",
+    "Sem limite diário":"No daily limit",
+    "Espaço libertado":"Space freed",
+    "Não havia nada para apagar":"Nothing to delete",
+    "Não foi possível libertar espaço":"Could not free up space",
+    "Este dispositivo não guarda cache":"This device does not keep a cache",
+    "Hora de uma pausa":"Time for a break",
+    "Já estás na Tchilo há algum tempo. Que tal descansar a vista um bocadinho?":"You've been on Tchilo for a while. How about resting your eyes for a bit?",
+    "Continuar":"Continue",
+    "Limite diário atingido":"Daily limit reached",
+    "Hoje já atingiste o limite de tempo que definiste na Tchilo.":"You've reached the time limit you set for Tchilo today.",
+    "Agora não":"Not now",
+    "Mais 15 min":"15 more min",
+    "Vai apagar os vídeos e imagens guardados neste dispositivo. Voltam a ser descarregados quando precisares. A tua conta e as tuas publicações não são afetadas.":"This deletes the videos and images stored on this device. They are downloaded again when you need them. Your account and posts are not affected.",
+    "Libertar":"Free up",
     'Definições':'Settings','Conta':'Account','Editar perfil':'Edit profile','Palavra-passe e segurança':'Password & security',
     'Notificações':'Notifications','Gostos':'Likes','Likes':'Likes','Comentários':'Comments','Novos seguidores':'New followers',
     'Stories':'Stories','Novos stories de quem sigo':'New stories from people I follow','Respostas aos meus stories':'Replies to my stories','Stories de amigos':'Friends stories',
@@ -10040,6 +10378,136 @@ const LANGUAGE_PACKS = {
     'likes':'likes',' · ':' · ','score':'score'
   },
   fr: {
+    "Sem ligação · modo offline":"Hors connexion · mode hors ligne",
+    "Esta funcionalidade precisa de internet. Verifica o Wi-Fi ou os dados móveis e tenta novamente.":"Cette fonctionnalité nécessite internet. Vérifie le Wi-Fi ou les données mobiles et réessaie.",
+    "Versão":"Version",
+    "Precisas de internet para ver as lives.":"Tu as besoin d'internet pour voir les lives.",
+    "Adiciona o teu número para o validares com um código por SMS.":"Ajoute ton numéro pour le valider avec un code par SMS.",
+    "Adicionar":"Ajouter",
+    "Aguarda alguns instantes antes de pedires um novo código.":"Patiente un instant avant de demander un nouveau code.",
+    "Algo correu mal. Tenta novamente.":"Une erreur s'est produite. Réessaie.",
+    "Alterar número":"Changer de numéro",
+    "Cancelar":"Annuler",
+    "Confirmar":"Confirmer",
+    "Continuar":"Continuer",
+    "Código inválido ou expirado. Verifica-o ou recebe um novo código.":"Code invalide ou expiré. Vérifie-le ou demande un nouveau code.",
+    "Código recebido por SMS":"Code reçu par SMS",
+    "Digita aqui o código que enviámos por SMS para":"Saisis ici le code envoyé par SMS au",
+    "Digita o código que enviámos por SMS.":"Saisis le code envoyé par SMS.",
+    "Digita o código que recebeste por SMS.":"Saisis le code reçu par SMS.",
+    "Digita o teu número de telefone para receberes o código por SMS e autenticares a tua conta TCHILOPOP.":"Saisis ton numéro de téléphone pour recevoir le code par SMS et authentifier ton compte TCHILOPOP.",
+    "E-mail":"E-mail",
+    "Entrar":"Se connecter",
+    "Entrar com código SMS":"Se connecter avec un code SMS",
+    "Entrar com palavra-passe":"Se connecter avec le mot de passe",
+    "Enviar código":"Envoyer le code",
+    "Enviar link de recuperação":"Envoyer le lien de récupération",
+    "Enviámos um código por SMS para":"Nous avons envoyé un code par SMS au",
+    "Enviámos um novo código por SMS.":"Nous avons envoyé un nouveau code par SMS.",
+    "Escolhe a tua nova palavra-passe":"Choisis ton nouveau mot de passe",
+    "Este número já está associado a outra conta.":"Ce numéro est déjà associé à un autre compte.",
+    "Este número já tem uma conta":"Ce numéro a déjà un compte",
+    "Indica o número da tua conta. Vamos enviar um código por SMS para criares uma nova palavra-passe.":"Indique le numéro de ton compte. Nous enverrons un code par SMS pour créer un nouveau mot de passe.",
+    "Não encontrámos uma conta com este número.":"Nous n'avons trouvé aucun compte avec ce numéro.",
+    "Não foi possível enviar o SMS. Tenta novamente daqui a pouco.":"Impossible d'envoyer le SMS. Réessaie dans un instant.",
+    "Não foi possível enviar o SMS. Tenta novamente.":"Impossible d'envoyer le SMS. Réessaie.",
+    "Não foi possível iniciar sessão. Tenta novamente.":"Connexion impossible. Réessaie.",
+    "Número de telefone":"Numéro de téléphone",
+    "Número de telefone inválido.":"Numéro de téléphone invalide.",
+    "Número ou palavra-passe incorretos.":"Numéro ou mot de passe incorrect.",
+    "Número verificado":"Numéro vérifié",
+    "O acesso por telemóvel ainda não está disponível. Usa o e-mail.":"L'accès par téléphone n'est pas encore disponible. Utilise l'e-mail.",
+    "O código expira em alguns minutos.":"Le code expire dans quelques minutes.",
+    "O número":"Le numéro",
+    "O número não será visível para os outros utilizadores; pedimo-lo apenas para confirmar a tua conta no TCHILOPOP.":"Ton numéro ne sera pas visible par les autres utilisateurs ; nous le demandons uniquement pour confirmer ton compte TCHILOPOP.",
+    "O teu número ainda não está verificado. Indica-o para receberes o código por SMS.":"Ton numéro n'est pas encore vérifié. Indique-le pour recevoir le code par SMS.",
+    "Por verificar":"À vérifier",
+    "Preenche os dois campos.":"Remplis les deux champs.",
+    "Receber código":"Recevoir le code",
+    "Receber novo código":"Recevoir un nouveau code",
+    "Sem ligação ao servidor. Tenta novamente.":"Pas de connexion au serveur. Réessaie.",
+    "Telemóvel":"Téléphone",
+    "Usamos o teu número para entrares na conta e a recuperares. Não é visível para os outros utilizadores.":"Nous utilisons ton numéro pour te connecter et récupérer ton compte. Il n'est pas visible par les autres utilisateurs.",
+    "Usar outro número":"Utiliser un autre numéro",
+    "Vamos enviar-te um SMS com um código de confirmação. Podem aplicar-se custos da tua operadora.":"Nous t'enverrons un SMS avec un code de confirmation. Des frais de ton opérateur peuvent s'appliquer.",
+    "Verificado":"Vérifié",
+    "Verificar":"Vérifier",
+    "já está associado a uma conta do Tchilo. Podes iniciar sessão com ele ou usar outro número para criares uma conta nova.":"est déjà associé à un compte Tchilo. Tu peux te connecter avec ou utiliser un autre numéro pour créer un nouveau compte.",
+    "Em direto":"En direct",
+    "Iniciar live":"Lancer un live",
+    "Ninguém está em direto neste momento.":"Personne n'est en direct pour le moment.",
+    "Quando alguém começar uma live, aparece aqui.":"Quand quelqu'un lance un live, il apparaît ici.",
+    "Ao vivo":"En direct",
+    "a ver":"spectateurs",
+    "Não foi possível carregar as lives.":"Impossible de charger les lives.",
+    "Tentar novamente":"Réessayer",
+    "A ligar…":"Connexion…",
+    "Não foi possível ligar a esta live.":"Impossible de se connecter à ce live.",
+    "A live terminou.":"Le live est terminé.",
+    "Fechar":"Fermer",
+    "Voltar":"Retour",
+    "Não foi possível abrir a configuração da live":"Impossible d'ouvrir la configuration du live",
+    "Tempo e bem-estar":"Temps et bien-être",
+    "Reprodução e dados":"Lecture et données",
+    "Acessibilidade":"Accessibilité",
+    "Ajuda e suporte":"Aide et assistance",
+    "Contas bloqueadas":"Comptes bloqués",
+    "Tempo hoje":"Temps aujourd'hui",
+    "Menos de 1 min":"Moins de 1 min",
+    "Lembrete de pausa":"Rappel de pause",
+    "Desligado":"Désactivé",
+    "A cada 15 minutos":"Toutes les 15 minutes",
+    "A cada 30 minutos":"Toutes les 30 minutes",
+    "A cada 1 hora":"Toutes les heures",
+    "Limite diário":"Limite quotidienne",
+    "Sem limite":"Aucune limite",
+    "30 minutos":"30 minutes",
+    "1 hora":"1 heure",
+    "2 horas":"2 heures",
+    "O tempo conta só com a Tchilo aberta neste dispositivo. Ao atingires o limite, a app avisa-te.":"Le temps ne compte que lorsque Tchilo est ouverte sur cet appareil. Quand tu atteins la limite, l'app te prévient.",
+    "Reels automáticos":"Reels automatiques",
+    "Reproduz o Reel seguinte ao deslizar":"Lit le Reel suivant quand tu fais défiler",
+    "Poupança de dados":"Économiseur de données",
+    "Não pré-carrega vídeos e desliga os Reels automáticos":"Pas de préchargement des vidéos, et les Reels ne se lancent plus tout seuls",
+    "Armazenamento":"Stockage",
+    "Libertar espaço":"Libérer de l'espace",
+    "Apaga vídeos e imagens guardados neste dispositivo":"Supprime les vidéos et images stockées sur cet appareil",
+    "Reduzir movimento":"Réduire les animations",
+    "Desliga animações e transições":"Désactive les animations et transitions",
+    "Mais contraste":"Plus de contraste",
+    "Texto secundário e linhas mais escuros":"Texte secondaire et lignes plus foncés",
+    "Central de Ajuda":"Centre d'aide",
+    "Contactar-nos":"Nous contacter",
+    "Preços e planos":"Tarifs et forfaits",
+    "Reembolsos":"Remboursements",
+    "Desbloquear":"Débloquer",
+    "Não tens contas bloqueadas.":"Tu n'as aucun compte bloqué.",
+    "Desbloqueaste":"Tu as débloqué",
+    "Reels automáticos ligados":"Reels automatiques activés",
+    "Reels automáticos desligados":"Reels automatiques désactivés",
+    "Poupança de dados ligada":"Économiseur de données activé",
+    "Poupança de dados desligada":"Économiseur de données désactivé",
+    "Movimento reduzido":"Animations réduites",
+    "Animações normais":"Animations normales",
+    "Mais contraste ligado":"Plus de contraste activé",
+    "Contraste normal":"Contraste normal",
+    "Lembrete de pausa guardado":"Rappel de pause enregistré",
+    "Lembrete de pausa desligado":"Rappel de pause désactivé",
+    "Limite diário guardado":"Limite quotidienne enregistrée",
+    "Sem limite diário":"Aucune limite quotidienne",
+    "Espaço libertado":"Espace libéré",
+    "Não havia nada para apagar":"Rien à supprimer",
+    "Não foi possível libertar espaço":"Impossible de libérer de l'espace",
+    "Este dispositivo não guarda cache":"Cet appareil ne garde pas de cache",
+    "Hora de uma pausa":"Il est temps de faire une pause",
+    "Já estás na Tchilo há algum tempo. Que tal descansar a vista um bocadinho?":"Tu es sur Tchilo depuis un moment. Et si tu reposais un peu tes yeux ?",
+    "Continuar":"Continuer",
+    "Limite diário atingido":"Limite quotidienne atteinte",
+    "Hoje já atingiste o limite de tempo que definiste na Tchilo.":"Tu as atteint aujourd'hui la limite de temps définie pour Tchilo.",
+    "Agora não":"Pas maintenant",
+    "Mais 15 min":"15 min de plus",
+    "Vai apagar os vídeos e imagens guardados neste dispositivo. Voltam a ser descarregados quando precisares. A tua conta e as tuas publicações não são afetadas.":"Cela supprime les vidéos et images stockées sur cet appareil. Elles sont retéléchargées quand tu en as besoin. Ton compte et tes publications ne sont pas touchés.",
+    "Libertar":"Libérer",
     'Definições':'Paramètres','Conta':'Compte','Editar perfil':'Modifier le profil','Palavra-passe e segurança':'Mot de passe et sécurité',
     'Notificações':'Notifications','Gostos':'J\'aime','Likes':'J\'aime','Comentários':'Commentaires','Novos seguidores':'Nouveaux abonnés',
     'Stories':'Stories','Novos stories de quem sigo':'Nouvelles stories de mes abonnements','Respostas aos meus stories':'Réponses à mes stories','Stories de amigos':'Stories d\'amis',
@@ -10072,6 +10540,136 @@ const LANGUAGE_PACKS = {
     'agora':'maintenant','ontem':'hier','likes':'j\'aime','score':'score'
   },
   it: {
+    "Sem ligação · modo offline":"Nessuna connessione · modalità offline",
+    "Esta funcionalidade precisa de internet. Verifica o Wi-Fi ou os dados móveis e tenta novamente.":"Questa funzione richiede internet. Controlla il Wi-Fi o i dati mobili e riprova.",
+    "Versão":"Versione",
+    "Precisas de internet para ver as lives.":"Serve internet per vedere le live.",
+    "Adiciona o teu número para o validares com um código por SMS.":"Aggiungi il tuo numero per verificarlo con un codice SMS.",
+    "Adicionar":"Aggiungi",
+    "Aguarda alguns instantes antes de pedires um novo código.":"Attendi un momento prima di richiedere un nuovo codice.",
+    "Algo correu mal. Tenta novamente.":"Qualcosa è andato storto. Riprova.",
+    "Alterar número":"Cambia numero",
+    "Cancelar":"Annulla",
+    "Confirmar":"Conferma",
+    "Continuar":"Continua",
+    "Código inválido ou expirado. Verifica-o ou recebe um novo código.":"Codice non valido o scaduto. Controllalo o richiedine uno nuovo.",
+    "Código recebido por SMS":"Codice ricevuto via SMS",
+    "Digita aqui o código que enviámos por SMS para":"Inserisci qui il codice inviato via SMS al",
+    "Digita o código que enviámos por SMS.":"Inserisci il codice inviato via SMS.",
+    "Digita o código que recebeste por SMS.":"Inserisci il codice ricevuto via SMS.",
+    "Digita o teu número de telefone para receberes o código por SMS e autenticares a tua conta TCHILOPOP.":"Inserisci il tuo numero di telefono per ricevere il codice via SMS e autenticare il tuo account TCHILOPOP.",
+    "E-mail":"E-mail",
+    "Entrar":"Accedi",
+    "Entrar com código SMS":"Accedi con codice SMS",
+    "Entrar com palavra-passe":"Accedi con la password",
+    "Enviar código":"Invia codice",
+    "Enviar link de recuperação":"Invia link di recupero",
+    "Enviámos um código por SMS para":"Abbiamo inviato un codice SMS al",
+    "Enviámos um novo código por SMS.":"Abbiamo inviato un nuovo codice via SMS.",
+    "Escolhe a tua nova palavra-passe":"Scegli la tua nuova password",
+    "Este número já está associado a outra conta.":"Questo numero è già associato a un altro account.",
+    "Este número já tem uma conta":"Questo numero ha già un account",
+    "Indica o número da tua conta. Vamos enviar um código por SMS para criares uma nova palavra-passe.":"Inserisci il numero del tuo account. Invieremo un codice SMS per creare una nuova password.",
+    "Não encontrámos uma conta com este número.":"Non abbiamo trovato nessun account con questo numero.",
+    "Não foi possível enviar o SMS. Tenta novamente daqui a pouco.":"Impossibile inviare l'SMS. Riprova tra poco.",
+    "Não foi possível enviar o SMS. Tenta novamente.":"Impossibile inviare l'SMS. Riprova.",
+    "Não foi possível iniciar sessão. Tenta novamente.":"Impossibile accedere. Riprova.",
+    "Número de telefone":"Numero di telefono",
+    "Número de telefone inválido.":"Numero di telefono non valido.",
+    "Número ou palavra-passe incorretos.":"Numero o password errati.",
+    "Número verificado":"Numero verificato",
+    "O acesso por telemóvel ainda não está disponível. Usa o e-mail.":"L'accesso con il telefono non è ancora disponibile. Usa l'e-mail.",
+    "O código expira em alguns minutos.":"Il codice scade tra pochi minuti.",
+    "O número":"Il numero",
+    "O número não será visível para os outros utilizadores; pedimo-lo apenas para confirmar a tua conta no TCHILOPOP.":"Il tuo numero non sarà visibile agli altri utenti; lo chiediamo solo per confermare il tuo account TCHILOPOP.",
+    "O teu número ainda não está verificado. Indica-o para receberes o código por SMS.":"Il tuo numero non è ancora verificato. Inseriscilo per ricevere il codice via SMS.",
+    "Por verificar":"Da verificare",
+    "Preenche os dois campos.":"Compila entrambi i campi.",
+    "Receber código":"Ricevi codice",
+    "Receber novo código":"Ricevi un nuovo codice",
+    "Sem ligação ao servidor. Tenta novamente.":"Nessuna connessione al server. Riprova.",
+    "Telemóvel":"Telefono",
+    "Usamos o teu número para entrares na conta e a recuperares. Não é visível para os outros utilizadores.":"Usiamo il tuo numero per accedere e recuperare l'account. Non è visibile agli altri utenti.",
+    "Usar outro número":"Usa un altro numero",
+    "Vamos enviar-te um SMS com um código de confirmação. Podem aplicar-se custos da tua operadora.":"Ti invieremo un SMS con un codice di conferma. Potrebbero applicarsi costi del tuo operatore.",
+    "Verificado":"Verificato",
+    "Verificar":"Verifica",
+    "já está associado a uma conta do Tchilo. Podes iniciar sessão com ele ou usar outro número para criares uma conta nova.":"è già associato a un account Tchilo. Puoi accedere con esso o usare un altro numero per creare un nuovo account.",
+    "Em direto":"In diretta",
+    "Iniciar live":"Avvia live",
+    "Ninguém está em direto neste momento.":"Nessuno è in diretta in questo momento.",
+    "Quando alguém começar uma live, aparece aqui.":"Quando qualcuno inizia una live, appare qui.",
+    "Ao vivo":"In diretta",
+    "a ver":"spettatori",
+    "Não foi possível carregar as lives.":"Impossibile caricare le live.",
+    "Tentar novamente":"Riprova",
+    "A ligar…":"Connessione…",
+    "Não foi possível ligar a esta live.":"Impossibile connettersi a questa live.",
+    "A live terminou.":"La live è terminata.",
+    "Fechar":"Chiudi",
+    "Voltar":"Indietro",
+    "Não foi possível abrir a configuração da live":"Impossibile aprire la configurazione della live",
+    "Tempo e bem-estar":"Tempo e benessere",
+    "Reprodução e dados":"Riproduzione e dati",
+    "Acessibilidade":"Accessibilità",
+    "Ajuda e suporte":"Aiuto e assistenza",
+    "Contas bloqueadas":"Account bloccati",
+    "Tempo hoje":"Tempo oggi",
+    "Menos de 1 min":"Meno di 1 min",
+    "Lembrete de pausa":"Promemoria pausa",
+    "Desligado":"Disattivato",
+    "A cada 15 minutos":"Ogni 15 minuti",
+    "A cada 30 minutos":"Ogni 30 minuti",
+    "A cada 1 hora":"Ogni ora",
+    "Limite diário":"Limite giornaliero",
+    "Sem limite":"Nessun limite",
+    "30 minutos":"30 minuti",
+    "1 hora":"1 ora",
+    "2 horas":"2 ore",
+    "O tempo conta só com a Tchilo aberta neste dispositivo. Ao atingires o limite, a app avisa-te.":"Il tempo conta solo con Tchilo aperta su questo dispositivo. Quando raggiungi il limite, l'app ti avvisa.",
+    "Reels automáticos":"Reel automatici",
+    "Reproduz o Reel seguinte ao deslizar":"Riproduce il Reel successivo mentre scorri",
+    "Poupança de dados":"Risparmio dati",
+    "Não pré-carrega vídeos e desliga os Reels automáticos":"Niente precaricamento dei video e i Reel non partono da soli",
+    "Armazenamento":"Archiviazione",
+    "Libertar espaço":"Libera spazio",
+    "Apaga vídeos e imagens guardados neste dispositivo":"Elimina i video e le immagini salvati su questo dispositivo",
+    "Reduzir movimento":"Riduci movimento",
+    "Desliga animações e transições":"Disattiva animazioni e transizioni",
+    "Mais contraste":"Più contrasto",
+    "Texto secundário e linhas mais escuros":"Testo secondario e linee più scuri",
+    "Central de Ajuda":"Centro assistenza",
+    "Contactar-nos":"Contattaci",
+    "Preços e planos":"Prezzi e piani",
+    "Reembolsos":"Rimborsi",
+    "Desbloquear":"Sblocca",
+    "Não tens contas bloqueadas.":"Non hai account bloccati.",
+    "Desbloqueaste":"Hai sbloccato",
+    "Reels automáticos ligados":"Reel automatici attivati",
+    "Reels automáticos desligados":"Reel automatici disattivati",
+    "Poupança de dados ligada":"Risparmio dati attivato",
+    "Poupança de dados desligada":"Risparmio dati disattivato",
+    "Movimento reduzido":"Movimento ridotto",
+    "Animações normais":"Animazioni normali",
+    "Mais contraste ligado":"Più contrasto attivato",
+    "Contraste normal":"Contrasto normale",
+    "Lembrete de pausa guardado":"Promemoria pausa salvato",
+    "Lembrete de pausa desligado":"Promemoria pausa disattivato",
+    "Limite diário guardado":"Limite giornaliero salvato",
+    "Sem limite diário":"Nessun limite giornaliero",
+    "Espaço libertado":"Spazio liberato",
+    "Não havia nada para apagar":"Niente da eliminare",
+    "Não foi possível libertar espaço":"Impossibile liberare spazio",
+    "Este dispositivo não guarda cache":"Questo dispositivo non conserva cache",
+    "Hora de uma pausa":"È ora di una pausa",
+    "Já estás na Tchilo há algum tempo. Que tal descansar a vista um bocadinho?":"Sei su Tchilo da un po'. Che ne dici di riposare un attimo gli occhi?",
+    "Continuar":"Continua",
+    "Limite diário atingido":"Limite giornaliero raggiunto",
+    "Hoje já atingiste o limite de tempo que definiste na Tchilo.":"Oggi hai raggiunto il limite di tempo che hai impostato per Tchilo.",
+    "Agora não":"Non ora",
+    "Mais 15 min":"Altri 15 min",
+    "Vai apagar os vídeos e imagens guardados neste dispositivo. Voltam a ser descarregados quando precisares. A tua conta e as tuas publicações não são afetadas.":"Verranno eliminati i video e le immagini salvati su questo dispositivo. Verranno scaricati di nuovo quando servono. Il tuo account e i tuoi post non vengono toccati.",
+    "Libertar":"Libera",
     'Definições':'Impostazioni','Conta':'Account','Editar perfil':'Modifica profilo','Palavra-passe e segurança':'Password e sicurezza',
     'Notificações':'Notifiche','Gostos':'Mi piace','Likes':'Mi piace','Comentários':'Commenti','Novos seguidores':'Nuovi follower',
     'Stories':'Storie','Novos stories de quem sigo':'Nuove storie da chi seguo','Respostas aos meus stories':'Risposte alle mie storie','Stories de amigos':'Storie degli amici',
@@ -10104,6 +10702,136 @@ const LANGUAGE_PACKS = {
     'agora':'ora','ontem':'ieri','likes':'mi piace','score':'punteggio'
   },
   zh: {
+    "Sem ligação · modo offline":"无网络 · 离线模式",
+    "Esta funcionalidade precisa de internet. Verifica o Wi-Fi ou os dados móveis e tenta novamente.":"此功能需要联网。请检查 Wi-Fi 或移动数据后重试。",
+    "Versão":"版本",
+    "Precisas de internet para ver as lives.":"观看直播需要联网。",
+    "Adiciona o teu número para o validares com um código por SMS.":"添加你的号码，并通过短信验证码进行验证。",
+    "Adicionar":"添加",
+    "Aguarda alguns instantes antes de pedires um novo código.":"请稍等片刻再重新获取验证码。",
+    "Algo correu mal. Tenta novamente.":"出错了，请重试。",
+    "Alterar número":"更换号码",
+    "Cancelar":"取消",
+    "Confirmar":"确认",
+    "Continuar":"继续",
+    "Código inválido ou expirado. Verifica-o ou recebe um novo código.":"验证码无效或已过期。请检查，或重新获取验证码。",
+    "Código recebido por SMS":"短信验证码",
+    "Digita aqui o código que enviámos por SMS para":"请输入我们通过短信发送到以下号码的验证码：",
+    "Digita o código que enviámos por SMS.":"请输入我们通过短信发送的验证码。",
+    "Digita o código que recebeste por SMS.":"请输入你收到的短信验证码。",
+    "Digita o teu número de telefone para receberes o código por SMS e autenticares a tua conta TCHILOPOP.":"输入你的手机号码，通过短信接收验证码并验证你的 TCHILOPOP 账号。",
+    "E-mail":"邮箱",
+    "Entrar":"登录",
+    "Entrar com código SMS":"使用短信验证码登录",
+    "Entrar com palavra-passe":"使用密码登录",
+    "Enviar código":"发送验证码",
+    "Enviar link de recuperação":"发送找回链接",
+    "Enviámos um código por SMS para":"我们已通过短信发送验证码到",
+    "Enviámos um novo código por SMS.":"我们已通过短信发送新的验证码。",
+    "Escolhe a tua nova palavra-passe":"设置你的新密码",
+    "Este número já está associado a outra conta.":"此号码已关联其他账号。",
+    "Este número já tem uma conta":"此号码已有账号",
+    "Indica o número da tua conta. Vamos enviar um código por SMS para criares uma nova palavra-passe.":"输入你的账号号码。我们会发送短信验证码，让你设置新密码。",
+    "Não encontrámos uma conta com este número.":"未找到与此号码关联的账号。",
+    "Não foi possível enviar o SMS. Tenta novamente daqui a pouco.":"无法发送短信，请稍后再试。",
+    "Não foi possível enviar o SMS. Tenta novamente.":"无法发送短信，请重试。",
+    "Não foi possível iniciar sessão. Tenta novamente.":"无法登录，请重试。",
+    "Número de telefone":"手机号码",
+    "Número de telefone inválido.":"手机号码无效。",
+    "Número ou palavra-passe incorretos.":"号码或密码不正确。",
+    "Número verificado":"号码已验证",
+    "O acesso por telemóvel ainda não está disponível. Usa o e-mail.":"暂不支持手机号码登录，请使用邮箱。",
+    "O código expira em alguns minutos.":"验证码将在几分钟后过期。",
+    "O número":"号码",
+    "O número não será visível para os outros utilizadores; pedimo-lo apenas para confirmar a tua conta no TCHILOPOP.":"你的号码不会对其他用户可见；我们仅用它来确认你的 TCHILOPOP 账号。",
+    "O teu número ainda não está verificado. Indica-o para receberes o código por SMS.":"你的号码尚未验证。请输入号码以通过短信接收验证码。",
+    "Por verificar":"待验证",
+    "Preenche os dois campos.":"请填写两个字段。",
+    "Receber código":"获取验证码",
+    "Receber novo código":"重新获取验证码",
+    "Sem ligação ao servidor. Tenta novamente.":"无法连接服务器，请重试。",
+    "Telemóvel":"手机",
+    "Usamos o teu número para entrares na conta e a recuperares. Não é visível para os outros utilizadores.":"我们使用你的号码来登录和找回账号。其他用户看不到它。",
+    "Usar outro número":"使用其他号码",
+    "Vamos enviar-te um SMS com um código de confirmação. Podem aplicar-se custos da tua operadora.":"我们会向你发送带确认码的短信，可能产生运营商费用。",
+    "Verificado":"已验证",
+    "Verificar":"验证",
+    "já está associado a uma conta do Tchilo. Podes iniciar sessão com ele ou usar outro número para criares uma conta nova.":"已关联一个 Tchilo 账号。你可以用它登录，或使用其他号码创建新账号。",
+    "Em direto":"正在直播",
+    "Iniciar live":"开始直播",
+    "Ninguém está em direto neste momento.":"目前没有人在直播。",
+    "Quando alguém começar uma live, aparece aqui.":"有人开始直播时会显示在这里。",
+    "Ao vivo":"直播中",
+    "a ver":"人在看",
+    "Não foi possível carregar as lives.":"无法加载直播。",
+    "Tentar novamente":"重试",
+    "A ligar…":"连接中…",
+    "Não foi possível ligar a esta live.":"无法连接到此直播。",
+    "A live terminou.":"直播已结束。",
+    "Fechar":"关闭",
+    "Voltar":"返回",
+    "Não foi possível abrir a configuração da live":"无法打开直播设置",
+    "Tempo e bem-estar":"时间与身心健康",
+    "Reprodução e dados":"播放与数据",
+    "Acessibilidade":"无障碍",
+    "Ajuda e suporte":"帮助与支持",
+    "Contas bloqueadas":"已屏蔽的账号",
+    "Tempo hoje":"今日时长",
+    "Menos de 1 min":"不到 1 分钟",
+    "Lembrete de pausa":"休息提醒",
+    "Desligado":"关闭",
+    "A cada 15 minutos":"每 15 分钟",
+    "A cada 30 minutos":"每 30 分钟",
+    "A cada 1 hora":"每小时",
+    "Limite diário":"每日限额",
+    "Sem limite":"无限制",
+    "30 minutos":"30 分钟",
+    "1 hora":"1 小时",
+    "2 horas":"2 小时",
+    "O tempo conta só com a Tchilo aberta neste dispositivo. Ao atingires o limite, a app avisa-te.":"仅在此设备上打开 Tchilo 时才会计时。达到限额时，应用会提醒你。",
+    "Reels automáticos":"自动播放 Reels",
+    "Reproduz o Reel seguinte ao deslizar":"滑动时自动播放下一个 Reel",
+    "Poupança de dados":"流量节省",
+    "Não pré-carrega vídeos e desliga os Reels automáticos":"不预加载视频，并关闭 Reels 自动播放",
+    "Armazenamento":"存储",
+    "Libertar espaço":"释放空间",
+    "Apaga vídeos e imagens guardados neste dispositivo":"删除此设备上保存的视频和图片",
+    "Reduzir movimento":"减少动态效果",
+    "Desliga animações e transições":"关闭动画和过渡效果",
+    "Mais contraste":"增强对比度",
+    "Texto secundário e linhas mais escuros":"次要文字和分隔线更深",
+    "Central de Ajuda":"帮助中心",
+    "Contactar-nos":"联系我们",
+    "Preços e planos":"价格与套餐",
+    "Reembolsos":"退款",
+    "Desbloquear":"取消屏蔽",
+    "Não tens contas bloqueadas.":"你没有屏蔽任何账号。",
+    "Desbloqueaste":"你已取消屏蔽",
+    "Reels automáticos ligados":"已开启 Reels 自动播放",
+    "Reels automáticos desligados":"已关闭 Reels 自动播放",
+    "Poupança de dados ligada":"已开启流量节省",
+    "Poupança de dados desligada":"已关闭流量节省",
+    "Movimento reduzido":"已减少动态效果",
+    "Animações normais":"动画已恢复",
+    "Mais contraste ligado":"已开启增强对比度",
+    "Contraste normal":"对比度已恢复",
+    "Lembrete de pausa guardado":"休息提醒已保存",
+    "Lembrete de pausa desligado":"休息提醒已关闭",
+    "Limite diário guardado":"每日限额已保存",
+    "Sem limite diário":"无每日限额",
+    "Espaço libertado":"已释放空间",
+    "Não havia nada para apagar":"没有可删除的内容",
+    "Não foi possível libertar espaço":"无法释放空间",
+    "Este dispositivo não guarda cache":"此设备不保存缓存",
+    "Hora de uma pausa":"该休息一下了",
+    "Já estás na Tchilo há algum tempo. Que tal descansar a vista um bocadinho?":"你已经使用 Tchilo 一段时间了，让眼睛休息一会儿吧？",
+    "Continuar":"继续",
+    "Limite diário atingido":"已达到每日限额",
+    "Hoje já atingiste o limite de tempo que definiste na Tchilo.":"你今天已达到为 Tchilo 设置的时间限额。",
+    "Agora não":"暂不",
+    "Mais 15 min":"再用 15 分钟",
+    "Vai apagar os vídeos e imagens guardados neste dispositivo. Voltam a ser descarregados quando precisares. A tua conta e as tuas publicações não são afetadas.":"这将删除此设备上保存的视频和图片，需要时会重新下载。你的账号和发布内容不受影响。",
+    "Libertar":"释放",
     'Definições':'设置','Conta':'账户','Editar perfil':'编辑资料','Palavra-passe e segurança':'密码与安全',
     'Notificações':'通知','Gostos':'赞','Likes':'赞','Comentários':'评论','Novos seguidores':'新粉丝',
     'Stories':'快拍','Novos stories de quem sigo':'关注的人的新快拍','Respostas aos meus stories':'快拍回复','Stories de amigos':'好友快拍',
@@ -11343,6 +12071,7 @@ async function tchiloCacheMatch(url) {
 
 /** Pré-aquece URLs de media do feed no Cache API (não bloqueia UI). */
 function tchiloWarmMediaCache(urls) {
+  if (window.tchiloDataSaverOn && window.tchiloDataSaverOn()) return; /* poupança de dados */
   if (!urls || !urls.length || !('caches' in window)) return;
   const list = urls.filter(Boolean).slice(0, 24);
   caches.open(TCHILO_MEDIA_CACHE).then(function(cache) {
@@ -12244,7 +12973,18 @@ document.addEventListener('DOMContentLoaded',function(){
     if(mo) mo.observe(document.documentElement,{childList:true,subtree:true});
     busy=false;
   }
-  if(window.MutationObserver) mo=new MutationObserver(function(){ setTimeout(scan,0); });
+  var tmr=null;
+  if(window.MutationObserver) mo=new MutationObserver(function(muts){
+    if(tmr) return;
+    var rel=false;
+    for(var i=0;i<muts.length&&!rel;i++){
+      var tg=muts[i].target;
+      if(!tg||tg.nodeType!==1) continue;
+      if(tg===document.body||tg===document.documentElement||tg.id==='appFrame'||(tg.closest&&tg.closest('.topbar,.navbar'))) rel=true;
+    }
+    if(!rel) return;
+    tmr=setTimeout(function(){ tmr=null; scan(); },250);
+  });
   document.addEventListener('DOMContentLoaded',scan);
   window.addEventListener('load',function(){ scan(); setTimeout(scan,800); setTimeout(scan,2500); });
   scan();
@@ -12393,7 +13133,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/story-music.js"></script>
 <script src="native/feed-stories-scroll.js"></script>
 <script src="native/music-use-sheet.js"></script>
-<script src="native/feed-stable.js"></script>
+<script src="native/feed-stable.js?v=2"></script>
 <script src="native/feed-noflicker.js"></script>
 <script src="native/chat-send-fix.js"></script>
 <script src="native/chat-audio-fix.js?v=compose3"></script>
@@ -12401,11 +13141,11 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/chat-call-webrtc.js?v=3"></script>
 <script src="native/profile-menu-fix.js?v=3"></script>
 <script src="native/sheets-full-fix.js?v=5"></script>
-<script src="native/tchilo-modal-ui.js?v=3"></script>
+<script src="native/tchilo-modal-ui.js?v=4"></script>
 <script src="native/tchilo-sheet-swipe.js?v=3"></script>
 <script src="native/tchilo-gifts.js?v=7"></script>
 <script src="native/tchilo-gift-notifs.js?v=2"></script>
-<script src="native/tchilo-msg-icon-lock.js?v=7"></script>
+<script src="native/tchilo-msg-icon-lock.js?v=8"></script>
 <script src="native/copy-ux-refresh.js?v=1"></script>
 <script src="native/story-ui-pro.js?v=2"></script>
 <script src="native/tchilo-cloud-persist.js?v=1"></script>
@@ -12413,23 +13153,26 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/tchilo-avatar-stable.js?v=1" defer></script>
 <script src="native/tchilo-profile-avatar-plus.js?v=3"></script>
 <script src="native/tchilo-legal-urls.js?v=2"></script>
-<script src="native/tchilo-settings-icons.js?v=34"></script>
+<script src="native/tchilo-settings-icons.js?v=35"></script>
+<script src="native/tchilo-settings-more.js?v=3"></script>
+<script src="native/tchilo-phone-auth.js?v=1"></script>
 <script src="native/tchilo-media-picker.js?v=15" defer></script>
 <script src="native/tchilo-compose-music-v9.js?v=1" defer></script>
 <script src="native/tchilo-compose-music-v9.js?v=1" defer></script>
 <script src="native/tchilo-create-bridge.js?v=2" defer></script>
 <script src="native/tchilo-profile-share.js?v=24"></script>
 <script src="native/tchilo-qr.js?v=2"></script>
-<script src="native/tchilo-profile-own-reset.js?v=1"></script>
+<script src="native/tchilo-profile-own-reset.js?v=2"></script>
 <script src="native/tchilo-menu-icons-unify.js?v=1"></script>
 <script src="native/tchilo-saldo-menu.js?v=2"></script>
 <script src="native/tchilo-ui-polish.js?v=1"></script>
 <script src="native/live-btn-stable.js?v=3"></script>
 <script src="native/tchilo-live.js?v=2"></script>
+<script src="native/tchilo-live-lobby.js?v=3"></script>
 <script src="native/tchilo-verified.js?v=4"></script>
 <script src="native/tchilo-premium.js?v=7g"></script>
 <script src="native/paddle-premium.js?v=3"></script>
-<script src="native/tchilo-ads-ui.js?v=2"></script>
+<script src="native/tchilo-ads-ui.js?v=3"></script>
 
 <script src="native/tchilo-create-buttons.js?v=4" defer></script>
 <script src="native/tchilo-video-pick.js?v=5" defer></script>
@@ -12440,7 +13183,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/tchilo-feed-to-reels.js?v=2" defer></script>
 <script src="native/tchilo-reels-icon.js?v=2" defer></script>
 <script src="native/tchilo-suggest-location-contacts.js?v=1" defer></script>
-<script src="native/tchilo-thin-borders.css.js?v=1" defer></script>
+<script src="native/tchilo-thin-borders.css.js?v=2" defer></script>
 <script src="native/tchilo-no-header-line.js?v=2" defer></script>
 <script src="native/tchilo-edit-profile-modern.js?v=1" defer></script>
 <script src="native/tchilo-ads-icon-fix.js?v=2" defer></script>
@@ -12773,6 +13516,10 @@ document.addEventListener('DOMContentLoaded',function(){
 #tsu .tsu-row.sel .tsu-chk{background:var(--ink);border-color:var(--ink)}
 #tsu .tsu-list{flex:1;min-height:120px;margin:10px 0}
 #tsu .tsu-foot{position:sticky;bottom:0;background:var(--paper);padding-top:8px}
+#tsu .tsu-modes{display:flex;gap:8px;margin:0 0 14px}
+#tsu .tsu-mode{flex:1;height:42px;border-radius:999px;border:1.5px solid rgba(11,11,12,.14);background:transparent;color:var(--ink);font:600 15px system-ui,-apple-system,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#tsu .tsu-mode.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+#tsu #tsuPhoneBox .tsu-in{margin-bottom:10px}
 </style>
 <div id="tsu" role="dialog" aria-label="Criar conta">
 
@@ -12781,9 +13528,11 @@ document.addEventListener('DOMContentLoaded',function(){
   <img class="tsu-logo" alt="Tchilo">
   <h1 class="tsu-ht">ENTRA PARA A NOSSA COMUNIDADE</h1>
   <p class="tsu-kick">cultura pop</p>
-  <p class="tsu-d">Digita o teu e-mail para receberes o código e autenticares a tua conta TCHILOPOP.</p>
+  <p class="tsu-d" id="tsuIntro">Digita o teu e-mail para receberes o código e autenticares a tua conta TCHILOPOP.</p>
+  <div class="tsu-modes"><button type="button" class="tsu-mode on" id="tsuModeEmail" data-act="mode-email">E-mail</button><button type="button" class="tsu-mode" id="tsuModePhone" data-act="mode-phone">Telemóvel</button></div>
   <input class="tsu-in" id="tsuEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" autocorrect="off" aria-label="E-mail" placeholder="Escreve o teu e-mail">
-  <p class="tsu-n">Certifica-te de que tens acesso ao teu e-mail. O código expira em alguns minutos.</p>
+  <div id="tsuPhoneBox" style="display:none"><select class="tsu-in" id="tsuPhCc" aria-label="País"></select><input class="tsu-in" id="tsuPhNum" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="16" aria-label="Número de telefone" placeholder="Número de telefone"></div>
+  <p class="tsu-n" id="tsuNote">Certifica-te de que tens acesso ao teu e-mail. O código expira em alguns minutos.</p>
   <div class="tsu-err" data-err></div>
   <button class="tsu-btn" type="button" data-act="email">Receber código</button>
 </section>
@@ -12791,7 +13540,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <section class="tsu-s" data-s="2">
   <div class="tsu-top"><button class="tsu-back" type="button" data-act="back" aria-label="Voltar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button></div>
   <img class="tsu-logo" alt="Tchilo">
-  <p class="tsu-d tsu-lead">Digita aqui o código que foi enviado para o teu e-mail. O e-mail não será visível para os outros utilizadores; pedimo-lo apenas para confirmar a tua conta no TCHILOPOP.</p>
+  <p class="tsu-d tsu-lead" id="tsuLead2">Digita aqui o código que foi enviado para o teu e-mail. O e-mail não será visível para os outros utilizadores; pedimo-lo apenas para confirmar a tua conta no TCHILOPOP.</p>
   <div class="tsu-cb" id="tsuCb">
     <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="8" aria-label="Dígito 1">
     <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 2">
@@ -12802,7 +13551,7 @@ document.addEventListener('DOMContentLoaded',function(){
     <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 7">
     <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Dígito 8">
   </div>
-  <p class="tsu-n">O código expira ao fim de 5 minutos.</p>
+  <p class="tsu-n" id="tsuExpNote">O código expira ao fim de 5 minutos.</p>
   <div class="tsu-err" data-err></div>
   <button class="tsu-btn" type="button" data-act="verify" id="tsuVerify">Autenticar agora</button>
   <button class="tsu-btn alt" type="button" data-act="resend" id="tsuResend">Receber novo código</button>
@@ -12835,10 +13584,10 @@ document.addEventListener('DOMContentLoaded',function(){
 <section class="tsu-s" data-s="12">
   <div class="tsu-top"><span></span></div>
   <img class="tsu-logo" alt="Tchilo">
-  <h1>Este e-mail já tem uma conta</h1>
-  <p class="tsu-d">O endereço <b id="tsuExMail"></b> já está associado a uma conta do Tchilo. Podes iniciar sessão com ele ou usar outro e-mail para criares uma conta nova.</p>
+  <h1 id="tsuExTitle">Este e-mail já tem uma conta</h1>
+  <p class="tsu-d" id="tsuExText">O endereço <b id="tsuExMail"></b> já está associado a uma conta do Tchilo. Podes iniciar sessão com ele ou usar outro e-mail para criares uma conta nova.</p>
   <button class="tsu-btn" type="button" data-act="exlogin">Iniciar sessão</button>
-  <button class="tsu-btn alt" type="button" data-act="exother">Usar outro e-mail</button>
+  <button class="tsu-btn alt" type="button" data-act="exother" id="tsuExOtherBtn">Usar outro e-mail</button>
 </section>
 
 </div>
@@ -12854,6 +13603,7 @@ var OPEN='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="cu
 var CLOSED='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 6.1A10.7 10.7 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3.2 3.9M6.6 7.6A17 17 0 0 0 2 12s3.5 6 10 6c1.6 0 3-.3 4.3-.9"/><path d="M9.9 10a3 3 0 0 0 4.1 4.1"/></svg>';
 function resetEyes(){['tsuPass','tsuPass2'].forEach(function(i){var e=$(i);if(e)e.type='password';});root.querySelectorAll('[data-act=eye]').forEach(function(b){b.innerHTML=CLOSED;});}
 var DIALS={};('AF93 AL355 DZ213 AD376 AO244 AG1 AR54 AM374 AU61 AT43 AZ994 BS1 BH973 BD880 BB1 BY375 BE32 BZ501 BJ229 BT975 BO591 BA387 BW267 BR55 BN673 BG359 BF226 BI257 CV238 KH855 CM237 CA1 CF236 TD235 CL56 CN86 CO57 KM269 CG242 CD243 CR506 CI225 HR385 CU53 CY357 CZ420 DK45 DJ253 DM1 DO1 EC593 EG20 SV503 GQ240 ER291 EE372 SZ268 ET251 FJ679 FI358 FR33 GA241 GM220 GE995 DE49 GH233 GR30 GD1 GT502 GN224 GW245 GY592 HT509 HN504 HK852 HU36 IS354 IN91 ID62 IR98 IQ964 IE353 IL972 IT39 JM1 JP81 JO962 KZ7 KE254 KI686 XK383 KW965 KG996 LA856 LV371 LB961 LS266 LR231 LY218 LI423 LT370 LU352 MO853 MG261 MW265 MY60 MV960 ML223 MT356 MH692 MR222 MU230 MX52 FM691 MD373 MC377 MN976 ME382 MA212 MZ258 MM95 NA264 NR674 NP977 NL31 NZ64 NI505 NE227 NG234 KP850 MK389 NO47 OM968 PK92 PW680 PS970 PA507 PG675 PY595 PE51 PH63 PL48 PT351 QA974 RO40 RU7 RW250 KN1 LC1 VC1 WS685 SM378 ST239 SA966 SN221 RS381 SC248 SL232 SG65 SK421 SI386 SB677 SO252 ZA27 KR82 SS211 ES34 LK94 SD249 SR597 SE46 CH41 SY963 TW886 TJ992 TZ255 TH66 TL670 TG228 TO676 TT1 TN216 TR90 TM993 TV688 UG256 UA380 AE971 GB44 US1 UY598 UZ998 VU678 VA39 VE58 VN84 YE967 ZM260 ZW263 PR1 GI350 GL299 BM1 KY1 JE44 GG44 IM44 RE262 GP590 MQ596 GF594 NC687 PF689 CW599').replace(/([A-Z]{2})(\d+)/g,function(m,c,d){DIALS[c]=d;return m;});
+window.tchiloDials=DIALS;
 var TZ={'Africa/Luanda':'AO','Europe/Lisbon':'PT','Atlantic/Madeira':'PT','Atlantic/Azores':'PT','America/Sao_Paulo':'BR','America/Fortaleza':'BR','America/Manaus':'BR','Africa/Maputo':'MZ','Atlantic/Cape_Verde':'CV','Africa/Bissau':'GW','Africa/Sao_Tome':'ST','Asia/Dili':'TL','Asia/Macau':'MO','Africa/Johannesburg':'ZA','Africa/Lagos':'NG','Africa/Kinshasa':'CD','Africa/Windhoek':'NA','Europe/Madrid':'ES','Europe/Paris':'FR','Europe/London':'GB'};
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function err(m,ok){var s=root.querySelector('.tsu-s.on [data-err]');if(s){s.textContent=m||'';s.classList.toggle('tsu-ok',!!ok);}}
@@ -12872,12 +13622,12 @@ function detectCountry(){return new Promise(function(resolve){var done=false,ctl
   var to=setTimeout(function(){try{ctl&&ctl.abort();}catch(e){}fin(null);},3500);
   try{fetch('https://ipapi.co/json/',{signal:ctl?ctl.signal:undefined}).then(function(r){return r.json();}).then(function(j){clearTimeout(to);fin(j&&j.country_code?String(j.country_code).toUpperCase():null);}).catch(function(){clearTimeout(to);fin(null);});}catch(e){clearTimeout(to);fin(null);}
 });}
-function applyCountry(){var c=$('tsuCountry'),d=$('tsuDial');if(st.cc){c.value=flag(st.cc)+'  '+cname(st.cc);d.textContent='+'+DIALS[st.cc];}else{c.value='';d.textContent='+';}}
+function applyCountry(){var c=$('tsuCountry'),d=$('tsuDial');if(st.cc){c.value=flag(st.cc)+'  '+cname(st.cc);d.textContent='+'+DIALS[st.cc];}else{c.value='';d.textContent='+';}var ps=$('tsuPhCc');if(ps&&ps.options.length&&st.cc&&!ps.dataset.touched)ps.value=st.cc;}
 function go(n){st.step=n;root.querySelectorAll('.tsu-s').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-s')===String(n));});root.scrollTop=0;err('');
-  if(n===1)setTimeout(function(){var e=$('tsuEmail');e&&e.focus();},120);
+  if(n===1)setTimeout(function(){var e=(st.mode==='phone')?$('tsuPhNum'):$('tsuEmail');e&&e.focus();},120);
   if(n===2)setTimeout(function(){var b=boxes()[0];b&&b.focus();},120);
   if(n===4)setTimeout(function(){var e=$('tsuPass');e&&e.focus();},120);
-  if(n===3){applyCountry();if(!st.cc)detectCountry().then(function(cc){st.cc=cc;applyCountry();});}}
+  if(n===3){var phw=root.querySelector('.tsu-phone');if(phw)phw.style.display=(st.mode==='phone')?'none':'';applyCountry();if(!st.cc)detectCountry().then(function(cc){st.cc=cc;applyCountry();});}}
 window.tsuOpen=function(){var im=document.querySelector('#loginGate .login-logo-img');
   root.querySelectorAll('.tsu-logo').forEach(function(l){if(im&&im.src)l.src=im.src;});
   st={step:1,email:'',uid:null,username:'',photo:null,cool:0,exp:0,cc:null,verifying:false};
@@ -12888,13 +13638,13 @@ window.tsuOpen=function(){var im=document.querySelector('#loginGate .login-logo-
   $('tsuAvIn').innerHTML=defAvatar();
   ['tsuUserMsg','tsuBirthMsg'].forEach(function(i){$(i).textContent='';$(i).classList.remove('tsu-ok');});
   detectCountry().then(function(cc){st.cc=cc;applyCountry();});
-  window.__tchiloSignupFlow=true;root.classList.add('on');go(1);};
+  window.__tchiloSignupFlow=true;root.classList.add('on');var ps0=$('tsuPhCc');if(ps0)ps0.dataset.touched='';setMode('email');go(1);};
 window.tsuClose=function(){clearInterval(st.t);root.classList.remove('on');window.__tchiloSignupFlow=false;};
 function emailOk(e){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);}
 function tmpPw(){var a=new Uint8Array(18);crypto.getRandomValues(a);return 'Tc1!'+Array.prototype.map.call(a,function(x){return x.toString(36)}).join('');}
 function sendCode(){return sb().auth.signUp({email:st.email,password:tmpPw(),options:{emailRedirectTo:(typeof TCHILO_SITE_URL!=='undefined'?TCHILO_SITE_URL:undefined)}});}
 function cooldown(){var b=$('tsuResend');st.cool=30;clearInterval(st.t);b.disabled=true;st.t=setInterval(function(){st.cool--;if(st.cool<=0){clearInterval(st.t);b.disabled=false;b.textContent='Receber novo código';}else b.textContent='Receber novo código ('+st.cool+'s)';},1000);}
-function startExpiry(){st.exp=Date.now()+OTP_TTL;$('tsuVerify').disabled=false;}
+function startExpiry(){st.exp=Date.now()+(st.mode==='phone'?10*60*1000:OTP_TTL);$('tsuVerify').disabled=false;}
 var ut;function checkUser(){clearTimeout(ut);var v=$('tsuUser').value.trim();var m=$('tsuUserMsg');m.classList.remove('tsu-ok');if(!v){m.textContent='';return;}
   if(!/^[a-zA-Z0-9_]{3,20}$/.test(v)){m.textContent='Usa de 3 a 20 caracteres: letras, números ou _.';return;}
   m.textContent='A verificar…';ut=setTimeout(function(){userFree(v).then(function(f){if($('tsuUser').value.trim()!==v)return;m.textContent=f?'Nome de utilizador disponível.':'Este nome de utilizador já existe.';m.classList.toggle('tsu-ok',f);});},350);}
@@ -12904,13 +13654,45 @@ function checkBirth(){var v=$('tsuBirth').value,m=$('tsuBirthMsg'),i=$('tsuBirth
   var a=age(v);if(isNaN(a)||a>120){m.textContent='Verifica a data de nascimento.';i.classList.add('bad');return false;}
   if(a<13){m.textContent='Menores de 13 anos não podem usar o TCHILOPOP.';i.classList.add('bad');return false;}
   m.textContent='';return true;}
+/* ---- telemóvel ---- */
+var EMAIL_INTRO=$('tsuIntro').textContent,EMAIL_NOTE=$('tsuNote').textContent,LEAD_EMAIL=$('tsuLead2').textContent,EXP_EMAIL=$('tsuExpNote').textContent;
+function ptr(k){return (window.tchiloPhone&&window.tchiloPhone.tr)?window.tchiloPhone.tr(k):k;}
+function setMode(m){st.mode=m;var ph=m==='phone';
+  $('tsuModeEmail').classList.toggle('on',!ph);$('tsuModePhone').classList.toggle('on',ph);
+  $('tsuEmail').style.display=ph?'none':'';$('tsuPhoneBox').style.display=ph?'block':'none';
+  $('tsuIntro').textContent=ph?ptr('Digita o teu número de telefone para receberes o código por SMS e autenticares a tua conta TCHILOPOP.'):EMAIL_INTRO;
+  $('tsuNote').textContent=ph?ptr('Vamos enviar-te um SMS com um código de confirmação. Podem aplicar-se custos da tua operadora.'):EMAIL_NOTE;
+  if(ph&&window.tchiloPhone){var ps=$('tsuPhCc');if(ps&&!ps.dataset.touched)window.tchiloPhone.fillSelect(ps,st.cc);}
+  OTP_LEN=ph?6:8;
+  err('');if(st.step===1)setTimeout(function(){var e=ph?$('tsuPhNum'):$('tsuEmail');e&&e.focus();},60);}
+function prepCodeStep(){var ph=st.mode==='phone';OTP_LEN=ph?6:8;
+  boxes().forEach(function(i,idx){i.style.display=(idx<OTP_LEN)?'':'none';});
+  $('tsuLead2').textContent=ph?(ptr('Digita aqui o código que enviámos por SMS para')+' '+window.tchiloPhone.mask(st.phone)+'. '+ptr('O número não será visível para os outros utilizadores; pedimo-lo apenas para confirmar a tua conta no TCHILOPOP.')):LEAD_EMAIL;
+  $('tsuExpNote').textContent=ph?ptr('O código expira em alguns minutos.'):EXP_EMAIL;}
+async function phoneSend(b){var P=window.tchiloPhone;if(!P){err('Não foi possível enviar o SMS. Tenta novamente.');return;}
+  var sel=$('tsuPhCc'),r=P.parse(sel.value,$('tsuPhNum').value);
+  if(!r.ok){$('tsuPhNum').classList.add('bad');err(ptr(r.error));return;}
+  $('tsuPhNum').classList.remove('bad');st.phone=r.phone;st.cc=sel.value;busy(b,true);
+  var res=await P.sendOtp(st.phone,true).catch(function(x){return{error:x};});busy(b,false);
+  if(res.error){err(ptr(P.friendlyError(res.error,'Não foi possível enviar o SMS. Tenta novamente.')));return;}
+  prepCodeStep();clearCode();startExpiry();cooldown();go(2);}
+async function phoneResend(b){var P=window.tchiloPhone;busy(b,true);
+  var res=await P.sendOtp(st.phone,true).catch(function(x){return{error:x};});
+  if(res.error){err(ptr(P.friendlyError(res.error,'Não foi possível enviar o SMS. Tenta novamente.')));b.disabled=false;return;}
+  clearCode();startExpiry();err(ptr('Enviámos um novo código por SMS.'),true);cooldown();var f=boxes()[0];f&&f.focus();}
+function showExists(){var ph=st.mode==='phone';
+  $('tsuExTitle').textContent=ph?ptr('Este número já tem uma conta'):'Este e-mail já tem uma conta';
+  $('tsuExText').innerHTML=ph?(ptr('O número')+' <b id="tsuExMail"></b> '+ptr('já está associado a uma conta do Tchilo. Podes iniciar sessão com ele ou usar outro número para criares uma conta nova.')):'O endereço <b id="tsuExMail"></b> já está associado a uma conta do Tchilo. Podes iniciar sessão com ele ou usar outro e-mail para criares uma conta nova.';
+  $('tsuExMail').textContent=ph?window.tchiloPhone.mask(st.phone):st.email;
+  $('tsuExOtherBtn').textContent=ph?ptr('Usar outro número'):'Usar outro e-mail';
+  go(12);}
 function finish(){window.__tchiloSignupFlow=false;window.__tchiloJustLoggedIn=true;setTimeout(function(){window.__tchiloJustLoggedIn=false;},4000);clearInterval(st.t);root.classList.remove('on');try{hideLoginGate();}catch(e){}try{showToast('Tchilo criado! Bem-vindo(a), '+st.username+'!');}catch(e){}}
 async function createTchilo(btn){
   var nm=$('tsuName').value.trim();if(nm.length<2){err('Escreve o teu nome.');$('tsuName').focus();return;}
   var uv=$('tsuUser').value.trim();if(!/^[a-zA-Z0-9_]{3,20}$/.test(uv)){err('Nome de utilizador: de 3 a 20 caracteres, com letras, números ou _.');return;}
   var bv=$('tsuBirth').value;if(!bv){err('Indica a tua data de nascimento.');return;}
   if(!checkBirth()){err($('tsuBirthMsg').textContent||'Verifica a data de nascimento.');return;}
-  var ph=$('tsuPhone').value.replace(/\D/g,'');if(ph&&(ph.length<6||ph.length>13)){err('Número de telefone inválido.');return;}
+  var ph=(st.mode==='phone')?'':$('tsuPhone').value.replace(/\D/g,'');if(ph&&(ph.length<6||ph.length>13)){err('Número de telefone inválido.');return;}
   busy(btn,true);
   try{
     if(!(await userFree(uv))){err('Este nome de utilizador já existe.');checkUser();return;}
@@ -12933,23 +13715,25 @@ async function verify(btn){
   if(st.exp&&Date.now()>st.exp){err('O código expirou. Recebe um novo código.');return;}
   st.verifying=true;busy(btn,true);
   try{
-    var v=await sb().auth.verifyOtp({email:st.email,token:c,type:'signup'});if(v.error){v=await sb().auth.verifyOtp({email:st.email,token:c,type:'email'});}
+    var v;if(st.mode==='phone'){v=await window.tchiloPhone.verifyOtp(st.phone,c,'sms');}else{v=await sb().auth.verifyOtp({email:st.email,token:c,type:'signup'});if(v.error){v=await sb().auth.verifyOtp({email:st.email,token:c,type:'email'});}}
     if(v.error||!(v.data&&v.data.user)){boxes().forEach(function(i){i.classList.add('bad');});err('Código inválido ou expirado. Verifica-o ou recebe um novo código.');return;}
     st.uid=v.data.user.id;var md=v.data.user.user_metadata||{};
     /* conta já concluída = tem nome de utilizador guardado na conta; uma linha vazia em profiles (criada automaticamente) não conta */
-    if(md.username){$('tsuExMail').textContent=st.email;go(12);return;}
+    if(md.username){showExists();return;}
     clearInterval(st.t);go(4);
   }finally{st.verifying=false;busy(btn,false);}}
 root.addEventListener('click',async function(ev){
   var b=ev.target.closest&&ev.target.closest('[data-act]');if(!b)return;var a=b.getAttribute('data-act');
   if(a==='back'){if(st.step===2)go(1);else{tsuClose();try{showLoginHome();}catch(e){}}}
-  else if(a==='email'){var e=$('tsuEmail').value.trim().toLowerCase();if(!emailOk(e)){$('tsuEmail').classList.add('bad');err('Introduz um endereço de e-mail válido.');return;}
+  else if(a==='mode-email'){setMode('email');}
+  else if(a==='mode-phone'){setMode('phone');}
+  else if(a==='email'){if(st.mode==='phone'){await phoneSend(b);return;}var e=$('tsuEmail').value.trim().toLowerCase();if(!emailOk(e)){$('tsuEmail').classList.add('bad');err('Introduz um endereço de e-mail válido.');return;}
     $('tsuEmail').classList.remove('bad');st.email=e;busy(b,true);var r=await sendCode().catch(function(x){return{error:x};});busy(b,false);
     if(r.error){err(r.error.message&&/rate|seconds/i.test(r.error.message)?'Aguarda alguns instantes antes de pedires um novo código.':'Não foi possível enviar o código. Tenta novamente.');return;}
-    var u=r.data&&r.data.user;if(u&&Array.isArray(u.identities)&&u.identities.length===0){$('tsuExMail').textContent=e;go(12);return;}
+    var u=r.data&&r.data.user;if(u&&Array.isArray(u.identities)&&u.identities.length===0){showExists();return;}
     if(r.data&&r.data.session&&u){st.uid=u.id;go(4);return;}
-    clearCode();startExpiry();cooldown();go(2);}
-  else if(a==='resend'){busy(b,true);var r2=await sb().auth.resend({type:'signup',email:st.email}).catch(function(x){return{error:x};});if(r2.error){err('Não foi possível reenviar o código. Tenta novamente.');b.disabled=false;}else{clearCode();startExpiry();err('Enviámos um novo código para o teu e-mail.',true);cooldown();var f=boxes()[0];f&&f.focus();}}
+    prepCodeStep();clearCode();startExpiry();cooldown();go(2);}
+  else if(a==='resend'){if(st.mode==='phone'){await phoneResend(b);return;}busy(b,true);var r2=await sb().auth.resend({type:'signup',email:st.email}).catch(function(x){return{error:x};});if(r2.error){err('Não foi possível reenviar o código. Tenta novamente.');b.disabled=false;}else{clearCode();startExpiry();err('Enviámos um novo código para o teu e-mail.',true);cooldown();var f=boxes()[0];f&&f.focus();}}
   else if(a==='verify'){verify(b);}
   else if(a==='eye'){var pe=$(b.getAttribute('data-t'));if(pe){var sh=pe.type==='password';pe.type=sh?'text':'password';b.innerHTML=sh?OPEN:CLOSED;b.setAttribute('aria-label',sh?'Esconder palavra-passe':'Mostrar palavra-passe');}}
   else if(a==='savepass'){var pw=$('tsuPass').value,pw2=$('tsuPass2').value;
@@ -12961,14 +13745,17 @@ root.addEventListener('click',async function(ev){
     finally{busy(b,false);}}
   else if(a==='create'){createTchilo(b);}
   else if(a==='login'){tsuClose();try{showLoginPanel('access');}catch(e){}}
-  else if(a==='exlogin'){var em=st.email;try{await sb().auth.signOut();}catch(e){}tsuClose();try{showLoginPanel('access');setTimeout(function(){var l=$('loginIdentifier');if(l)l.value=em;},60);}catch(e){}}
-  else if(a==='exother'){try{await sb().auth.signOut();}catch(e){}$('tsuEmail').value='';st.uid=null;go(1);}
+  else if(a==='exlogin'){if(st.mode==='phone'){var pn=st.phone;try{await sb().auth.signOut();}catch(e){}tsuClose();try{window.tchiloPhoneLoginOpen(pn);}catch(e){}return;}var em=st.email;try{await sb().auth.signOut();}catch(e){}tsuClose();try{showLoginPanel('access');setTimeout(function(){var l=$('loginIdentifier');if(l)l.value=em;},60);}catch(e){}}
+  else if(a==='exother'){try{await sb().auth.signOut();}catch(e){}$('tsuEmail').value='';$('tsuPhNum').value='';st.uid=null;go(1);}
 });
 $('tsuPass').addEventListener('keydown',function(e){if(e.key==='Enter')$('tsuPass2').focus();});
 $('tsuPass2').addEventListener('keydown',function(e){if(e.key==='Enter')root.querySelector('[data-act=savepass]').click();});
 $('tsuPass2').addEventListener('input',function(){this.classList.remove('bad');});
 resetEyes();
 $('tsuEmail').addEventListener('keydown',function(e){if(e.key==='Enter')root.querySelector('[data-act=email]').click();});
+$('tsuPhNum').addEventListener('input',function(){this.value=this.value.replace(/[^\d\s+]/g,'');this.classList.remove('bad');});
+$('tsuPhNum').addEventListener('keydown',function(e){if(e.key==='Enter')root.querySelector('[data-act=email]').click();});
+$('tsuPhCc').addEventListener('change',function(){this.dataset.touched='1';});
 /* Caixas do código */
 (function(){var bx=boxes();
   function fill(from,str){var d=String(str).replace(/\D/g,'').slice(0,OTP_LEN);if(!d)return;for(var k=0;k<d.length&&from+k<bx.length;k++)bx[from+k].value=d.charAt(k);
@@ -13091,28 +13878,33 @@ $('tsuPhoto').addEventListener('change',function(){var f=this.files[0];if(!f)ret
 #tchiloOffline .tof-btn:active{transform:scale(.98)}
 #tchiloOffline .tof-btn:disabled{opacity:.55}
 #tchiloOffline .tof-msg{min-height:20px;margin:12px 0 0;font-size:13px;font-weight:600;color:#E5254D}
+#tchiloOffline .tof-alt{background:transparent!important;color:var(--ink,#0B0B0C)!important;margin-top:10px}
+#tchiloOfflinePill{position:fixed;top:calc(env(safe-area-inset-top) + 6px);left:50%;transform:translateX(-50%);z-index:10150;display:none;padding:6px 14px;border-radius:999px;background:var(--ink,#0B0B0C);color:var(--paper,#fff);font:600 12.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;white-space:nowrap;pointer-events:none}
+#tchiloOfflinePill.on{display:block}
 </style>
 <script id="tchilo-offline-js">
 (function(){
   var IMG='data:image/png;base64,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';
   var URL_PING=(typeof TCHILO_SUPABASE_URL==='string'?TCHILO_SUPABASE_URL:'https://edgngwoxhdxcvyzpqjbj.supabase.co')+'/auth/v1/health';
-  var el=null,btn=null,msg=null,h2=null,p=null;
+  var el=null,btn=null,btn2=null,msg=null,h2=null,p=null,pending=null,pill=null;
   function tr(k){try{return typeof t==='function'?t(k):k;}catch(e){return k;}}
   function build(){
     el=document.createElement('div');
     el.id='tchiloOffline';
     el.setAttribute('role','alert');
     el.setAttribute('aria-live','assertive');
-    el.innerHTML='<img class="tof-img" alt="" draggable="false"><h2></h2><p></p><button type="button" class="tof-btn"></button><div class="tof-msg" aria-live="polite"></div>';
+    el.innerHTML='<img class="tof-img" alt="" draggable="false"><h2></h2><p></p><button type="button" class="tof-btn"></button><button type="button" class="tof-btn tof-alt"></button><div class="tof-msg" aria-live="polite"></div>';
     el.querySelector('img').src=IMG;
-    h2=el.querySelector('h2');p=el.querySelector('p');btn=el.querySelector('button');msg=el.querySelector('.tof-msg');
+    h2=el.querySelector('h2');p=el.querySelector('p');btn=el.querySelectorAll('button')[0];btn2=el.querySelectorAll('button')[1];msg=el.querySelector('.tof-msg');
     btn.addEventListener('click',retry);
+    btn2.addEventListener('click',function(){pending=null;hide();});
     document.body.appendChild(el);
   }
   function texts(){
     h2.textContent=tr('Sem ligação à internet');
-    p.textContent=tr('Parece que perdeste a ligação à rede. Verifica o Wi-Fi ou os dados móveis e tenta novamente.');
+    p.textContent=tr('Esta funcionalidade precisa de internet. Verifica o Wi-Fi ou os dados móveis e tenta novamente.');
     btn.textContent=tr('Tentar novamente');
+    btn2.textContent=tr('Voltar');
     msg.textContent='';
   }
   function show(){
@@ -13129,13 +13921,37 @@ $('tsuPhoto').addEventListener('change',function(){var f=this.files[0];if(!f)ret
     var to=setTimeout(function(){if(ctl)ctl.abort();},6000);
     fetch(URL_PING,{mode:'no-cors',cache:'no-store',signal:ctl?ctl.signal:undefined}).then(function(){
       clearTimeout(to);hide();
+      if(pending){var n=pending;pending=null;try{goTo(n);}catch(e){}}
     }).catch(function(){
       clearTimeout(to);btn.disabled=false;msg.textContent=tr('Ainda sem ligação.');
     });
   }
-  window.addEventListener('offline',show);
-  window.addEventListener('online',hide);
-  if(navigator.onLine===false)show();
+  /* Offline NÃO bloqueia a app: o feed, o perfil, os guardados e as definições mostram o que está guardado.
+     Só o que precisa mesmo de internet (mensagens, pesquisa, compras, anúncios, lives) mostra o ecrã de bloqueio. */
+  var ONLINE_ONLY={messages:1,search:1,'settings-premium':1,'settings-verified':1,'settings-ads':1};
+  function pillShow(on){
+    if(!document.body){document.addEventListener('DOMContentLoaded',function(){pillShow(on);});return;}
+    if(!pill){pill=document.createElement('div');pill.id='tchiloOfflinePill';pill.setAttribute('role','status');document.body.appendChild(pill);}
+    pill.textContent=tr('Sem ligação · modo offline');
+    pill.classList.toggle('on',!!on);
+  }
+  function goOffline(){document.documentElement.classList.add('tk-offline');pillShow(true);}
+  function goOnline(){document.documentElement.classList.remove('tk-offline');pillShow(false);hide();}
+  window.tchiloRequireOnline=function(){if(navigator.onLine!==false)return true;show();return false;};
+  function hookGoTo(){
+    var orig=window.goTo;
+    if(typeof orig!=='function'||orig.__ofl)return;
+    var w=function(name){
+      if(navigator.onLine===false&&ONLINE_ONLY[name]){pending=name;show();return;}
+      return orig.apply(this,arguments);
+    };
+    try{Object.keys(orig).forEach(function(k){w[k]=orig[k];});}catch(e){}
+    w.__ofl=true;window.goTo=w;
+  }
+  window.addEventListener('offline',goOffline);
+  window.addEventListener('online',goOnline);
+  if(navigator.onLine===false)goOffline();
+  hookGoTo();[300,1500,3500].forEach(function(ms){setTimeout(hookGoTo,ms);});
 })();
 </script>
 <style id="tchilo-login-no-title">#loginGate.panel-open #accessPanel .auth-sub{margin-top:24px !important}</style>
@@ -13204,5 +14020,28 @@ async function tchiloSpotifyLogin(){
 #loginGate .signup-actions{display:flex;gap:10px;}
 #loginGate .signup-actions .login-back,#loginGate .signup-actions .login-button{flex:1 1 0;width:auto!important;}
 </style>
+<script>
+/* Skeleton dos ícones 3D das definições: shimmer enquanto a imagem carrega */
+(function(){
+  var SEL = '#screen-settings .si-icon img:not([data-tkw]), [id^="screen-settings-"] .si-icon img:not([data-tkw])';
+  function watch(){
+    var imgs = document.querySelectorAll(SEL);
+    for (var i = 0; i < imgs.length; i++) (function(img){
+      img.setAttribute('data-tkw', '1');
+      var box = img.closest('.si-icon');
+      if (!box || img.complete) return;
+      box.classList.add('tk-icon-loading');
+      var done = function(){ box.classList.remove('tk-icon-loading'); };
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', done, { once: true });
+      setTimeout(done, 8000);
+    })(imgs[i]);
+  }
+  var t = null;
+  function soon(){ if (t) return; t = setTimeout(function(){ t = null; try { watch(); } catch (e) {} }, 30); }
+  try { new MutationObserver(soon).observe(document.body, { childList: true, subtree: true }); } catch (e) {}
+  soon();
+})();
+</script>
 </body>
 </html>

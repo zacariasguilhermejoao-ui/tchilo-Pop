@@ -1,6 +1,6 @@
 /* Tchilo Service Worker — offline shell + media cache + push + share target */
 /* eslint-disable no-restricted-globals */
-var SW_VERSION = 'tchilo-sw-v5';
+var SW_VERSION = 'tchilo-sw-v6';
 var SHELL_CACHE = SW_VERSION + '-shell';
 var MEDIA_CACHE = 'tchilo-media-v1';
 var RUNTIME_CACHE = SW_VERSION + '-runtime';
@@ -169,6 +169,11 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
+  if (url.origin === self.location.origin && /\.(js|mjs|css)$/i.test(url.pathname)) {
+    event.respondWith(networkFirstAsset(req));
+    return;
+  }
+
   if (url.origin === self.location.origin) {
     event.respondWith(staleWhileRevalidate(req));
     return;
@@ -176,12 +181,19 @@ self.addEventListener('fetch', function (event) {
 });
 
 function networkFirstNavigation(req) {
+  /* Só a página principal (a app) é guardada como "index.html". Antes, qualquer página visitada
+     (termos, privacidade, um post...) substituía a app na cache e aparecia ao abrir sem internet. */
+  var isShell = true;
+  try {
+    var pu = new URL(req.url);
+    isShell = pu.pathname === '/' || /\/index\.html$/.test(pu.pathname);
+  } catch (e) {}
   return fetch(req)
     .then(function (res) {
       if (res && res.ok) {
         var copy = res.clone();
         caches.open(SHELL_CACHE).then(function (c) {
-          c.put('./index.html', copy).catch(function () {});
+          if (isShell) c.put('./index.html', copy).catch(function () {});
           try {
             c.put(req, res.clone()).catch(function () {});
           } catch (e) {}
@@ -190,9 +202,9 @@ function networkFirstNavigation(req) {
       return res;
     })
     .catch(function () {
-      return caches.match('./index.html').then(function (hit) {
+      return (isShell ? caches.match('./index.html') : caches.match(req)).then(function (hit) {
         if (hit) return hit;
-        return caches.match(req).then(function (h2) {
+        return (isShell ? caches.match(req) : caches.match('./index.html')).then(function (h2) {
           if (h2) return h2;
           return new Response(
             '<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Tchilo offline</title><style>body{font-family:system-ui;background:#0B0B0C;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;padding:24px}h1{font-size:22px;margin:0 0 8px}p{opacity:.75;line-height:1.5}</style></head><body><div><h1>Tchilo</h1><p>Estás offline. Abre a app com internet uma vez para guardar o conteúdo.</p></div></body></html>',
@@ -220,6 +232,34 @@ function cacheFirstMedia(req) {
           return new Response('', { status: 503, statusText: 'Offline' });
         });
     });
+  });
+}
+
+/* Scripts e estilos: rede primeiro (as atualizações aparecem logo) e cache só se não houver internet
+   ou a rede demorar mais de 4 s. Antes usavam "stale-while-revalidate" e mostravam a versão antiga. */
+function networkFirstAsset(req) {
+  return new Promise(function (resolve) {
+    var done = false;
+    var timer = setTimeout(function () {
+      caches.match(req).then(function (hit) {
+        if (hit && !done) { done = true; resolve(hit); }
+      });
+    }, 4000);
+    fetch(req)
+      .then(function (res) {
+        clearTimeout(timer);
+        if (res && res.ok) {
+          var copy = res.clone();
+          caches.open(RUNTIME_CACHE).then(function (c) { c.put(req, copy).catch(function () {}); });
+        }
+        if (!done) { done = true; resolve(res); }
+      })
+      .catch(function () {
+        clearTimeout(timer);
+        caches.match(req).then(function (hit) {
+          if (!done) { done = true; resolve(hit || Response.error()); }
+        });
+      });
   });
 }
 

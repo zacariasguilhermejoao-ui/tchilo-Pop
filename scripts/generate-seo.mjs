@@ -5,7 +5,9 @@
  * Humanos sao redirecionados para a app SPA.
  * Required env: SUPABASE_URL, SUPABASE_ANON_KEY
  */
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, stat, unlink, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { execFile } from 'node:child_process';
 import { dirname, join } from 'node:path';
 
 const base = 'https://tchilopop.com';
@@ -55,6 +57,75 @@ const truncate = (v, n = 160) => {
 };
 const slug = v => encodeURIComponent(String(v || '').trim());
 
+/* A app põe esta legenda quando a pessoa não escreve nada — não serve de título. */
+const GENERIC_CAPTION = /^(nova publica[cç][aã]o|novo post|new post)\.?$/i;
+
+const isVideoPost = post =>
+  String(post.media_type || '').toLowerCase().startsWith('video') && !!post.media_url;
+
+const isoDuration = sec => {
+  const s = Math.max(1, Math.round(sec));
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+  return 'PT' + (h ? h + 'H' : '') + (m ? m + 'M' : '') + (r || (!h && !m) ? r + 'S' : '');
+};
+
+/* ---- miniaturas dos vídeos (ffmpeg) ----
+ * Guardadas em thumbs/<id>.jpg (não são apagadas entre execuções) e a duração em
+ * thumbs/meta.json. Só se gera a que falta; no máximo MAX_NEW_THUMBS por execução. */
+const thumbsDir = 'thumbs';
+const metaPath = join(thumbsDir, 'meta.json');
+const MAX_NEW_THUMBS = 40;
+let thumbMeta = {};
+let thumbMetaChanged = false;
+let newThumbs = 0;
+await mkdir(thumbsDir, { recursive: true });
+try { thumbMeta = JSON.parse(await readFile(metaPath, 'utf8')); } catch {}
+
+/* só aceita ficheiros do próprio storage do Supabase (evita ler URLs arbitrários) */
+function safeMediaUrl(raw) {
+  try {
+    const m = new URL(raw);
+    const s = new URL(supabaseUrl);
+    return m.origin === s.origin ? m : null;
+  } catch { return null; }
+}
+
+function run(cmd, args, timeout = 90000) {
+  return new Promise(resolve => {
+    execFile(cmd, args, { timeout, maxBuffer: 10 * 1024 * 1024 }, (err, stdout) => resolve(err ? null : String(stdout)));
+  });
+}
+
+async function ensureThumb(post) {
+  const id = String(post.id);
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return {};
+  const out = join(thumbsDir, id + '.jpg');
+  const known = thumbMeta[id] && thumbMeta[id].duration ? thumbMeta[id].duration : null;
+  if (post.thumbnail_url) return { thumb: post.thumbnail_url, duration: known };
+  if (!existsSync(out) && newThumbs < MAX_NEW_THUMBS) {
+    const u = safeMediaUrl(post.media_url);
+    if (u) {
+      newThumbs++;
+      const wl = u.protocol === 'https:' ? 'https,tls,tcp,crypto' : 'http,tcp';
+      let ok = false;
+      for (const ss of ['1', '0']) {
+        await run('ffmpeg', ['-v', 'error', '-y', '-protocol_whitelist', wl, '-ss', ss, '-i', u.href,
+          '-frames:v', '1', '-vf', 'scale=720:-2', '-q:v', '4', out]);
+        if (existsSync(out) && (await stat(out)).size > 1000) { ok = true; break; }
+        try { await unlink(out); } catch {}
+      }
+      if (ok) {
+        const d = parseFloat(await run('ffprobe', ['-v', 'error', '-protocol_whitelist', wl,
+          '-show_entries', 'format=duration', '-of', 'csv=p=0', u.href]));
+        if (isFinite(d) && d > 0) { thumbMeta[id] = { duration: Math.round(d) }; thumbMetaChanged = true; }
+      }
+    }
+  }
+  const has = existsSync(out);
+  const dur = thumbMeta[id] && thumbMeta[id].duration ? thumbMeta[id].duration : null;
+  return { thumb: has ? base + '/thumbs/' + id + '.jpg' : null, duration: dur };
+}
+
 const profiles = await fetchAll('profiles', '*', 'id');
 const publicProfiles = profiles.filter(p => p.username && !p.is_private);
 const profileById = new Map(publicProfiles.map(p => [p.id, p]));
@@ -72,7 +143,7 @@ const staticUrls = [
 ];
 const urls = staticUrls.map(path => ({ loc: base + path }));
 
-function page({ title, description, canonical, image, body, schema, keywords, noindex = false }) {
+function page({ title, description, canonical, image, body, schema, keywords, noindex = false, ogType = 'website', extraMeta = '' }) {
   const robots = noindex
     ? '<meta name="robots" content="noindex,nofollow">'
     : '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">';
@@ -87,13 +158,13 @@ function page({ title, description, canonical, image, body, schema, keywords, no
     '<meta name="description" content="' + esc(description) + '">' +
     robots + kw +
     '<link rel="canonical" href="' + esc(canonical) + '">' +
-    '<meta property="og:type" content="website">' +
+    '<meta property="og:type" content="' + esc(ogType) + '">' +
     '<meta property="og:site_name" content="Tchilo">' +
     '<meta property="og:locale" content="pt_PT">' +
     '<meta property="og:title" content="' + esc(title) + '">' +
     '<meta property="og:description" content="' + esc(description) + '">' +
     '<meta property="og:url" content="' + esc(canonical) + '">' +
-    img +
+    img + extraMeta +
     '<meta name="twitter:card" content="' + (image ? 'summary_large_image' : 'summary') + '">' +
     '<meta name="twitter:title" content="' + esc(title) + '">' +
     '<meta name="twitter:description" content="' + esc(description) + '">' +
@@ -170,57 +241,93 @@ for (const p of publicProfiles) {
   urls.push({ loc: canonical, lastmod: p.updated_at || p.created_at });
 }
 
+const videoEntries = [];
+
 for (const post of publicPosts) {
   const profile = profileById.get(post.user_id);
   const username = profile.username;
   const canonical = base + '/post/' + slug(post.id);
   const authorName = post.display_name || profile.display_name || username;
-  const caption = clean(post.caption);
-  const headline = caption || ('Publicacao de ' + authorName);
-  const title = truncate(headline, 55) + ' \u2014 @' + username + ' no ' + brandLong;
+  const isVideo = isVideoPost(post);
+  const vinfo = isVideo ? await ensureThumb(post) : {};
+  const rawCaption = clean(post.caption);
+  const caption = GENERIC_CAPTION.test(rawCaption) ? '' : rawCaption;
+  const kind = isVideo ? 'V\u00eddeo' : 'Publica\u00e7\u00e3o';
+  const defaultHeadline = kind + ' de ' + authorName + ' (@' + username + ')';
+  const headline = caption || defaultHeadline;
+  const title = caption
+    ? truncate(caption, 55) + ' \u2014 @' + username + ' no ' + brandLong
+    : truncate(defaultHeadline, 60) + ' \u2014 ' + brandLong;
   const description = truncate(
     (caption ? caption + ' \u00b7 ' : '') +
-    'Publicacao de ' + authorName + ' (@' + username + ') no Tchilo Pop. Fotos, videos e stories na rede social Tchilo.',
+    kind + ' de ' + authorName + ' (@' + username + ') no Tchilo Pop. ' +
+    (isVideo ? 'V\u00eddeos, fotos e stories' : 'Fotos, v\u00eddeos e stories') + ' na rede social Tchilo.',
     160
   );
-  const keywords = [brand, brandLong, 'tchilopop', username, authorName, 'publicacao', 'post', 'rede social']
+  const keywords = [brand, brandLong, 'tchilopop', username, authorName, isVideo ? 'v\u00eddeo' : 'publica\u00e7\u00e3o', 'post', 'rede social']
     .concat(caption ? caption.split(/\s+/).slice(0, 8) : [])
     .filter(Boolean)
     .join(', ');
-  const image = post.thumbnail_url || ((post.media_type || '').startsWith('image') ? post.media_url : null);
-  const schema = {
-    '@context': 'https://schema.org',
-    '@type': 'SocialMediaPosting',
-    'url': canonical,
-    'datePublished': post.created_at,
-    'dateModified': post.created_at,
-    'headline': truncate(headline, 110),
-    'author': {
-      '@type': 'Person',
-      'name': authorName,
-      'alternateName': username,
-      'url': base + '/u/' + slug(username),
-      'identifier': profile.id
-    },
-    ...(caption ? { articleBody: caption } : {}),
-    ...(image ? { image: image } : {}),
-    'isPartOf': {
-      '@type': 'WebSite',
-      'name': brand,
-      'alternateName': brandLong,
-      'url': base + '/'
-    },
-    'publisher': {
-      '@type': 'Organization',
-      'name': brand,
-      'url': base + '/'
-    }
+  const image = vinfo.thumb || post.thumbnail_url || ((post.media_type || '').startsWith('image') ? post.media_url : null);
+  const author = {
+    '@type': 'Person',
+    'name': authorName,
+    'alternateName': username,
+    'url': base + '/u/' + slug(username),
+    'identifier': profile.id
   };
+  const isPartOf = { '@type': 'WebSite', 'name': brand, 'alternateName': brandLong, 'url': base + '/' };
+  const publisher = { '@type': 'Organization', 'name': brand, 'url': base + '/' };
+  const uploadDate = new Date(post.created_at).toISOString();
+
+  /* Google só mostra vídeo nos resultados com VideoObject + miniatura + endereço do ficheiro */
+  const asVideoObject = isVideo && !!image;
+  const schema = asVideoObject
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'VideoObject',
+        'name': truncate(headline, 100),
+        'description': truncate(caption || (defaultHeadline + ' no ' + brandLong + '.'), 300),
+        'thumbnailUrl': [image],
+        'uploadDate': uploadDate,
+        'contentUrl': post.media_url,
+        'url': canonical,
+        'inLanguage': 'pt',
+        ...(vinfo.duration ? { duration: isoDuration(vinfo.duration) } : {}),
+        'author': author,
+        'isPartOf': isPartOf,
+        'publisher': publisher
+      }
+    : {
+        '@context': 'https://schema.org',
+        '@type': 'SocialMediaPosting',
+        'url': canonical,
+        'datePublished': post.created_at,
+        'dateModified': post.created_at,
+        'headline': truncate(headline, 110),
+        'author': author,
+        ...(caption ? { articleBody: caption } : {}),
+        ...(image ? { image: image } : {}),
+        'isPartOf': isPartOf,
+        'publisher': publisher
+      };
+
+  let extraMeta = '';
+  if (isVideo) {
+    const mime = String(post.media_type || '').includes('/') ? post.media_type : 'video/mp4';
+    extraMeta =
+      '<meta property="og:video" content="' + esc(post.media_url) + '">' +
+      '<meta property="og:video:secure_url" content="' + esc(post.media_url) + '">' +
+      '<meta property="og:video:type" content="' + esc(mime) + '">' +
+      (vinfo.duration ? '<meta property="video:duration" content="' + vinfo.duration + '">' : '');
+  }
+
   let media = '';
-  if (image) {
+  if (isVideo) {
+    media = '<video class="media" controls playsinline preload="metadata"' +
+      (image ? ' poster="' + esc(image) + '"' : '') + ' src="' + esc(post.media_url) + '"></video>';
+  } else if (image) {
     media = '<img class="media" src="' + esc(image) + '" alt="' + esc(headline) + ' \u2014 ' + esc(authorName) + ' no Tchilo">';
-  } else if ((post.media_type || '').startsWith('video') && post.media_url) {
-    media = '<video class="media" controls preload="metadata" src="' + esc(post.media_url) + '"></video>';
   }
   const dateStr = new Date(post.created_at).toLocaleDateString('pt-PT', { year: 'numeric', month: 'long', day: 'numeric' });
   const body =
@@ -229,15 +336,31 @@ for (const post of publicPosts) {
     '<h1>' + esc(headline) + '</h1>' +
     (caption && caption !== headline ? '<p>' + esc(caption) + '</p>' : '') +
     media +
-    '<p>Publicacao de <strong>' + esc(authorName) + '</strong> (@' + esc(username) + ') no <strong>Tchilo Pop</strong> \u2014 rede social Tchilo para fotos, videos, stories e reels.</p>' +
-    '<p><a href="' + canonical + '">Abrir publicacao no Tchilo</a> \u00b7 <a href="' + base + '/u/' + slug(username) + '">Ver perfil</a> \u00b7 <a href="' + base + '/">Tchilo Pop</a></p>' +
+    '<p>' + kind + ' de <strong>' + esc(authorName) + '</strong> (@' + esc(username) + ') no <strong>Tchilo Pop</strong> \u2014 rede social Tchilo para fotos, v\u00eddeos, stories e reels.</p>' +
+    '<p><a href="' + canonical + '">Abrir publica\u00e7\u00e3o no Tchilo</a> \u00b7 <a href="' + base + '/u/' + slug(username) + '">Ver perfil</a> \u00b7 <a href="' + base + '/">Tchilo Pop</a></p>' +
     '<p class="brand">Tchilo \u00b7 tchilopop.com</p>' +
     '</article>';
   const path = join('post', post.id, 'index.html');
   await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, page({ title, description, canonical, image, body, schema, keywords }), 'utf8');
+  await writeFile(path, page({ title, description, canonical, image, body, schema, keywords, ogType: isVideo ? 'video.other' : 'website', extraMeta }), 'utf8');
   urls.push({ loc: canonical, lastmod: post.created_at });
+
+  if (asVideoObject) {
+    videoEntries.push({
+      loc: canonical,
+      thumb: image,
+      title: truncate(headline, 100),
+      description: truncate(caption || (defaultHeadline + ' no ' + brandLong + '.'), 300),
+      content: post.media_url,
+      date: uploadDate,
+      duration: vinfo.duration || null,
+      uploader: authorName,
+      uploaderUrl: base + '/u/' + slug(username)
+    });
+  }
 }
+
+if (thumbMetaChanged) await writeFile(metaPath, JSON.stringify(thumbMeta, null, 1) + '\n', 'utf8');
 
 const xmlEsc = v => String(v)
   .replace(/&/g, AMP)
@@ -256,4 +379,21 @@ const sitemap =
   ).join('\n') +
   '\n</urlset>\n';
 await writeFile('sitemap.xml', sitemap, 'utf8');
-console.log('Generated', publicProfiles.length, 'profiles and', publicPosts.length, 'public posts.');
+
+const videoSitemap =
+  '<?xml version="1.0" encoding="UTF-8"?>\n' +
+  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n' +
+  videoEntries.map(v =>
+    '  <url><loc>' + xmlEsc(v.loc) + '</loc><video:video>' +
+    '<video:thumbnail_loc>' + xmlEsc(v.thumb) + '</video:thumbnail_loc>' +
+    '<video:title>' + xmlEsc(v.title) + '</video:title>' +
+    '<video:description>' + xmlEsc(v.description) + '</video:description>' +
+    '<video:content_loc>' + xmlEsc(v.content) + '</video:content_loc>' +
+    (v.duration ? '<video:duration>' + Math.min(28800, Math.max(1, v.duration)) + '</video:duration>' : '') +
+    '<video:publication_date>' + v.date + '</video:publication_date>' +
+    '<video:uploader info="' + xmlEsc(v.uploaderUrl) + '">' + xmlEsc(v.uploader) + '</video:uploader>' +
+    '</video:video></url>'
+  ).join('\n') +
+  '\n</urlset>\n';
+await writeFile('sitemap-video.xml', videoSitemap, 'utf8');
+console.log('Generated', publicProfiles.length, 'profiles,', publicPosts.length, 'public posts,', videoEntries.length, 'videos in sitemap-video.xml (', newThumbs, 'new thumbnails).');

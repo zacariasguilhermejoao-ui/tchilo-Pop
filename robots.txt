@@ -12,6 +12,7 @@ Allow: /eliminar-conta/
 Allow: /u/
 Allow: /p/
 Allow: /post/
+Allow: /thumbs/
 Allow: /perfil/
 
 # Áreas privadas da app
@@ -29,3 +30,4 @@ Disallow: /native/
 Disallow: /.well-known/
 
 Sitemap: https://tchilopop.com/sitemap.xml
+Sitemap: https://tchilopop.com/sitemap-video.xml

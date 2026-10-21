@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sitemap de vídeos do Tchilo Pop. Este ficheiro é preenchido automaticamente pelo workflow
+     "Generate Tchilo SEO pages" (scripts/generate-seo.mjs) com cada vídeo público e a sua miniatura. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+</urlset>

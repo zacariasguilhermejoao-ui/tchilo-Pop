@@ -99,18 +99,23 @@ html:root body [data-top-messages] svg{color:#9B6BFF !important;}
 html:root body [data-top-messages] svg > path{fill:#9B6BFF !important;stroke:#9B6BFF !important;}
 </style>
 <style id="tchilo-follow-purple-glass">
-/* Botão Seguir (Feed + Reels): estilo vidro com contorno, roxo chapado, letra branca em negrito */
+/* Botão Seguir/Seguido (Feed, Reels, sugestões): fundo transparente, letra e contorno roxos (#7A00FF) */
 html:root body .post .post-follow,
 html:root body .post .post-follow.following,
 html:root body .post .post-follow.friends,
 html:root body .reel-slide .reel-follow,
 html:root body .reel-slide .reel-follow.following,
-html:root body .reel-slide .reel-follow.friends{
-  background:#9B6BFF !important;
-  color:#fff !important;
-  border:1.5px solid rgba(255,255,255,.45) !important;
+html:root body .reel-slide .reel-follow.friends,
+html:root body .follow-btn,
+html:root body .follow-btn.following,
+html:root body .follow-btn.friends{
+  background:transparent !important;
+  background-image:none !important;
+  color:#7A00FF !important;
+  border:1.5px solid #7A00FF !important;
   border-radius:12px !important;
   box-shadow:none !important;
+  text-shadow:none !important;
   backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
   font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;
   font-weight:800 !important;
@@ -134,10 +139,10 @@ html:root body .reel-slide .reel-follow.friends{
 <style id="tchilo-boost-purple-css">
 /* Botão Turbinar: roxo chapado (em vez de preto) */
 html:root body .tk-boost-purple{
-  background:#9B6BFF !important;
+  background:#7A00FF !important;
   background-image:none !important;
   color:#fff !important;
-  border-color:#9B6BFF !important;
+  border-color:#7A00FF !important;
   box-shadow:none !important;
 }
 </style>
@@ -13266,7 +13271,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/tchilo-verified.js?v=4"></script>
 <script src="native/tchilo-premium.js?v=7g"></script>
 <script src="native/paddle-premium.js?v=3"></script>
-<script src="native/tchilo-ads-ui.js?v=3"></script>
+<script src="native/tchilo-ads-ui.js?v=4"></script>
 
 <script src="native/tchilo-create-buttons.js?v=4" defer></script>
 <script src="native/tchilo-video-pick.js?v=5" defer></script>

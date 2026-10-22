@@ -74,7 +74,7 @@
       "#tchiloAdsMgrBtn{display:flex!important;align-items:center;gap:12px;width:100%;border:0;background:none;padding:14px 18px;text-align:left;font:700 15px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;color:var(--ink,#0B0B0C);cursor:pointer;border-bottom:1px solid rgba(0,0,0,.06)}" +
       "#tchiloAdsMgrBtn .si-icon{width:24px;height:24px;border:0;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink,#0B0B0C)}" +
       "#tchiloAdsMgrBtn .chev{margin-left:auto;opacity:.5;font-size:18px}" +
-      ".post-boost-btn{display:inline-flex!important;align-items:center;justify-content:center;flex-shrink:0;margin-left:6px;padding:6px 10px;border:0!important;border-radius:999px;background:var(--ink,#0B0B0C)!important;font:600 11px system-ui,sans-serif!important;color:#fff!important;cursor:pointer;line-height:1;white-space:nowrap;visibility:visible!important;opacity:1!important;z-index:2}" +
+      ".post-boost-btn{display:inline-flex!important;align-items:center;justify-content:center;flex-shrink:0;margin-left:6px;padding:6px 10px;border:0!important;border-radius:999px;background:#9B6BFF!important;font:600 11px system-ui,sans-serif!important;color:#fff!important;cursor:pointer;line-height:1;white-space:nowrap;visibility:visible!important;opacity:1!important;z-index:2}" +
       ".post-boost-btn:active{transform:scale(.96)}" +
       ".post-head{align-items:center!important}" +
       "#tchiloAdsFallback{display:none;position:fixed;inset:0;z-index:4000;background:var(--paper,#f7f6f2);flex-direction:column;color:var(--ink,#0B0B0C)}" +

@@ -92,6 +92,106 @@ body.tchilo-session-on.tchilo-logged-out .navbar{
   pointer-events:none!important;
 }
 </style>
+<style id="tchilo-msg-icon-purple">
+/* Ícone de mensagens (topo do feed): roxo chapado */
+html:root body [data-top-messages],
+html:root body [data-top-messages] svg{color:#9B6BFF !important;}
+html:root body [data-top-messages] svg > path{fill:#9B6BFF !important;stroke:#9B6BFF !important;}
+</style>
+<style id="tchilo-follow-purple-glass">
+/* Botão Seguir (Feed + Reels): estilo vidro com contorno, roxo chapado, letra branca em negrito */
+html:root body .post .post-follow,
+html:root body .post .post-follow.following,
+html:root body .post .post-follow.friends,
+html:root body .reel-slide .reel-follow,
+html:root body .reel-slide .reel-follow.following,
+html:root body .reel-slide .reel-follow.friends{
+  background:#9B6BFF !important;
+  color:#fff !important;
+  border:1.5px solid rgba(255,255,255,.45) !important;
+  border-radius:12px !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;
+  font-weight:800 !important;
+  letter-spacing:0 !important;
+}
+html:root body .post .post-follow,
+html:root body .post .post-follow.following,
+html:root body .post .post-follow.friends{
+  padding:7px 16px !important;
+  font-size:13px !important;
+  line-height:1 !important;
+}
+html:root body .reel-slide .reel-follow,
+html:root body .reel-slide .reel-follow.following,
+html:root body .reel-slide .reel-follow.friends{
+  height:36px !important;
+  padding:0 18px !important;
+  font-size:14px !important;
+}
+</style>
+<style id="tchilo-boost-purple-css">
+/* Botão Turbinar: roxo chapado (em vez de preto) */
+html:root body .tk-boost-purple{
+  background:#9B6BFF !important;
+  background-image:none !important;
+  color:#fff !important;
+  border-color:#9B6BFF !important;
+  box-shadow:none !important;
+}
+</style>
+<style id="tchilo-nav-active-purple">
+/* Barra de baixo: ícone selecionado = roxo chapado preenchido, dentro de uma pílula roxa clara */
+html:root body #appFrame .navbar .nav-item{
+  width:56px !important;height:40px !important;min-width:56px;
+  justify-content:center !important;align-items:center !important;
+  border-radius:999px !important;
+  transition:background .18s ease, color .18s ease;
+}
+html:root body #appFrame .navbar .nav-item.active{
+  background:rgba(155,107,255,.18) !important;
+  color:#9B6BFF !important;
+}
+/* FEED (casa) */
+html:root body .navbar .nav-item[data-screen="feed"].active svg path:first-child{fill:#9B6BFF !important;stroke:#9B6BFF !important;}
+/* REELS */
+html:root body .navbar .nav-item[data-screen="reels"].active svg rect{fill:#9B6BFF !important;}
+html:root body .navbar .nav-item[data-screen="reels"].active svg g{stroke:#9B6BFF !important;}
+/* NOTIFICAÇÕES (sino) */
+html:root body .navbar .nav-item[data-screen="notifs"].active svg path:first-child,
+html:root body .navbar .nav-item[data-screen="notifs"].active svg path:nth-child(3){fill:#9B6BFF !important;}
+/* PERFIL */
+html:root body .navbar .nav-item[data-screen="profile"].active svg circle,
+html:root body .navbar .nav-item[data-screen="profile"].active svg path{fill:#9B6BFF !important;}
+/* POSTAR (se ficar selecionado) */
+html:root body #appFrame .navbar button.nav-post.active{
+  background:rgba(155,107,255,.18) !important;color:#9B6BFF !important;border-radius:999px !important;
+}
+</style>
+<style id="tchilo-nb-purple">
+/* Bolha de notificações: roxo chapado, sem contorno, letras e ícones brancos */
+html:root body .tchilo-nb{
+  background:#9B6BFF !important;color:#fff !important;border:0 !important;box-shadow:none !important;
+  border-radius:18px !important;padding:12px 18px !important;gap:16px !important;
+  font-size:16px !important;
+}
+html:root body .tchilo-nb::after{
+  background:#9B6BFF !important;border:0 !important;width:14px !important;height:14px !important;
+  bottom:-6px !important;left:calc(var(--ax,50%) - 7px) !important;border-bottom-right-radius:3px !important;
+}
+html:root body .tchilo-nb .tnb-i svg{fill:#fff !important;width:20px !important;height:20px !important;}
+/* Número no ícone de mensagens e na live: roxo chapado, número branco, sem contorno */
+html:root body .icon-btn[data-top-messages] .badge,
+html:root body .icon-btn[data-index-live] .badge{
+  background:#9B6BFF !important;color:#fff !important;border:0 !important;box-shadow:none !important;
+  min-width:20px;height:20px;padding:0 5px;border-radius:10px;font-size:11px;font-weight:800;
+  top:0;right:-2px;
+}
+html:root body .icon-btn[data-index-live]{position:relative;}
+html:root body .icon-btn[data-index-live] .badge.hide{display:none !important;}
+</style>
+
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -2869,11 +2969,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     </div>
     <input type="file" id="storyMediaInput" accept="image/*,video/*" style="display:none" onchange="onStoryMediaPicked(event)">
     <div class="stories" id="storiesBar">
-      <div class="story-card story-card-create" onclick="openStoryCreateSheet()">
-        <div class="story-create-top"></div>
-        <div class="story-card-plus" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg></div>
-        <span class="story-create-label">Seu Story</span>
-      </div>
     </div>
     <div id="feedPosts"><div class="feed-skeleton" aria-busy="true" aria-label="A carregar"><div class="feed-skel-card"><div class="feed-skel-head"><div class="feed-skel-av"></div><div class="feed-skel-lines"><div class="feed-skel-line m"></div><div class="feed-skel-line s"></div></div></div><div class="feed-skel-media"></div><div class="feed-skel-actions"><i></i><i></i><i></i></div><div class="feed-skel-cap" style="width:88%"></div><div class="feed-skel-cap" style="width:55%"></div></div><div class="feed-skel-card"><div class="feed-skel-head"><div class="feed-skel-av"></div><div class="feed-skel-lines"><div class="feed-skel-line m"></div><div class="feed-skel-line s"></div></div></div><div class="feed-skel-media"></div><div class="feed-skel-actions"><i></i><i></i><i></i></div><div class="feed-skel-cap" style="width:88%"></div><div class="feed-skel-cap" style="width:55%"></div></div></div></div>
     </div><!-- /feedList -->
@@ -4971,6 +5066,10 @@ function goTo(name) {
   }
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.screen === navTarget);
+  });
+  /* Botão do meio (postar): fica selecionado enquanto o ecrã de criar está aberto */
+  document.querySelectorAll('.navbar .nav-post').forEach(btn => {
+    btn.classList.toggle('active', name === 'create');
   });
   if (name === 'messages') { renderMessages(); pullLatestMessagesOnce().then(function(){ if(document.getElementById('screen-messages')?.classList.contains('active')) renderMessages(); }); }
   if (name === 'notifs') { document.getElementById('badge-notif').classList.add('hide'); renderNotifs(); loadNotificationsFromCloud(); }
@@ -11431,12 +11530,7 @@ function __tchiloRenderStoriesNow(){
   const seed=tchiloStorySeed(false);
   const frag=document.createDocumentFragment();
 
-  /* Criar story — mesmo tamanho dos outros cartões */
-  const createEl=document.createElement('div');
-  createEl.className='story-card story-card-create';
-  createEl.onclick=openStoryCreateSheet;
-  createEl.innerHTML=tchiloStoryCreateHTML();
-  frag.appendChild(createEl);
+  /* Cartão "Seu Story" removido a pedido */
 
   /* O teu story (se existir) */
   if(mine.length){
@@ -13295,10 +13389,11 @@ document.addEventListener('DOMContentLoaded',function(){
     comment:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>',
     like:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
     follow:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>',
+    share:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 11.2 21 3.3c.8-.3 1.5.4 1.2 1.2l-7.9 18.5c-.4.9-1.7.8-2-.1l-2.2-6.9-6.9-2.2c-.9-.3-1-1.6-.1-1.9zm7.6 2.3 1.4 4.3 5.3-11.9-6.7 7.6z"/></svg>',
     other:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.1-1.6-5.6-4.5-6.3V4c0-.8-.7-1.5-1.5-1.5S10.5 3.2 10.5 4v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>'
   };
-  var LABEL = { comment:'Comentários', like:'Gostos', follow:'Novos seguidores', other:'Notificações' };
-  var RX = [['follow', /follow|segu/], ['comment', /comment|coment/], ['like', /like|gost|curt/]];
+  var LABEL = { comment:'Comentários', share:'Partilhas', like:'Gostos', follow:'Novos seguidores', other:'Notificações' };
+  var RX = [['follow', /follow|segu/], ['share', /share|partilh|compartilh/], ['comment', /comment|coment/], ['like', /like|gost|curt/]];
 
   function pick(s){
     var best = null, bi = 1e9;
@@ -13309,7 +13404,7 @@ document.addEventListener('DOMContentLoaded',function(){
     var list = [];
     try { list = (typeof load === 'function') ? load('tchilo_notifications', []) : lj('tchilo_notifications', []); } catch(e){}
     var st = {}; try { st = getAppSettings() || {}; } catch(e){}
-    var c = { comment:0, like:0, follow:0, other:0 };
+    var c = { comment:0, share:0, like:0, follow:0, other:0 };
     (list || []).forEach(function(n){
       if (!n || (+n.createdAt || 0) <= since) return;
       var kind = pick(String(n.type || '').toLowerCase()) || pick(String(n.message || n.text || '').toLowerCase()) || 'other';
@@ -13320,7 +13415,7 @@ document.addEventListener('DOMContentLoaded',function(){
     });
     return c;
   }
-  function total(c){ return c.comment + c.like + c.follow + c.other; }
+  function total(c){ return c.comment + c.share + c.like + c.follow + c.other; }
 
   function ensureBubble(){
     if (bubble) return bubble;
@@ -13341,7 +13436,7 @@ document.addEventListener('DOMContentLoaded',function(){
   function render(c){
     var b = ensureBubble(); if (!b) return false;
     var html = '', label = [];
-    ['comment','like','follow','other'].forEach(function(k){
+    ['comment','share','like','follow','other'].forEach(function(k){
       if (c[k] > 0) { html += '<span class="tnb-i">' + ICON[k] + '<b>' + fmt(c[k]) + '</b></span>'; label.push(c[k] + ' ' + tr(LABEL[k])); }
     });
     b.innerHTML = html;
@@ -14041,6 +14136,44 @@ async function tchiloSpotifyLogin(){
   function soon(){ if (t) return; t = setTimeout(function(){ t = null; try { watch(); } catch (e) {} }, 30); }
   try { new MutationObserver(soon).observe(document.body, { childList: true, subtree: true }); } catch (e) {}
   soon();
+})();
+</script>
+<script id="tchilo-boost-purple-js">
+(function(){
+  var WORDS={'turbinar':1};
+  function mark(){
+    try{
+      var els=document.querySelectorAll('button,a,[role="button"],.btn');
+      for(var i=0;i<els.length;i++){
+        var el=els[i];
+        if(el.classList.contains('tk-boost-purple'))continue;
+        var tx=(el.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+        if(WORDS[tx])el.classList.add('tk-boost-purple');
+      }
+    }catch(e){}
+  }
+  var tm=null;
+  function soon(){if(tm)return;tm=setTimeout(function(){tm=null;mark();},60);}
+  function start(){
+    mark();
+    try{new MutationObserver(soon).observe(document.body,{childList:true,subtree:true,characterData:true});}catch(e){}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+<script id="tchilo-live-badge-js">
+/* Número na live (quantas pessoas estão a fazer live agora).
+   Quem tiver os dados das lives chama: tchiloSetLiveCount(n)  (0 esconde o número). */
+(function(){
+  function host(){return document.querySelector('[data-index-live]');}
+  window.tchiloSetLiveCount=function(n){
+    var h=host(); if(!h) return;
+    var b=h.querySelector('.badge');
+    n=Math.max(0,+n||0);
+    if(!b){b=document.createElement('span');b.className='badge hide';h.appendChild(b);}
+    if(n>0){b.textContent=n>99?'99+':String(n);b.setAttribute('aria-label',n+' live');b.classList.remove('hide');}
+    else{b.classList.add('hide');}
+  };
 })();
 </script>
 </body>

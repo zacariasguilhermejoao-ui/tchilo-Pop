@@ -8,7 +8,8 @@
 | Permissão `com.android.vending.BILLING` | Injetada no CI (`android-build.yml`) |
 | Paddle | **Removido** (stub em `native/paddle-premium.js`) |
 | Plus (premium) | Compra única **`tchilo_plus`** · **4 USD** · `inapp` |
-| Moedas | Opcional: `moedas_70` via `native/tchilo-play-billing.js` |
+| Moedas | 7 packs (`moedas_70` … `moedas_4900`) via `native/tchilo-play-billing.js` |
+| Anúncios | 5 produtos (`anuncio_1d` … `anuncio_30d`) via `native/tchilo-play-billing.js` |
 
 ## Produto Plus (já criado no Console)
 
@@ -43,7 +44,7 @@ window.__TCHILO_PLAY_PRODUCT_TYPE = "inapp";      // default
 
 ## Moedas (opcional)
 
-Product ID exemplo: `moedas_70` (consumable). Ver `native/tchilo-play-billing.js`.
+Lista completa de IDs, preços e títulos em `play-console-produtos/PRODUTOS.md` (e `produtos.csv`).
 
 ## Site vs App
 

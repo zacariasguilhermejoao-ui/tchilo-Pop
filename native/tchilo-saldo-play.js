@@ -65,38 +65,14 @@
     } else {
       var b = sheet.querySelector('.tc-buy, [data-a="buy"]');
       if (b) {
-        b.setAttribute('data-coins', '70');
-        b.setAttribute('data-play-id', 'moedas_70');
+        if (!b.getAttribute('data-coins')) b.setAttribute('data-coins', '70');
+        if (!b.getAttribute('data-play-id')) b.setAttribute('data-play-id', 'moedas_70');
         b.setAttribute('data-tchilo-buy-coins', '1');
-        if (isNative()) b.textContent = 'Comprar com Google Play';
       }
     }
   }
 
-  document.addEventListener(
-    'click',
-    function (e) {
-      if (!isNative()) return;
-      var btn =
-        e.target &&
-        e.target.closest &&
-        e.target.closest('#tchiloCoinsSheet [data-a="buy"], #tchiloCoinsSheet .tc-buy, [data-tchilo-buy-coins]');
-      if (!btn) return;
-      e.preventDefault();
-      e.stopPropagation();
-      if (typeof window.tchiloBuyCoinsPlay === 'function') {
-        window.tchiloBuyCoinsPlay({
-          coins: parseInt(btn.getAttribute('data-coins') || '70', 10) || 70,
-          playProductId: btn.getAttribute('data-play-id') || 'moedas_70'
-        });
-      } else {
-        try {
-          if (typeof showToast === 'function') showToast('Play Billing a carregar…');
-        } catch (err) {}
-      }
-    },
-    true
-  );
+  /* O clique em comprar é tratado só em tchilo-play-billing.js (evita compra duplicada) */
 
   patchOpenCoins();
   setInterval(function () {

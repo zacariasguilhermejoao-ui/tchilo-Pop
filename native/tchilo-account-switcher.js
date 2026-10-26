@@ -383,11 +383,9 @@
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Mudar de conta');
     btn.innerHTML =
-      '<svg viewBox="0 0 1024 1024" width="26" height="26" fill="none" aria-hidden="true">' +
-      '<circle cx="512" cy="401" r="100" stroke="currentColor" stroke-width="52"/>' +
-      '<path d="M305 723V690A111 111 0 0 1 416 579H606A111 111 0 0 1 718 690V723Z" stroke="currentColor" stroke-width="52" stroke-linejoin="round"/>' +
-      '<path d="M512 102A410 410 0 1 1 125 650" stroke="currentColor" stroke-width="64" stroke-linecap="round"/>' +
-      '<path d="M233 703L127 652L76 762" stroke="currentColor" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<svg viewBox="0 0 512 512" width="26" height="26" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<g><circle cx="346" cy="136" r="52"/><path d="M312 262 H366 a64 64 0 0 1 64 64 V428"/></g>' +
+      '<g><circle cx="202" cy="196" r="60"/><path d="M82 428 V410 a80 80 0 0 1 80 -80 H242 a80 80 0 0 1 80 80 V428 Z"/></g>' +
       '</svg>';
     btn.addEventListener('click', function (e) {
       e.preventDefault();

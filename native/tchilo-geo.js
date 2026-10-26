@@ -167,6 +167,22 @@
   /** anuncio visivel para o utilizador actual? */
   function adMatchesUser(ad) {
     if (!ad) return false;
+    /* varias zonas: basta o utilizador estar dentro de uma */
+    var zones = ad.target_locations;
+    if (typeof zones === "string") {
+      try { zones = JSON.parse(zones); } catch (e) { zones = null; }
+    }
+    if (zones && zones.length) {
+      var u = get();
+      if (!u) return true;
+      for (var i = 0; i < zones.length; i++) {
+        var z = zones[i] || {};
+        var zr = Number(z.radius_km);
+        if (z.lat == null || z.lng == null || !zr) continue;
+        if (distanceKm(u, { lat: Number(z.lat), lng: Number(z.lng) }) <= zr) return true;
+      }
+      return false;
+    }
     var lat = ad.target_lat != null ? Number(ad.target_lat) : ad.lat != null ? Number(ad.lat) : null;
     var lng = ad.target_lng != null ? Number(ad.target_lng) : ad.lng != null ? Number(ad.lng) : null;
     var radius = ad.target_radius_km != null ? Number(ad.target_radius_km) : ad.radius_km != null ? Number(ad.radius_km) : null;

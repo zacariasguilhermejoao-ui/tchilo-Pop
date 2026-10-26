@@ -509,6 +509,9 @@
       var Cap = window.Capacitor;
       if (!Cap || !Cap.Plugins || !Cap.Plugins.App) return;
       var App = Cap.Plugins.App;
+      App.addListener('appStateChange', function (st) {
+        if (st && st.isActive) consumeAndroidShare();
+      });
       App.addListener('appUrlOpen', function (data) {
         if (!data || !data.url) return;
         var u = String(data.url);
@@ -537,8 +540,80 @@
     });
   }
 
+  /* —— Android nativo: a MainActivity guarda a partilha e a página vai buscá-la —— */
+  function nativeFileUrl(path) {
+    try {
+      if (window.Capacitor && typeof window.Capacitor.convertFileSrc === 'function') {
+        return window.Capacitor.convertFileSrc('file://' + path);
+      }
+    } catch (e) {}
+    return location.origin + '/_capacitor_file_' + path;
+  }
+
+  async function nativeFilesToFiles(list) {
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var f = list[i] || {};
+      if (!f.path) continue;
+      try {
+        var res = await fetch(nativeFileUrl(f.path));
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var blob = await res.blob();
+        out.push(
+          new File([blob], f.name || 'shared', {
+            type: f.mime || blob.type || 'application/octet-stream'
+          })
+        );
+      } catch (e) {
+        console.warn('[Tchilo Share] ficheiro nativo', f.path, e);
+      }
+    }
+    return out;
+  }
+
+  var androidShareBusy = false;
+  async function consumeAndroidShare() {
+    if (androidShareBusy) return false;
+    var br = window.TchiloAndroidShare;
+    if (!br || typeof br.consume !== 'function') return false;
+    var raw = '';
+    try {
+      raw = br.consume();
+    } catch (e) {
+      return false;
+    }
+    if (!raw) return false;
+    androidShareBusy = true;
+    try {
+      var p = JSON.parse(raw);
+      var files = await nativeFilesToFiles(p.files || []);
+      if ((p.files || []).length && !files.length && !p.text) {
+        toast('Não foi possível abrir o ficheiro partilhado');
+        return true;
+      }
+      await handleSharePayload({
+        title: p.title || '',
+        text: p.text || '',
+        url: '',
+        files: files
+      });
+      return true;
+    } catch (err) {
+      console.warn('[Tchilo Share] android', err);
+      toast('Erro ao processar partilha');
+      return false;
+    } finally {
+      androidShareBusy = false;
+    }
+  }
+
+  window.addEventListener('tchilo-share-pending', function () {
+    consumeAndroidShare();
+  });
+
   var polls = 0;
   var pollIv = setInterval(function () {
+    consumeAndroidShare();
     if (checkNativeShare() || ++polls > 40) clearInterval(pollIv);
   }, 250);
 
@@ -549,6 +624,7 @@
   function boot() {
     checkWebShareTarget();
     checkNativeShare();
+    consumeAndroidShare();
     wireCapacitor();
     loadFromSwCache();
   }

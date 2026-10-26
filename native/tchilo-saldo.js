@@ -1,6 +1,6 @@
 /**
  * Tchilo Saldo / Moedas v2
- * - 70 moedas = 1,00 US$ (Paddle)
+ * - 70 moedas = 1,00 US$ (Google Play na app Android)
  * - App nativa: sem checkout e sem indicar site
  */
 (function () {
@@ -13,7 +13,16 @@
   var PRICE_ID = 'pri_01m4ffv5kzncw9hby17j3f2sj9';
   var PRODUCT_ID = 'pro_01m4ffpaz24pteczc2w3s6cf5s';
 
-  var PACKS = [{ coins: 70, label: '1,00 US$', priceId: PRICE_ID, featured: true }];
+  /* 70 moedas = 1 US$. App (Google Play): productId abaixo. No site as compras não estão disponíveis. */
+  var PACKS = [
+    { coins: 70, usd: 1, label: '1,00 US$', playId: 'moedas_70' },
+    { coins: 280, usd: 4, label: '4,00 US$', playId: 'moedas_280' },
+    { coins: 700, usd: 10, label: '10,00 US$', playId: 'moedas_700' },
+    { coins: 1400, usd: 20, label: '20,00 US$', playId: 'moedas_1400' },
+    { coins: 2450, usd: 35, label: '35,00 US$', playId: 'moedas_2450' },
+    { coins: 3500, usd: 50, label: '50,00 US$', playId: 'moedas_3500' },
+    { coins: 4900, usd: 70, label: '70,00 US$', playId: 'moedas_4900' }
+  ];
 
   var COIN_SVG =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="28" height="28" fill="none" aria-hidden="true">' +
@@ -91,7 +100,8 @@
       '#tchiloSaldoSheet{position:fixed;inset:0;z-index:2147483640;display:none;flex-direction:column;background:var(--paper,#F6F1E7);color:var(--ink,#0B0B0C);}' +
       '#tchiloSaldoSheet.open{display:flex!important;}' +
       '#tchiloSaldoSheet .ts-top{display:flex;align-items:center;gap:10px;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));border-bottom:1px solid var(--line,rgba(0,0,0,.12));flex-shrink:0;}' +
-      '#tchiloSaldoSheet .ts-back{width:40px;height:40px;border:0;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;}' +
+      '#tchiloSaldoSheet .ts-back,#tchiloCoinsSheet .tc-back{width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;-webkit-appearance:none;appearance:none;}' +
+      '#tchiloSaldoSheet .ts-back svg,#tchiloCoinsSheet .tc-back svg{width:18px;height:18px;}' +
       '#tchiloSaldoSheet .ts-top h1{margin:0;font-size:20px;font-weight:800;flex:1;text-align:center;}' +
       '#tchiloSaldoSheet .ts-top .ts-sp{width:40px;}' +
       '#tchiloSaldoSheet .ts-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 18px calc(28px + env(safe-area-inset-bottom));}' +
@@ -108,8 +118,7 @@
       '#tchiloCoinsSheet{position:fixed;inset:0;z-index:2147483641;display:none;flex-direction:column;background:var(--paper,#F6F1E7);color:var(--ink,#0B0B0C);}' +
       '#tchiloCoinsSheet.open{display:flex!important;}' +
       '#tchiloCoinsSheet .tc-top{display:flex;align-items:center;gap:10px;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));border-bottom:1px solid var(--line,rgba(0,0,0,.12));}' +
-      '#tchiloCoinsSheet .tc-back{width:40px;height:40px;border:0;border-radius:50%;background:transparent;cursor:pointer;}' +
-      '#tchiloCoinsSheet .tc-top h1{margin:0;font-size:20px;font-weight:800;flex:1;text-align:center;}' +
+            '#tchiloCoinsSheet .tc-top h1{margin:0;font-size:20px;font-weight:800;flex:1;text-align:center;}' +
       '#tchiloCoinsSheet .tc-scroll{flex:1;overflow-y:auto;padding:18px 16px calc(100px + env(safe-area-inset-bottom));}' +
       '#tchiloCoinsSheet .tc-bal{background:#fff;border-radius:16px;padding:16px;margin-bottom:16px;}' +
       '#tchiloCoinsSheet .tc-bal .l{font-size:13px;font-weight:600;opacity:.55;}' +
@@ -121,7 +130,6 @@
       '#tchiloCoinsSheet .tc-pack .p{margin-top:6px;font-size:12px;font-weight:700;opacity:.65;}' +
       '#tchiloCoinsSheet .tc-foot{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--paper,#F6F1E7);}' +
       '#tchiloCoinsSheet .tc-buy{width:100%;padding:16px;border:0;border-radius:16px;background:var(--ink,#0B0B0C);color:#fff;font-weight:900;font-size:16px;cursor:pointer;}' +
-      'body.tchilo-native-store #tchiloCoinsSheet .tc-foot,body.tchilo-native-store #tchiloCoinsSheet .tc-buy{display:none!important;}' +
       '#tchiloSaldoWelcome{position:fixed;inset:0;z-index:2147483645;display:none;align-items:flex-end;justify-content:center;background:rgba(11,11,12,.45);}' +
       '#tchiloSaldoWelcome.open{display:flex!important;}' +
       '#tchiloSaldoWelcome .box{width:min(100%,420px);background:#fff;border-radius:22px 22px 0 0;padding:24px 20px calc(20px + env(safe-area-inset-bottom));color:#0B0B0C;}' +
@@ -149,6 +157,8 @@
 
   async function buyPack(pack) {
     if (isNativeApp()) return;
+    toast('As compras estão disponíveis na app Android, através da Google Play.');
+    return;
     var sess = sessionUser();
     if (!sess) {
       toast('Inicia sessão para comprar moedas');
@@ -160,7 +170,7 @@
         Paddle.Initialize({ token: PADDLE_TOKEN });
       } catch (e0) {}
       Paddle.Checkout.open({
-        items: [{ priceId: pack.priceId || PRICE_ID, quantity: 1 }],
+        items: [{ priceId: PRICE_ID, quantity: pack.usd || 1 }],
         customer: sess.email ? { email: sess.email } : undefined,
         customData: {
           tchilo_gift: 'coins',
@@ -237,8 +247,8 @@
 
     sheet.innerHTML =
       '<div class="tc-top">' +
-      '<button type="button" class="tc-back" data-a="back" aria-label="Voltar">' +
-      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '<button type="button" class="back-btn tc-back" data-a="back" aria-label="Voltar">' +
+      '<svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
       '</button><h1>Obter Moedas</h1><div style="width:40px"></div></div>' +
       '<div class="tc-scroll">' +
       '<div class="tc-bal"><div class="l">Saldo em moedas</div>' +
@@ -249,15 +259,17 @@
       '</span></div></div>' +
       '<div style="font-weight:800;margin:0 0 10px;font-size:14px;opacity:.7">Recarregar</div>' +
       '<div class="tc-grid" id="tcGrid"></div></div>' +
-      (isNativeApp()
-        ? ''
-        : '<div class="tc-foot"><button type="button" class="tc-buy" data-a="buy">Recarregar</button></div>');
+      '<div class="tc-foot"><button type="button" class="tc-buy" data-a="buy" data-tchilo-buy-coins="1" data-coins="' +
+      selected.coins +
+      '" data-play-id="' +
+      selected.playId +
+      '">Recarregar</button></div>';
 
     var grid = sheet.querySelector('#tcGrid');
     PACKS.forEach(function (p) {
       var b = document.createElement('button');
       b.type = 'button';
-      b.className = 'tc-pack on';
+      b.className = 'tc-pack' + (p === selected ? ' on' : '');
       b.innerHTML =
         '<div class="c">' +
         COIN_SVG.replace('width="28"', 'width="18"').replace('height="28"', 'height="18"') +
@@ -268,6 +280,14 @@
         '</div>';
       b.onclick = function () {
         selected = p;
+        var all = grid.querySelectorAll('.tc-pack');
+        for (var i = 0; i < all.length; i++) all[i].classList.remove('on');
+        b.classList.add('on');
+        var buy = sheet.querySelector('.tc-buy');
+        if (buy) {
+          buy.setAttribute('data-coins', String(p.coins));
+          buy.setAttribute('data-play-id', p.playId);
+        }
       };
       grid.appendChild(b);
     });
@@ -280,7 +300,7 @@
         sheet.classList.remove('open');
         return;
       }
-      if (a === 'buy') buyPack(selected);
+      if (a === 'buy' && !isNativeApp()) buyPack(selected);
     };
 
     sheet.classList.add('open');
@@ -300,8 +320,8 @@
     var coins = getCoins();
     sheet.innerHTML =
       '<div class="ts-top">' +
-      '<button type="button" class="ts-back" data-a="close" aria-label="Voltar">' +
-      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '<button type="button" class="back-btn ts-back" data-a="close" aria-label="Voltar">' +
+      '<svg viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
       '</button><h1>Saldo</h1><div class="ts-sp"></div></div>' +
       '<div class="ts-scroll">' +
       '<div class="ts-hero">' +

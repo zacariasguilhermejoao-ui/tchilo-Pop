@@ -58,7 +58,7 @@
     add('native/tchilo-router.js?v=5');
     add('native/tchilo-header-ui.js?v=5');
     add('native/tchilo-session-lock.js?v=1');
-    add('native/tchilo-account-switcher.js?v=1');
+    add('native/tchilo-account-switcher.js?v=2');
     add('native/tchilo-hide-nav.js?v=4');
     add('native/tchilo-feed-lock.js?v=4');
     add('native/feed-noflicker.js?v=5');
@@ -79,7 +79,7 @@
       'native/tchilo-feed-video-ui.js?v=3',
       'native/tchilo-stable-ui.js?v=6',
       'native/tchilo-gift-notifs.js?v=1',
-      'native/tchilo-gifts.js?v=7',
+      'native/tchilo-gifts.js?v=8',
       'native/tchilo-cloud-force.js?v=2',
       'native/tchilo-cloud-hydrate.js?v=3',
       'native/tchilo-avatar-cloud.js?v=4',
@@ -98,7 +98,7 @@
 
   function loadSecondary() {
     addMany([
-      'native/tchilo-settings-icons.js?v=29',
+      'native/tchilo-settings-icons.js?v=30',
       'native/tchilo-product-copy.js?v=2',
       'native/tchilo-legal-links.js?v=1',
       'native/tchilo-public-profile-bridge.js?v=1',
@@ -113,10 +113,10 @@
       'native/paddle-premium.js?v=2',
       'native/paddle-ad-guard.js?v=1',
       'native/tchilo-theme-premium-gate.js?v=1',
-      'native/tchilo-verified.js?v=5',
-      'native/tchilo-saldo.js?v=2',
-      'native/tchilo-play-billing.js?v=1',
-      'native/tchilo-saldo-play.js?v=1',
+      'native/tchilo-verified.js?v=6',
+      'native/tchilo-saldo.js?v=4',
+      'native/tchilo-play-billing.js?v=2',
+      'native/tchilo-saldo-play.js?v=2',
       'native/tchilo-saldo-menu.js?v=1',
       'native/music-catalog-fix.js?v=1',
       'native/tchilo-music-picker-fix.js?v=2',
@@ -124,12 +124,15 @@
       'native/tchilo-publish-fix.js?v=5',
       'native/tchilo-video-pick.js?v=6',
       'native/tchilo-deeplink.js?v=2',
-      'native/tchilo-profile-share.js?v=12',
+      'native/tchilo-profile-share.js?v=13',
       'native/tchilo-profile-boost.js?v=2',
       'native/tchilo-create-buttons.js?v=5',
       'native/tchilo-name-sync.js?v=1',
       'native/tchilo-feed-to-reels.js?v=2',
-      'native/tchilo-share-target.js?v=1',
+      'native/tchilo-share-target.js?v=2',
+      'native/tchilo-push-native.js?v=1',
+      'native/tchilo-comments-ui.js?v=1',
+      'native/tchilo-account-deletion.js?v=1',
       'native/reels-follow-fix.js?v=3',
       'native/tchilo-profile-avatar-plus.js?v=5'
     ]);
@@ -137,9 +140,9 @@
 
   function loadAds() {
     addMany([
-      'native/tchilo-ads-ui.js?v=7',
+      'native/tchilo-ads-ui.js?v=11',
       'native/tchilo-ads-force.js?v=2',
-      'native/tchilo-ads-pro.js?v=4'
+      'native/tchilo-ads-pro.js?v=6'
     ]);
   }
 

@@ -26,7 +26,7 @@
 
   try {
     var sAcc = document.createElement('script');
-    sAcc.src = 'native/tchilo-account-switcher.js?v=8';
+    sAcc.src = 'native/tchilo-account-switcher.js?v=9';
     sAcc.async = true;
     (document.head || document.documentElement).appendChild(sAcc);
   } catch (eAcc) {}

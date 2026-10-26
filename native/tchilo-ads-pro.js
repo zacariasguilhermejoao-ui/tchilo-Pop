@@ -581,7 +581,7 @@
       "<div class=\"ap-card\"><p>Local: <b>" +
       esc(locLine) +
       "</b></p></div>" +
-      "<label class=\"ap-lab\">Dias (1-30)</label>" +
+      "<label class=\"ap-lab\">Dias (1-30)" + (isPlayAndroid() ? " · na app: 1, 3, 7, 14 ou 30" : "") + "</label>" +
       "<input type=\"number\" id=\"apDays\" min=\"1\" max=\"30\" value=\"" +
       draft.days +
       "\"/>" +
@@ -607,6 +607,14 @@
       "</div></div>" +
       "<button type=\"button\" class=\"ap-pay\" id=\"apPay\">Pagar e publicar</button>";
     var daysEl = document.getElementById("apDays");
+    daysEl.onchange = function () {
+      if (isPlayAndroid()) {
+        draft.days = window.tchiloSnapAdDays(daysEl.value);
+        daysEl.value = String(draft.days);
+        document.getElementById("apReach").textContent = reachText(draft.days);
+        document.getElementById("apPay").textContent = "Pagar $" + draft.days + " e publicar";
+      }
+    };
     daysEl.oninput = function () {
       draft.days = Math.max(1, Math.min(30, parseInt(daysEl.value, 10) || 1));
       daysEl.value = String(draft.days);
@@ -618,12 +626,17 @@
   }
 
   async function pay() {
+    if (!(typeof window.tchiloIsNativeAndroid === "function" && window.tchiloIsNativeAndroid())) {
+      alert("As compras estão disponíveis na app Android, através da Google Play.");
+      return;
+    }
     var uid = meId();
     if (!uid) {
       alert("Inicia sessao");
       return;
     }
     var days = Math.max(1, Math.min(30, draft.days || 1));
+    if (isPlayAndroid()) days = window.tchiloSnapAdDays(days);
     var SB = window.SB || window.tchiloSupabase;
     var adId = null;
     if (SB) {
@@ -658,7 +671,20 @@
     openPaddle(adId, days);
   }
 
+  function isPlayAndroid() {
+    return typeof window.tchiloIsNativeAndroid === "function" && window.tchiloIsNativeAndroid() && typeof window.tchiloPlayAdPurchase === "function";
+  }
+
   function openPaddle(adId, days) {
+    if (isPlayAndroid()) {
+      window.tchiloPlayAdPurchase(adId, days, function (ok) {
+        if (ok) {
+          var pr = document.getElementById("tchiloAdsPro");
+          if (pr) pr.classList.remove("open");
+        }
+      });
+      return;
+    }
     function doOpen() {
       try {
         if (!window.__tchiloPaddleInited && window.Paddle) {

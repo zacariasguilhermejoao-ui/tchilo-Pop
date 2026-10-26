@@ -1,7 +1,10 @@
 /**
  * Tchilo Play Billing — compras na app Android
- * Product IDs (criar na Play Console → One-time products):
- *   moedas_70  → 70 moedas
+ * Product IDs (criar na Play Console → Produtos de compra única, tipo consumível):
+ *   moedas_70 → 70 | moedas_280 → 280 | moedas_700 → 700 | moedas_1400 → 1400
+ *   moedas_2450 → 2450 | moedas_3500 → 3500 | moedas_4900 → 4900
+ *   anuncio_1d, anuncio_3d, anuncio_7d, anuncio_14d, anuncio_30d → anúncios (1 US$ por dia)
+ *   tchilo_plus → plano Plus (ver tchilo-premium.js)
  *
  * Site/browser continua a usar Paddle.
  */
@@ -12,7 +15,22 @@
 
   /** productId Play → número de moedas */
   var PLAY_PACKS = {
-    moedas_70: 70
+    moedas_70: 70,
+    moedas_280: 280,
+    moedas_700: 700,
+    moedas_1400: 1400,
+    moedas_2450: 2450,
+    moedas_3500: 3500,
+    moedas_4900: 4900
+  };
+
+  /** dias de anúncio → productId Play (1 US$ por dia) */
+  var PLAY_AD_PACKS = {
+    1: 'anuncio_1d',
+    3: 'anuncio_3d',
+    7: 'anuncio_7d',
+    14: 'anuncio_14d',
+    30: 'anuncio_30d'
   };
 
   function isNativeAndroid() {
@@ -105,7 +123,7 @@
       return { ok: false, reason: 'not_android' };
     }
     var productId = (pack && pack.playProductId) || 'moedas_70';
-    var coins = (pack && pack.coins) || PLAY_PACKS[productId] || 70;
+    var coins = PLAY_PACKS[productId] || (pack && pack.coins) || 70;
 
     var NP = await getNativePurchases();
     if (!NP || typeof NP.purchaseProduct !== 'function') {
@@ -150,6 +168,86 @@
     }
   }
 
+  /**
+   * Compra de anúncio via Google Play (consumível).
+   * @param {number} days 1, 3, 7, 14 ou 30
+   * @returns {Promise<{ok:boolean}>}
+   */
+  async function buyAdPlay(days) {
+    if (!isNativeAndroid()) return { ok: false, reason: 'not_android' };
+    var productId = PLAY_AD_PACKS[days];
+    if (!productId) return { ok: false, reason: 'bad_days' };
+    var NP = await getNativePurchases();
+    if (!NP || typeof NP.purchaseProduct !== 'function') {
+      toast('Compras Google Play ainda a configurar. Atualiza a app e tenta de novo.');
+      return { ok: false, reason: 'no_plugin' };
+    }
+    try {
+      toast('A abrir Google Play…');
+      var result = await NP.purchaseProduct({ productIdentifier: productId, productType: 'INAPP', quantity: 1 });
+      try {
+        if (typeof NP.consumePurchase === 'function' && result && result.purchaseToken) {
+          await NP.consumePurchase({ purchaseToken: result.purchaseToken, productIdentifier: productId });
+        }
+      } catch (ce) {
+        console.warn('consume ad', ce);
+      }
+      return { ok: true, result: result, productId: productId };
+    } catch (e) {
+      var msg = (e && (e.message || e.errorMessage)) || String(e || '');
+      toast(/cancel/i.test(msg) ? 'Compra cancelada' : 'Não foi possível concluir a compra. Tenta de novo.');
+      return { ok: false, reason: /cancel/i.test(msg) ? 'cancel' : 'error' };
+    }
+  }
+
+  /** arredonda para o pacote Play disponível (1, 3, 7, 14, 30) */
+  function snapAdDays(d) {
+    var tiers = [1, 3, 7, 14, 30];
+    d = parseInt(d, 10) || 1;
+    for (var i = 0; i < tiers.length; i++) if (tiers[i] >= d) return tiers[i];
+    return 30;
+  }
+
+  /** compra o anúncio no Play e ativa-o na base de dados. cb(ok) no fim. */
+  async function playAdPurchase(adId, days, cb) {
+    days = snapAdDays(days);
+    var r = await buyAdPlay(days);
+    if (!r.ok) {
+      if (cb) cb(false);
+      return r;
+    }
+    try {
+      var SB = window.SB || window.tchiloSupabase || window.supabaseClient;
+      if (SB && adId) {
+        var starts = new Date();
+        var ends = new Date(starts.getTime() + days * 86400000);
+        var token = (r.result && (r.result.purchaseToken || r.result.transactionId || r.result.orderId)) || r.productId;
+        await SB.from('ads')
+          .update({
+            status: 'active',
+            days: days,
+            reach_min: days * 800,
+            reach_max: days * 1000,
+            starts_at: starts.toISOString(),
+            ends_at: ends.toISOString(),
+            paddle_txn: String(token).slice(0, 120),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', adId)
+          .eq('status', 'pending');
+      }
+      toast('Anúncio pago e publicado!');
+    } catch (e) {
+      console.warn('activate ad (play)', e);
+    }
+    if (cb) cb(true);
+    return r;
+  }
+
+  window.tchiloSnapAdDays = snapAdDays;
+  window.tchiloPlayAdPurchase = playAdPurchase;
+  window.tchiloBuyAdPlay = buyAdPlay;
+  window.tchiloAdPlayDays = [1, 3, 7, 14, 30];
   window.tchiloBuyCoinsPlay = buyCoinsPlay;
   window.tchiloPlayBillingReady = true;
   window.tchiloIsNativeAndroid = isNativeAndroid;

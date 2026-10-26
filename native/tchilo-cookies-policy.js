@@ -51,7 +51,7 @@
       "<p><b>3.1. Estritamente necessários</b> — sem estes, a app não funciona corretamente (login, sessão, segurança).</p>" +
       "<p><b>3.2. Preferências</b> — guardam as tuas escolhas (idioma, tema, notificações no dispositivo).</p>" +
       "<p><b>3.3. Desempenho / técnicos</b> — ajudam a medir e melhorar estabilidade, tempos de carga e erros (de forma limitada e orientada ao serviço).</p>" +
-      "<p><b>3.4. Parceiros de pagamento</b> — quando usas Tchilo Premium ou anúncios pagos, o processador de pagamentos (por exemplo Paddle) pode usar cookies ou armazenamento próprios no fluxo de checkout, sujeitos à política desse fornecedor.</p>" +
+      "<p><b>3.4. Parceiros de pagamento</b> — quando compras o Tchilo Plus, moedas ou anúncios na app Android, a Google Play trata do pagamento e pode usar os seus próprios dados e armazenamento, sujeitos à política da Google.</p>" +
 
       "<h3>4. Dados típicos associados</h3>" +
       "<ul>" +

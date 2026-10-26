@@ -232,16 +232,20 @@
       "#settings-premium-item.tchilo-plus-banner-btn > span{display:none!important;}" +
       "#settings-premium-item.tchilo-plus-banner-btn img,#tchiloPremiumBtn img{" +
       "display:block!important;width:100%!important;height:auto!important;border-radius:16px!important;}" +
-      "#tchiloPremiumSheet{position:fixed;inset:0;z-index:2147483640;display:none;flex-direction:column;background:#F6F1E7;color:#0B0B0C;}" +
+      "#tchiloPremiumSheet{position:fixed;inset:0;z-index:2147483640;display:none;flex-direction:column;background:var(--paper,#fff);color:var(--ink,#0B0B0C);}" +
       "#tchiloPremiumSheet.open{display:flex!important;}" +
-      "#tchiloPremiumSheet .tp-top{display:flex;align-items:center;gap:10px;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));}" +
-      "#tchiloPremiumSheet .tp-back{width:40px;height:40px;border:0;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;}" +
-      "#tchiloPremiumSheet .tp-top h1{margin:0;font:700 20px system-ui,sans-serif;flex:1;}" +
-      "#tchiloPremiumSheet .tp-scroll{flex:1;overflow-y:auto;padding:20px 18px calc(28px + env(safe-area-inset-bottom));}" +
-      "#tchiloPremiumSheet .tp-hero{text-align:center;padding:8px 0 20px;}" +
-      "#tchiloPremiumSheet .tp-hero-icon{width:72px;height:72px;margin:0 auto 14px;border-radius:18px;background:#0B0B0C;color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;}" +
-      "#tchiloPremiumSheet .tp-pay{display:block;width:100%;margin-top:16px;padding:16px;border:0;border-radius:14px;background:#0B0B0C;color:#fff;font:700 16px system-ui,sans-serif;}" +
-      "#tchiloPremiumSheet .note{text-align:center;font-size:12px;color:#888;margin-top:12px;}";
+      "#tchiloPremiumSheet .tp-top{display:flex;align-items:center;gap:10px;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));border-bottom:1px solid var(--line,rgba(0,0,0,.12));flex-shrink:0;}" +
+      "#tchiloPremiumSheet .tp-back{width:36px;height:36px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--ink,#0B0B0C);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-appearance:none;appearance:none;}" +
+      "#tchiloPremiumSheet .tp-back svg{width:18px;height:18px;}" +
+      "#tchiloPremiumSheet .tp-top h1{margin:0;font:800 20px system-ui,-apple-system,BlinkMacSystemFont,sans-serif;flex:1;text-align:center;}" +
+      "#tchiloPremiumSheet .tp-sp{width:36px;}" +
+      "#tchiloPremiumSheet .tp-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px calc(100px + env(safe-area-inset-bottom));}" +
+      "#tchiloPremiumSheet .tp-card{padding:8px 4px;text-align:left;}" +
+      "#tchiloPremiumSheet .tp-card h2{margin:0 0 8px;font:900 24px system-ui,-apple-system,BlinkMacSystemFont,sans-serif;}" +
+      "#tchiloPremiumSheet .tp-card p{margin:0;font:600 14px system-ui,-apple-system,BlinkMacSystemFont,sans-serif;opacity:.6;line-height:1.4;}" +
+      "#tchiloPremiumSheet .tp-foot{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--paper,#fff);}" +
+      "#tchiloPremiumSheet .tp-pay{display:block;width:100%;padding:16px;border:0;border-radius:16px;background:var(--ink,#0B0B0C);color:#fff;font:900 16px system-ui,-apple-system,BlinkMacSystemFont,sans-serif;cursor:pointer;}" +
+      "#tchiloPremiumSheet .note{text-align:center;font:600 12px system-ui,-apple-system,sans-serif;opacity:.5;margin:10px 0 0;}";
     document.head.appendChild(st);
   }
 
@@ -307,22 +311,21 @@
     } catch (e) {}
     sheet.innerHTML =
       '<div class="tp-top">' +
-      '<button type="button" class="tp-back" data-a="close" aria-label="Voltar">' +
-      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg></button>' +
-      "<h1>Tchilo Plus</h1></div>" +
-      '<div class="tp-scroll"><div class="tp-hero"><div class="tp-hero-icon">✦</div>' +
-      "<h2 style='margin:0 0 8px;font:700 22px system-ui,sans-serif'>" +
-      (prem ? "Plus ativo" : "Comprar o Plus") +
-      "</h2><p style='margin:0;color:#666;font-size:14px'>" +
+      '<button type="button" class="back-btn tp-back" data-a="close" aria-label="Voltar">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>' +
+      '<h1>Tchilo Plus</h1><div class="tp-sp"></div></div>' +
+      '<div class="tp-scroll"><div class="tp-card">' +
+      "<h2>" + (prem ? "Plus ativo" : "Comprar o Plus") + "</h2><p>" +
       (prem
         ? "Obrigado por apoiares o Tchilo."
         : "Mais ferramentas para criadores. Compra única · 4 USD · Google Play.") +
       "</p></div>" +
+      (prem ? '<p class="note">Compra gerida na Google Play Store</p>' : "") +
+      "</div>" +
       (prem
-        ? '<p class="note">Compra gerida na Google Play Store</p>'
-        : '<button type="button" class="tp-pay" data-a="pay">Comprar por 4 USD</button>' +
-          '<p class="note">Compra única · Pagamento seguro via Google Play</p>') +
-      "</div>";
+        ? ""
+        : '<div class="tp-foot"><button type="button" class="tp-pay" data-a="pay">Comprar por 4 USD</button>' +
+          '<p class="note">Compra única · Pagamento seguro via Google Play</p></div>');
     sheet.classList.add("open");
     sheet.onclick = function (ev) {
       var t = ev.target.closest("[data-a]");

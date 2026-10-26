@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
+<script>try{var s=localStorage.getItem('tchilo_theme'),d=s==='dark';if(s!=='dark'&&s!=='classic'){d=(window.TchiloSystemTheme&&window.TchiloSystemTheme.isDark)?!!window.TchiloSystemTheme.isDark():!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);}if(d){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
 <script id="tchilo-fresh-index">
 /* Limpa uma vez o cache antigo do site (service worker + caches), para o index novo aparecer. Mudar FRESH_V força nova limpeza. */
 (function(){
@@ -103,9 +104,6 @@ html:root body [data-top-messages] svg > path{fill:#9B6BFF !important;stroke:#9B
 html:root body .post .post-follow,
 html:root body .post .post-follow.following,
 html:root body .post .post-follow.friends,
-html:root body .reel-slide .reel-follow,
-html:root body .reel-slide .reel-follow.following,
-html:root body .reel-slide .reel-follow.friends,
 html:root body .follow-btn,
 html:root body .follow-btn.following,
 html:root body .follow-btn.friends{
@@ -131,6 +129,18 @@ html:root body .post .post-follow.friends{
 html:root body .reel-slide .reel-follow,
 html:root body .reel-slide .reel-follow.following,
 html:root body .reel-slide .reel-follow.friends{
+  /* Reels: Seguir/Seguido branco (o roxo fica só no Feed) */
+  background:transparent !important;
+  background-image:none !important;
+  color:#fff !important;
+  border:1.5px solid #fff !important;
+  border-radius:12px !important;
+  box-shadow:none !important;
+  text-shadow:0 1px 3px rgba(0,0,0,.45) !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;
+  font-weight:800 !important;
+  letter-spacing:0 !important;
   height:36px !important;
   padding:0 18px !important;
   font-size:14px !important;
@@ -194,6 +204,10 @@ html:root body .icon-btn[data-index-live] .badge{
   top:0;right:-2px;
 }
 html:root body .icon-btn[data-index-live]{position:relative;}
+/* ícone de LIVE do topo do feed: vermelho (só a cor muda, o desenho é o mesmo) */
+html:root body .topbar .icon-btn[data-index-live],
+html:root body .topbar .icon-btn[data-index-live] svg,
+html:root body .topbar .icon-btn[data-index-live] svg *{color:#E11D48 !important;stroke:#E11D48 !important;filter:none !important;}
 html:root body .icon-btn[data-index-live] .badge.hide{display:none !important;}
 </style>
 
@@ -214,19 +228,26 @@ html:root body .icon-btn[data-index-live] .badge.hide{display:none !important;}
     --pink:#FF3F6E;
     --yellow:#F5FF3D;
     --violet:#9B6BFF;
-    --line:#0B0B0C;
+    --line:#E4E6EB;
+    --field:#F8F9FB;
     --muted:#606060;
+    --on-ink:#ffffff;
+    --ink-rgb:11,11,12;
   }
-  /* Escuro — chapado */
+  /* Escuro — mesmo padrão do claro (fundo escuro, texto claro, linhas suaves) */
   [data-theme="dark"]{
     --ink:#F2F2F0;
-    --paper:#1A1A1C;
+    --paper:#141416;
     --mint:#2EE6A6;
     --pink:#FF3F6E;
     --yellow:#F5FF3D;
     --violet:#9B6BFF;
-    --line:#F2F2F0;
-    --muted:#9A9A96;
+    --line:rgba(242,242,240,.14);
+    --field:rgba(242,242,240,.07);
+    --muted:#A0A0A6;
+    --on-ink:#0B0B0C;
+    --ink-rgb:242,242,240;
+    color-scheme:dark;
   }
   /* Amarelo — chapado */
   [data-theme="yellow"]{
@@ -1300,6 +1321,7 @@ html:root body .icon-btn[data-index-live] .badge.hide{display:none !important;}
     box-shadow:0 2px 12px rgba(0,0,0,.25);
   }
   .feed-play-icon svg{ display:block; margin-left:3px; }
+  .feed-video-wrap.tk-autoplaying .feed-play-icon{ display:none !important; }
 
   .gallery-btn{width:100%;padding:14px;border:1px dashed rgba(11,11,12,.25);border-radius:14px;background:transparent;font:600 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink);}
   .gallery-btn:active{ transform:scale(.98); }
@@ -2676,6 +2698,37 @@ html body .story-card-create .story-create-label{position:absolute;left:0;right:
 #loginGate:has(#loginWelcome.is-visible) .login-footer,
 #loginGate:has(#loginWelcome.is-visible) .login-legal-links{display:none!important;}
 </style>
+<style id="tchilo-soft-ui">
+/* Tema escuro: fundos principais logo à partida */
+html[data-theme="dark"]{background:var(--paper);color-scheme:dark;}
+html[data-theme="dark"] body,html[data-theme="dark"] #appFrame{background:var(--paper);color:var(--ink);}
+/* ícones pretos em imagem (definições): ficam claros no escuro; o selo verificado mantém a cor */
+html[data-theme="dark"] .si-icon img:not([src*="selo-verificado"]){filter:invert(1);}
+html:root body .theme-check,html:root body .lang-dot{flex:0 0 26px !important;width:26px !important;min-width:26px !important;max-width:26px !important;}
+/* botões sem cor definida deixam de ficar azuis (azul padrão do iPhone) e herdam a cor do texto */
+:where(button, input[type="button"], input[type="submit"]){color:inherit}
+/* Linhas e campos mais suaves (tema claro e escuro) */
+html:root body .post,
+html:root body .notif-item,
+html:root body .settings-item,
+html:root body .list-row,
+html:root body .screen-header,
+html:root body .topbar,
+html:root body .chat-header{border-bottom-color:var(--line,#E4E6EB) !important;}
+html:root body .navbar,
+html:root body nav.navbar{border-top-color:var(--line,#E4E6EB) !important;}
+html:root body .chat-input-bar input,
+html:root body .edit-form input,
+html:root body .edit-form textarea,
+html:root body #screen-create input,
+html:root body #screen-create textarea,
+html:root body #screen-create .create-input,
+html:root body #tchiloModalHost .tm-input,
+html:root body #tchiloAdsPro input,
+html:root body #tchiloAdsPro textarea,
+html:root body #tchiloAdsPro select{background:var(--field,#F8F9FB) !important;border:1px solid var(--line,#E4E6EB) !important;}
+</style>
+<script src="native/tchilo-theme-dark.js?v=1"></script>
 </head>
 <body>
 <script id="tchilo-click-fix-js-v1">
@@ -3845,11 +3898,22 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       <h1>Tema</h1>
     </div>
     <div class="settings-list">
+      <button class="settings-item" type="button" onclick="setAppTheme('auto')">
+        <div class="theme-swatch" style="background:linear-gradient(90deg,#ffffff 50%,#141416 50%)"></div>
+        <span>Automático (sistema)</span>
+        <span id="theme-check-auto" class="theme-check"></span>
+      </button>
       <button class="settings-item" type="button" onclick="setAppTheme('classic')">
         <div class="theme-swatch" style="background:#ffffff"></div>
-        <span>Clássico</span>
+        <span>Claro</span>
         <span id="theme-check-classic" class="theme-check"></span>
       </button>
+      <button class="settings-item" type="button" onclick="setAppTheme('dark')">
+        <div class="theme-swatch" style="background:#141416"></div>
+        <span>Escuro</span>
+        <span id="theme-check-dark" class="theme-check"></span>
+      </button>
+      <p style="margin:14px 16px 0;font-size:13px;line-height:1.45;color:var(--muted)">Automático usa o tema do teu telemóvel e muda sozinho quando o telemóvel muda.</p>
     </div>
   </div>
 
@@ -5684,6 +5748,83 @@ function toggleFeedVideoSound(btn){
   }
 }
 
+/* Feed: o vídeo que está ao centro do ecrã toca sozinho, mudo, só como pré-visualização de 10 s
+   (como no Facebook). Se a pessoa ligar o som, passa a tocar normalmente. */
+function tkSetupFeedCenterPreview(feed){
+  var PREVIEW_SECONDS = 10;
+  if (window._feedCenterHandler) {
+    try { feed.removeEventListener('scroll', window._feedCenterHandler); } catch(e){}
+    try { window.removeEventListener('scroll', window._feedCenterHandler); } catch(e){}
+    try { window.removeEventListener('resize', window._feedCenterHandler); } catch(e){}
+  }
+  function allowed(){
+    try { if (typeof window.tchiloReelsAutoplayOn === 'function') return !!window.tchiloReelsAutoplayOn(); } catch(e){}
+    try { if (typeof window.tchiloDataSaverOn === 'function') return !window.tchiloDataSaverOn(); } catch(e){}
+    return true;
+  }
+  function bind(v){
+    if (v.dataset.pvBound) return;
+    v.dataset.pvBound = '1';
+    v.addEventListener('timeupdate', function(){
+      if (v.dataset.userUnmuted) return;
+      if ((v.currentTime || 0) >= PREVIEW_SECONDS) { try { v.currentTime = 0; } catch(e){} }
+    });
+    v.addEventListener('playing', function(){
+      var w = v.closest('.feed-video-wrap'); if (w) w.classList.add('tk-autoplaying');
+      v.classList.add('media-ready');
+    });
+    v.addEventListener('pause', function(){
+      var w = v.closest('.feed-video-wrap'); if (w) w.classList.remove('tk-autoplaying');
+    });
+  }
+  function stopPreview(v){
+    if (v.dataset.userUnmuted) return;
+    if (!v.paused) { try { v.pause(); } catch(e){} }
+    if (v.dataset.preview) {
+      delete v.dataset.preview;
+      try { v.currentTime = 0; } catch(e){}
+    }
+  }
+  function pick(){
+    var root = feed.getBoundingClientRect();
+    var vids = feed.querySelectorAll('video.feed-video');
+    var screenOn = feed.offsetParent !== null && root.height > 0 && allowed();
+    var cy = root.top + root.height / 2;
+    var best = null, bestD = 1e9;
+    if (screenOn) {
+      Array.prototype.forEach.call(vids, function(v){
+        var r = v.getBoundingClientRect();
+        if (r.height <= 0) return;
+        var vis = Math.min(r.bottom, root.bottom) - Math.max(r.top, root.top);
+        if (vis < r.height * 0.5) return;
+        var d = Math.abs((r.top + r.height / 2) - cy);
+        if (d < bestD) { bestD = d; best = v; }
+      });
+    }
+    Array.prototype.forEach.call(vids, function(v){
+      bind(v);
+      if (v !== best) { stopPreview(v); return; }
+      if (v.dataset.userUnmuted) return;
+      if (!v.paused) return;
+      v.muted = true;
+      v.dataset.preview = '1';
+      try { v.preload = 'auto'; } catch(e){}
+      var pr = v.play();
+      if (pr && pr.catch) pr.catch(function(){ delete v.dataset.preview; });
+    });
+  }
+  var raf = 0;
+  var handler = function(){
+    if (raf) return;
+    raf = requestAnimationFrame(function(){ raf = 0; try { pick(); } catch(e){} });
+  };
+  window._feedCenterHandler = handler;
+  feed.addEventListener('scroll', handler, { passive: true });
+  window.addEventListener('scroll', handler, { passive: true });
+  window.addEventListener('resize', handler);
+  setTimeout(handler, 400);
+}
+
 function setupFeedVideoAutoplay() {
   const feed = document.getElementById('feedList');
   if (!feed) return;
@@ -5739,6 +5880,7 @@ function setupFeedVideoAutoplay() {
     }
     window._feedVidObs.observe(v);
   });
+  tkSetupFeedCenterPreview(feed);
   if(window._postViewObs)window._postViewObs.disconnect();
   window._postViewTimers={};
   window._postViewObs=new IntersectionObserver(function(es){es.forEach(function(e){var el=e.target,id=el.getAttribute('data-view-post');if(!id)return;if(e.isIntersecting&&e.intersectionRatio>=.55){clearTimeout(window._postViewTimers[id]);window._postViewTimers[id]=setTimeout(function(){if(registerPostView(id)){var lab=document.querySelector('[data-view-count="'+id+'"]');if(lab)lab.textContent=formatCount(getPostViews(id))+' visualizações';}},700);}else clearTimeout(window._postViewTimers[id]);});},{root:feed,threshold:[.55]});
@@ -10117,9 +10259,9 @@ async function deleteAccount() {
     title: (typeof t==='function'?t('Eliminar conta'):'Eliminar conta'),
     message: (typeof t==='function'?t('Consequências'):'Consequências'),
     bodyHtml: '<ul class="tm-bullets">' +
-      '<li>' + (typeof t==='function'?t('Posts, likes e dados locais desta conta serão apagados neste dispositivo.'):'Posts, likes e dados locais desta conta serão apagados neste dispositivo.') + '</li>' +
+      '<li>' + (typeof t==='function'?t('A tua sessão termina agora e os teus dados serão apagados automaticamente dos nossos servidores ao fim de 30 dias.'):'A tua sessão termina agora e os teus dados serão apagados automaticamente dos nossos servidores ao fim de 30 dias.') + '</li>' +
       '<li>' + (typeof t==='function'?t('Esta ação não pode ser anulada.'):'Esta ação não pode ser anulada.') + '</li>' +
-      '</ul><div class="tm-warn">' + (typeof t==='function'?t('A eliminação é permanente no que respeita aos dados locais da conta neste app.'):'A eliminação é permanente no que respeita aos dados locais da conta neste app.') + '</div>',
+      '</ul><div class="tm-warn">' + (typeof t==='function'?t('Se voltares a iniciar sessão dentro de 30 dias, podes cancelar a eliminação. Depois disso, não é possível recuperar a conta.'):'Se voltares a iniciar sessão dentro de 30 dias, podes cancelar a eliminação. Depois disso, não é possível recuperar a conta.') + '</div>',
     cancelValue: false,
     buttons: [
       { label: (typeof t==='function'?t('Cancelar'):'Cancelar'), value: false },
@@ -10142,6 +10284,18 @@ async function deleteAccount() {
   } catch (e) {}
   const session = getSession();
   if (!session) return;
+  let delRes = { ok: true };
+  try {
+    if (typeof tchiloRequestAccountDeletion === 'function') {
+      const why = (choice && typeof choice === 'object') ? (choice.id || choice.value || choice.other || '') : String(choice || '');
+      delRes = await tchiloRequestAccountDeletion(why);
+    }
+  } catch (e) { delRes = { ok: false }; }
+  if (!delRes.ok) {
+    showToast('Não foi possível registar o pedido. Verifica a ligação e tenta de novo.');
+    return;
+  }
+  try { if (typeof tchiloCloudSignOut === 'function') await tchiloCloudSignOut(); } catch (e) {}
   const users = getUsers().filter(function(x){ return x.username !== session.username; });
   save(KEYS.users, users);
   const posts = getPosts().filter(function(p){ return p.username !== session.username; });
@@ -10149,7 +10303,7 @@ async function deleteAccount() {
   localStorage.removeItem('tchilo_profiles');
   clearSession();
   showLoginGate();
-  showToast(typeof t==='function'?t('Conta eliminada'):'Conta eliminada');
+  showToast(typeof t==='function'?t('Pedido registado. Os teus dados serão apagados em 30 dias.'):'Pedido registado. Os teus dados serão apagados em 30 dias.');
 }
 
 function isUserPrivate(username) {
@@ -10282,20 +10436,29 @@ function openSavedPlaylist(name) {
 }
 
 const THEME_KEY = 'tchilo_theme';
-const THEME_LABELS = { classic:'Clássico', dark:'Escuro', yellow:'Amarelo', violet:'Roxo', red:'Vermelho' };
+const THEME_LABELS = { auto:'Automático', classic:'Claro', dark:'Escuro', yellow:'Amarelo', violet:'Roxo', red:'Vermelho' };
+function getThemeSetting(){
+  try{ const v = localStorage.getItem(THEME_KEY); return (v==='dark' || v==='classic') ? v : 'auto'; }catch(e){ return 'auto'; }
+}
+function systemPrefersDark(){
+  try{ if (window.TchiloSystemTheme && typeof window.TchiloSystemTheme.isDark==='function') return !!window.TchiloSystemTheme.isDark(); }catch(e){}
+  try{ return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }catch(e){ return false; }
+}
 function getAppTheme(){
-  return 'classic';
+  const s = getThemeSetting();
+  if (s==='auto') return systemPrefersDark() ? 'dark' : 'classic';
+  return s;
 }
 function setAppTheme(theme){
-  theme = 'classic';
-  localStorage.setItem(THEME_KEY, theme);
+  theme = (theme==='dark' || theme==='classic') ? theme : 'auto';
+  try{ localStorage.setItem(THEME_KEY, theme); }catch(e){}
   applyAppTheme();
   try{
     const s = getAppSettings();
     s.theme = theme;
     saveAppSettings(s);
   }catch(e){}
-  showToast('Tema: Clássico');
+  showToast('Tema: ' + (THEME_LABELS[theme] || 'Automático'));
 }
 function applyAppTheme(){
   const theme = getAppTheme();
@@ -10303,12 +10466,14 @@ function applyAppTheme(){
   const frame = document.getElementById('appFrame');
   root.setAttribute('data-theme', theme);
   if (frame) frame.setAttribute('data-theme', theme);
+  const setting = getThemeSetting();
   const label = document.getElementById('currentThemeLabel');
-  if (label) label.textContent = THEME_LABELS[theme] || 'Clássico';
+  if (label) label.textContent = THEME_LABELS[setting] || 'Automático';
   try{ tchiloRefreshDefaultAvatars(); }catch(e){}
-  ['classic','dark','yellow','violet','red'].forEach(function(code){
+  try{ if (window.tchiloDarkTheme) window.tchiloDarkTheme.apply(); }catch(e){}
+  ['auto','classic','dark','yellow','violet','red'].forEach(function(code){
     const el = document.getElementById('theme-check-' + code);
-    if (el) { el.textContent = ''; el.classList.toggle('on', theme === code); }
+    if (el) { el.textContent = ''; el.classList.toggle('on', setting === code); }
   });
 }
 
@@ -13031,7 +13196,16 @@ document.addEventListener('DOMContentLoaded',function(){
   setTimeout(function(){ tchiloSyncAuthSession(); }, 0);
 });
 </script>
-<script>document.addEventListener('DOMContentLoaded',function(){applyAppTheme();applyLanguage();renderSettingsLanguage();setTimeout(initPullToRefreshScreens,300);setTimeout(initTchiloRealtime,800);});</script>
+<script>(function(){
+  function onSystemTheme(){ try{ if (getThemeSetting()==='auto') applyAppTheme(); }catch(e){} }
+  window.addEventListener('tchilo-system-theme', onSystemTheme);
+  try{
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    if (mq.addEventListener) mq.addEventListener('change', onSystemTheme); else if (mq.addListener) mq.addListener(onSystemTheme);
+  }catch(e){}
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) onSystemTheme(); });
+})();
+document.addEventListener('DOMContentLoaded',function(){applyAppTheme();applyLanguage();renderSettingsLanguage();setTimeout(initPullToRefreshScreens,300);setTimeout(initTchiloRealtime,800);});</script>
 
 <div id="tchiloModalHost" aria-hidden="true">
   <div class="tm-backdrop" onclick="tchiloModalBackdrop()"></div>
@@ -13232,7 +13406,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/story-music.js"></script>
 <script src="native/feed-stories-scroll.js"></script>
 <script src="native/music-use-sheet.js"></script>
-<script src="native/feed-stable.js?v=2"></script>
+<script src="native/feed-stable.js?v=3"></script>
 <script src="native/feed-noflicker.js"></script>
 <script src="native/chat-send-fix.js"></script>
 <script src="native/chat-audio-fix.js?v=compose3"></script>
@@ -13242,7 +13416,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/sheets-full-fix.js?v=5"></script>
 <script src="native/tchilo-modal-ui.js?v=4"></script>
 <script src="native/tchilo-sheet-swipe.js?v=3"></script>
-<script src="native/tchilo-gifts.js?v=7"></script>
+<script src="native/tchilo-gifts.js?v=8"></script>
 <script src="native/tchilo-gift-notifs.js?v=2"></script>
 <script src="native/tchilo-msg-icon-lock.js?v=8"></script>
 <script src="native/copy-ux-refresh.js?v=1"></script>
@@ -13252,14 +13426,14 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/tchilo-avatar-stable.js?v=1" defer></script>
 <script src="native/tchilo-profile-avatar-plus.js?v=3"></script>
 <script src="native/tchilo-legal-urls.js?v=2"></script>
-<script src="native/tchilo-settings-icons.js?v=35"></script>
+<script src="native/tchilo-settings-icons.js?v=36"></script>
 <script src="native/tchilo-settings-more.js?v=3"></script>
 <script src="native/tchilo-phone-auth.js?v=1"></script>
 <script src="native/tchilo-media-picker.js?v=15" defer></script>
 <script src="native/tchilo-compose-music-v9.js?v=1" defer></script>
 <script src="native/tchilo-compose-music-v9.js?v=1" defer></script>
 <script src="native/tchilo-create-bridge.js?v=2" defer></script>
-<script src="native/tchilo-profile-share.js?v=24"></script>
+<script src="native/tchilo-profile-share.js?v=25"></script>
 <script src="native/tchilo-qr.js?v=2"></script>
 <script src="native/tchilo-profile-own-reset.js?v=2"></script>
 <script src="native/tchilo-menu-icons-unify.js?v=1"></script>
@@ -13268,10 +13442,10 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/live-btn-stable.js?v=3"></script>
 <script src="native/tchilo-live.js?v=2"></script>
 <script src="native/tchilo-live-lobby.js?v=3"></script>
-<script src="native/tchilo-verified.js?v=4"></script>
-<script src="native/tchilo-premium.js?v=7g"></script>
+<script src="native/tchilo-verified.js?v=6"></script>
+<script src="native/tchilo-premium.js?v=7h"></script>
 <script src="native/paddle-premium.js?v=3"></script>
-<script src="native/tchilo-ads-ui.js?v=4"></script>
+<script src="native/tchilo-ads-ui.js?v=11"></script>
 
 <script src="native/tchilo-create-buttons.js?v=4" defer></script>
 <script src="native/tchilo-video-pick.js?v=5" defer></script>
@@ -13285,7 +13459,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <script src="native/tchilo-thin-borders.css.js?v=2" defer></script>
 <script src="native/tchilo-no-header-line.js?v=2" defer></script>
 <script src="native/tchilo-edit-profile-modern.js?v=1" defer></script>
-<script src="native/tchilo-ads-icon-fix.js?v=2" defer></script>
+<script src="native/tchilo-ads-icon-fix.js?v=3" defer></script>
 
 <style id="tchilo-nb-css">
 /* ===== Bolha de notificações (feed) + contador de mensagens ===== */

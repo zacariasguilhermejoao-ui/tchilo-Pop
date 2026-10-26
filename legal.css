@@ -3,7 +3,8 @@
   --ink: #0B0B0C;
   --paper: #ffffff;
   --muted: #6B6B70;
-  --line: #E8E8E8;
+  --line: #E4E6EB;
+  --field: #F8F9FB;
   --mint: #C8F560;
   --pink: #F800A0;
   --cyan: #18E8B0;
@@ -129,3 +130,41 @@ p, li {
   font: 500 13px var(--sys);
   color: var(--muted);
 }
+
+
+/* ——— Componentes no estilo Tchilo (sem sombras duras, sem cores extra) ——— */
+.actions { margin-top: 28px; display: flex; flex-direction: column; gap: 12px; }
+.btn, .cta {
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-top: 0; padding: 16px 18px; border: 0; border-radius: 16px;
+  background: var(--ink); color: #fff; box-shadow: none;
+  font: 800 16px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  text-decoration: none; cursor: pointer; -webkit-appearance: none; appearance: none;
+}
+.cta { margin-top: 14px; }
+.btn:active, .cta:active { opacity: .9; transform: none; }
+.btn-secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn-danger { background: transparent; color: #D92D20; border: 1px solid var(--line); }
+a.btn, a.cta { color: #fff; }
+a.btn-secondary { color: var(--ink); }
+a.btn-danger { color: #D92D20; }
+
+.price-card, .card {
+  border: 1px solid var(--line); border-radius: 16px; background: var(--paper);
+  box-shadow: none; padding: 20px 18px; margin: 16px 0 20px;
+}
+.price-card.featured { background: var(--paper); }
+.price-card h2 { margin: 0 0 6px; font-size: 20px; font-weight: 800; }
+.price-card .amount, .price-amount {
+  font-size: 32px; font-weight: 900; letter-spacing: -0.02em; margin: 8px 0 4px;
+}
+.price-card .amount span, .price-amount span { font-size: 15px; font-weight: 700; color: #606060; }
+.price-card .tag {
+  display: inline-block; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--field); color: var(--ink);
+  font: 800 11px system-ui, -apple-system, sans-serif; letter-spacing: .04em; text-transform: uppercase;
+}
+.price-card ul { margin: 12px 0 0; padding: 0 0 0 18px; }
+.price-card li { margin: 6px 0; }
+.note { color: #606060; font-size: 14px; }
+.wrap > .card{border:0;padding:0;margin:0;border-radius:0;}

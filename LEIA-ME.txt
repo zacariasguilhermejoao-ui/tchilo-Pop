@@ -1,0 +1,75 @@
+TCHILO — TUDO O QUE FOI ALTERADO E ADICIONADO
+
+Total: 36 ficheiros alterados + 23 novos = 59.
+Nenhum ficheiro foi apagado: só substituis e acrescentas.
+
+COMO APLICAR NO GITHUB
+1. Descompacta TCHILO-SO-ALTERADOS.zip.
+2. No repositório, envia as pastas e ficheiros por cima (mesmos caminhos). Os que já existem são substituídos.
+3. Faz commit. O build do Android corre sozinho.
+
+DEPOIS DO ENVIO (do teu lado)
+a) Supabase > SQL Editor: correr supabase/sql/account-deletion.sql e native/sql/ads-target-locations.sql.
+b) Supabase: publicar a função purge-deleted-accounts, definir CRON_SECRET e agendá-la (comando no fim do account-deletion.sql).
+c) Play Console: criar os 13 produtos de play-console-produtos/PRODUTOS.md com os IDs exatos.
+d) Ler docs/REVISAO-LEGAL.md com um advogado e dizer-me o país, morada e NIF da empresa.
+e) Instalar o APK novo e testar: partilha, notificações, comentários, tema, compras.
+
+LISTA COMPLETA
+
+ALT. .github/workflows/android-build.yaml  —  Build Android: dois passos novos (partilha e push)
+ALT. .github/workflows/android-build.yml  —  Build Android: dois passos novos (partilha e push)
+ALT. child-safety.html  —  Segurança infantil no estilo da app
+ALT. comunidade/index.html  —  Só o número de versão do legal.css
+ALT. contacto/index.html  —  Página legal/pública (sem Paddle, textos corrigidos)
+ALT. cookies/index.html  —  Só o número de versão do legal.css
+ALT. docs/PLAY-BILLING.md  —  Documentação das compras
+NOVO docs/PUSH.md  —  Documentação das notificações
+NOVO docs/REVISAO-LEGAL.md  —  Pontos para confirmares com um advogado
+NOVO docs/SHARE-TARGET.md  —  Documentação da partilha
+ALT. eliminar-conta/index.html  —  Página legal/pública (sem Paddle, textos corrigidos)
+ALT. faq/index.html  —  Página legal/pública (sem Paddle, textos corrigidos)
+NOVO icon-192.png  —  Ícone PNG do site instalado (PWA)
+NOVO icon-512.png  —  Ícone PNG do site instalado (PWA)
+NOVO icon-maskable-512.png  —  Ícone PNG do site instalado (PWA)
+ALT. index.html  —  App: tema escuro e automático, cores suaves, Tema nas Definições, eliminar conta, live vermelha, vídeo no centro do feed, botão Seguir branco nos Reels
+ALT. legal.css  —  Páginas legais: botões e cartões no estilo da app
+ALT. manifest.webmanifest  —  Ícones PNG + partilha para o Tchilo (Share Target) no site
+ALT. menores/index.html  —  Só o número de versão do legal.css
+NOVO native/android-push/res  —  Ícone branco pequeno das notificações (5 tamanhos)
+NOVO native/android-share/MainActivity.java  —  Android: recebe partilhas do sistema e diz à página o tema do telemóvel
+ALT. native/feed-stable.js  —  Lista de scripts carregados (novos scripts e versões)
+NOVO native/sql/ads-target-locations.sql  —  SUPABASE: colunas das zonas dos anúncios (correr 1 vez)
+NOVO native/tchilo-account-deletion.js  —  NOVO - eliminar conta: pedido na nuvem, apagar aos 30 dias, cancelar ao voltar a entrar
+ALT. native/tchilo-account-switcher.js  —  Ícone novo do seletor de contas
+ALT. native/tchilo-ads-icon-fix.js  —  Ícone do Meus Anúncios na mesma família
+ALT. native/tchilo-ads-pro.js  —  Anúncios (ecrã antigo): pagamento pela Google Play
+ALT. native/tchilo-ads-ui.js  —  Turbinar post refeito: estilo da app, duração, zonas no mapa, Google Play
+NOVO native/tchilo-comments-ui.js  —  NOVO - comentários: página do post no feed e painel por baixo do vídeo nos Reels
+ALT. native/tchilo-cookies-policy.js  —  Texto de cookies sem Paddle
+ALT. native/tchilo-geo.js  —  Várias zonas por anúncio (função existe, ver docs/REVISAO-LEGAL.md ponto 11)
+ALT. native/tchilo-gifts.js  —  Ícone do presente maior
+ALT. native/tchilo-play-billing.js  —  Google Play: moedas, anúncios e Plus (IDs dos produtos)
+ALT. native/tchilo-premium.js  —  Ecrã do Tchilo Plus no estilo da app
+ALT. native/tchilo-profile-share.js  —  Versão do script do seletor de contas
+NOVO native/tchilo-push-native.js  —  NOVO - notificações push no Android (regista o telemóvel depois do login)
+ALT. native/tchilo-saldo-play.js  —  Moedas: compra única pela Google Play (sem duplicados)
+ALT. native/tchilo-saldo.js  —  Obter Moedas: 7 pacotes, seleção, seta de voltar; site sem Paddle
+ALT. native/tchilo-settings-icons.js  —  Ícones das Definições todos na mesma família
+ALT. native/tchilo-share-target.js  —  Recebe o que o Android partilha (fotos, vídeos, texto, links)
+NOVO native/tchilo-theme-dark.js  —  NOVO - tema escuro (gerado a partir do tema claro)
+ALT. native/tchilo-verified.js  —  Seta de voltar igual em todos os ecrãs
+NOVO play-console-produtos/PRODUTOS.md  —  Lista dos 13 produtos para criar na Play Console (IDs e preços)
+NOVO play-console-produtos/produtos.csv  —  Os mesmos produtos em CSV
+ALT. precos/index.html  —  Página legal/pública (sem Paddle, textos corrigidos)
+ALT. pricing/index.html  —  Página legal/pública (sem Paddle, textos corrigidos)
+ALT. privacidade/index.html  —  Página legal/pública (sem Paddle, textos corrigidos)
+ALT. reembolso/index.html  —  Página legal/pública (sem Paddle, textos corrigidos)
+ALT. resources/icon.png  —  NOVO ÍCONE do app (t roxo sobre preto, 1024x1024, cobre o quadrado todo)
+NOVO scripts/patch_android_push.py  —  Build Android: permissão de notificações + ícone das notificações
+NOVO scripts/patch_android_share.py  —  Build Android: liga o Share Target (manifest + MainActivity)
+ALT. sobre/index.html  —  Só o número de versão do legal.css
+NOVO supabase/functions/purge-deleted-accounts/index.ts  —  SUPABASE: função diária que apaga contas pedidas há 30 dias
+NOVO supabase/sql/account-deletion.sql  —  SUPABASE: eliminar conta aos 30 dias (correr 1 vez)
+ALT. termos/index.html  —  Página legal/pública (sem Paddle, textos corrigidos)
+

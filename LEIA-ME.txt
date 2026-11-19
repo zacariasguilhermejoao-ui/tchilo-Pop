@@ -1,6 +1,6 @@
 TCHILO — TUDO O QUE FOI ALTERADO E ADICIONADO
 
-Total: 36 ficheiros alterados + 23 novos = 59.
+Total: 43 ficheiros alterados + 33 novos = 76.
 Nenhum ficheiro foi apagado: só substituis e acrescentas.
 
 COMO APLICAR NO GITHUB
@@ -9,8 +9,9 @@ COMO APLICAR NO GITHUB
 3. Faz commit. O build do Android corre sozinho.
 
 DEPOIS DO ENVIO (do teu lado)
-a) Supabase > SQL Editor: correr supabase/sql/account-deletion.sql e native/sql/ads-target-locations.sql.
+a) SUPABASE (não é GitHub) > SQL Editor: correr supabase/sql/account-deletion.sql e native/sql/ads-target-locations.sql.
 b) Supabase: publicar a função purge-deleted-accounts, definir CRON_SECRET e agendá-la (comando no fim do account-deletion.sql).
+b2) Tradução: correr supabase/sql/translation-cache.sql, publicar a função translate e guardar DEEPL_API_KEY ou GOOGLE_TRANSLATE_API_KEY (ver docs/TRADUCAO.md).
 c) Play Console: criar os 13 produtos de play-console-produtos/PRODUTOS.md com os IDs exatos.
 d) Ler docs/REVISAO-LEGAL.md com um advogado e dizer-me o país, morada e NIF da empresa.
 e) Instalar o APK novo e testar: partilha, notificações, comentários, tema, compras.
@@ -66,10 +67,40 @@ ALT. pricing/index.html  —  Página legal/pública (sem Paddle, textos corrigi
 ALT. privacidade/index.html  —  Página legal/pública (sem Paddle, textos corrigidos)
 ALT. reembolso/index.html  —  Página legal/pública (sem Paddle, textos corrigidos)
 ALT. resources/icon.png  —  NOVO ÍCONE do app (t roxo sobre preto, 1024x1024, cobre o quadrado todo)
-NOVO scripts/patch_android_push.py  —  Build Android: permissão de notificações + ícone das notificações
-NOVO scripts/patch_android_share.py  —  Build Android: liga o Share Target (manifest + MainActivity)
 ALT. sobre/index.html  —  Só o número de versão do legal.css
 NOVO supabase/functions/purge-deleted-accounts/index.ts  —  SUPABASE: função diária que apaga contas pedidas há 30 dias
 NOVO supabase/sql/account-deletion.sql  —  SUPABASE: eliminar conta aos 30 dias (correr 1 vez)
 ALT. termos/index.html  —  Página legal/pública (sem Paddle, textos corrigidos)
+NOVO native/tchilo-translate.js  —  «Ver tradução» / «Ver original» em posts, comentários e Reels (deteta o idioma no telemóvel)
+NOVO supabase/functions/translate/index.ts  —  SUPABASE: função que traduz (DeepL ou Google) e guarda em cache
+NOVO supabase/sql/translation-cache.sql  —  SUPABASE: tabela da cache de traduções (correr 1 vez)
+NOVO docs/TRADUCAO.md  —  como ligar a tradução e custos
+NOVO android-setup/share.py  —  Build Android: liga o Share Target (manifest + MainActivity)
+NOVO android-setup/push.py  —  Build Android: permissão de notificações + ícone das notificações
+NOVO docs/AVISO-GITHUB.md  —  AVISO sobre a pasta scripts/ (ler antes de enviar)
+ALT. .github/workflows/bump-premium-script.yml  —  passou a ser só manual (deixa de mexer sozinho no index.html)
 
+NOVO docs/SEO.md  —  Google: o que já estava certo, o que corrigi e o que tens de fazer no Search Console
+ALT. index.html (extra)  —  link do email "esqueci a senha" agora aponta para tchilopop.com/redefinir-senha/; página inicial com título, descrição, canonical, Open Graph e dados estruturados
+
+AVISO IMPORTANTE ANTES DE ENVIAR PARA O GITHUB
+- NÃO ponhas nada na pasta scripts/. O workflow patch-index.yml corre sozinho mais de 140 scripts antigos
+  quando essa pasta muda e reescreve o index.html (login, ícone SMS, tamanho do LIVE). Os scripts novos
+  estão em android-setup/ de propósito.
+- Os ficheiros .sql NÃO correm no GitHub. Ficam guardados lá, mas tens de os correr no Supabase (SQL Editor).
+- As funções supabase/functions/* também não são publicadas pelo GitHub: publica-as no Supabase (Edge Functions).
+
+ÚLTIMA RONDA (links, mensagens, sem rede, chamadas, partilha)
+NOVO native/tchilo-open-link.js  —  abre o post ou o perfil quando alguém clica num link partilhado (antes ia só para o feed)
+ALT. native/tchilo-router.js e native/tchilo-public-urls.js  —  links copiados com tchilopop.com (na app saíam com localhost) e /post/ID/ com pré-visualização
+ALT. index.html  —  caixa de mensagens que cresce ao saltar linha, um só botão +, sem rede abre Mensagens e Pesquisa com aviso pequeno (e não o ecrã cheio)
+ALT. native/chat-compose-fix.js  —  tirado o segundo + da caixa de mensagens
+ALT. native/chat-call-webrtc.js  —  chamadas: toca com Atender e Recusar (já não atende sozinha), ícones sem emojis, sinais repetidos ignorados, notificação a quem recebe
+NOVO supabase/functions/turn-credentials/index.ts  —  SUPABASE: servidor TURN para as chamadas funcionarem entre redes móveis
+NOVO android-setup/permissions.py  —  Android: permissões de microfone e câmara (faltavam)
+ALT. .github/workflows/android-build.yml e .yaml  —  passo novo das permissões
+ALT. .github/workflows/ios-prepare.yml e .yaml  —  texto do microfone no iPhone (faltava)
+ALT. android-setup/share.py  —  o Tchilo passa a aparecer também para documentos (Word, Excel, ZIP...)
+ALT. native/tchilo-push-native.js  —  tocar numa notificação de chamada abre a conversa
+NOVO docs/CHAMADAS.md  —  como funcionam as chamadas e o que ligar
+ALT. docs/SHARE-TARGET.md e docs/PUSH.md  —  o que fazer se o Tchilo não aparece na lista; como confirmar que a notificação chega

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
+<script>try{var q=sessionStorage.getItem('tchilo_spa_path');if(q){sessionStorage.setItem('tchilo_open_path',q);}}catch(e){}</script>
 <script>try{var s=localStorage.getItem('tchilo_theme'),d=s==='dark';if(s!=='dark'&&s!=='classic'){d=(window.TchiloSystemTheme&&window.TchiloSystemTheme.isDark)?!!window.TchiloSystemTheme.isDark():!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);}if(d){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
 <script id="tchilo-fresh-index">
 /* Limpa uma vez o cache antigo do site (service worker + caches), para o index novo aparecer. Mudar FRESH_V força nova limpeza. */
@@ -214,7 +215,25 @@ html:root body .icon-btn[data-index-live] .badge.hide{display:none !important;}
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Feed</title>
+<title>Tchilo Pop — rede social de fotos, vídeos, stories e reels</title>
+<meta name="description" content="Rede social para partilhar fotos, vídeos, stories e reels, falar com amigos e descobrir criadores.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://tchilopop.com/">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tchilo">
+<meta property="og:locale" content="pt_PT">
+<meta property="og:title" content="Tchilo Pop — rede social de fotos, vídeos, stories e reels">
+<meta property="og:description" content="Rede social para partilhar fotos, vídeos, stories e reels, falar com amigos e descobrir criadores.">
+<meta property="og:url" content="https://tchilopop.com/">
+<meta property="og:image" content="https://tchilopop.com/icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tchilo Pop — rede social de fotos, vídeos, stories e reels">
+<meta name="twitter:description" content="Rede social para partilhar fotos, vídeos, stories e reels, falar com amigos e descobrir criadores.">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebSite", "name": "Tchilo", "alternateName": "Tchilo Pop", "url": "https://tchilopop.com/", "inLanguage": "pt"}, {"@type": "Organization", "name": "Tchilo", "legalName": "VENDOZA - COMÉRCIO GERAL E PRESTAÇÃO DE SERVIÇOS, LDA", "url": "https://tchilopop.com/", "logo": "https://tchilopop.com/icon-512.png"}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://edgngwoxhdxcvyzpqjbj.supabase.co" crossorigin>
@@ -2730,7 +2749,7 @@ html:root body #tchiloAdsPro select{background:var(--field,#F8F9FB) !important;b
 </style>
 <script src="native/tchilo-theme-dark.js?v=1"></script>
 </head>
-<body>
+<body><noscript><h1>Tchilo Pop</h1><p>Rede social para partilhar fotos, vídeos, stories e reels. Precisas de JavaScript para usar o Tchilo.</p><p><a href="/sobre/">Sobre</a> · <a href="/comunidade/">Comunidade</a> · <a href="/termos/">Termos</a> · <a href="/privacidade/">Privacidade</a> · <a href="/faq/">Perguntas frequentes</a></p></noscript>
 <script id="tchilo-click-fix-js-v1">
 (function(){
   function hasSession(){
@@ -4110,13 +4129,49 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       <button type="button" class="send-rec" onclick="stopAndSendChatAudio()">Enviar</button>
     </div>
     <div class="chat-input-bar">
-      <button type="button" class="chat-attach-btn" id="chatAttachBtn" onclick="openChatAttachMenu()" aria-label="Anexar" title="Anexar"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-      <input type="text" id="chatInput" placeholder="Mensagem" onkeydown="if(event.key==='Enter')sendChat()" oninput="window.__tchiloToggleSend&&window.__tchiloToggleSend()">
+      <button type="button" class="chat-attach-btn" id="chatAttachBtn" onclick="openChatAttachMenu()" aria-label="Anexar" title="Anexar"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+      <textarea id="chatInput" rows="1" placeholder="Mensagem" enterkeyhint="send" autocapitalize="sentences" onkeydown="window.tchiloChatKey&&window.tchiloChatKey(event)" oninput="window.__tchiloToggleSend&&window.__tchiloToggleSend();window.tchiloChatAutosize&&window.tchiloChatAutosize()"></textarea>
       <button type="button" id="chatMicBtn" aria-label="Gravar áudio" title="Gravar áudio" onclick="if(window.startChatAudioRecord)startChatAudioRecord();">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3M8 21h8"/></svg>
       </button>
       <button class="chat-send tchilo-send-hidden" onclick="sendChat()" aria-label="Enviar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
     </div>
+    <style id="tchilo-chat-composer-final">
+    html body #chatScreen .chat-input-bar{align-items:flex-end!important;}
+    html body #chatScreen .chat-input-bar #chatInput{display:block!important;flex:1!important;min-width:0!important;box-sizing:border-box!important;height:40px;min-height:40px!important;max-height:132px!important;resize:none!important;overflow-y:hidden;border:1px solid var(--line,#E4E6EB)!important;border-radius:22px!important;background:var(--field,#F8F9FB)!important;color:var(--ink,#0B0B0C)!important;padding:9px 16px!important;font:500 15px/22px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif!important;outline:none!important;box-shadow:none!important;-webkit-appearance:none;appearance:none;}
+    html body #chatScreen .chat-input-bar #chatAttachBtn{width:40px!important;height:40px!important;min-width:40px!important;flex:0 0 40px!important;border:0!important;border-radius:50%!important;background:var(--field,#F8F9FB)!important;background-color:var(--field,#F8F9FB)!important;color:var(--ink,#0B0B0C)!important;padding:0!important;margin:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;box-shadow:none!important;}
+    html body #chatScreen .chat-input-bar #chatAttachBtn::before,html body #chatScreen .chat-input-bar #chatAttachBtn::after{content:none!important;display:none!important;}
+    html body #chatScreen .chat-input-bar #chatMicBtn,html body #chatScreen .chat-input-bar .chat-send{align-self:flex-end!important;}
+    .bubble{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;}
+    html[data-theme="dark"] body #chatScreen .chat-input-bar #chatAttachBtn,html[data-theme="dark"] body #chatScreen .chat-input-bar #chatMicBtn,html[data-theme="dark"] body #chatScreen .chat-input-bar #tchiloChatAudioBtn,html[data-theme="dark"] body #chatScreen .chat-input-bar .chat-send{color:#F2F2F0!important;}
+    html[data-theme="dark"] body #chatScreen .chat-input-bar #chatAttachBtn svg,html[data-theme="dark"] body #chatScreen .chat-input-bar #chatMicBtn svg,html[data-theme="dark"] body #chatScreen .chat-input-bar #tchiloChatAudioBtn svg,html[data-theme="dark"] body #chatScreen .chat-input-bar .chat-send svg,html[data-theme="dark"] body #chatScreen .chat-input-bar #chatAttachBtn svg *,html[data-theme="dark"] body #chatScreen .chat-input-bar #chatMicBtn svg *,html[data-theme="dark"] body #chatScreen .chat-input-bar #tchiloChatAudioBtn svg *,html[data-theme="dark"] body #chatScreen .chat-input-bar .chat-send svg *{stroke:#F2F2F0!important;color:#F2F2F0!important;}
+    html[data-theme="dark"] body #chatScreen .chat-input-bar #chatInput::placeholder{color:#A0A0A6!important;}
+    </style>
+    <script>
+    (function(){
+      var MAXH=132;
+      window.tchiloChatAutosize=function(){
+        var t=document.getElementById('chatInput'); if(!t) return;
+        t.style.height='auto';
+        var h=Math.max(40,Math.min(t.scrollHeight,MAXH));
+        t.style.height=h+'px';
+        t.style.overflowY=t.scrollHeight>MAXH?'auto':'hidden';
+      };
+      /* No telemóvel Enter faz nova linha e o botão envia; no computador Enter envia e Shift+Enter faz nova linha */
+      window.tchiloChatKey=function(e){
+        if(e.key!=='Enter'||e.isComposing) return;
+        var touch=false; try{ touch=!!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches); }catch(x){}
+        if(touch||e.shiftKey) return;
+        e.preventDefault(); sendChat();
+      };
+      var t=document.getElementById('chatInput');
+      if(t && !t.__autosizeBound){
+        t.__autosizeBound=true;
+        var d=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value');
+        Object.defineProperty(t,'value',{configurable:true,get:function(){return d.get.call(this);},set:function(v){d.set.call(this,v);window.tchiloChatAutosize();}});
+      }
+    })();
+    </script>
     <script>
     (function(){
       window.__tchiloToggleSend=function(){
@@ -4310,7 +4365,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 /* ===== TCHILO / SUPABASE ===== */
 const TCHILO_SUPABASE_URL = 'https://edgngwoxhdxcvyzpqjbj.supabase.co';
 const TCHILO_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkZ25nd294aGR4Y3Z5enBxamJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMTI3NDcsImV4cCI6MjEwMzU4ODc0N30.grrS7tWQ37n8GaI9tLNBdJAHzW-1pAu8FjsByGZAH30';
-const TCHILO_SITE_URL = 'https://zacariasguilhermejoao-ui.github.io/tchilo-Pop/';
+const TCHILO_SITE_URL = 'https://tchilopop.com/';
 const tchiloSupabase = window.supabase.createClient(TCHILO_SUPABASE_URL, TCHILO_SUPABASE_KEY);
 window.tchiloSupabase = tchiloSupabase;
 
@@ -4867,7 +4922,7 @@ async function submitPasswordRecovery(e) {
   if (btn) { btn.disabled = true; btn.textContent = 'A enviar…'; }
   try {
     const redirectTo = (typeof TCHILO_SITE_URL !== 'undefined' && TCHILO_SITE_URL)
-      ? TCHILO_SITE_URL
+      ? (TCHILO_SITE_URL.replace(/\/?$/, '/') + 'redefinir-senha/')
       : (window.location.origin + window.location.pathname);
     const { error } = await tchiloSupabase.auth.resetPasswordForEmail(email, { redirectTo: redirectTo });
     if (error) throw error;
@@ -10484,6 +10539,8 @@ const LANG_LABELS = { pt:'Português', en:'English', fr:'Français', it:'Italian
 const LANGUAGE_PACKS = {
   en: {
     "Sem ligação · modo offline":"No connection · offline mode",
+"Sem ligação. Mostramos o que está guardado.":"No connection. Showing what is saved.",
+"Sem ligação. A mensagem não foi enviada.":"No connection. The message was not sent.",
     "Esta funcionalidade precisa de internet. Verifica o Wi-Fi ou os dados móveis e tenta novamente.":"This feature needs internet. Check your Wi-Fi or mobile data and try again.",
     "Versão":"Version",
     "Precisas de internet para ver as lives.":"You need internet to see lives.",
@@ -10648,6 +10705,8 @@ const LANGUAGE_PACKS = {
   },
   fr: {
     "Sem ligação · modo offline":"Hors connexion · mode hors ligne",
+"Sem ligação. Mostramos o que está guardado.":"Hors connexion. Nous affichons ce qui est enregistré.",
+"Sem ligação. A mensagem não foi enviada.":"Hors connexion. Le message n'a pas été envoyé.",
     "Esta funcionalidade precisa de internet. Verifica o Wi-Fi ou os dados móveis e tenta novamente.":"Cette fonctionnalité nécessite internet. Vérifie le Wi-Fi ou les données mobiles et réessaie.",
     "Versão":"Version",
     "Precisas de internet para ver as lives.":"Tu as besoin d'internet pour voir les lives.",
@@ -10810,6 +10869,8 @@ const LANGUAGE_PACKS = {
   },
   it: {
     "Sem ligação · modo offline":"Nessuna connessione · modalità offline",
+"Sem ligação. Mostramos o que está guardado.":"Nessuna connessione. Mostriamo ciò che è salvato.",
+"Sem ligação. A mensagem não foi enviada.":"Nessuna connessione. Il messaggio non è stato inviato.",
     "Esta funcionalidade precisa de internet. Verifica o Wi-Fi ou os dados móveis e tenta novamente.":"Questa funzione richiede internet. Controlla il Wi-Fi o i dati mobili e riprova.",
     "Versão":"Versione",
     "Precisas de internet para ver as lives.":"Serve internet per vedere le live.",
@@ -10972,6 +11033,8 @@ const LANGUAGE_PACKS = {
   },
   zh: {
     "Sem ligação · modo offline":"无网络 · 离线模式",
+"Sem ligação. Mostramos o que está guardado.":"无网络。显示已保存的内容。",
+"Sem ligação. A mensagem não foi enviada.":"无网络。消息未发送。",
     "Esta funcionalidade precisa de internet. Verifica o Wi-Fi ou os dados móveis e tenta novamente.":"此功能需要联网。请检查 Wi-Fi 或移动数据后重试。",
     "Versão":"版本",
     "Precisas de internet para ver as lives.":"观看直播需要联网。",
@@ -13406,12 +13469,12 @@ document.addEventListener('DOMContentLoaded',function(){applyAppTheme();applyLan
 <script src="native/story-music.js"></script>
 <script src="native/feed-stories-scroll.js"></script>
 <script src="native/music-use-sheet.js"></script>
-<script src="native/feed-stable.js?v=3"></script>
+<script src="native/feed-stable.js?v=5"></script>
 <script src="native/feed-noflicker.js"></script>
 <script src="native/chat-send-fix.js"></script>
 <script src="native/chat-audio-fix.js?v=compose3"></script>
-<script src="native/chat-compose-fix.js?v=4"></script>
-<script src="native/chat-call-webrtc.js?v=3"></script>
+<script src="native/chat-compose-fix.js?v=5"></script>
+<script src="native/chat-call-webrtc.js?v=4"></script>
 <script src="native/profile-menu-fix.js?v=3"></script>
 <script src="native/sheets-full-fix.js?v=5"></script>
 <script src="native/tchilo-modal-ui.js?v=4"></script>
@@ -13443,7 +13506,7 @@ document.addEventListener('DOMContentLoaded',function(){applyAppTheme();applyLan
 <script src="native/tchilo-live.js?v=2"></script>
 <script src="native/tchilo-live-lobby.js?v=3"></script>
 <script src="native/tchilo-verified.js?v=6"></script>
-<script src="native/tchilo-premium.js?v=7g"></script>
+<script src="native/tchilo-premium.js?v=7h"></script>
 <script src="native/paddle-premium.js?v=3"></script>
 <script src="native/tchilo-ads-ui.js?v=11"></script>
 
@@ -14155,6 +14218,10 @@ $('tsuPhoto').addEventListener('change',function(){var f=this.files[0];if(!f)ret
 #tchiloOffline .tof-alt{background:transparent!important;color:var(--ink,#0B0B0C)!important;margin-top:10px}
 #tchiloOfflinePill{position:fixed;top:calc(env(safe-area-inset-top) + 6px);left:50%;transform:translateX(-50%);z-index:10150;display:none;padding:6px 14px;border-radius:999px;background:var(--ink,#0B0B0C);color:var(--paper,#fff);font:600 12.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;white-space:nowrap;pointer-events:none}
 #tchiloOfflinePill.on{display:block}
+.tk-inline-offline{display:none;align-items:center;justify-content:space-between;gap:12px;margin:8px 12px;padding:10px 14px;border:1px solid var(--line,#E4E6EB);border-radius:12px;background:var(--field,#F8F9FB);color:var(--ink,#0B0B0C);font:600 13.5px/1.35 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.tk-inline-offline.on{display:flex}
+.tk-inline-offline button{flex:none;border:0;background:transparent;color:var(--ink,#0B0B0C);font:800 13px system-ui,-apple-system,sans-serif;text-decoration:underline;padding:6px 0;cursor:pointer}
+.tk-inline-offline button:disabled{opacity:.5}
 </style>
 <script id="tchilo-offline-js">
 (function(){
@@ -14202,15 +14269,36 @@ $('tsuPhoto').addEventListener('change',function(){var f=this.files[0];if(!f)ret
   }
   /* Offline NÃO bloqueia a app: o feed, o perfil, os guardados e as definições mostram o que está guardado.
      Só o que precisa mesmo de internet (mensagens, pesquisa, compras, anúncios, lives) mostra o ecrã de bloqueio. */
-  var ONLINE_ONLY={messages:1,search:1,'settings-premium':1,'settings-verified':1,'settings-ads':1};
+  var ONLINE_ONLY={'settings-premium':1,'settings-verified':1,'settings-ads':1};
+  /* Mensagens e Pesquisa abrem sempre; sem ligação mostram um aviso pequeno por cima do que está guardado */
+  var INLINE_SCREENS=['messages','search'];
+  function inlineBanner(id){
+    var scr=document.getElementById('screen-'+id); if(!scr) return null;
+    var b=scr.querySelector(':scope > .tk-inline-offline');
+    if(!b){
+      b=document.createElement('div'); b.className='tk-inline-offline'; b.setAttribute('role','status');
+      b.innerHTML='<span></span><button type="button"></button>';
+      b.querySelector('button').addEventListener('click',function(){
+        var bt=this; bt.disabled=true;
+        var ctl=('AbortController' in window)?new AbortController():null; var to=setTimeout(function(){if(ctl)ctl.abort();},6000);
+        fetch(URL_PING,{mode:'no-cors',cache:'no-store',signal:ctl?ctl.signal:undefined}).then(function(){clearTimeout(to);bt.disabled=false;goOnline();}).catch(function(){clearTimeout(to);bt.disabled=false;});
+      });
+      var hdr=scr.querySelector(':scope > .screen-header, :scope > .topbar, :scope > header');
+      if(hdr&&hdr.nextSibling) scr.insertBefore(b,hdr.nextSibling); else scr.insertBefore(b,scr.firstChild);
+    }
+    b.querySelector('span').textContent=tr('Sem ligação. Mostramos o que está guardado.');
+    b.querySelector('button').textContent=tr('Tentar novamente');
+    return b;
+  }
+  function inlineRefresh(){ INLINE_SCREENS.forEach(function(id){ var b=inlineBanner(id); if(b) b.classList.toggle('on',navigator.onLine===false); }); }
   function pillShow(on){
     if(!document.body){document.addEventListener('DOMContentLoaded',function(){pillShow(on);});return;}
     if(!pill){pill=document.createElement('div');pill.id='tchiloOfflinePill';pill.setAttribute('role','status');document.body.appendChild(pill);}
     pill.textContent=tr('Sem ligação · modo offline');
     pill.classList.toggle('on',!!on);
   }
-  function goOffline(){document.documentElement.classList.add('tk-offline');pillShow(true);}
-  function goOnline(){document.documentElement.classList.remove('tk-offline');pillShow(false);hide();}
+  function goOffline(){document.documentElement.classList.add('tk-offline');pillShow(true);inlineRefresh();}
+  function goOnline(){document.documentElement.classList.remove('tk-offline');pillShow(false);hide();inlineRefresh();}
   window.tchiloRequireOnline=function(){if(navigator.onLine!==false)return true;show();return false;};
   function hookGoTo(){
     var orig=window.goTo;
@@ -14226,6 +14314,14 @@ $('tsuPhoto').addEventListener('change',function(){var f=this.files[0];if(!f)ret
   window.addEventListener('online',goOnline);
   if(navigator.onLine===false)goOffline();
   hookGoTo();[300,1500,3500].forEach(function(ms){setTimeout(hookGoTo,ms);});
+  [500,2000,4500].forEach(function(ms){setTimeout(inlineRefresh,ms);});
+  /* não perder o texto: enviar sem ligação avisa e mantém a mensagem na caixa */
+  function hookSend(){
+    var o=window.sendChat; if(typeof o!=='function'||o.__ofl) return;
+    var w=function(){ if(navigator.onLine===false){ try{ showToast(tr('Sem ligação. A mensagem não foi enviada.')); }catch(e){} return; } return o.apply(this,arguments); };
+    w.__ofl=true; window.sendChat=w;
+  }
+  hookSend();[300,1500,3500].forEach(function(ms){setTimeout(hookSend,ms);});
 })();
 </script>
 <style id="tchilo-login-no-title">#loginGate.panel-open #accessPanel .auth-sub{margin-top:24px !important}</style>

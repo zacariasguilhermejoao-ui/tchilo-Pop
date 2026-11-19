@@ -1,0 +1,14 @@
+Product ID,Published State,Purchase Type,Auto Translate,Locale; Title; Description,Auto Fill Prices,Price
+moedas_70,published,managed_by_android,false,pt-PT; 70 Moedas Tchilo; Moedas para presentes nas LIVEs no Tchilo.,true,1000000
+moedas_280,published,managed_by_android,false,pt-PT; 280 Moedas Tchilo; Moedas para presentes nas LIVEs no Tchilo.,true,4000000
+moedas_700,published,managed_by_android,false,pt-PT; 700 Moedas Tchilo; Moedas para presentes nas LIVEs no Tchilo.,true,10000000
+moedas_1400,published,managed_by_android,false,pt-PT; 1400 Moedas Tchilo; Moedas para presentes nas LIVEs no Tchilo.,true,20000000
+moedas_2450,published,managed_by_android,false,pt-PT; 2450 Moedas Tchilo; Moedas para presentes nas LIVEs no Tchilo.,true,35000000
+moedas_3500,published,managed_by_android,false,pt-PT; 3500 Moedas Tchilo; Moedas para presentes nas LIVEs no Tchilo.,true,50000000
+moedas_4900,published,managed_by_android,false,pt-PT; 4900 Moedas Tchilo; Moedas para presentes nas LIVEs no Tchilo.,true,70000000
+anuncio_1d,published,managed_by_android,false,pt-PT; Anúncio Tchilo 1 dia; Publicidade no Tchilo durante 1 dia.,true,1000000
+anuncio_3d,published,managed_by_android,false,pt-PT; Anúncio Tchilo 3 dias; Publicidade no Tchilo durante 3 dias.,true,3000000
+anuncio_7d,published,managed_by_android,false,pt-PT; Anúncio Tchilo 7 dias; Publicidade no Tchilo durante 7 dias.,true,7000000
+anuncio_14d,published,managed_by_android,false,pt-PT; Anúncio Tchilo 14 dias; Publicidade no Tchilo durante 14 dias.,true,14000000
+anuncio_30d,published,managed_by_android,false,pt-PT; Anúncio Tchilo 30 dias; Publicidade no Tchilo durante 30 dias.,true,30000000
+tchilo_plus,published,managed_by_android,false,pt-PT; Tchilo Plus; Mais ferramentas para criadores. Compra única.,true,4000000

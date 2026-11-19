@@ -4300,6 +4300,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if(document.body) start(); else document.addEventListener('DOMContentLoaded',start);
 })();
 </script>
+<script id="tchilo-supabase-switch">
+/* INTERRUPTOR DO SUPABASE: false = desativado (app corre com cliente vazio, sem rede); true = ativado */
+window.TCHILO_SUPABASE_ENABLED=false;
+</script>
 <script id="tchilo-supabase-loader">
 /* App nativa (Android/iOS): usa a biblioteca guardada na própria app (native/vendor/supabase.js, descarregada no build)
    → arranca e funciona sem internet. No site, ou se o ficheiro faltar, usa o CDN. */
@@ -4309,15 +4313,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     nat=!!(window.Capacitor&&typeof window.Capacitor.isNativePlatform==='function'&&window.Capacitor.isNativePlatform())
       ||location.protocol==='capacitor:'||(location.protocol==='https:'&&location.hostname==='localhost'&&!location.port);
   }catch(e){}
-  if(nat)document.write('<script src="native/vendor/supabase.js"><\/script>');
+  if(nat&&window.TCHILO_SUPABASE_ENABLED)document.write('<script src="native/vendor/supabase.js"><\/script>');
 })();
 </script>
-<script>if(!window.supabase)document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');</script>
+<script>if(window.TCHILO_SUPABASE_ENABLED&&!window.supabase)document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');</script>
 <script id="tchilo-supabase-guard">
 /* Último recurso: se a biblioteca não carregar (sem internet e sem cópia local), a app arranca em modo offline
    com um cliente vazio em vez de falhar no arranque. Ao voltar a internet, recarrega. */
 (function(){
-  if(window.supabase&&typeof window.supabase.createClient==='function')return;
+  if(window.TCHILO_SUPABASE_ENABLED&&window.supabase&&typeof window.supabase.createClient==='function')return;
   var OFF={name:'AuthRetryableFetchError',message:'Sem ligação à internet',status:0};
   function res(){return Promise.resolve({data:null,error:OFF});}
   function resAuth(){return Promise.resolve({data:{user:null,session:null},error:OFF});}
@@ -4335,6 +4339,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     return p;
   }
   function stored(){
+    if(!window.TCHILO_SUPABASE_ENABLED)return null;
     try{
       for(var i=0;i<localStorage.length;i++){
         var k=localStorage.key(i);
@@ -4356,6 +4361,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }};
   window.__tchiloSupabaseStub=true;
   window.addEventListener('online',function(){
+    if(!window.TCHILO_SUPABASE_ENABLED)return;
     try{if(sessionStorage.getItem('tchilo_stub_reload'))return;sessionStorage.setItem('tchilo_stub_reload','1');}catch(e){}
     location.reload();
   });

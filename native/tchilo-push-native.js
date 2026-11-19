@@ -108,13 +108,17 @@
     var d = (action && action.notification && action.notification.data) || {};
     var type = String(d.type || '');
     var url = String(d.url || '');
-    var screen = type === 'message' || url.indexOf('mensag') >= 0 ? 'messages' : 'notifs';
+    var screen = type === 'message' || type === 'call' || url.indexOf('mensag') >= 0 ? 'messages' : 'notifs';
+    var caller = String(d.from || '');
     var tries = 0;
     (function go() {
       tries++;
       try {
         if (typeof window.goTo === 'function' && document.getElementById('screen-' + screen)) {
           window.goTo(screen);
+          if (type === 'call' && caller && typeof window.openChat === 'function') {
+            try { window.openChat(caller); } catch (e) {}
+          }
           return;
         }
       } catch (e) {}

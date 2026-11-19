@@ -93,15 +93,23 @@
     bootFromUrl();
   }
 
+  /* Nos telemóveis a app corre em https://localhost: os links partilhados têm de usar o domínio público */
+  function siteOrigin() {
+    try {
+      var h = location.hostname;
+      if (h === 'tchilopop.com' || h === 'www.tchilopop.com') return location.origin;
+    } catch (e) {}
+    return 'https://tchilopop.com';
+  }
   window.tchiloCopyPageLink = function () {
-    return Promise.resolve(location.origin + '/');
+    return Promise.resolve(siteOrigin() + '/');
   };
   window.tchiloProfilePublicUrl = function (username) {
     var u = encodeURIComponent(String(username || '').trim());
-    return (location.origin || 'https://tchilopop.com') + (u ? '/u/' + u : '/');
+    return siteOrigin() + (u ? '/u/' + u : '/');
   };
   window.tchiloPostPublicUrl = function (postId) {
     var id = encodeURIComponent(String(postId || '').trim());
-    return (location.origin || 'https://tchilopop.com') + (id ? '/p/' + id : '/');
+    return siteOrigin() + (id ? '/post/' + id + '/' : '/');
   };
 })();

@@ -11,14 +11,15 @@
 
   function origin() {
     try {
-      if (location.origin && location.origin.indexOf('http') === 0) return location.origin;
+      var h = location.hostname;
+      if (h === 'tchilopop.com' || h === 'www.tchilopop.com') return location.origin;
     } catch (e) {}
     return ORIGIN;
   }
 
   function postUrl(id) {
     if (typeof window.tchiloPostPublicUrl === 'function') return window.tchiloPostPublicUrl(id);
-    return origin() + '/p/' + encodeURIComponent(String(id || ''));
+    return origin() + '/post/' + encodeURIComponent(String(id || '')) + '/';
   }
 
   function profileUrl(username) {

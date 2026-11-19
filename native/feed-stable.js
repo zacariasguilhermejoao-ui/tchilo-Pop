@@ -55,7 +55,7 @@
     add('native/tchilo-perf-boost.js?v=1');
     add('native/tchilo-final-css.js?v=4');
     add('native/tchilo-ui-unlock.js?v=3');
-    add('native/tchilo-router.js?v=5');
+    add('native/tchilo-router.js?v=6');
     add('native/tchilo-header-ui.js?v=5');
     add('native/tchilo-session-lock.js?v=1');
     add('native/tchilo-account-switcher.js?v=2');
@@ -106,7 +106,7 @@
       'native/tchilo-no-busy-select.js?v=1',
       'native/tchilo-chat-composer.js?v=1',
       'native/tchilo-password-reset.js?v=6',
-      'native/tchilo-public-urls.js?v=1',
+      'native/tchilo-public-urls.js?v=2',
       'native/tchilo-og-meta.js?v=1',
       'native/tchilo-avatar-viewer.js?v=1',
       'native/tchilo-premium.js?v=3',
@@ -130,9 +130,11 @@
       'native/tchilo-name-sync.js?v=1',
       'native/tchilo-feed-to-reels.js?v=2',
       'native/tchilo-share-target.js?v=2',
-      'native/tchilo-push-native.js?v=1',
+      'native/tchilo-push-native.js?v=2',
       'native/tchilo-comments-ui.js?v=1',
       'native/tchilo-account-deletion.js?v=1',
+      'native/tchilo-translate.js?v=1',
+      'native/tchilo-open-link.js?v=1',
       'native/reels-follow-fix.js?v=3',
       'native/tchilo-profile-avatar-plus.js?v=5'
     ]);
